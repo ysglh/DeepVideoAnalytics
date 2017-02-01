@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView,DetailView
 from django.utils.decorators import method_decorator
 from .forms import UploadFileForm
-from .models import Video,Frame,Detection,Query
+from .models import Video,Frame,Detection,Query,QueryResults
 from .tasks import extract_frames,query_by_image
 
 
@@ -88,6 +88,19 @@ class VideoDetail(DetailView):
         context = super(VideoDetail, self).get_context_data(**kwargs)
         context['frame_list'] = Frame.objects.all().filter(video=self.object)
         context['url'] = '{}/{}/video/{}.mp4'.format(settings.MEDIA_URL,self.object.pk,self.object.pk)
+        return context
+
+class QueryList(ListView):
+    model = Query
+
+
+class QueryDetail(DetailView):
+    model = Query
+
+    def get_context_data(self, **kwargs):
+        context = super(QueryDetail, self).get_context_data(**kwargs)
+        context['result_list'] = QueryResults.objects.all().filter(query=self.object)
+        context['url'] = '{}/queries/{}.png'.format(settings.MEDIA_URL,self.object.pk,self.object.pk)
         return context
 
 

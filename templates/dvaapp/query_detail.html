@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block page_content %}
+<section class="content-header" xmlns="http://www.w3.org/1999/html">
+</section>
+<section class="content">
+<div class="row">
+    <div class="col-lg-6">
+        <div class="box">
+            <div class="box-header with-border">
+            <h4>Results for the query</h4>
+            </div>
+            <div class="ibox-body">
+                <table class="table">
+                <thead>
+                <tr>
+                        <th>distance</th>
+                        <th>result</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for d in result_list %}
+                    <tr>
+                        <td>{{ d.object_name }} </td>
+                        <td>{{ d.confidence }} </td>
+                        <td>{{ d.x }} </td>
+                        <td>{{ d.y }} </td>
+                        <td>{{ d.w }} </td>
+                        <td>{{ d.h }} </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+                </table>
+                </div>
+            </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="box">
+        <div class="box-header with-border">
+            <h2>Query</h2>
+        </div>
+        <div class="box-body">
+            <img src="{{ url }}" style="width:80%" />
+        </div>
+        </div>
+    </div>
+
+
+</div>
+
+</section>
+{% endblock %}

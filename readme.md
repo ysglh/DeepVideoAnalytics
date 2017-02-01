@@ -16,5 +16,40 @@ docker-compose up
 - Separate queues and workers to allow select machines with GPU & RAM for indexing / computing features.
 - Videos, frames, indexes, numpy vectors stored in media directory.
 
+### Simple schema for extensibility
+```
+media/
+├── 1
+│   ├── audio
+│   ├── detections
+│   ├── frames
+│   │   ├── 0.jpg
+│   │   ├── 10.jpg
+│   │   ...
+│   │   └── 98.jpg
+│   ├── indexes
+│   │   ├── alexnet.framelist
+│   │   └── alexnet.npy
+│   └── video
+│       └── 1.mp4
+├── 2
+│   └── video
+│       └── 2.mp4
+│   ├── detections
+│   ├── frames
+│   │   ├── 0.jpg
+│   │   ├── 10.jpg
+...
+└── queries
+    ├── 1.png
+    ├── 10.png
+    ....
+    ├── 8.png
+    └── 9.png
+
+19 directories, 257 files
+```
+
+
 # Copyright
 Copyright, Akshay Bhat, Cornell University, All rights reserved.

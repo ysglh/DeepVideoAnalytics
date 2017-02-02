@@ -40,13 +40,15 @@ def server():
     local("python manage.py runserver")
 
 @task
-def start_server_container():
+def start_server_container(test=False):
     local('sleep 60')
     migrate()
     local('python start_extractor.py &')
     local('python start_indexer.py &')
     local('python start_detector.py &')
-    local('python manage.py runserver 0.0.0.0:8000 &')
+    if test:
+        ci()
+    local('python manage.py runserver 0.0.0.0:8000')
 
 
 @task

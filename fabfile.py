@@ -45,13 +45,24 @@ def start_server_container():
     migrate()
     local('python start_extractor.py &')
     local('python start_indexer.py &')
-    local('python manage.py runserver 0.0.0.0:8000')
+    local('python manage.py runserver 0.0.0.0:8000 &')
 
 
 @task
 def clean():
-    local('python manage.py flush')
+    local('python manage.py flush --no-input')
     migrate()
     local("rm logs/*.log")
     local("rm -rf ~/media/*")
     local("mkdir ~/media/queries")
+
+
+@task
+def ci():
+    clean()
+    with lcd("tests"):
+        local('wget https://www.dropbox.com/s/xtpkb18i6hn39ht/Goldeneye.mp4')
+        local('wget https://www.dropbox.com/s/cjo9b68poqk7gy2/TomorrowNeverDies.mp4')
+        local('wget https://www.dropbox.com/s/xwbk5g1qit5s9em/WorldIsNotEnough.mp4')
+        local('wget https://www.dropbox.com/s/misaejsbz6722pd/test.png')
+    local('python test.py')

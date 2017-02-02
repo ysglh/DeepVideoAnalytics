@@ -8,6 +8,13 @@ git clone https://github.com/AKSHAYUBHAT/DeepVideoAnalytics
 cd DeepVideoAnalytics/docker
 docker-compose up 
 ````
+### User Interface & Screenshots
+
+### Implemented algorithms
+ (GPU version not yet implemented/tested)
+ 
+ - Alexnet indexing using Pytorch 
+ - Darkenet YOLO 9000 detections 
 
 ### Distributed architecture
 
@@ -51,9 +58,10 @@ media/
 ```
 
 # Libraries & Code used
-- Pytorch (specifically alexnet.py) [License](https://github.com/pytorch/pytorch/blob/master/LICENSE)
-- Darknet (http://pjreddie.com/darknet/) [License](https://github.com/pjreddie/darknet/blob/master/LICENSE)
-- AdminLTE2 (https://almsaeedstudio.com/) [License](https://github.com/almasaeed2010/AdminLTE/blob/master/LICENSE)
+- Pytorch [License](https://github.com/pytorch/pytorch/blob/master/LICENSE)
+- Darknet [License](https://github.com/pjreddie/darknet/blob/master/LICENSE)
+- AdminLTE2 [License](https://github.com/almasaeed2010/AdminLTE/blob/master/LICENSE)
+- FabricJS [License](https://github.com/kangax/fabric.js/blob/master/LICENSE)
 
 # Copyright
 Copyright, Akshay Bhat, Cornell University, All rights reserved.

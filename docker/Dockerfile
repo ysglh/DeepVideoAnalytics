@@ -61,10 +61,10 @@ RUN pip install --upgrade pip \
                           humanize
 RUN wget https://yt-dl.org/downloads/latest/youtube-dl -O /bin/youtube-dl
 RUN chmod a+rx /bin/youtube-dl
+RUN git clone https://github.com/akshayubhat/DeepVideoAnalytics /root/DVA
 RUN youtube-dl -U
 WORKDIR "/root/DVA/darknet"
 RUN make
 RUN wget https://www.dropbox.com/s/0zopjpswug5rjqy/yolo9000.weights
-RUN git clone https://github.com/akshayubhat/DeepVideoAnalytics /root/DVA
 VOLUME ["/root/DVA/dva/media"]
 WORKDIR "/root/DVA"

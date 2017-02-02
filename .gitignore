@@ -1,6 +1,4 @@
 logs/*.log
-/darknet/
-/dvalib/darknet
 /db.sqlite3
 /resources/
 temp_data/*.mp4
@@ -8,3 +6,12 @@ temp_data/*.mp4
 /tests/test.png
 /tests/WorldIsNotEnough.mp4
 /tests/TomorrowNeverDies.mp4
+*.o
+*.dSYM
+
+# OS Generated #
+.DS_Store*
+ehthumbs.db
+Icon?
+Thumbs.db
+*.swp

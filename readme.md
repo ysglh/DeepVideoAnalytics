@@ -50,6 +50,10 @@ media/
 19 directories, 257 files
 ```
 
+# Libraries & Code used
+- Pytorch (specifically alexnet.py)
+- Darknet (http://pjreddie.com/darknet/)
+- AdminLTE2 (https://almsaeedstudio.com/)
 
 # Copyright
 Copyright, Akshay Bhat, Cornell University, All rights reserved.

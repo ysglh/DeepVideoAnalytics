@@ -260,12 +260,11 @@ void draw_write_detections(image im, int num, float thresh, box *boxes, float **
             int right = (b.x+b.w/2.)*im.w;
             int top   = (b.y-b.h/2.)*im.h;
             int bot   = (b.y+b.h/2.)*im.h;
-            printf("%s\t%s\t%.0f%%\t%d\t%d\t%d\t%d\n",fname,names[class], prob*100,left,right,top,bot);
             if(left < 0) left = 0;
             if(right > im.w-1) right = im.w-1;
             if(top < 0) top = 0;
             if(bot > im.h-1) bot = im.h-1;
-
+            printf("%s\t%s\t%f\t%d\t%d\t%d\t%d\n",fname,names[class], prob*100,left,right,top,bot);
             draw_box_width(im, left, top, right, bot, width, red, green, blue);
             if (alphabet) {
                 image label = get_label(alphabet, names[class], (im.h*.03)/10);

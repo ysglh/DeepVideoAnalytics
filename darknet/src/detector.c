@@ -495,8 +495,8 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
 void run_detector(int argc, char **argv)
 {
     char *prefix = find_char_arg(argc, argv, "-prefix", 0);
-    float thresh = find_float_arg(argc, argv, "-thresh", .24);
-    float hier_thresh = find_float_arg(argc, argv, "-hier", .5);
+    float thresh = find_float_arg(argc, argv, "-thresh", 0.15);
+    float hier_thresh = find_float_arg(argc, argv, "-hier", 0.25);
     int cam_index = find_int_arg(argc, argv, "-c", 0);
     int frame_skip = find_int_arg(argc, argv, "-s", 0);
     if(argc < 4){

@@ -1,9 +1,10 @@
 from __future__ import absolute_import
-import subprocess,sys,shutil,os,glob,time
+import subprocess,sys,shutil,os,glob,time,logging
 from django.conf import settings
 from celery import shared_task
 from .models import Video, Frame, Detection, TEvent, Query, IndexEntries,QueryResults
 from dvalib import entity
+from PIL import Image
 import json
 import zipfile
 
@@ -35,7 +36,7 @@ def query_by_image(query_id):
             qr.video_id = r['video_primary_key']
             qr.algorithm = algo
             qr.distance = r['dist']
-        qr.save()
+            qr.save()
     dq.results_metadata = json.dumps(results)
     dq.save()
     return results
@@ -71,50 +72,52 @@ def extract_frames(video_id):
     finished.video_id = video_id
     finished.save()
     perform_indexing.apply_async(args=[video_id],queue=settings.Q_INDEXER)
+    perform_detection.apply_async(args=[video_id], queue=settings.Q_DETECTOR)
     return 0
 
-# @shared_task
-# def perform_detection_video(video_id):
-#     from . import wmodels
-#     frame_paths = []
-#     frame_dict = {}
-#     try:
-#         os.mkdir(TEMP_DIR)
-#     except:
-#         pass
-#     dv = Video.objects.get(id=video_id)
-#     frames = Frame.objects.all().filter(video=dv)
-#     for df in frames:
-#         f = wmodels.WFrame(df,temp_dir=TEMP_DIR)
-#         f.download()
-#         frame_paths.append(f.local_path)
-#         frame_dict[f.key.split('/')[-1].split('.')[0]] = df
-#     return yolo_detect(frame_paths,frame_dict,dv)
-# def yolo_detect(frame_paths,frame_dict,source_video=None):
-#     darknet_dir = '/Users/aub3/Dropbox/Projects/DCA/darknet' if sys.platform == 'darwin' else '/home/ec2-user//darknet'
-#     with open('{}/data/images.txt'.format(darknet_dir),'w') as out:
-#         for path in frame_paths:
-#             out.write('{}\n'.format(path))
-#     args = ["./darknet", 'yolo', 'valid', 'cfg/yolo.cfg', 'yolo.weights']
-#     returncode = subprocess.call(args,cwd=darknet_dir)
-#     if returncode == 0:
-#         for fname in glob.glob('{}/results/*.txt'.format(darknet_dir)):
-#             object_name = fname.split('/')[-1].split('.')[0]
-#             for line in file(fname):
-#                 frame_id,confidence,top_x,top_y,bottom_x,bottom_y=line.strip().split()
-#                 confidence,top_x,top_y,bottom_x,bottom_y = \
-#                     float(confidence),float(top_x),float(top_y),float(bottom_x),float(bottom_y)
-#                 if confidence > 0.05:
-#                     dd = Detection()
-#                     if source_video:
-#                         dd.video = source_video
-#                     dd.frame = frame_dict[frame_id]
-#                     dd.object_name = object_name
-#                     dd.confidence = confidence
-#                     dd.x = top_x
-#                     dd.y = top_y
-#                     dd.w = bottom_x - top_x
-#                     dd.h = bottom_y - top_y
-#                     dd.save()
-#     return returncode
+@shared_task
+def perform_detection(video_id):
+    dv = Video.objects.get(id=video_id)
+    frames = Frame.objects.all().filter(video=dv)
+    v = entity.WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
+    wframes = [entity.WFrame(video=v, time_seconds=df.time_seconds, primary_key=df.pk) for df in frames]
+    darknet_path = os.path.join(settings.BASE_DIR,'darknet/')
+    list_path = "{}/{}_list.txt".format(darknet_path,os.getpid())
+    output_path = "{}/{}_output.txt".format(darknet_path,os.getpid())
+    logging.info(darknet_path)
+    path_to_pk = {}
+    with open(list_path,'w') as framelist:
+        for frame in wframes:
+            framelist.write('{}\n'.format(frame.local_path()))
+            path_to_pk[frame.local_path()] = frame.primary_key
+    #./darknet detector test cfg/combine9k.data cfg/yolo9000.cfg yolo9000.weights data/list.txt
+    with open(output_path,'w') as output:
+        args = ["./darknet", 'detector', 'test', 'cfg/combine9k.data', 'cfg/yolo9000.cfg', 'yolo9000.weights', list_path]
+        logging.info(args)
+        returncode = subprocess.call(args,cwd=darknet_path,stdout=output)
+    if returncode == 0:
+        for line in file(output_path):
+            if line.strip():
+                frame_path,name,confidence,left,right,top,bot = line.strip().split('\t')
+                if frame_path not in path_to_pk:
+                    raise ValueError,frame_path
+                top = int(top)
+                left = int(left)
+                right = int(right)
+                bot = int(bot)
+                confidence = float(confidence)
+                dd = Detection()
+                dd.video = dv
+                dd.frame_id = path_to_pk[frame_path]
+                dd.object_name = "darknet_yolo9k_{}".format(name.replace(' ','_'))
+                dd.confidence = confidence
+                dd.x = left
+                dd.y = top
+                dd.w = right - left
+                dd.h = bot - top
+                dd.save()
+                img = Image.open(frame_path)
+                img2 = img.crop((left, top, right,bot))
+                img2.save("{}/{}/detections/{}.jpg".format(settings.MEDIA_ROOT,video_id,dd.pk))
+    return returncode
 

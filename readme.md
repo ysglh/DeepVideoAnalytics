@@ -8,7 +8,10 @@ git clone https://github.com/AKSHAYUBHAT/DeepVideoAnalytics
 cd DeepVideoAnalytics/docker
 docker-compose up 
 ````
-### User Interface & Screenshots
+### User Interface (Alpha still under development)
+
+![UI Screenshot](demo/alpha_screenshot.png "Alpha Screenshot")
+
 
 ### Implemented algorithms
  (GPU version not yet implemented/tested)

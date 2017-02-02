@@ -453,19 +453,16 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
     srand(2222222);
     clock_t time;
     char buff[256];
+    char line[256];
     char *input = buff;
     int j;
     float nms=.4;
-    while(1){
-        if(filename){
-            strncpy(input, filename, 256);
-        } else {
-            printf("Enter Image Path: ");
-            fflush(stdout);
-            input = fgets(input, 256, stdin);
-            if(!input) return;
-            strtok(input, "\n");
-        }
+    FILE* handle = fopen(filename, "r");
+    while (fgets(line, sizeof line, handle)) {
+//        printf("Enter Image Path: ");
+//        fflush(stdout);
+        strncpy(input, line, 256);
+        strtok(input, "\n");
         image im = load_image_color(input,0,0);
         image sized = resize_image(im, net.w, net.h);
         layer l = net.layers[net.n-1];
@@ -477,23 +474,21 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
         float *X = sized.data;
         time=clock();
         network_predict(net, X);
-        printf("%s: Predicted in %f seconds.\n", input, sec(clock()-time));
+//        printf("%s: Predicted in %f seconds.\n", input, sec(clock()-time));
         get_region_boxes(l, 1, 1, thresh, probs, boxes, 0, 0, hier_thresh);
         if (l.softmax_tree && nms) do_nms_obj(boxes, probs, l.w*l.h*l.n, l.classes, nms);
         else if (nms) do_nms_sort(boxes, probs, l.w*l.h*l.n, l.classes, nms);
-        draw_detections(im, l.w*l.h*l.n, thresh, boxes, probs, names, alphabet, l.classes);
-        save_image(im, "predictions");
-        show_image(im, "predictions");
-
+        draw_write_detections(im, l.w*l.h*l.n, thresh, boxes, probs, names, alphabet, l.classes, input);
+//        save_image(im, "predictions");
+//        show_image(im, "predictions");
         free_image(im);
         free_image(sized);
         free(boxes);
         free_ptrs((void **)probs, l.w*l.h*l.n);
-#ifdef OPENCV
+    #ifdef OPENCV
         cvWaitKey(0);
         cvDestroyAllWindows();
-#endif
-        if (filename) break;
+    #endif
     }
 }
 

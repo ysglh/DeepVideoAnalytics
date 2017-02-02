@@ -45,6 +45,7 @@ def start_server_container():
     migrate()
     local('python start_extractor.py &')
     local('python start_indexer.py &')
+    local('python start_detector.py &')
     local('python manage.py runserver 0.0.0.0:8000 &')
 
 

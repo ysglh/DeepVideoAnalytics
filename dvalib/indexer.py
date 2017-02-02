@@ -4,7 +4,8 @@ import torch
 import PIL
 from torch.autograd import Variable
 from torchvision import transforms
-import alexnet
+from torchvision.models import alexnet
+# import alexnet
 from scipy import spatial
 
 class BaseIndexer(object):
@@ -108,9 +109,9 @@ class AlexnetIndexer(BaseIndexer):
     def load(self):
         if self.net is None:
             logging.warning("Loading the network")
-            self.net = alexnet.alexnet(pretrained=True)
+            self.net = alexnet(pretrained=True)
             self.transform = transforms.Compose([
-                transforms.RandomSizedCrop(224),
+                transforms.Scale(224),
                 transforms.ToTensor(),
                 transforms.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225]),
             ])

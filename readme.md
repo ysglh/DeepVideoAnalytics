@@ -51,9 +51,9 @@ media/
 ```
 
 # Libraries & Code used
-- Pytorch (specifically alexnet.py)
-- Darknet (http://pjreddie.com/darknet/)
-- AdminLTE2 (https://almsaeedstudio.com/)
+- Pytorch (specifically alexnet.py) [License](https://github.com/pytorch/pytorch/blob/master/LICENSE)
+- Darknet (http://pjreddie.com/darknet/) [License](https://github.com/pjreddie/darknet/blob/master/LICENSE)
+- AdminLTE2 (https://almsaeedstudio.com/) [License](https://github.com/almasaeed2010/AdminLTE/blob/master/LICENSE)
 
 # Copyright
 Copyright, Akshay Bhat, Cornell University, All rights reserved.

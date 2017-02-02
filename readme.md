@@ -1,5 +1,5 @@
 #Deep Video Analytics
-#### (Under development, please come back for updates)
+**(Under active development, please come back for updates)**
 
 ### Installation using docker-compose
 
@@ -8,9 +8,10 @@ git clone https://github.com/AKSHAYUBHAT/DeepVideoAnalytics
 cd DeepVideoAnalytics/docker
 docker-compose up 
 ````
-### User Interface (Alpha still under development)
+### User Interface (Alpha version still under development)
 
 ![UI Screenshot](demo/alpha_screenshot.png "Alpha Screenshot")
+
 
 
 ### Implemented algorithms
@@ -20,15 +21,29 @@ docker-compose up
  - Darkenet YOLO 9000 detections
  - Google inception using Tensorflow
    **(Ongoing. Porting code from Visual Search Server)**
-
+ 
 ### Distributed architecture
+
+![Architecture](demo/architecture.png "System architecture")
 
 - Metadata stored in Postgres.
 - Operations (Querying, Frame extraction & Indexing) performed using celery tasks and RabbitMQ.
 - Separate queues and workers to allow select machines with GPU & RAM for indexing / computing features.
 - Videos, frames, indexes, numpy vectors stored in media directory.
 
+### Explore without User Interface
+
+You can use the jupyter notebook explore.ipynb to manually run tasks & code against the databases. 
+
 ### Simple schema for extensibility
+
+ - One directory per video or dataset (a set of images)
+ - Extracted frames and detections are stored in detections/ & frames/ under the video directory
+ - Indexes (numpy arrays) and list of corresponding frames & detections are stored 
+ - Query images are also stored inside media/queries/ named using primary key of the query object.
+ - Designed to enables rapid sync with S3 or processing via a third party program.
+
+Examples of the media directory 
 ```
 media/
 ├── 1

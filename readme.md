@@ -43,7 +43,7 @@ You can use the jupyter notebook explore.ipynb to manually run tasks & code agai
  - Query images are also stored inside media/queries/ named using primary key of the query object.
  - Designed to enables rapid sync with S3 or processing via a third party program.
 
-Examples of the media directory 
+Media directory organization example: 
 ```
 media/
 ├── 1

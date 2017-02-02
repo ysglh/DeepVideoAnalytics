@@ -17,7 +17,9 @@ docker-compose up
  (GPU version not yet implemented/tested)
  
  - Alexnet indexing using Pytorch 
- - Darkenet YOLO 9000 detections 
+ - Darkenet YOLO 9000 detections
+ - Google inception using Tensorflow
+   **(Ongoing. Porting code from Visual Search Server)**
 
 ### Distributed architecture
 

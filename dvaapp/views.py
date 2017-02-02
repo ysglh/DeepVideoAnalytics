@@ -79,6 +79,7 @@ def handle_uploaded_file(f,name):
 
 class VideoList(ListView):
     model = Video
+    paginate_by = 100
 
 
 class VideoDetail(DetailView):

@@ -10,9 +10,24 @@
         <div class="box">
             <div class="box-header with-border">
             <h2>List of videos & datasets</h2>
+            {% if is_paginated %}
+                <div class="pagination text-center" style="width:100%">
+                    <span class="page-links">
+                        {% if page_obj.has_previous %}
+                            <a class="btn btn-info" style="float:left" href=".?page={{ page_obj.previous_page_number }}"><i class="fa fa-backward"></i>  Go back</a>
+                        {% endif %}
+                        <span class="page-current ">
+                            {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+                        </span>
+                        {% if page_obj.has_next %}
+                            <a class="btn btn-info" style="float:right" href=".?page={{ page_obj.next_page_number }}">Load more  <i class="fa fa-forward"></i></a>
+                        {% endif %}
+                    </span>
+                </div>
+            {% endif %}
             </div>
             <div class="box-body">
-                <table class="table dataTables">
+                <table class="table dataTables-dict">
                 <thead>
                 <tr>
                     <th class="text-center">type</th>
@@ -41,6 +56,7 @@
                 </tbody>
                 </table>
             </div>
+
         </div>
     </div>
 </div>

@@ -60,7 +60,6 @@ def clean():
 
 @task
 def ci():
-    clean()
     with lcd("tests"):
         local('wget https://www.dropbox.com/s/xtpkb18i6hn39ht/Goldeneye.mp4')
         local('wget https://www.dropbox.com/s/cjo9b68poqk7gy2/TomorrowNeverDies.mp4')

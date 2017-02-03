@@ -19,8 +19,10 @@ class BaseIndexer(object):
 
     def apply(self,path):
         self.load()
-        tensor = self.transform(PIL.Image.open(path).convert('RGB'))
-        return self.net(Variable(tensor.unsqueeze_(0))).data.numpy()
+        tensor = self.transform(PIL.Image.open(path).convert('RGB')).unsqueeze_(0)
+        if torch.cuda.is_available():
+            tensor = tensor.cuda()
+        return self.net(Variable(tensor)).data.numpy()
 
     def load_index(self,path):
         temp_index = []

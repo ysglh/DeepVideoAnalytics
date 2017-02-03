@@ -1,2 +1,3 @@
-#### Not yet working, for instructions refer to following issue.
-https://github.com/NVIDIA/nvidia-docker/issues/39
+### Docker installation for use with nvidia-docker
+
+** Please install https://github.com/eywalker/nvidia-docker-compose and replace 'docker-compose with nvidia-docker-compose in all commands.**

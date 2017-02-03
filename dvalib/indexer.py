@@ -24,7 +24,7 @@ class BaseIndexer(object):
             tensor = torch.FloatTensor(tensor).cuda()
         result = self.net(Variable(tensor))
         if torch.cuda.is_available():
-            result = result.data.cpu()
+            return result.data.cpu().numpy()
         return result.data.numpy()
 
     def load_index(self,path):

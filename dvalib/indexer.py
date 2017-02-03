@@ -22,7 +22,10 @@ class BaseIndexer(object):
         tensor = self.transform(PIL.Image.open(path).convert('RGB')).unsqueeze_(0)
         if torch.cuda.is_available():
             tensor = torch.FloatTensor(tensor).cuda()
-        return self.net(Variable(tensor)).data.numpy()
+        result = self.net(Variable(tensor))
+        if torch.cuda.is_available():
+            result = result.data.cpu()
+        return result.data.numpy()
 
     def load_index(self,path):
         temp_index = []

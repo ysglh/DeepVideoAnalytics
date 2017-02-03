@@ -110,6 +110,8 @@ class AlexnetIndexer(BaseIndexer):
         if self.net is None:
             logging.warning("Loading the network")
             self.net = alexnet(pretrained=True)
+            if torch.cuda.is_available():
+                self.net.cuda()
             self.transform = transforms.Compose([
                 transforms.RandomCrop(224),
                 transforms.ToTensor(),

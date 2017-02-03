@@ -6,4 +6,5 @@ E.g. to launch the stack just run
 ````bash
 nvidia-docker-compose up
 ````
-And open port 8000 on localhost once the server is up (typically wait couple of minutes for all containers to be ready and django migrations to be applied.)
+Open port 8000 on localhost once the server is up.
+Typically you will have to wait couple of minutes for all containers to be ready and django migrations to be applied.

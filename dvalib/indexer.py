@@ -21,7 +21,7 @@ class BaseIndexer(object):
         self.load()
         tensor = self.transform(PIL.Image.open(path).convert('RGB')).unsqueeze_(0)
         if torch.cuda.is_available():
-            tensor = tensor.cuda()
+            tensor = torch.FloatTensor(tensor).cuda()
         return self.net(Variable(tensor)).data.numpy()
 
     def load_index(self,path):

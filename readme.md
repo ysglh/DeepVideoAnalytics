@@ -8,6 +8,18 @@ git clone https://github.com/AKSHAYUBHAT/DeepVideoAnalytics
 cd DeepVideoAnalytics/docker
 docker-compose up 
 ````
+### Installation using docker-compose for machine with GPU
+
+**Just replace docker-compose by nvidia-docker-compose, the Dockerfile uses tensorflow gpu base image and appropriate version of pytorch.
+The Makefile for Darknet is also modified accordingly. The code was tested using an older Nvidia Titan GPU**
+
+````bash
+git clone https://github.com/AKSHAYUBHAT/DeepVideoAnalytics 
+cd DeepVideoAnalytics/docker_GPU
+pip install --upgrade nvidia-docker-compose
+nvidia-docker-compose up 
+````
+
 ### User Interface (Alpha version still under development)
 
 ![UI Screenshot](demo/alpha_screenshot.png "Alpha Screenshot")

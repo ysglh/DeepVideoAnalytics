@@ -1,4 +1,5 @@
 #Deep Video Analytics
+##### Akshay Bhat, Cornell University. [Website & Contact](http://www.askhaybhat.com)
 
 Deep Video Analytics provides a platform for indexing and extracting information from videos and images.
 Deep learning detection and recognition algorithms are used for indexing individual frames / images along with 

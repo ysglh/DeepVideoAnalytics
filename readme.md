@@ -1,5 +1,10 @@
 #Deep Video Analytics
-**(Under active development, please come back for updates)**
+
+Deep Video Analytics provides a platform for indexing and extracting information from videos and images.
+Deep learning detection and recognition algorithms are used for indexing individual frames / images along with 
+detected objects. The goal of Deep Video analytics is to become a quickly customizable platform for developing 
+visual & video analytics applications, while benefiting from seamless integration with state or the art models released
+by the vision research community. 
 
 ### Installation using docker-compose
 
@@ -11,7 +16,7 @@ docker-compose up
 ### Installation for machines with GPU
 
 **Replace docker-compose by nvidia-docker-compose, the Dockerfile uses tensorflow gpu base image and appropriate version of pytorch.
-The Makefile for Darknet is also modified accordingly. This code was tested using an older Nvidia Titan GPU**
+The Makefile for Darknet is also modified accordingly. This code was tested using an older NVidia Titan GPU**
 
 ````bash
 git clone https://github.com/AKSHAYUBHAT/DeepVideoAnalytics 
@@ -24,15 +29,40 @@ nvidia-docker-compose up
 
 ![UI Screenshot](demo/alpha_screenshot.png "Alpha Screenshot")
 
+##To Do list
+**Deep Video Analytics is currently under active development.**
 
+- [x] Django App
+- [x] Tasks using Celery & RabbitMQ
+- [x] Postgres database
+- [x] Deployment using docker-compose
+- [x] Minimal user interface for uploading and browsing uploaded videos/images
+- [x] Task for frame extraction from videos
+- [x] Simple detection models using Darknet YOLO
+- [x] Working visual search & indexer tasks using PyTorch
+- [X] Simple set of tests (E.g. upload a video, perform processing, indexing, detection)
+- [X] Deployment using nvidia-docker-compose for machines with GPU
+- [ ] Incorporate metadata from (PySceneDetect)[https://github.com/Breakthrough/PySceneDetect]
+- [ ] Index detected object 
+- [ ] Move global settings (such as resolution of extracted frame etc.) into a global config file
+- [ ] Integrate Tensorflow/Keras 
+- [ ] Improved user interface for browsing past queries
+- [ ] Improve & user TEvent model to track state of tasks
+- [ ] Deployment on AWS P2 machines
+- [ ] Separate frame-indexer and query-indexer tasks
+- [ ] Improved models by adding information about user performing the query/uploading video/dataset
+- [ ] Convert Darknet detection model into Tensorflow or Pytorch 
+- [ ] Continuous integration test suite
+- [ ] Evaluate feasibility of integrating [Keras-js](https://github.com/transcranial/keras-js) for client side indexing.
 
-### Implemented algorithms
- (GPU version not yet implemented/tested)
+### Implemented & Potential algorithms/models
+- [x] Alexnet indexing using Pytorch 
+- [x] Google inception using Tensorflow **(Ongoing. Porting code from Visual Search Server)**
+- [x] [YOLO 9000 (naive implementation, gets reloaded in memory for every video)](http://pjreddie.com/darknet/yolo/)
+- [ ] [Soundnet](http://projects.csail.mit.edu/soundnet/)
+- [ ] [Mapnet (tricky requires transferring models from Marvin)](http://www.cs.princeton.edu/~aseff/mapnet/) 
  
- - Alexnet indexing using Pytorch 
- - Darkenet YOLO 9000 detections
- - Google inception using Tensorflow
-   **(Ongoing. Porting code from Visual Search Server)**
+   
  
 ### Distributed architecture
 
@@ -40,7 +70,7 @@ nvidia-docker-compose up
 
 - Metadata stored in Postgres.
 - Operations (Querying, Frame extraction & Indexing) performed using celery tasks and RabbitMQ.
-- Separate queues and workers to allow select machines with GPU & RAM for indexing / computing features.
+- Separate queues and workers to allow selection of machines with GPU & RAM for specific tasks such as indexing / computing features.
 - Videos, frames, indexes, numpy vectors stored in media directory.
 
 ### Explore without User Interface

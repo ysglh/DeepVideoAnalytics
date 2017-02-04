@@ -15,8 +15,8 @@ docker-compose up
 ````
 ### Installation for machines with GPU
 
-**Replace docker-compose by nvidia-docker-compose, the Dockerfile uses tensorflow gpu base image and appropriate version of pytorch.
-The Makefile for Darknet is also modified accordingly. This code was tested using an older NVidia Titan GPU**
+Replace docker-compose by nvidia-docker-compose, the Dockerfile uses tensorflow gpu base image and appropriate version of pytorch.
+The Makefile for Darknet is also modified accordingly. This code was tested using an older NVidia Titan GPU and nvidia-docker.
 
 ````bash
 git clone https://github.com/AKSHAYUBHAT/DeepVideoAnalytics 

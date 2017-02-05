@@ -26,10 +26,6 @@ SECRET_KEY = 'gwi1$a3#v9pj=mxydc33p-3jup%0kyn26i*tqe9q*^(rp2$j&^'
 DEBUG = True
 
 ALLOWED_HOSTS = []
-if sys.platform == 'darwin':
-    BROKER_URL = 'amqp://{}:{}@localhost//'.format('dvauser','localpass')
-else:
-    BROKER_URL = 'amqp://{}:{}@rabbit//'.format('dvauser', 'localpass')
 
 #: Only add pickle to this list if your broker is secured
 #: from unwanted access (see userguide/security.html)
@@ -91,6 +87,7 @@ WSGI_APPLICATION = 'dva.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 if sys.platform == 'darwin':
+    BROKER_URL = 'amqp://{}:{}@localhost//'.format('dvauser','localpass')
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -101,7 +98,20 @@ if sys.platform == 'darwin':
             'PORT': '',
         }
     }
+elif 'CONTINUOUS_INTEGRATION' in os.environ:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'postgres',
+            'USER': 'postgres',
+            'PASSWORD': '',
+            'HOST': 'localhost',
+            'PORT': '',
+        }
+    }
+    BROKER_URL = 'amqp://{}:{}@localhost//'.format('guest','guest')
 else:
+    BROKER_URL = 'amqp://{}:{}@localhost//'.format('dvauser','localpass')
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql_psycopg2',

@@ -67,4 +67,4 @@ def ci():
         local('wget https://www.dropbox.com/s/cjo9b68poqk7gy2/TomorrowNeverDies.mp4')
         local('wget https://www.dropbox.com/s/xwbk5g1qit5s9em/WorldIsNotEnough.mp4')
         local('wget https://www.dropbox.com/s/misaejsbz6722pd/test.png')
-     local('python run_test.py')
+    local('python run_test.py')

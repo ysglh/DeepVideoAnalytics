@@ -82,6 +82,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'dva.wsgi.application'
+BROKER_URL = 'amqp://{}:{}@localhost//'.format('dvauser','localpass')
 
 
 # Database
@@ -111,7 +112,6 @@ elif 'CONTINUOUS_INTEGRATION' in os.environ:
     }
     BROKER_URL = 'amqp://{}:{}@localhost//'.format('guest','guest')
 else:
-    BROKER_URL = 'amqp://{}:{}@localhost//'.format('dvauser','localpass')
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql_psycopg2',

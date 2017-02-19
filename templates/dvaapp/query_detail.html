@@ -35,10 +35,10 @@
                 <tbody>
                 {% for d in result_list %}
                     <tr>
-                        <td>d.video.name</td>
-                        <td>d.frame.time_seconds</td>
-                        <td>d.algorithm</td>
-                        <td>d.distance</td>
+                        <td>{{ d.video.name }}</td>
+                        <td>{{ d.frame.time_seconds }}</td>
+                        <td>{{ d.algorithm }}</td>
+                        <td>{{ d.distance }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>

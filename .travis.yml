@@ -14,7 +14,7 @@ services:
 before_install:
   - sudo add-apt-repository ppa:mc3man/trusty-media -y
   - sudo apt-get update -q
-  - sudo apt-get-install -y ffmpeg
+  - sudo apt-get install -y ffmpeg
 
 install: "pip install -r requirements.txt > /dev/null"
 

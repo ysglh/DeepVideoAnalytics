@@ -2,19 +2,29 @@
 {% load staticfiles %}
 
 {% block page_content %}
-<section class="content-header" xmlns="http://www.w3.org/1999/html">
+<section class="content-header" style="padding-top:0px" xmlns="http://www.w3.org/1999/html">
+<div class="row">
+    <div class="box box-info">
+        <div class="box-header">
+            <h2>List of frames or images in {{ object.name }}</h2>
+        </div>
+    </div>
+</div>
 </section>
 <section class="content">
 <div class="row">
-    <div class="col-lg-4">
+    <div class="col-lg-6">
         <div class="box">
             <div class="box-header with-border">
-            <h3>List of frames/images in {{ object.name }}</h3>
+            <h3>List of frames/images & detection</h3>
             </div>
             <div class="box-body">
                 <table class="table dataTables">
                 <thead>
                 <tr>
+                        <th class="text-center">frame or detected object name</th>
+                        <th class="text-center">confidence</th>
+                        <th class="text-center">size in pixels</th>
                         <th class="text-center">seconds / frame_id</th>
                         <th class="text-center">view</th>
                 </tr>
@@ -22,8 +32,21 @@
                 <tbody>
                 {% for f in frame_list %}
                     <tr>
+                        <td class="text-left">entire frame/image</td>
+                        <td class="text-right"> 100.0 %</td>
+                        <td class="text-right">{% widthratio object.height 1 object.width %}</td>
                         <td class="text-right">{{ f.time_seconds }} </td>
                         <td class="text-center"><a href="/frames/{{ f.pk }}">view</a></td>
+                    </tr>
+                {% endfor %}
+                {% for d in detection_list %}
+                    <tr>
+                        <td class="text-left">detected : {{ d.object_name }} </td>
+                        <td class="text-right"> {{ d.confidence|floatformat }} %</td>
+                        <td class="text-right">{% widthratio d.h 1 d.w %}</td>
+
+                        <td class="text-right">{{ d.frame.time_seconds }} </td>
+                        <td class="text-center"><a href="/frames/{{ d.frame.pk }}">view</a></td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -32,7 +55,7 @@
             </div>
     </div>
 {% if not video.dataset %}
-    <div class="col-lg-8">
+    <div class="col-lg-6">
         <div class="box">
         <div class="box-header with-border" >
             <h3>Video</h3>

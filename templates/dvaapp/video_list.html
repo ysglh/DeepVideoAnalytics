@@ -2,13 +2,10 @@
 {% load staticfiles %}
 
 {% block page_content %}
-<section class="content-header" xmlns="http://www.w3.org/1999/html">
-</section>
-<section class="content">
+<section class="content-header" style="padding-top:0px" xmlns="http://www.w3.org/1999/html">
 <div class="row">
-    <div class="col-lg-10 col-lg-offset-1 col-md-12">
-        <div class="box">
-            <div class="box-header with-border">
+    <div class="box box-info">
+        <div class="box-header">
             <h2>List of videos & datasets</h2>
             {% if is_paginated %}
                 <div class="pagination text-center" style="width:100%">
@@ -25,7 +22,14 @@
                     </span>
                 </div>
             {% endif %}
-            </div>
+        </div>
+    </div>
+</div>
+</section>
+<section class="content">
+<div class="row">
+    <div class="col-lg-10 col-lg-offset-1 col-md-12">
+        <div class="box">
             <div class="box-body">
                 <table class="table dataTables-dict">
                 <thead>

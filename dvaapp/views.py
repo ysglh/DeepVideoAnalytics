@@ -88,6 +88,7 @@ class VideoDetail(DetailView):
     def get_context_data(self, **kwargs):
         context = super(VideoDetail, self).get_context_data(**kwargs)
         context['frame_list'] = Frame.objects.all().filter(video=self.object)
+        context['detection_list'] = Detection.objects.all().filter(video=self.object)
         context['url'] = '{}/{}/video/{}.mp4'.format(settings.MEDIA_URL,self.object.pk,self.object.pk)
         return context
 

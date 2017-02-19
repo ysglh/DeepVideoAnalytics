@@ -52,7 +52,7 @@ def index(request):
     return render(request, 'dashboard.html', context)
 
 
-def handle_uploaded_file(f,name):
+def handle_uploaded_file(f,name,extract=True):
     video = Video()
     video.name = name
     video.save()
@@ -72,8 +72,8 @@ def handle_uploaded_file(f,name):
         if filename.endswith('.zip'):
             video.dataset = True
         video.save()
-
-        extract_frames.apply_async(args=[primary_key],queue=settings.Q_EXTRACTOR)
+        if extract:
+            extract_frames.apply_async(args=[primary_key],queue=settings.Q_EXTRACTOR)
     else:
         raise ValueError,"Extension {} not allowed".format(filename.split('.')[-1])
 

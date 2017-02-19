@@ -2,8 +2,6 @@ sudo: required
 
 language: python
 
-before_script: "sudo aptitude -y -q install ffmpeg libvpx-dev libvpx0 x264 libx264-85 libx264-dev"
-
 python:
   - "2.7"
 
@@ -11,6 +9,12 @@ services:
   - docker
   - postgresql
   - rabbitmq
+
+addons:
+  apt:
+    packages:
+    - ffmpeg
+
 
 install: "pip install -r requirements.txt > /dev/null"
 

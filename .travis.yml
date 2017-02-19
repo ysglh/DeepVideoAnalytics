@@ -15,11 +15,6 @@ before_install:
   - sudo apt-get update
   - sudo apt-get install libav-tools libavcodec-extra-54 -y
 
-addons:
-  apt:
-    packages:
-    - ffmpeg
-
 install: "pip install -r requirements.txt > /dev/null"
 
 script:

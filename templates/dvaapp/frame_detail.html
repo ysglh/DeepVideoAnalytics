@@ -5,7 +5,7 @@
 <div class="row">
     <div class="box box-info">
         <div class="box-header">
-            <h4>List of Detections in <a href="/videos/{{ object.video.pk }}">{{ object.video.name }}</a> at {{ object.time_seconds }} seconds </h4>
+            <h4>List of Detections in <a href="/videos/{{ object.video.pk }}">{{ object.video.name }}</a>  {% if object.video.dataset %} file named: {{ object.name }} {% else %} at {{ object.time_seconds }} seconds {% endif %}</h4>
         </div>
     </div>
 </div>

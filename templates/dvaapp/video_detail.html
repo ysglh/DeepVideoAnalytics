@@ -32,7 +32,7 @@
                 <tbody>
                 {% for f in frame_list %}
                     <tr>
-                        <td class="text-left">entire frame/image</td>
+                        <td class="text-left">{% if object.dataset %}  filename: {{ f.name }} {% else %} entire frame {% endif %}</td>
                         <td class="text-right"> 100.0 %</td>
                         <td class="text-right">{% widthratio object.height 1 object.width %}</td>
                         <td class="text-right">{{ f.time_seconds }} </td>

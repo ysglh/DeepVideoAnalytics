@@ -47,21 +47,23 @@ nvidia-docker-compose up
 - [X] Deployment using nvidia-docker-compose for machines with GPU
 - [X] Continuous integration test suite
 - [X] Improved user interface for browsing past queries
-- [ ] Integrate Tensorflow/Keras 
+- [X] Improve TEvent model to track state of tasks
 - [ ] Incorporate metadata from (PySceneDetect)[https://github.com/Breakthrough/PySceneDetect]
+- [ ] Integrate Tensorflow/Keras 
 - [ ] Index detected object 
 - [ ] Move global settings (such as resolution of extracted frame etc.) into a global config file
-- [ ] Improve & user TEvent model to track state of tasks
 - [ ] Deployment on AWS P2 machines
 - [ ] Separate frame-indexer and query-indexer tasks
+- [ ] Implement approximate nn search via NMS lib or Anony
+- [ ] Implement a method to backup postgres db & media folder to S3 via a single command
 - [ ] Improved models by adding information about user performing the query/uploading video/dataset
 - [ ] Convert Darknet detection model into Tensorflow or Pytorch 
 - [ ] Evaluate feasibility of integrating [Keras-js](https://github.com/transcranial/keras-js) for client side indexing.
 
 ### Implemented & Potential algorithms/models
 - [x] Alexnet indexing using Pytorch 
-- [x] Google inception using Tensorflow **(GPU tests pending)**
 - [x] [YOLO 9000 (naive implementation, gets reloaded in memory for every video)](http://pjreddie.com/darknet/yolo/)
+- [x] Google inception using Tensorflow **(GPU tests pending)**
 - [ ] [Pytorch Squeezenet](http://pytorch.org/docs/torchvision/models.html)
 - [ ] [Face recognition using Facenet](https://github.com/davidsandberg/facenet)
 - [ ] [Soundnet](http://projects.csail.mit.edu/soundnet/)

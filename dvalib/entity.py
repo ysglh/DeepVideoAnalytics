@@ -68,14 +68,21 @@ class WVideo(object):
             zipf = zipfile.ZipFile("{}/{}/video/{}.zip".format(self.media_dir, self.primary_key, self.primary_key), 'r')
             zipf.extractall("{}/{}/frames/".format(self.media_dir, self.primary_key))
             zipf.close()
-            for i, fname in enumerate(glob.glob("{}/{}/frames/*".format(self.media_dir, self.primary_key))):
-                if fname.endswith('jpg') or fname.endswith('jpeg'):
-                    dst = "{}/{}/frames/{}.jpg".format(self.media_dir, self.primary_key,i)
-                    os.rename(fname,dst)
-                    f = WFrame(time_seconds=i, video=self)
-                    frames.append(f)
+            i = 0
+            for subdir, dirs, files in os.walk("{}/{}/frames/".format(self.media_dir, self.primary_key)):
+                if '__MACOSX' not in subdir:
+                    for fname in files:
+                        fname = os.path.join(subdir,fname)
+                        if fname.endswith('jpg') or fname.endswith('jpeg'):
+                            i += 1
+                            dst = "{}/{}/frames/{}.jpg".format(self.media_dir, self.primary_key, i)
+                            os.rename(fname, dst)
+                            f = WFrame(time_seconds=i, video=self,name=fname.split('/')[-1])
+                            frames.append(f)
+                        else:
+                            logging.warning("skipping {} not a jpeg file".format(fname))
                 else:
-                    logging.warning("skipping {} not a jpeg file".format(fname))
+                    logging.warning("skipping {} ".format(subdir))
         return frames
 
     def index_frames(self,frames):
@@ -89,15 +96,17 @@ class WVideo(object):
 
 class WFrame(object):
 
-    def __init__(self,time_seconds=None,video=None,primary_key=None):
+    def __init__(self,time_seconds=None,video=None,primary_key=None,name=None):
         if video:
             self.time_seconds = time_seconds
             self.video = video
             self.primary_key = primary_key
+            self.name = name
         else:
             self.time_seconds = None
             self.video = None
             self.primary_key = None
+            self.name = None
 
     def local_path(self):
         return "{}/{}/{}/{}.jpg".format(self.video.media_dir,self.video.primary_key,'frames',self.time_seconds)

@@ -77,6 +77,8 @@ def extract_frames(video_id):
         df = Frame()
         df.time_seconds = f.time_seconds
         df.video = dv
+        if f.name:
+            df.name = f.name[:150]
         df.save()
     # perform_detection_video.apply_async(args=[dv.id, ], queue=settings.Q_DETECTOR)
     finished = TEvent()

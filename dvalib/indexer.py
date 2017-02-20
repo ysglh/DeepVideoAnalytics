@@ -7,6 +7,10 @@ from torchvision import transforms
 from torchvision.models import alexnet
 # import alexnet
 from scipy import spatial
+import tensorflow as tf
+from scipy import spatial
+from tensorflow.python.platform import gfile
+
 
 class BaseIndexer(object):
 
@@ -16,16 +20,6 @@ class BaseIndexer(object):
         self.indexed_dirs = set()
         self.index, self.files, self.findex = None, {}, 0
 
-
-    def apply(self,path):
-        self.load()
-        tensor = self.transform(PIL.Image.open(path).convert('RGB')).unsqueeze_(0)
-        if torch.cuda.is_available():
-            tensor = torch.FloatTensor(tensor).cuda()
-        result = self.net(Variable(tensor))
-        if torch.cuda.is_available():
-            return result.data.cpu().numpy()
-        return result.data.numpy()
 
     def load_index(self,path):
         temp_index = []
@@ -111,9 +105,20 @@ class AlexnetIndexer(BaseIndexer):
         self.indexed_dirs = set()
         self.index, self.files, self.findex = None, {}, 0
 
+    def apply(self,path):
+        self.load()
+        tensor = self.transform(PIL.Image.open(path).convert('RGB')).unsqueeze_(0)
+        if torch.cuda.is_available():
+            tensor = torch.FloatTensor(tensor).cuda()
+        result = self.net(Variable(tensor))
+        if torch.cuda.is_available():
+            return result.data.cpu().numpy()
+        return result.data.numpy()
+
+
     def load(self):
         if self.net is None:
-            logging.warning("Loading the network")
+            logging.warning("Loading the network {}".format(self.name))
             self.net = alexnet(pretrained=True)
             if torch.cuda.is_available():
                 self.net.cuda()
@@ -123,7 +128,47 @@ class AlexnetIndexer(BaseIndexer):
                 transforms.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225]),
             ])
 
+class IncetionIndexer(BaseIndexer):
+
+    def __init__(self):
+        self.name = "tfinception"
+        self.net = None
+        self.tf = True
+        self.session = None
+        self.graph_def = None
+
+    def load(self):
+        if self.session is None:
+            logging.warning("Loading the network {}".format(self.name))
+            self.session = tf.InteractiveSession()
+            network_path = os.path.abspath(__file__).split('indexer.py')[0]+'data/network.pb'
+            with gfile.FastGFile(network_path, 'rb') as f:
+                self.graph_def = tf.GraphDef()
+                self.graph_def.ParseFromString(f.read())
+                _ = tf.import_graph_def(self.graph_def, name='incept')
+                # if png:
+                #     png_data = tf.placeholder(tf.string, shape=[])
+                #     decoded_png = tf.image.decode_png(png_data, channels=3)
+                #     _ = tf.import_graph_def(graph_def, name='incept',input_map={'DecodeJpeg': decoded_png})
+                #     return png_data
+
+
+
+    def apply(self,image_path):
+        self.load()
+        if image_path.endswith('.png'):
+            im = PIL.Image.open(image_path)
+            bg = PIL.Image.new("RGB", im.size, (255, 255, 255))
+            bg.paste(im, im)
+            image_path = image_path.replace('.png','jpg')
+            bg.save(image_path)
+        pool3 = self.session.graph.get_tensor_by_name('incept/pool_3:0')
+        pool3_features = self.session.run(pool3,{'incept/DecodeJpeg/contents:0': file(image_path).read()})
+        return np.atleast_2d(np.squeeze(pool3_features))
+
+
 INDEXERS = {
     'alex':AlexnetIndexer(),
+    'inception':IncetionIndexer(),
 }
 

@@ -5,7 +5,7 @@ RUN apt-get update && apt-get install -y wget
 WORKDIR "/bin/"
 RUN wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-64bit-static.tar.xz
 RUN tar xvfJ ffmpeg-release-64bit-static.tar.xz
-RUN mv ffmpeg-3.2.2-64bit-static/* .
+RUN mv ffmpeg*/* .
 WORKDIR "/root/
 RUN apt-get update && apt-get install -y \
 		bc \
@@ -60,6 +60,19 @@ RUN pip install --upgrade pip \
                           boto3 \
                           protobuf \
                           humanize
+RUN apt-get update && apt-get install -y \
+    pkg-config \
+    python-dev \
+    python-opencv \
+    libopencv-dev \
+    libav-tools  \
+    libjpeg-dev \
+    libpng-dev \
+    libtiff-dev \
+    libjasper-dev \
+    python-numpy \
+    python-pycurl \
+    python-opencv
 RUN wget https://yt-dl.org/downloads/latest/youtube-dl -O /bin/youtube-dl
 RUN chmod a+rx /bin/youtube-dl
 RUN youtube-dl -U

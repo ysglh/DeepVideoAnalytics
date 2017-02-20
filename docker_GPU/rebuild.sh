@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-docker-compose build dva
+docker build -t aub3dva:gpu .

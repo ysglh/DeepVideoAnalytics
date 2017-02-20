@@ -45,17 +45,17 @@ nvidia-docker-compose up
 - [x] Working visual search & indexer tasks using PyTorch
 - [X] Simple set of tests (E.g. upload a video, perform processing, indexing, detection)
 - [X] Deployment using nvidia-docker-compose for machines with GPU
+- [X] Continuous integration test suite
+- [X] Improved user interface for browsing past queries
+- [ ] Integrate Tensorflow/Keras 
 - [ ] Incorporate metadata from (PySceneDetect)[https://github.com/Breakthrough/PySceneDetect]
 - [ ] Index detected object 
 - [ ] Move global settings (such as resolution of extracted frame etc.) into a global config file
-- [ ] Integrate Tensorflow/Keras 
-- [ ] Improved user interface for browsing past queries
 - [ ] Improve & user TEvent model to track state of tasks
 - [ ] Deployment on AWS P2 machines
 - [ ] Separate frame-indexer and query-indexer tasks
 - [ ] Improved models by adding information about user performing the query/uploading video/dataset
 - [ ] Convert Darknet detection model into Tensorflow or Pytorch 
-- [ ] Continuous integration test suite
 - [ ] Evaluate feasibility of integrating [Keras-js](https://github.com/transcranial/keras-js) for client side indexing.
 
 ### Implemented & Potential algorithms/models

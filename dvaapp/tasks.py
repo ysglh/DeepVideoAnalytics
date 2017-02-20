@@ -12,6 +12,11 @@ import zipfile
 
 @shared_task
 def perform_indexing(video_id):
+    start = TEvent()
+    start.video_id = video_id
+    start.started = True
+    start.operation = "indexing"
+    start.save()
     dv = Video.objects.get(id=video_id)
     video = entity.WVideo(dv, settings.MEDIA_ROOT)
     frames = Frame.objects.all().filter(video=dv)
@@ -21,6 +26,12 @@ def perform_indexing(video_id):
         i.count = index_results['count']
         i.algorithm = index_results['index_name']
         i.save()
+    finished = TEvent()
+    finished.completed = True
+    finished.operation = "indexing"
+    finished.video_id = video_id
+    finished.save()
+
 
 @shared_task
 def query_by_image(query_id):
@@ -47,6 +58,7 @@ def extract_frames(video_id):
     start = TEvent()
     start.video_id = video_id
     start.started = True
+    start.operation = "extract_frames"
     start.save()
     dv = Video.objects.get(id=video_id)
     v = entity.WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
@@ -69,6 +81,7 @@ def extract_frames(video_id):
     # perform_detection_video.apply_async(args=[dv.id, ], queue=settings.Q_DETECTOR)
     finished = TEvent()
     finished.completed = True
+    finished.operation = "extract_frames"
     finished.video_id = video_id
     finished.save()
     perform_indexing.apply_async(args=[video_id],queue=settings.Q_INDEXER)
@@ -77,6 +90,11 @@ def extract_frames(video_id):
 
 @shared_task
 def perform_detection(video_id):
+    start = TEvent()
+    start.video_id = video_id
+    start.started = True
+    start.operation = "detection"
+    start.save()
     dv = Video.objects.get(id=video_id)
     frames = Frame.objects.all().filter(video=dv)
     v = entity.WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
@@ -119,5 +137,10 @@ def perform_detection(video_id):
                 img = Image.open(frame_path)
                 img2 = img.crop((left, top, right,bot))
                 img2.save("{}/{}/detections/{}.jpg".format(settings.MEDIA_ROOT,video_id,dd.pk))
+    finished = TEvent()
+    finished.completed = True
+    finished.operation = "detection"
+    finished.video_id = video_id
+    finished.save()
     return returncode
 

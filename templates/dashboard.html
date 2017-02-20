@@ -141,16 +141,22 @@
 <div class="col-lg-12">
 <div class="box-content">
 <div ng-repeat="row in results" class="row m-t" >
-    <div ng-repeat="item in row" class="col-lg-3 col-sm-6 col-xs-6" >
-      <img style="max-height:95%;max-width:98%" ng-src="{[ item.url ]}" />
-      <p> Algorithm {[ item.algo ]} in <a href="/videos/{[ item.video_primary_key ]}"> video </a> at {[ item.time_seconds ]} seconds</p>
-    </div>
+    <div ng-repeat="item in row" class="col-lg-3 col-sm-3 col-xs-6" >
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <p>In  <a href="/videos/{[ item.video_primary_key ]}"> video </a> at {[ item.time_seconds ]} seconds</p>
+                <p>Found by {[ item.algo ]}</p>
+            </div>
+            <div class="box-body">
+                <a href="/videos/{[ item.video_primary_key ]}"><img class="img-responsive img-bordered-sm" style="width:80%;margin-left:auto;margin-right:auto" ng-src="{[ item.url ]}"></a>
+            </div>
+            </div>
+        </div>
 </div>
 </div>
 </div>
 </div>
 </div>
-
 </section>
 {% endblock %}
 

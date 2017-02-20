@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView,DetailView
 from django.utils.decorators import method_decorator
 from .forms import UploadFileForm
-from .models import Video,Frame,Detection,Query,QueryResults
+from .models import Video,Frame,Detection,Query,QueryResults,TEvent
 from .tasks import extract_frames,query_by_image
 
 
@@ -120,3 +120,29 @@ class FrameDetail(DetailView):
         context['url'] = '{}/{}/frames/{}.jpg'.format(settings.MEDIA_URL,self.object.video.pk,self.object.time_seconds)
         return context
 
+
+
+def status(request):
+    context = { }
+    context['video_count'] = Video.objects.count()
+    context['frame_count'] = Frame.objects.count()
+    context['query_count'] = Query.objects.count()
+    context['events'] = TEvent.objects.all()
+    context['detection_count'] = Detection.objects.count()
+    try:
+        context['indexer_log'] = file("logs/qindexer.log").read()
+    except:
+        context['indexer_log'] = ""
+    try:
+        context['detector_log'] = file("logs/qdetector.log").read()
+    except:
+        context['detector_log'] = ""
+    try:
+        context['extract_log'] = file("logs/qextract.log").read()
+    except:
+        context['extract_log'] = ""
+    try:
+        context['fab_log'] = file("logs/fab.log").read()
+    except:
+        context['fab_log'] = ""
+    return render(request, 'status.html', context)

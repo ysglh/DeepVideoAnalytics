@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block page_content %}
+<section class="content-header" style="padding-top:0px" xmlns="http://www.w3.org/1999/html">
+<div class="row">
+    <div class="box box-info">
+        <div class="box-header">
+            <h2>System status and logs</h2>
+        </div>
+    </div>
+</div>
+</section>
+<section class="content">
+<div class="row">
+    <div class="col-lg-3">
+        <div class="box">
+            <div class="box-body">
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Count</th>
+                        <th>View</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Videos / Datasets</td>
+                            <td class="text-right">{{video_count}}</td>
+                            <td class="text-center"><a href="/videos/">view</a></td>
+                        </tr>
+                        <tr>
+                            <td>Frames</td>
+                            <td class="text-right">{{frame_count}}</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>Detections</td>
+                            <td class="text-right">{{detection_count}}</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>Queries</td>
+                            <td class="text-right">{{ query_count }}</td>
+                            <td class="text-center"><a href="/queries/">view</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-9">
+        <div class="box">
+            <div class="box-header with-border">
+                <h3>Events</h3>
+            </div>
+            <div class="box-body">
+                <table class="table dataTables">
+                    <thead>
+                    <tr>
+                        <th>Video</th>
+                        <th>Operation</th>
+                        <th>Started</th>
+                        <th>Completed</th>
+                        <th>timestamp</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for e in events %}
+                        <tr>
+                            <td>{{ e.video.name }}</td>
+                            <td>{{ e.operation }}</td>
+                            <td class="text-center">{{ e.started }}</td>
+                            <td class="text-center">{{ e.completed }}</td>
+                            <td class="text-center">{{ e.recorded }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-6">
+        <div class="box">
+            <div class="box-header with-border">
+            <h3>Indexer log</h3>
+            </div>
+            <div class="box-body">
+                <textarea style="width:100%;height:250px">{{ indexer_log }}</textarea>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="box">
+            <div class="box-header with-border">
+            <h3>Detector log</h3>
+            </div>
+            <div class="box-body">
+                <textarea style="width:100%;height:250px">{{ detector_log }}</textarea>
+            </div>
+        </div>
+    </div>
+<div class="row">
+    <div class="col-lg-6">
+        <div class="box">
+            <div class="box-header with-border">
+            <h3>Extract log</h3>
+            </div>
+            <div class="box-body">
+                <textarea style="width:100%;height:250px">{{ extract_log }}</textarea>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="box">
+            <div class="box-header with-border">
+            <h3>Fab log</h3>
+            </div>
+            <div class="box-body">
+                <textarea style="width:100%;height:250px">{{ fab_log }}</textarea>
+            </div>
+        </div>
+    </div>
+</div>
+</section>
+{% endblock %}
+{% block page_js%}
+<script>
+    $(document).ready(function() {
+        InitializeTables();
+    })
+</script>
+{% endblock %}

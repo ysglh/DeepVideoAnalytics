@@ -60,11 +60,12 @@ nvidia-docker-compose up
 
 ### Implemented & Potential algorithms/models
 - [x] Alexnet indexing using Pytorch 
-- [x] Google inception using Tensorflow **(Ongoing. Porting code from Visual Search Server)**
+- [x] Google inception using Tensorflow **(GPU tests pending)**
 - [x] [YOLO 9000 (naive implementation, gets reloaded in memory for every video)](http://pjreddie.com/darknet/yolo/)
+- [ ] [Pytorch Squeezenet](http://pytorch.org/docs/torchvision/models.html)
 - [ ] [Face recognition using Facenet](https://github.com/davidsandberg/facenet)
 - [ ] [Soundnet](http://projects.csail.mit.edu/soundnet/)
-- [ ] [Mapnet (tricky requires transferring models from Marvin)](http://www.cs.princeton.edu/~aseff/mapnet/) 
+- [ ] [Mapnet (tricky requires converting models from Marvin)](http://www.cs.princeton.edu/~aseff/mapnet/) 
  
    
  

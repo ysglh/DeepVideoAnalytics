@@ -20,3 +20,4 @@ pandas
 boto3
 protobuf
 humanize
+tensorflow

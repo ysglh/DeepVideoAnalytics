@@ -1,8 +1,10 @@
 .main-header .logo {
-    width: 350px !important;
-    font-weight: 400 !important;
-    color: black !important;
+    width: 400px !important;
+    font-weight: bold !important;
+    color: rgb(3, 60, 100) !important;
+    font-size: 32px;
     text-align: left;
+    font-family:"open sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 .main-header .navbar{

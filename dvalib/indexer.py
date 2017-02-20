@@ -136,6 +136,8 @@ class IncetionIndexer(BaseIndexer):
         self.tf = True
         self.session = None
         self.graph_def = None
+        self.indexed_dirs = set()
+        self.index, self.files, self.findex = None, {}, 0
 
     def load(self):
         if self.session is None:

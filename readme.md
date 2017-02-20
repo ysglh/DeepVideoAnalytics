@@ -28,9 +28,16 @@ pip install --upgrade nvidia-docker-compose
 nvidia-docker-compose up 
 ````
 
-### User Interface (Alpha version still under development)
-
-![UI Screenshot](demo/alpha_screenshot.png "Alpha Screenshot")
+## User Interface 
+### Search
+![UI Screenshot](demo/search.png "search")
+### Past queries
+![UI Screenshot](demo/past_query.png "past queries")
+### Video list / detail
+![UI Screenshot](demo/video_list.png "Video list")
+![UI Screenshot](demo/video_detail.png "detail")
+### Frame detail
+![UI Screenshot](demo/frame_detail.png "Frame detail")
 
 ##To Do list
 **Deep Video Analytics is currently under active development.**

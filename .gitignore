@@ -19,3 +19,4 @@ Thumbs.db
 /darknet/backup/
 /darknet/predictions.png
 /darknet/darknet
+/darknet/*.txt

@@ -383,38 +383,17 @@ function chunk(arr, size) {
   return newArr;
 }
 
-$scope.search_quick = function () {
-    $scope.setFreeDrawingMode(false,$scope.current_mode);
-    $scope.check_movement();
-    $scope.status = "Starting Quick Search";
-    if(canvas.isDrawingMode){
-        canvas.isDrawingMode = false;
-        canvas.deactivateAll().renderAll();
-    }
-    $scope.$$phase || $scope.$digest();
-    $scope.refreshData();
-    $.ajax({
-        type: "POST",
-        url: '/Quick',
-        dataType: 'json',
-        async: true,
-        data: {
-            'image_url': canvas.toDataURL(),
-            'csrfmiddlewaretoken':$(csrf_token).val()
-        },
-        success: function (response) {
-            $scope.status = "Approximate Search Completed";
-            $scope.results = chunk(response.results, 4);
-            $scope.$$phase || $scope.$digest();
 
-        }
-    });
+
+$scope.clear_results = function () {
+    $scope.results = [""];
+    $scope.$apply();
+    $scope.$$phase || $scope.$digest();
 };
 
-
-
-
 $scope.search = function () {
+    debugger;
+    $scope.clear_results();
     $scope.setFreeDrawingMode(false,$scope.current_mode);
     $scope.check_movement();
     $scope.status = "Starting Exact Search can take up to a minute";
@@ -422,6 +401,9 @@ $scope.search = function () {
         canvas.isDrawingMode = false;
         canvas.deactivateAll().renderAll();
     }
+    $scope.alert_status = true;
+    $scope.results = [];
+    $scope.$apply();
     $scope.$$phase || $scope.$digest();
     $scope.refreshData();
     $.ajax({
@@ -435,10 +417,10 @@ $scope.search = function () {
         },
         success: function (response) {
             $scope.status = "Exact Search Completed";
+            $scope.alert_status = false;
             console.log(response);
             $scope.results = chunk(response.results, 4);
             $scope.$$phase || $scope.$digest();
-
         }
     });
 };
@@ -468,6 +450,7 @@ cveditor.controller('CanvasControls', function($scope) {
     $scope.output_canvas = output_canvas;
     $scope.getActiveStyle = getActiveStyle;
     $scope.dev = false;
+    $scope.alert_status = false;
     $scope.status = "Please add image.";
     $scope.current_mode = null;
     $scope.results = [];

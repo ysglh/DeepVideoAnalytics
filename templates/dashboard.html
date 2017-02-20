@@ -63,7 +63,7 @@
             <div ng-show="getFreeDrawingMode(1)" class="drawing-mode">
                 <button id="drawing-mode_x" ng-click="setFreeDrawingMode(!getFreeDrawingMode(1),1)" class="btn bg-red  stop_btn"> <i class="fa fa-close"></i>&nbsp;&nbsp;Stop Drawing!</button>
             </div>
-            <button href="" class="btn btn-warning" id="search_quick" ng-click="search_quick()"><i class="fa fa-search"></i>&nbsp;&nbsp;Approximate Search</button>
+            <button href="" class="btn btn-warning" id="search_quick" ng-click="search()"><i class="fa fa-search"></i>&nbsp;&nbsp;Approximate Search</button>
             <button href="" class="btn btn-success" id="segment" ng-click="search()"><i class="fa fa-search"></i>&nbsp;&nbsp;Exact Search</button>
         </div>
         <div id="canvas-wrapper">
@@ -127,7 +127,7 @@
                 </div>
             </div>
         </div>
-        <div id="status" ng-model="status" ng-show="checkStatus()" class="alert alert-info  alert-dismissable"><h4 class="h4status">{[ status ]}</h4>
+        <div id="status" ng-model="status" ng-show="checkStatus()" class="alert alert-dismissable" ng-class="alert_status ? 'alert-warning' : 'alert-info'"><h4 class="h4status">{[ status ]}</h4>
             <button type="button" class="close" ng-click="disableStatus()" aria-hidden="true">x</button>
         </div>
     </div>

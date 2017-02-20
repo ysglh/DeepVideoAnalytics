@@ -162,7 +162,7 @@ class IncetionIndexer(BaseIndexer):
             im = PIL.Image.open(image_path)
             bg = PIL.Image.new("RGB", im.size, (255, 255, 255))
             bg.paste(im, im)
-            image_path = image_path.replace('.png','jpg')
+            image_path = image_path.replace('.png','.jpg')
             bg.save(image_path)
         pool3 = self.session.graph.get_tensor_by_name('incept/pool_3:0')
         pool3_features = self.session.run(pool3,{'incept/DecodeJpeg/contents:0': file(image_path).read()})

@@ -20,4 +20,4 @@ pandas
 boto3
 protobuf
 humanize
-tensorflow
+tensorflow==1.0.0

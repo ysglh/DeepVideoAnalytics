@@ -1,4 +1,4 @@
-FROM tensorflow/tensorflow:0.11.0-gpu
+FROM tensorflow/tensorflow:1.0.0-gpu
 
 MAINTAINER Akshay Bhat <akshayubhat@gmail.com>
 RUN apt-get update && apt-get install -y wget

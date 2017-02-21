@@ -29,6 +29,7 @@ class Query(models.Model):
     results = models.BooleanField(default=False)
     task_id = models.CharField(max_length=100,default="")
     results_metadata = models.TextField(default="")
+    user = models.ForeignKey(User, null=True)
 
 class Detection(models.Model):
     video = models.ForeignKey(Video,null=True)

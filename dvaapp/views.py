@@ -22,7 +22,9 @@ def search(request):
         with open(query_path,'w') as fh:
             fh.write(image_data)
         result = query_by_image.apply_async(args=[primary_key],queue=settings.Q_INDEXER)
+        user = request.user if request.user.is_authenticated() else None
         query.task_id = result.task_id
+        query.user = user
         query.save()
         results = []
         entries = result.get()

@@ -55,10 +55,10 @@ nvidia-docker-compose up
 - [X] Continuous integration test suite
 - [X] Improved user interface for browsing past queries
 - [X] Improve TEvent model to track state of tasks
-- [X] Incorporate metadata from (PySceneDetect)[https://github.com/Breakthrough/PySceneDetect]
+- [X] Improved frame extraction using PySceneDetect (every 100th frame and frame selected by content change)
 - [X] Integrate Tensorflow 1.0
-- [X] Implement a method to backup postgres db & media folder to S3 via a single command
-- [ ] Improved models by adding information about user performing the query/uploading video/dataset
+- [X] Improved models by adding information about user performing the uploading video/dataset
+- [ ] Implement a method to backup postgres db & media folder to S3 via a single command
 - [ ] Index detected object 
 - [ ] Move global settings (such as resolution of extracted frame etc.) into a global config file
 - [ ] Deployment on AWS P2 machines

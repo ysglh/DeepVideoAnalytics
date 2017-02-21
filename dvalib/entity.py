@@ -48,22 +48,20 @@ class WVideo(object):
     def extract_frames(self):
         frames = []
         if not self.dvideo.dataset:
-            frame_seconds = set()
-            for i in range(int(self.duration)):
-                if i % 2 == 0:
-                    frame_seconds.add(i)
             output_dir = "{}/{}/{}/".format(self.media_dir,self.primary_key,'frames')
-            for s in frame_seconds:
-                fname = "{}.jpg".format(s)
-                command = 'ffmpeg -accurate_seek -ss {} -i {} -y -frames:v 1 -vf scale=600:-1 {}/{}'.format(s,self.local_path,output_dir,fname)
-                extract = sp.Popen(shlex.split(command))
-                extract.wait()
-                if extract.returncode != 0:
-                    raise ValueError
-                f = WFrame(time_seconds=s,video=self)
+            command = 'ffmpeg -i {} -vf "select=not(mod(n\,100)),scale=600:-1" -vsync vfr  {}/%d.jpg'.format(self.local_path,output_dir)
+            extract = sp.Popen(shlex.split(command))
+            extract.wait()
+            if extract.returncode != 0:
+                raise ValueError
+            for fname in glob.glob(output_dir+'*.jpg'):
+                ind = int(fname.split('/')[-1].replace('.jpg', ''))
+                os.rename(fname,fname.replace('{}.jpg'.format(ind),'{}.jpg'.format(ind*100)))
+                f = WFrame(frame_index=int(100*ind),video=self)
                 if extract.returncode != 0:
                     raise ValueError
                 frames.append(f)
+            self.scene_detection(frames)
         else:
             zipf = zipfile.ZipFile("{}/{}/video/{}.zip".format(self.media_dir, self.primary_key, self.primary_key), 'r')
             zipf.extractall("{}/{}/frames/".format(self.media_dir, self.primary_key))
@@ -77,7 +75,7 @@ class WVideo(object):
                             i += 1
                             dst = "{}/{}/frames/{}.jpg".format(self.media_dir, self.primary_key, i)
                             os.rename(fname, dst)
-                            f = WFrame(time_seconds=i, video=self,name=fname.split('/')[-1])
+                            f = WFrame(frame_index=i, video=self,name=fname.split('/')[-1])
                             frames.append(f)
                         else:
                             logging.warning("skipping {} not a jpeg file".format(fname))
@@ -87,32 +85,36 @@ class WVideo(object):
 
     def index_frames(self,frames):
         results = []
-        wframes = [WFrame(video=self, time_seconds=df.time_seconds,primary_key=df.pk) for df in frames]
+        wframes = [WFrame(video=self, frame_index=df.frame_index,primary_key=df.pk) for df in frames]
         for index_name,index in indexer.INDEXERS.iteritems():
             index.load()
             results.append(index.index_frames(wframes,self))
         return results
 
-    def scene_detection(self):
-        manager = pyscenecustom.manager.SceneManager(save_image_prefix="{}/{}/scenes/".format(self.media_dir,self.primary_key))
+    def scene_detection(self,frames):
+        manager = pyscenecustom.manager.SceneManager(save_image_prefix="{}/{}/frames/".format(self.media_dir,self.primary_key))
         path = self.local_path
-        pyscenecustom.detect_scenes_file(path, manager)
+        framelist = pyscenecustom.detect_scenes_file(path, manager)
+        for s in framelist:
+            f = WFrame(frame_index=s, video=self)
+            frames.append(f)
+        return frames
 
 
 class WFrame(object):
 
-    def __init__(self,time_seconds=None,video=None,primary_key=None,name=None):
+    def __init__(self,frame_index=None,video=None,primary_key=None,name=None):
         if video:
-            self.time_seconds = time_seconds
+            self.frame_index = frame_index
             self.video = video
             self.primary_key = primary_key
             self.name = name
         else:
-            self.time_seconds = None
+            self.frame_index = None
             self.video = None
             self.primary_key = None
             self.name = None
 
     def local_path(self):
-        return "{}/{}/{}/{}.jpg".format(self.video.media_dir,self.video.primary_key,'frames',self.time_seconds)
+        return "{}/{}/{}/{}.jpg".format(self.video.media_dir,self.video.primary_key,'frames',self.frame_index)
 

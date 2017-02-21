@@ -39,9 +39,9 @@ class BaseIndexer(object):
                     pass
                 else:
                     for i, f in enumerate(file(fname.replace(".npy", ".framelist")).readlines()):
-                        time_seconds,frame_pk = f.strip().split('_')
+                        frame_index,frame_pk = f.strip().split('_')
                         self.files[self.findex] = {
-                            'time_seconds':time_seconds,
+                            'frame_index':frame_index,
                             'video_primary_key':dirname,
                             'frame_primary_key':frame_pk
                         }
@@ -85,7 +85,7 @@ class BaseIndexer(object):
         features = []
         media_dir = video.media_dir
         for f in frames:
-            files.append("{}_{}".format(f.time_seconds,f.primary_key))
+            files.append("{}_{}".format(f.frame_index,f.primary_key))
             features.append(self.apply(f.local_path()))
         feat_fname = "{}/{}/indexes/{}.npy".format(media_dir,video.primary_key,self.name)
         files_fname = "{}/{}/indexes/{}.framelist".format(media_dir, video.primary_key,self.name)

@@ -75,7 +75,7 @@ def extract_frames(video_id):
     dv.save()
     for f in frames:
         df = Frame()
-        df.time_seconds = f.time_seconds
+        df.frame_index = f.frame_index
         df.video = dv
         if f.name:
             df.name = f.name[:150]
@@ -100,7 +100,7 @@ def perform_detection(video_id):
     dv = Video.objects.get(id=video_id)
     frames = Frame.objects.all().filter(video=dv)
     v = entity.WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
-    wframes = [entity.WFrame(video=v, time_seconds=df.time_seconds, primary_key=df.pk) for df in frames]
+    wframes = [entity.WFrame(video=v, frame_index=df.frame_index, primary_key=df.pk) for df in frames]
     darknet_path = os.path.join(settings.BASE_DIR,'darknet/')
     list_path = "{}/{}_list.txt".format(darknet_path,os.getpid())
     output_path = "{}/{}_output.txt".format(darknet_path,os.getpid())

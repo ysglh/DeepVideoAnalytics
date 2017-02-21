@@ -141,11 +141,11 @@ def detect_scenes_file(path, scene_manager):
             frames_list[0], frames_list[1], frames_list[2])
 
     # Perform scene detection on cap object (modifies scene_list).
-    frames_read, frames_processed = detect_scenes(cap, scene_manager, start_frame, end_frame, duration_frames)
-
+    framelist = detect_scenes(cap, scene_manager, start_frame, end_frame, duration_frames)
+    # (video_fps, frames_read, frames_processed)
     # Cleanup and return number of frames we read/processed.
     cap.release()
-    return (video_fps, frames_read, frames_processed)
+    return framelist
 
 
 def detect_scenes(cap, scene_manager, start_frame = 0, end_frame = 0, duration_frames = 0):
@@ -171,7 +171,7 @@ def detect_scenes(cap, scene_manager, start_frame = 0, end_frame = 0, duration_f
     frames_processed = 0
     frame_metrics = {}
     last_frame = None       # Holds previous frame if needed for save_images.
-
+    framelist = []
     perf_show = True
     perf_last_update_time = time.time()
     perf_last_framecount = 0
@@ -246,8 +246,16 @@ def detect_scenes(cap, scene_manager, start_frame = 0, end_frame = 0, duration_f
                 perf_last_framecount = frames_read
                 logging.info("[PySceneDetect] Current Processing Speed: %3.1f FPS" % perf_curr_rate)
         # save images on scene cuts/breaks if requested (scaled if using -df)
-        if cut_found or (frames_read % 100 == 0):
-            save_preview_images(scene_manager.save_image_prefix, im_cap, frames_read, len(scene_manager.scene_list))
+        if cut_found:
+            scene_index = len(scene_manager.scene_list)
+            output_name = '{}/{}.jpg'.format(scene_manager.save_image_prefix, frames_read)
+            framelist.append(frames_read)
+            height, width, depth = im_cap.shape
+            imgScale = 600. / width
+            newX, newY = im_cap.shape[1] * imgScale, im_cap.shape[0] * imgScale
+            im_cap = cv2.resize(im_cap, (int(newX), int(newY)))
+            cv2.imwrite(output_name, im_cap)
+
         del last_frame
         last_frame = im_cap.copy()
     # perform any post-processing required by the detectors being used
@@ -256,22 +264,9 @@ def detect_scenes(cap, scene_manager, start_frame = 0, end_frame = 0, duration_f
 
     if start_frame > 0:
         frames_read = frames_read - start_frame
-    return (frames_read, frames_processed)
+    return framelist
 
 
-def save_preview_images(image_path_prefix, im_curr, frame_index, num_scenes):
-    """Called when a scene break occurs to save an image of the frames.
-
-    Args:
-        image_path_prefix: Prefix to include in image path.
-        im_curr: The current frame image for the first frame in the new scene.
-        im_last: The last frame of the previous scene.
-        num_scenes: The index of the current/new scene (the IN frame).
-    """
-    # Save the last/previous frame, or the OUT frame of the last scene.
-    output_name = '%s/frame_%d_scene_%d.jpg' % (image_path_prefix,frame_index,num_scenes)
-    print(output_name)
-    cv2.imwrite(output_name, im_curr)
 
 
 

@@ -29,7 +29,7 @@ def search(request):
         if entries:
             for algo,rlist in entries.iteritems():
                 for r in rlist:
-                    r['url'] = '/media/{}/frames/{}.jpg'.format(r['video_primary_key'],r['time_seconds'])
+                    r['url'] = '/media/{}/frames/{}.jpg'.format(r['video_primary_key'],r['frame_index'])
                     results.append(r)
         return JsonResponse(data={'task_id':result.task_id,'primary_key':primary_key,'results':results})
 
@@ -61,7 +61,6 @@ def handle_uploaded_file(f,name,extract=True,user=None):
     video.save()
     os.mkdir('{}/{}'.format(settings.MEDIA_ROOT,video.pk))
     os.mkdir('{}/{}/video/'.format(settings.MEDIA_ROOT,video.pk))
-    os.mkdir('{}/{}/scenes/'.format(settings.MEDIA_ROOT,video.pk))
     os.mkdir('{}/{}/frames/'.format(settings.MEDIA_ROOT,video.pk))
     os.mkdir('{}/{}/indexes/'.format(settings.MEDIA_ROOT, video.pk))
     os.mkdir('{}/{}/detections/'.format(settings.MEDIA_ROOT, video.pk))
@@ -121,7 +120,7 @@ class FrameDetail(DetailView):
         context = super(FrameDetail, self).get_context_data(**kwargs)
         context['detection_list'] = Detection.objects.all().filter(frame=self.object)
         context['video'] = self.object.video
-        context['url'] = '{}/{}/frames/{}.jpg'.format(settings.MEDIA_URL,self.object.video.pk,self.object.time_seconds)
+        context['url'] = '{}/{}/frames/{}.jpg'.format(settings.MEDIA_URL,self.object.video.pk,self.object.frame_index)
         return context
 
 

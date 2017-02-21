@@ -26,11 +26,11 @@
                     <div class="col-sm-3 col-xs-6">
                         <div class="box box-primary">
                         <div class="box-header with-border">
-                            <p>{{ d.video.name }} at {{ d.frame.time_seconds }}</p>
+                            <p>{{ d.video.name }} at {{ d.frame.frame_index }}</p>
                             <p>Found by {{ d.algorithm }} at {{ d.distance|floatformat }}</p>
                         </div>
                         <div class="box-body">
-                            <a href="/frames/{{ d.frame.pk }}"><img class="img-responsive img-bordered-sm" style="width:80%;margin-left:auto;margin-right:auto" src="/media/{{ d.video.pk }}/frames/{{ d.frame.time_seconds }}.jpg"></a>
+                            <a href="/frames/{{ d.frame.pk }}"><img class="img-responsive img-bordered-sm" style="width:80%;margin-left:auto;margin-right:auto" src="/media/{{ d.video.pk }}/frames/{{ d.frame.frame_index }}.jpg"></a>
                         </div>
                         </div>
                     </div>

@@ -53,6 +53,9 @@ def start_server_container(test=False):
 
 @task
 def clean():
+    local('rabbitmqadmin purge queue name=qextract')
+    local('rabbitmqadmin purge queue name=qindexer')
+    local('rabbitmqadmin purge queue name=qdetector')
     local('python manage.py flush --no-input')
     migrate()
     local("rm logs/*.log")

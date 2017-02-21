@@ -20,7 +20,7 @@ class Video(models.Model):
 
 class Frame(models.Model):
     video = models.ForeignKey(Video,null=True)
-    time_seconds = models.IntegerField()
+    frame_index = models.IntegerField()
     name = models.CharField(max_length=200,null=True)
 
 

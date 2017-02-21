@@ -79,6 +79,7 @@ def extract_frames(video_id):
         df.video = dv
         if f.name:
             df.name = f.name[:150]
+            df.subdir = f.subdir.replace('/',' ')
         df.save()
     # perform_detection_video.apply_async(args=[dv.id, ], queue=settings.Q_DETECTOR)
     finished = TEvent()
@@ -116,8 +117,10 @@ def perform_detection(video_id):
         logging.info(args)
         returncode = subprocess.call(args,cwd=darknet_path,stdout=output)
     if returncode == 0:
+        detections = 0
         for line in file(output_path):
             if line.strip():
+                detections += 1
                 frame_path,name,confidence,left,right,top,bot = line.strip().split('\t')
                 if frame_path not in path_to_pk:
                     raise ValueError,frame_path
@@ -139,6 +142,8 @@ def perform_detection(video_id):
                 img = Image.open(frame_path)
                 img2 = img.crop((left, top, right,bot))
                 img2.save("{}/{}/detections/{}.jpg".format(settings.MEDIA_ROOT,video_id,dd.pk))
+        dv.detections = detections
+        dv.save()
     finished = TEvent()
     finished.completed = True
     finished.operation = "detection"

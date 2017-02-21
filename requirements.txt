@@ -20,4 +20,4 @@ pandas
 boto3
 protobuf
 humanize
-tensorflow
+https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.0.0a0-cp27-none-linux_x86_64.whl

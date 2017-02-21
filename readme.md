@@ -55,15 +55,15 @@ nvidia-docker-compose up
 - [X] Continuous integration test suite
 - [X] Improved user interface for browsing past queries
 - [X] Improve TEvent model to track state of tasks
-- [ ] Incorporate metadata from (PySceneDetect)[https://github.com/Breakthrough/PySceneDetect]
-- [ ] Integrate Tensorflow/Keras 
+- [X] Incorporate metadata from (PySceneDetect)[https://github.com/Breakthrough/PySceneDetect]
+- [X] Integrate Tensorflow 1.0
+- [X] Implement a method to backup postgres db & media folder to S3 via a single command
+- [ ] Improved models by adding information about user performing the query/uploading video/dataset
 - [ ] Index detected object 
 - [ ] Move global settings (such as resolution of extracted frame etc.) into a global config file
 - [ ] Deployment on AWS P2 machines
 - [ ] Separate frame-indexer and query-indexer tasks
 - [ ] Implement approximate nn search via NMS lib or Anony
-- [ ] Implement a method to backup postgres db & media folder to S3 via a single command
-- [ ] Improved models by adding information about user performing the query/uploading video/dataset
 - [ ] Convert Darknet detection model into Tensorflow or Pytorch 
 - [ ] Evaluate feasibility of integrating [Keras-js](https://github.com/transcranial/keras-js) for client side indexing.
 
@@ -138,6 +138,7 @@ media/
 - Darknet [License](https://github.com/pjreddie/darknet/blob/master/LICENSE)
 - AdminLTE2 [License](https://github.com/almasaeed2010/AdminLTE/blob/master/LICENSE)
 - FabricJS [License](https://github.com/kangax/fabric.js/blob/master/LICENSE)
+- PySceneDetect [License]()
 
 # Copyright
 Copyright, Akshay Bhat, Cornell University, All rights reserved.

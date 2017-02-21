@@ -1,6 +1,8 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from django.contrib.auth.models import User
+
 
 # Create your models here.
 class Video(models.Model):
@@ -14,7 +16,7 @@ class Video(models.Model):
     description = models.TextField(default="")
     uploaded = models.BooleanField(default=False)
     dataset = models.BooleanField(default=False)
-
+    uploader = models.ForeignKey(User,null=True)
 
 class Frame(models.Model):
     video = models.ForeignKey(Video,null=True)

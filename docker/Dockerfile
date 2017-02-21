@@ -79,5 +79,9 @@ RUN youtube-dl -U
 WORKDIR "/root/DVA/darknet"
 RUN make
 RUN wget https://www.dropbox.com/s/0zopjpswug5rjqy/yolo9000.weights
+WORKDIR "/root/DVA/"
+RUN git pull
+WORKDIR "/root/DVA/pyscene"
+RUN python setup.py install
 VOLUME ["/root/DVA/dva/media"]
 WORKDIR "/root/DVA"

@@ -38,8 +38,9 @@ def search(request):
 def index(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
+        user = request.user if request.user.is_authenticated() else None
         if form.is_valid():
-            handle_uploaded_file(request.FILES['file'],form.cleaned_data['name'])
+            handle_uploaded_file(request.FILES['file'],form.cleaned_data['name'],user=user)
         else:
             raise ValueError
     else:
@@ -52,8 +53,10 @@ def index(request):
     return render(request, 'dashboard.html', context)
 
 
-def handle_uploaded_file(f,name,extract=True):
+def handle_uploaded_file(f,name,extract=True,user=None):
     video = Video()
+    if user:
+        video.uploader = user
     video.name = name
     video.save()
     os.mkdir('{}/{}'.format(settings.MEDIA_ROOT,video.pk))

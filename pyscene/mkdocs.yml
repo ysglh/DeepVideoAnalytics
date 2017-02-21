@@ -1,0 +1,36 @@
+site_name: PySceneDetect
+site_description: "Website and documentation for PySceneDetect, a program to automatically detect scene cuts and split videos.  Written in Python, and also provides Python API in addition to command-line interface for use within other programs."
+site_author: "Brandon Castellano"
+
+repo_url: https://github.com/Breakthrough
+repo_name: "PySceneDetect on Github"
+copyright: 'Copyright &copy; 2012-2016 Brandon Castellano.  All rights reserved.<br />Licensed under BSD 2-Clause (see the <a href="https://github.com/Breakthrough/PySceneDetect/blob/master/LICENSE" alt="link to latest LICENSE file on Github">LICENSE file</a> for details).'
+
+#theme: mkdocs
+theme: readthedocs
+google_analytics: ['UA-72551323-1', 'auto']
+
+pages:
+- 'PySceneDetect':
+    - 'Introduction': 'index.md'
+    - 'Features & Roadmap': 'features.md'
+    - 'Download': 'download.md'
+    - 'Changelog': 'changelog.md'
+    - 'Bug Reports and Contributing': 'contributing.md'
+    - 'License & Copyright Information': 'copyright.md'
+- 'Getting Started:':
+    - 'Basic Usage': 'examples/usage.md'
+    - 'Examples': 'examples/usage-example.md'
+    - 'Python Interface': 'examples/usage-python.md'
+- 'Documentation & Reference:':
+    - 'Command-Line Parameters': 'reference/command-line-params.md'
+    - 'Scene Detection Method Details': 'reference/detection-methods.md'
+    - 'Python Interface & Integration With Other Applications': 'reference/python-usage.md'
+    - 'Python API Reference': 'reference/python-api.md'
+    - 'Creating New Scene Detection Methods': 'reference/creating-new-scene-detectors.md'
+- 'Other Links':
+    - 'Third-Party Tools & Utilities': 'other/thirdparty.md'
+    - 'Other Similar Programs': 'other/similar.md'
+    - 'Useful Resources & Reading Material': 'other/resources.md'
+
+markdown_extensions: [fenced_code]

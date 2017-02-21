@@ -61,6 +61,7 @@ def handle_uploaded_file(f,name,extract=True,user=None):
     video.save()
     os.mkdir('{}/{}'.format(settings.MEDIA_ROOT,video.pk))
     os.mkdir('{}/{}/video/'.format(settings.MEDIA_ROOT,video.pk))
+    os.mkdir('{}/{}/scenes/'.format(settings.MEDIA_ROOT,video.pk))
     os.mkdir('{}/{}/frames/'.format(settings.MEDIA_ROOT,video.pk))
     os.mkdir('{}/{}/indexes/'.format(settings.MEDIA_ROOT, video.pk))
     os.mkdir('{}/{}/detections/'.format(settings.MEDIA_ROOT, video.pk))

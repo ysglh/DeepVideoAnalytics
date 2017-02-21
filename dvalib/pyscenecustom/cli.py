@@ -31,7 +31,6 @@ import argparse
 import string
 
 # PySceneDetect Library Imports
-import scenedetect
 
 
 def timecode_type_check(metavar = None):

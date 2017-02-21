@@ -2,7 +2,7 @@ import shlex,json,os,zipfile,glob,logging
 import subprocess as sp
 import indexer
 import numpy as np
-
+import pyscenecustom
 
 class WQuery(object):
 
@@ -92,6 +92,11 @@ class WVideo(object):
             index.load()
             results.append(index.index_frames(wframes,self))
         return results
+
+    def scene_detection(self):
+        manager = pyscenecustom.manager.SceneManager(save_image_prefix="{}/{}/scenes/".format(self.media_dir,self.primary_key))
+        path = self.local_path
+        pyscenecustom.detect_scenes_file(path, manager)
 
 
 class WFrame(object):

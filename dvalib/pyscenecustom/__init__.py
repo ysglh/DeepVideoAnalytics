@@ -34,13 +34,14 @@ import argparse
 import time
 import csv
 import subprocess
+import logging
 
 # PySceneDetect Library Imports
-import scenedetect.platform
-import scenedetect.detectors
-import scenedetect.timecodes
-import scenedetect.manager
-import scenedetect.cli
+import platform
+import detectors
+import timecodes
+import manager
+import cli
 
 # Third-Party Library Imports
 import cv2
@@ -101,24 +102,24 @@ def detect_scenes_file(path, scene_manager):
     file_name = os.path.split(path)[1]
     if not cap.isOpened():
         if not scene_manager.quiet_mode:
-            print('[PySceneDetect] FATAL ERROR - could not open video %s.' % path)
+            logging.info('[PySceneDetect] FATAL ERROR - could not open video %s.' % path)
         return (video_fps, frames_read)
     elif not scene_manager.quiet_mode:
-        print('[PySceneDetect] Parsing video %s...' % file_name)
+        logging.info('[PySceneDetect] Parsing video %s...' % file_name)
 
     # Print video parameters (resolution, FPS, etc...)
     video_width  = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
     video_height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
     video_fps    = cap.get(cv2.CAP_PROP_FPS)
     if not scene_manager.quiet_mode:
-        print('[PySceneDetect] Video Resolution / Framerate: %d x %d / %2.3f FPS' % (
+        logging.info('[PySceneDetect] Video Resolution / Framerate: %d x %d / %2.3f FPS' % (
             video_width, video_height, video_fps))
         if scene_manager.downscale_factor >= 2:
-            print('[PySceneDetect] Subsampling Enabled (%dx, Resolution = %d x %d)' % (
+            logging.info('[PySceneDetect] Subsampling Enabled (%dx, Resolution = %d x %d)' % (
                 scene_manager.downscale_factor,
                 video_width / scene_manager.downscale_factor,
                 video_height / scene_manager.downscale_factor))
-        print('Verify that the above parameters are correct'
+        logging.info('Verify that the above parameters are correct'
               ' (especially framerate, use --force-fps to correct if required).')
 
     # Convert timecode_list to absolute frames for detect_scenes() function.
@@ -140,16 +141,14 @@ def detect_scenes_file(path, scene_manager):
             frames_list[0], frames_list[1], frames_list[2])
 
     # Perform scene detection on cap object (modifies scene_list).
-    frames_read, frames_processed = detect_scenes(
-        cap, scene_manager, file_name, start_frame, end_frame, duration_frames)
+    frames_read, frames_processed = detect_scenes(cap, scene_manager, start_frame, end_frame, duration_frames)
 
     # Cleanup and return number of frames we read/processed.
     cap.release()
     return (video_fps, frames_read, frames_processed)
 
 
-def detect_scenes(cap, scene_manager, image_path_prefix = '', start_frame = 0,
-                  end_frame = 0, duration_frames = 0):
+def detect_scenes(cap, scene_manager, start_frame = 0, end_frame = 0, duration_frames = 0):
     """Performs scene detection based on passed video and scene detectors.
 
     Args:
@@ -229,7 +228,7 @@ def detect_scenes(cap, scene_manager, image_path_prefix = '', start_frame = 0,
             if len(stats_file_keys) > 0:
                 scene_manager.stats_writer.writerow(
                     [str(frames_read)] +
-                    [scenedetect.timecodes.frame_to_timecode(frames_read, video_fps)] +
+                    [timecodes.frame_to_timecode(frames_read, video_fps)] +
                     [str(frame_metrics[frames_read][metric]) for metric in stats_file_keys])
         frames_read += 1
         frames_processed += 1
@@ -245,12 +244,10 @@ def detect_scenes(cap, scene_manager, image_path_prefix = '', start_frame = 0,
                     perf_curr_rate = 0.0
                 perf_last_update_time = curr_time
                 perf_last_framecount = frames_read
-                print("[PySceneDetect] Current Processing Speed: %3.1f FPS" % perf_curr_rate)
+                logging.info("[PySceneDetect] Current Processing Speed: %3.1f FPS" % perf_curr_rate)
         # save images on scene cuts/breaks if requested (scaled if using -df)
-        if scene_manager.save_images and cut_found:
-            save_preview_images(
-                image_path_prefix, im_cap, last_frame, len(scene_manager.scene_list))
-
+        if cut_found or (frames_read % 100 == 0):
+            save_preview_images(scene_manager.save_image_prefix, im_cap, frames_read, len(scene_manager.scene_list))
         del last_frame
         last_frame = im_cap.copy()
     # perform any post-processing required by the detectors being used
@@ -262,7 +259,7 @@ def detect_scenes(cap, scene_manager, image_path_prefix = '', start_frame = 0,
     return (frames_read, frames_processed)
 
 
-def save_preview_images(image_path_prefix, im_curr, im_last, num_scenes):
+def save_preview_images(image_path_prefix, im_curr, frame_index, num_scenes):
     """Called when a scene break occurs to save an image of the frames.
 
     Args:
@@ -272,92 +269,18 @@ def save_preview_images(image_path_prefix, im_curr, im_last, num_scenes):
         num_scenes: The index of the current/new scene (the IN frame).
     """
     # Save the last/previous frame, or the OUT frame of the last scene.
-    output_name = '%s.Scene-%d-OUT.jpg' % (image_path_prefix, num_scenes)
-    cv2.imwrite(output_name, im_last)
-    # Save the current frame, or the IN frame of the new scene.
-    output_name = '%s.Scene-%d-IN.jpg' % (image_path_prefix, num_scenes+1)
+    output_name = '%s/frame_%d_scene_%d.jpg' % (image_path_prefix,frame_index,num_scenes)
+    print(output_name)
     cv2.imwrite(output_name, im_curr)
 
 
-def main():
-    """Entry point for running PySceneDetect as a program.
-
-    Handles high-level interfacing of video and scene detection / output.
-    """
-
-    # Load available detection modes and timecode formats.
-    scene_detectors = scenedetect.detectors.get_available()
-    timecode_formats = scenedetect.timecodes.get_available()
-    # Parse CLI arguments.
-    args = scenedetect.cli.get_cli_parser(
-        scene_detectors.keys(), timecode_formats.keys()).parse_args()
-    # Use above to initialize scene manager.
-    smgr = scenedetect.manager.SceneManager(args, scene_detectors)
-
-    # Perform scene detection using specified mode.
-    start_time = time.time()
-    if not args.quiet_mode:
-        print('[PySceneDetect] Detecting scenes (%s mode)...' % smgr.detection_method)
-    video_fps, frames_read, frames_processed = detect_scenes_file(
-        path = args.input.name, scene_manager = smgr)
-    elapsed_time = time.time() - start_time
-    perf_fps = float(frames_read) / elapsed_time
-
-    # Create new list with scene cuts in milliseconds (original uses exact
-    # frame numbers) based on the video's framerate, and then timecodes.
-    scene_list_msec = [(1000.0 * x) / float(video_fps) for x in smgr.scene_list]
-    scene_list_tc = [scenedetect.timecodes.get_string(x) for x in scene_list_msec]
-    # Create new lists with scene cuts in seconds, and the length of each scene.
-    scene_start_sec = [(1.0 * x) / float(video_fps) for x in smgr.scene_list]
-    scene_len_sec = []
-    if len(smgr.scene_list) > 0:
-        scene_len_sec = smgr.scene_list + [frames_read]
-        scene_len_sec = [(1.0 * x) / float(video_fps) for x in scene_len_sec]
-        scene_len_sec = [(y - x) for x, y in zip(scene_len_sec[:-1], scene_len_sec[1:])]
-
-    if frames_read >= 0:
-        # Print performance (average framerate), and scene list if requested.
-        if not args.quiet_mode:
-            print('[PySceneDetect] Processing complete, found %d scenes in video.' % (
-                len(smgr.scene_list)))
-            print('[PySceneDetect] Processed %d / %d frames read in %3.1f secs (avg %3.1f FPS).' % (
-                frames_processed, frames_read, elapsed_time, perf_fps))
-            if len(smgr.scene_list) > 0:
-                if args.list_scenes:
-                    print('[PySceneDetect] List of detected scenes:')
-                    print ('-------------------------------------------')
-                    print ('  Scene #  |   Frame #   |    Timecode ')
-                    print ('-------------------------------------------')
-                    for scene_idx, frame_num in enumerate(smgr.scene_list):
-                        print ('    %3d    |  %9d  |  %s' % (
-                            scene_idx+1, frame_num, scene_list_tc[scene_idx]))
-                    print ('-------------------------------------------')
-                print('[PySceneDetect] Comma-separated timecode output:')
-
-        # Print CSV separated timecode output for use in other programs.
-        timecode_list_str = ','.join(scene_list_tc)
-        print(timecode_list_str)
-
-        # Output CSV file containing timecode string and list of scene timecodes.
-        if args.csv_out:
-            output_scene_list(args.csv_out, smgr, scene_list_tc,
-                              scene_start_sec, scene_len_sec)
-
-        if args.output and len(smgr.scene_list) > 0:
-            split_input_video(args.input.name, args.output, timecode_list_str)
-    # Cleanup, release all objects and close file handles.
-    if args.stats_file:
-        args.stats_file.close()
-    if args.csv_out:
-        args.csv_out.close()
-    return
 
 
 def split_input_video(input_path, output_path, timecode_list_str):
     """ Calls the mkvmerge command on the input video, splitting it at the
     passed timecodes, where each scene is written in sequence from 001."""
     #args.output.close()
-    print('[PySceneDetect] Splitting video into clips...')
+    logging.info('[PySceneDetect] Splitting video into clips...')
     ret_val = None
     try:
         ret_val = subprocess.call(
@@ -365,15 +288,15 @@ def split_input_video(input_path, output_path, timecode_list_str):
              '-o', output_path,
              '--split', 'timecodes:%s' % timecode_list_str,
              input_path])
-    except FileNotFoundError:
-        print('[PySceneDetect] Error: mkvmerge could not be found on the system.'
+    except ValueError:
+        logging.info('[PySceneDetect] Error: mkvmerge could not be found on the system.'
               ' Please install mkvmerge to enable video output support.')
     if ret_val is not None:
         if ret_val != 0:
-            print('[PySceneDetect] Error splitting video '
+            logging.info('[PySceneDetect] Error splitting video '
                   '(mkvmerge returned %d).' % ret_val)
         else:
-            print('[PySceneDetect] Finished writing scenes to output.')
+            logging.info('[PySceneDetect] Finished writing scenes to output.')
 
 
 def output_scene_list(csv_file, smgr, scene_list_tc, scene_start_sec,

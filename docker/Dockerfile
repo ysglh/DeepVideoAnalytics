@@ -79,5 +79,6 @@ RUN youtube-dl -U
 WORKDIR "/root/DVA/darknet"
 RUN make
 RUN wget https://www.dropbox.com/s/0zopjpswug5rjqy/yolo9000.weights
+RUN dpkg -L python-opencv
 VOLUME ["/root/DVA/dva/media"]
 WORKDIR "/root/DVA"

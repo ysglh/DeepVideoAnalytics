@@ -82,4 +82,5 @@ RUN mv Makefile.gpu Makefile
 RUN make
 RUN wget https://www.dropbox.com/s/0zopjpswug5rjqy/yolo9000.weights
 VOLUME ["/root/DVA/dva/media"]
+RUN dpkg -L python-opencv
 WORKDIR "/root/DVA"

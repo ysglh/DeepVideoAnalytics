@@ -21,3 +21,4 @@ boto3
 protobuf
 humanize
 tensorflow==1.0.0
+pyopencv

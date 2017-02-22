@@ -20,3 +20,4 @@ Thumbs.db
 /darknet/predictions.png
 /darknet/darknet
 /darknet/*.txt
+/docker/test_logs/logs/

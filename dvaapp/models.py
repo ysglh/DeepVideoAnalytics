@@ -28,8 +28,10 @@ class Frame(models.Model):
 
 class FrameLabel(models.Model):
     frame = models.ForeignKey(Frame)
+    video = models.ForeignKey(Video)
     label = models.TextField()
     source = models.TextField()
+
 
 class Query(models.Model):
     created = models.DateTimeField('date created', auto_now_add=True)

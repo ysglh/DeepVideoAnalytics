@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView,DetailView
 from django.utils.decorators import method_decorator
 from .forms import UploadFileForm
-from .models import Video,Frame,Detection,Query,QueryResults,TEvent
+from .models import Video,Frame,Detection,Query,QueryResults,TEvent,FrameLabel
 from .tasks import extract_frames,query_by_image
 
 
@@ -82,6 +82,7 @@ def handle_uploaded_file(f,name,extract=True,user=None):
     else:
         raise ValueError,"Extension {} not allowed".format(filename.split('.')[-1])
 
+
 class VideoList(ListView):
     model = Video
     paginate_by = 100
@@ -94,6 +95,7 @@ class VideoDetail(DetailView):
         context = super(VideoDetail, self).get_context_data(**kwargs)
         context['frame_list'] = Frame.objects.all().filter(video=self.object)
         context['detection_list'] = Detection.objects.all().filter(video=self.object)
+        context['label_list'] = FrameLabel.objects.all().filter(video=self.object)
         context['url'] = '{}/{}/video/{}.mp4'.format(settings.MEDIA_URL,self.object.pk,self.object.pk)
         return context
 

@@ -53,9 +53,11 @@ def start_server_container(test=False):
 
 @task
 def clean():
-    local('rabbitmqadmin purge queue name=qextract')
-    local('rabbitmqadmin purge queue name=qindexer')
-    local('rabbitmqadmin purge queue name=qdetector')
+    for qname in ['qextract','qindexer','qdetector']:
+        try:
+            local('rabbitmqadmin purge queue name={}'.format(qname))
+        except:
+            logging.warning("coudnt clear queue {}".format(qname))
     local('python manage.py makemigrations')
     local('python manage.py flush --no-input')
     migrate()

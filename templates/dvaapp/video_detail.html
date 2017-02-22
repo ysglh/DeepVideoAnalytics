@@ -25,7 +25,7 @@
                         <th class="text-center">frame or detected object name</th>
                         <th class="text-center">confidence</th>
                         <th class="text-center">size in pixels</th>
-                        <th class="text-center">seconds / frame_id</th>
+                        <th class="text-center">frame index</th>
                         <th class="text-center">view</th>
                 </tr>
                 </thead>
@@ -54,7 +54,40 @@
                 </div>
             </div>
     </div>
-{% if not video.dataset %}
+{% if video.dataset %}
+        <div class="col-lg-6">
+        <div class="box">
+            <div class="box-header with-border">
+            <h3>List of labels in the dataset</h3>
+            </div>
+            <div class="box-body">
+                <table class="table dataTables">
+                <thead>
+                <tr>
+                        <th class="text-center">frame index</th>
+                        <th class="text-center">frame name</th>
+                        <th class="text-center">label</th>
+                        <th class="text-center">source</th>
+                        <th class="text-center">view</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for l in label_list %}
+                    <tr>
+                        <td class="text-right">{{ l.frame.frame_index }} </td>
+                        <td class="text-right">{{ l.frame.name }} </td>
+                        <td class="text-right">{{ l.label }} </td>
+                        <td class="text-right">{{ l.source }} </td>
+                        <td class="text-center"><a href="/frames/{{ l.frame.pk }}">view</a></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+                </table>
+                </div>
+            </div>
+    </div>
+
+{% else %}
     <div class="col-lg-6">
         <div class="box">
         <div class="box-header with-border" >

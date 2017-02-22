@@ -87,7 +87,8 @@ def extract_frames(video_id):
                 if l != dv.name:
                     fl.frame = df
                     fl.label = l
-                    fl.source = "{}_directory_name".format(dv.name)
+                    fl.video = dv
+                    fl.source = "directory_name"
                     fl.save()
     finished = TEvent()
     finished.completed = True

@@ -5,9 +5,9 @@
      container_name: dva-pg
      volumes:
       - dvapgdata:/var/lib/postgresql/data
-#   environment:
-#     - POSTGRES_USER=dvauser
-#     - POSTGRES_PASSWORD=localpass
+   environment:
+     - POSTGRES_USER=pgdbuser
+     - POSTGRES_PASSWORD=pgdbpass
    rabbit:
      image: rabbitmq
      container_name: dva-rmq
@@ -20,6 +20,15 @@
      build: .
      image: aub3dva:gpu
      container_name: dva-server
+     environment:
+       - DOCKER_MODE=true
+       - RABBIT_HOST=rabbit
+       - RABBIT_USER=dvauser
+       - RABBIT_PASS=localpass
+       - DB_HOST=db
+       - DB_NAME=postgres
+       - DB_USER=pgdbuser
+       - DB_PASS=pgdbpass
      command: bash -c "git pull && fab start_server_container:1"
      ports:
        - "8000:8000"

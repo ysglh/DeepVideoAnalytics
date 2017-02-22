@@ -75,7 +75,9 @@ class WVideo(object):
                             i += 1
                             dst = "{}/{}/frames/{}.jpg".format(self.media_dir, self.primary_key, i)
                             os.rename(fname, dst)
-                            f = WFrame(frame_index=i, video=self,name=fname.split('/')[-1],subdir=subdir)
+                            f = WFrame(frame_index=i, video=self,name=fname.split('/')[-1],
+                                       subdir=subdir.replace("{}/{}/frames/".format(self.media_dir, self.primary_key),'')
+                                       )
                             frames.append(f)
                         else:
                             logging.warning("skipping {} not a jpeg file".format(fname))

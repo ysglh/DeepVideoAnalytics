@@ -81,13 +81,14 @@ def ci():
 
 
 @task
-def quick_test():
+def quick_test(detection=False):
     clean()
     create_super()
     local('python run_test.py')
     local('python start_extractor.py &')
-    local('python start_detector.py &')
     local('python start_indexer.py &')
+    if detection:
+        local('python start_detector.py &')
 
 
 @task

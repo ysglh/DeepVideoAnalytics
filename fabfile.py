@@ -56,11 +56,16 @@ def clean():
     local('rabbitmqadmin purge queue name=qextract')
     local('rabbitmqadmin purge queue name=qindexer')
     local('rabbitmqadmin purge queue name=qdetector')
+    local('python manage.py makemigrations')
     local('python manage.py flush --no-input')
     migrate()
     local("rm logs/*.log")
     local("rm -rf ~/media/*")
     local("mkdir ~/media/queries")
+    try:
+        local("ps auxww | grep 'celery -A dva worker' | awk '{print $2}' | xargs kill -9")
+    except:
+        pass
 
 
 @task
@@ -71,3 +76,18 @@ def ci():
         local('wget https://www.dropbox.com/s/xwbk5g1qit5s9em/WorldIsNotEnough.mp4')
         local('wget https://www.dropbox.com/s/misaejsbz6722pd/test.png')
     local('python run_test.py')
+
+
+@task
+def quick_test():
+    clean()
+    create_super()
+    local('python run_test.py')
+    local('python start_extractor.py &')
+    local('python start_detector.py &')
+    local('python start_indexer.py &')
+
+
+@task
+def create_super():
+    local('echo "from django.contrib.auth.models import User; User.objects.create_superuser(\'akshay\', \'akshay@test.com\', \'super\')" | python manage.py shell')

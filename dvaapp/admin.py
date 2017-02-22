@@ -1,9 +1,24 @@
 from django.contrib import admin
-from .models import Video,Frame,Detection,TEvent,IndexEntries
+from .models import Video,Frame,Detection,TEvent,IndexEntries,QueryResults,Query,FrameLabel
 
 
 @admin.register(Video)
 class VideoAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(QueryResults)
+class QueryResultsAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Query)
+class QueryAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(FrameLabel)
+class FrameLabelAdmin(admin.ModelAdmin):
     pass
 
 

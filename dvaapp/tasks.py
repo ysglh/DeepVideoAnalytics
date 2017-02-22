@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import subprocess,sys,shutil,os,glob,time,logging
 from django.conf import settings
 from celery import shared_task
-from .models import Video, Frame, Detection, TEvent, Query, IndexEntries,QueryResults
+from .models import Video, Frame, Detection, TEvent, Query, IndexEntries,QueryResults, FrameLabel
 from dvalib import entity
 from PIL import Image
 import json
@@ -81,7 +81,14 @@ def extract_frames(video_id):
             df.name = f.name[:150]
             df.subdir = f.subdir.replace('/',' ')
         df.save()
-    # perform_detection_video.apply_async(args=[dv.id, ], queue=settings.Q_DETECTOR)
+        if f.name:
+            fl = FrameLabel()
+            for l in f.subdir.split('/'):
+                if l != dv.name:
+                    fl.frame = df
+                    fl.label = l
+                    fl.source = "{}_directory_name".format(dv.name)
+                    fl.save()
     finished = TEvent()
     finished.completed = True
     finished.operation = "extract_frames"

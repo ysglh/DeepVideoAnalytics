@@ -451,7 +451,7 @@ cveditor.controller('CanvasControls', function($scope) {
     $scope.getActiveStyle = getActiveStyle;
     $scope.dev = false;
     $scope.alert_status = false;
-    $scope.status = "Please add image.";
+    $scope.status = "Please add image to search or upload.";
     $scope.current_mode = null;
     $scope.results = [];
     addAccessors($scope);

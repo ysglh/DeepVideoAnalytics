@@ -18,6 +18,9 @@ class Video(models.Model):
     dataset = models.BooleanField(default=False)
     uploader = models.ForeignKey(User,null=True)
     detections = models.IntegerField(default=0)
+    url = models.TextField(default=True)
+    youtube_video = models.BooleanField(default=False)
+
 
 class Frame(models.Model):
     video = models.ForeignKey(Video,null=True)
@@ -40,6 +43,7 @@ class Query(models.Model):
     results_metadata = models.TextField(default="")
     user = models.ForeignKey(User, null=True)
 
+
 class Detection(models.Model):
     video = models.ForeignKey(Video,null=True)
     frame = models.ForeignKey(Frame)
@@ -57,6 +61,7 @@ class IndexEntries(models.Model):
     framelist = models.CharField(max_length=100)
     algorithm = models.CharField(max_length=100)
     count = models.IntegerField()
+
 
 class TEvent(models.Model):
     started = models.BooleanField(default=False)

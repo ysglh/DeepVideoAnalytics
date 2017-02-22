@@ -7,8 +7,22 @@
     font-family:"open sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
+.status-bar{
+    display:inline-block;
+    width:600px
+}
+
 .main-header .navbar{
-    margin-left: 0px;
+    margin-left: 0;
+}
+@media (max-width: 1300px) {
+    .status-bar {
+        display: inline-block;
+        width: 400px;
+    }
+    .h4status{
+            font-size: 12pt;
+    }
 }
 
 @media (max-width: 767px) {

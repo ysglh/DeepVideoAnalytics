@@ -58,27 +58,26 @@ nvidia-docker-compose up
 - [X] Improved frame extraction using PySceneDetect (every 100th frame and frame selected by content change)
 - [X] Integrate Tensorflow 1.0
 - [X] Improved models by adding information about user performing the uploading video/dataset
+- [X] Automated docker based testing
 - [ ] Implement a method to backup postgres db & media folder to S3 via a single command
 - [ ] Index detected object 
 - [ ] Move global settings (such as resolution of extracted frame etc.) into a global config file
-- [ ] Deployment on AWS P2 machines
-- [ ] Separate frame-indexer and query-indexer tasks
-- [ ] Implement approximate nn search via NMS lib or Anony
+- [ ] Test Deployment on AWS P2 machines 
+- [ ] Create a seperate query indexer that implements approximate nn search via NMS lib or Anony
 - [ ] Convert Darknet detection model into Tensorflow or Pytorch 
 - [ ] Evaluate feasibility of integrating [Keras-js](https://github.com/transcranial/keras-js) for client side indexing.
 
 ### Implemented & Potential algorithms/models
 - [x] Alexnet indexing using Pytorch 
 - [x] [YOLO 9000 (naive implementation, gets reloaded in memory for every video)](http://pjreddie.com/darknet/yolo/)
-- [x] Google inception using Tensorflow **(GPU tests pending)**
+- [x] Google inception using Tensorflow **(CPU version implemented, GPU tests pending)**
 - [ ] [Pytorch Squeezenet](http://pytorch.org/docs/torchvision/models.html)
-- [ ] [Face recognition using Facenet](https://github.com/davidsandberg/facenet)
+- [ ] [Facenet](https://github.com/davidsandberg/facenet) or [Openface (via a connected container)](https://github.com/cmusatyalab/openface)
 - [ ] [Soundnet](http://projects.csail.mit.edu/soundnet/)
-- [ ] [Mapnet (tricky requires converting models from Marvin)](http://www.cs.princeton.edu/~aseff/mapnet/) 
- 
+- [ ] [Mapnet (requires converting models from Marvin)](http://www.cs.princeton.edu/~aseff/mapnet/)   
    
  
-### Distributed architecture
+## Distributed architecture
 
 ![Architecture](demo/architecture.png "System architecture")
 
@@ -99,7 +98,7 @@ You can use the jupyter notebook explore.ipynb to manually run tasks & code agai
  - Query images are also stored inside media/queries/ named using primary key of the query object.
  - Designed to enables rapid sync with S3 or processing via a third party program.
 
-Media directory organization example: 
+###Media directory organization example: 
 ```
 media/
 ├── 1
@@ -133,12 +132,18 @@ media/
 19 directories, 257 files
 ```
 
-# Libraries & Code used
+## Libraries & Code used
 - Pytorch [License](https://github.com/pytorch/pytorch/blob/master/LICENSE)
 - Darknet [License](https://github.com/pjreddie/darknet/blob/master/LICENSE)
 - AdminLTE2 [License](https://github.com/almasaeed2010/AdminLTE/blob/master/LICENSE)
 - FabricJS [License](https://github.com/kangax/fabric.js/blob/master/LICENSE)
-- PySceneDetect [License]()
+- Modified PySceneDetect [License](https://github.com/Breakthrough/PySceneDetect)
+- Docker 
+- Nvidia-docker
+- OpenCV
+- Numpy
+- FFMPEG
+- Tensorflow
 
 # Copyright
-Copyright, Akshay Bhat, Cornell University, All rights reserved.
+**Copyright 2016-2017, Akshay Bhat, Cornell University, All rights reserved.**

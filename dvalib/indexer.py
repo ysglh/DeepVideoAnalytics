@@ -142,7 +142,8 @@ class IncetionIndexer(BaseIndexer):
     def load(self):
         if self.session is None:
             logging.warning("Loading the network {}".format(self.name))
-            self.session = tf.InteractiveSession()
+            gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.333)
+            self.session = tf.InteractiveSession(config=tf.ConfigProto(gpu_options=gpu_options))            
             network_path = os.path.abspath(__file__).split('indexer.py')[0]+'data/network.pb'
             with gfile.FastGFile(network_path, 'rb') as f:
                 self.graph_def = tf.GraphDef()

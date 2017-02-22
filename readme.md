@@ -59,7 +59,7 @@ nvidia-docker-compose up
 - [X] Integrate Tensorflow 1.0
 - [X] Improved models by adding information about user performing the uploading video/dataset
 - [X] Automated docker based testing
-- [ ] Implement a method to backup postgres db & media folder to S3 via a single command
+- [X] Implement a method to backup postgres db & media folder to S3 via a single command
 - [ ] Index detected object 
 - [ ] Move global settings (such as resolution of extracted frame etc.) into a global config file
 - [ ] Test Deployment on AWS P2 machines 

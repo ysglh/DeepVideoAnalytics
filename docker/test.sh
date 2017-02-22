@@ -3,8 +3,8 @@ set -xe
 ./rebuild.sh
 docker-compose up -d
 sleep 600
-rm -rf test_logs
-mkdir test_logs
-touch test_logs/gitkeep
-docker cp dva-server:/root/DVA/logs/ test_logs/
+rm -rf logs
+mkdir logs
+touch logs/gitkeep
+docker cp dva-server:/root/DVA/logs/ logs/
 docker-compose down -v

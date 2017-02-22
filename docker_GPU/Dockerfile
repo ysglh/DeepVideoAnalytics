@@ -83,4 +83,7 @@ RUN make
 RUN wget https://www.dropbox.com/s/0zopjpswug5rjqy/yolo9000.weights
 VOLUME ["/root/DVA/dva/media"]
 RUN dpkg -L python-opencv
+RUN apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main" > /etc/apt/sources.list.d/pgdg.list
+RUN apt-get update && apt-get install -y postgresql-client-9.6 zip
 WORKDIR "/root/DVA"

@@ -3,8 +3,8 @@ set -xe
 ./rebuild.sh
 nvidia-docker-compose up -d
 sleep 600
-rm -rf test_logs
-mkdir test_logs
-touch test_logs/gitkeep
-nvidia-docker cp dva-server:/root/DVA/logs/ test_logs/
+rm -rf logs
+mkdir logs
+touch logs/gitkeep
+nvidia-docker cp dva-server:/root/DVA/logs/ logs/
 nvidia-docker-compose down -v

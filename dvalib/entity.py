@@ -49,14 +49,14 @@ class WVideo(object):
         frames = []
         if not self.dvideo.dataset:
             output_dir = "{}/{}/{}/".format(self.media_dir,self.primary_key,'frames')
-            command = 'ffmpeg -i {} -vf "select=not(mod(n\,100)),scale=600:-1" -vsync vfr  {}/%d.jpg'.format(self.local_path,output_dir)
+            command = 'ffmpeg -i {} -vf "select=not(mod(n\,100)),scale=600:-1" -vsync vfr  {}/%d_b.jpg'.format(self.local_path,output_dir)
             extract = sp.Popen(shlex.split(command))
             extract.wait()
             if extract.returncode != 0:
                 raise ValueError
-            for fname in glob.glob(output_dir+'*.jpg'):
-                ind = int(fname.split('/')[-1].replace('.jpg', ''))
-                os.rename(fname,fname.replace('{}.jpg'.format(ind),'{}.jpg'.format(ind*100)))
+            for fname in glob.glob(output_dir+'*_b.jpg'):
+                ind = int(fname.split('/')[-1].replace('_b.jpg', ''))
+                os.rename(fname,fname.replace('{}_b.jpg'.format(ind),'{}.jpg'.format(ind*100)))
                 f = WFrame(frame_index=int(100*ind),video=self)
                 if extract.returncode != 0:
                     raise ValueError

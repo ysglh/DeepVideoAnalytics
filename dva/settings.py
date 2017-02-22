@@ -111,7 +111,7 @@ elif 'CONTINUOUS_INTEGRATION' in os.environ:
     }
     BROKER_URL = 'amqp://{}:{}@localhost//'.format('guest','guest')
 elif 'DOCKER_MODE' in os.environ:
-    BROKER_URL = 'amqp://{}:{}@{}//'.format(os.environ.get('RABBIT_HOST','rabbit'),os.environ.get('RABBIT_USER','dvauser'),os.environ.get('RABBIT_PASS','localpass'))
+    BROKER_URL = 'amqp://{}:{}@{}//'.format(os.environ.get('RABBIT_USER','dvauser'),os.environ.get('RABBIT_PASS','localpass'),os.environ.get('RABBIT_HOST','rabbit'))
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql_psycopg2',

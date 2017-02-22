@@ -18,7 +18,7 @@ class Video(models.Model):
     dataset = models.BooleanField(default=False)
     uploader = models.ForeignKey(User,null=True)
     detections = models.IntegerField(default=0)
-    url = models.TextField(default=True)
+    url = models.TextField(default="")
     youtube_video = models.BooleanField(default=False)
 
 

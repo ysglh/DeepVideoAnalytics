@@ -60,10 +60,11 @@ nvidia-docker-compose up
 - [X] Improved models by adding information about user performing the uploading video/dataset
 - [X] Automated docker based testing
 - [X] Implement a method to backup postgres db & media folder to S3 via a single command
+- [ ] Integrate youtube-dl for downloading videos
 - [ ] Index detected object 
 - [ ] Move global settings (such as resolution of extracted frame etc.) into a global config file
-- [ ] Test Deployment on AWS P2 machines 
-- [ ] Create a seperate query indexer that implements approximate nn search via NMS lib or Anony
+- [ ] Test Deployment on AWS P2 machines running nvidia-docker 
+- [ ] Create a separate query indexer that implements approximate nn search via NMS lib or Anony
 - [ ] Convert Darknet detection model into Tensorflow or Pytorch 
 - [ ] Evaluate feasibility of integrating [Keras-js](https://github.com/transcranial/keras-js) for client side indexing.
 

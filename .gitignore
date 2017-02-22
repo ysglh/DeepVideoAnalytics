@@ -22,5 +22,7 @@ Thumbs.db
 /darknet/*.txt
 /docker/test_logs/logs/
 /backups/backup.zip
+/docker/logs/*.log
 /docker/logs/logs
+/docker_GPU/logs/*.log
 /docker_GPU/logs/logs

@@ -82,9 +82,9 @@ def extract_frames(video_id):
             df.subdir = f.subdir.replace('/',' ')
         df.save()
         if f.name:
-            fl = FrameLabel()
             for l in f.subdir.split('/'):
-                if l != dv.name:
+                if l != dv.name and l != 'frames':
+                    fl = FrameLabel()
                     fl.frame = df
                     fl.label = l
                     fl.video = dv

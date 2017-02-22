@@ -21,3 +21,4 @@ Thumbs.db
 /darknet/darknet
 /darknet/*.txt
 /docker/test_logs/logs/
+/backups/backup.zip

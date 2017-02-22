@@ -90,6 +90,12 @@ def quick_test(detection=False):
     if detection:
         local('python start_detector.py &')
 
+@task
+def test_backup():
+    local('python backup.py')
+    clean()
+    local('python restore.py')
+
 
 @task
 def create_super():

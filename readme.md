@@ -39,7 +39,7 @@ nvidia-docker-compose up
 ### Frame detail
 ![UI Screenshot](demo/frame_detail.png "Frame detail")
 
-##To Do list
+##Alpha version To Do list
 **Deep Video Analytics is currently under active development.**
 
 - [x] Django App
@@ -61,11 +61,10 @@ nvidia-docker-compose up
 - [X] Automated docker based testing
 - [X] Implement a method to backup postgres db & media folder to S3 via a single command
 - [X] Integrate youtube-dl for downloading videos
-- [ ] Index detected object 
-- [ ] Move global settings (such as resolution of extracted frame etc.) into a global config file
 - [ ] Test Deployment on AWS P2 machines running nvidia-docker 
+- [ ] Index detected object 
 - [ ] Create a separate query indexer that implements approximate nn search via NMS lib or Anony
-- [ ] Evaluate feasibility of integrating [Keras-js](https://github.com/transcranial/keras-js) for client side indexing.
+
 
 ### Implemented & Potential algorithms/models
 - [x] Alexnet indexing using Pytorch 
@@ -75,7 +74,7 @@ nvidia-docker-compose up
 - [ ] [Facenet](https://github.com/davidsandberg/facenet) or [Openface (via a connected container)](https://github.com/cmusatyalab/openface)
 - [ ] [Soundnet](http://projects.csail.mit.edu/soundnet/)
 - [ ] [Mapnet (requires converting models from Marvin)](http://www.cs.princeton.edu/~aseff/mapnet/)   
-   
+- [ ] [Keras-js](https://github.com/transcranial/keras-js) which uses Keras inception for client side indexing   
  
 ## Distributed architecture
 

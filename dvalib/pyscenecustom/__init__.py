@@ -251,7 +251,7 @@ def detect_scenes(cap, scene_manager, start_frame = 0, end_frame = 0, duration_f
             output_name = '{}/{}.jpg'.format(scene_manager.save_image_prefix, frames_read)
             framelist.append(frames_read)
             height, width, depth = im_cap.shape
-            imgScale = 600. / width
+            imgScale = float(scene_manager.rescaled_width) / width
             newX, newY = im_cap.shape[1] * imgScale, im_cap.shape[0] * imgScale
             im_cap = cv2.resize(im_cap, (int(newX), int(newY)))
             cv2.imwrite(output_name, im_cap)

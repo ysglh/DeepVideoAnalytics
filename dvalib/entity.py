@@ -22,7 +22,7 @@ class WQuery(object):
 
 class WVideo(object):
 
-    def __init__(self,dvideo,media_dir):
+    def __init__(self,dvideo,media_dir,rescaled_width=600):
         self.dvideo = dvideo
         self.primary_key = self.dvideo.pk
         self.media_dir = media_dir
@@ -30,6 +30,7 @@ class WVideo(object):
         self.duration = None
         self.width = None
         self.height = None
+        self.rescaled_width = rescaled_width
         self.metadata = {}
 
     def get_metadata(self):
@@ -58,7 +59,7 @@ class WVideo(object):
         frames = []
         if not self.dvideo.dataset:
             output_dir = "{}/{}/{}/".format(self.media_dir,self.primary_key,'frames')
-            command = 'ffmpeg -i {} -vf "select=not(mod(n\,100)),scale=600:-1" -vsync vfr  {}/%d_b.jpg'.format(self.local_path,output_dir)
+            command = 'ffmpeg -i {} -vf "select=not(mod(n\,100)),scale={}:-1" -vsync vfr  {}/%d_b.jpg'.format(self.local_path,self.rescaled_width,output_dir)
             extract = sp.Popen(shlex.split(command))
             extract.wait()
             if extract.returncode != 0:
@@ -103,7 +104,7 @@ class WVideo(object):
         return results
 
     def scene_detection(self,frames):
-        manager = pyscenecustom.manager.SceneManager(save_image_prefix="{}/{}/frames/".format(self.media_dir,self.primary_key))
+        manager = pyscenecustom.manager.SceneManager(save_image_prefix="{}/{}/frames/".format(self.media_dir,self.primary_key),rescaled_width=self.rescaled_width)
         path = self.local_path
         framelist = pyscenecustom.detect_scenes_file(path, manager)
         for s in framelist:

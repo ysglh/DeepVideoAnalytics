@@ -48,9 +48,10 @@ import numpy
 
 class SceneManager(object):
 
-    def __init__(self, save_image_prefix):
+    def __init__(self, save_image_prefix, rescaled_width):
         self.scene_list = list()
         args = {}
+        self.rescaled_width = rescaled_width
         self.args = args
         self.detector = None
         self.detection_method = 'content'

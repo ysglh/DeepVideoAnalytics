@@ -27,7 +27,7 @@ install: "pip install -r requirements.txt > /dev/null"
 
 
 before_script:
-  - cd darknet && make
+  - cd darknet && make && cd ..
   - python manage.py migrate
   - python manage.py runserver 8000 &
   - "export DISPLAY=:99.0"

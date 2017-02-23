@@ -1,7 +1,6 @@
 #Deep Video Analytics
 ##### Akshay Bhat, Cornell University. [Website & Contact](http://www.akshaybhat.com)
-Travis CI build status : [![Build Status](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics.svg?branch=master)](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics)  
-Docker hub CPU image: [![](https://images.microbadger.com/badges/image/akshayubhat/deepvideoanalytics.svg)](https://microbadger.com/images/akshayubhat/deepvideoanalytics "Get your own image badge on microbadger.com")  
+Travis CI build status : [![Build Status](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics.svg?branch=master)](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics)    
 ![Banner](demo/banner.png "banner")
 Deep Video Analytics provides a platform for indexing and extracting information from videos and images.
 Deep learning detection and recognition algorithms are used for indexing individual frames / images along with 

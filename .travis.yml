@@ -25,6 +25,15 @@ before_install:
 
 install: "pip install -r requirements.txt > /dev/null"
 
-script:
+
+before_script:
   - python manage.py migrate
+  - python manage.py runserver 8000 &
+
+script:
   - python run_ci_test.py
+  - wget localhost:8000
+  - wget localhost:8000/videos/
+  - wget localhost:8000/videos/1/
+  - wget localhost:8000/status
+  - wget localhost:8000/queries/

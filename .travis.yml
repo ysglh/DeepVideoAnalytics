@@ -29,6 +29,9 @@ install: "pip install -r requirements.txt > /dev/null"
 before_script:
   - python manage.py migrate
   - python manage.py runserver 8000 &
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
+  - sleep 3 # give xvfb some time to start
 
 script:
   - python run_ci_test.py

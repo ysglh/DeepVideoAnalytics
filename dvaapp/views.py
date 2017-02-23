@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render,redirect
 from django.conf import settings
 from django.http import HttpResponse,JsonResponse,HttpResponseRedirect
 import requests
@@ -6,7 +6,7 @@ import os,base64
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView,DetailView
 from django.utils.decorators import method_decorator
-from .forms import UploadFileForm
+from .forms import UploadFileForm,YTVideoForm
 from .models import Video,Frame,Detection,Query,QueryResults,TEvent,FrameLabel
 from .tasks import extract_frames,query_by_image
 
@@ -55,18 +55,48 @@ def index(request):
     return render(request, 'dashboard.html', context)
 
 
+def yt(request):
+    if request.method == 'POST':
+        form = YTVideoForm(request.POST, request.FILES)
+        user = request.user if request.user.is_authenticated() else None
+        if form.is_valid():
+            handle_youtube_video(form.cleaned_data['name'],form.cleaned_data['url'],user=user)
+        else:
+            raise ValueError
+    else:
+        raise NotImplementedError
+    return redirect('app')
+
+
+def create_video_folders(video):
+    os.mkdir('{}/{}'.format(settings.MEDIA_ROOT, video.pk))
+    os.mkdir('{}/{}/video/'.format(settings.MEDIA_ROOT, video.pk))
+    os.mkdir('{}/{}/frames/'.format(settings.MEDIA_ROOT, video.pk))
+    os.mkdir('{}/{}/indexes/'.format(settings.MEDIA_ROOT, video.pk))
+    os.mkdir('{}/{}/detections/'.format(settings.MEDIA_ROOT, video.pk))
+    os.mkdir('{}/{}/audio/'.format(settings.MEDIA_ROOT, video.pk))
+
+
+def handle_youtube_video(name,url,extract=True,user=None):
+    video = Video()
+    if user:
+        video.uploader = user
+    video.name = name
+    video.url = url
+    video.youtube_video = True
+    video.save()
+    create_video_folders(video)
+    if extract:
+        extract_frames.apply_async(args=[video.pk], queue=settings.Q_EXTRACTOR)
+
+
 def handle_uploaded_file(f,name,extract=True,user=None):
     video = Video()
     if user:
         video.uploader = user
     video.name = name
     video.save()
-    os.mkdir('{}/{}'.format(settings.MEDIA_ROOT,video.pk))
-    os.mkdir('{}/{}/video/'.format(settings.MEDIA_ROOT,video.pk))
-    os.mkdir('{}/{}/frames/'.format(settings.MEDIA_ROOT,video.pk))
-    os.mkdir('{}/{}/indexes/'.format(settings.MEDIA_ROOT, video.pk))
-    os.mkdir('{}/{}/detections/'.format(settings.MEDIA_ROOT, video.pk))
-    os.mkdir('{}/{}/audio/'.format(settings.MEDIA_ROOT, video.pk))
+    create_video_folders(video)
     primary_key = video.pk
     filename = f.name
     if filename.endswith('.mp4') or filename.endswith('.flv') or filename.endswith('.zip'):

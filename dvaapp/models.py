@@ -68,7 +68,8 @@ class TEvent(models.Model):
     completed = models.BooleanField(default=False)
     video = models.ForeignKey(Video,null=True)
     operation = models.CharField(max_length=100,default="")
-    recorded = models.DateTimeField('date created', auto_now_add=True)
+    created = models.DateTimeField('date created', auto_now_add=True)
+    seconds = models.FloatField(default=-1)
 
 
 class QueryResults(models.Model):

@@ -64,6 +64,7 @@
                         <th>Started</th>
                         <th>Completed</th>
                         <th>timestamp</th>
+                        <th>time taken in seconds</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -73,7 +74,8 @@
                             <td>{{ e.operation }}</td>
                             <td class="text-center">{{ e.started }}</td>
                             <td class="text-center">{{ e.completed }}</td>
-                            <td class="text-center">{{ e.recorded }}</td>
+                            <td class="text-center">{{ e.created }}</td>
+                            <td class="text-right">{{ e.seconds|floatformat }}</td>
                         </tr>
                     {% endfor %}
                     </tbody>

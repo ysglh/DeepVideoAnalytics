@@ -17,6 +17,7 @@ def perform_indexing(video_id):
     start.started = True
     start.operation = "indexing"
     start.save()
+    start_time = time.time()
     dv = Video.objects.get(id=video_id)
     video = entity.WVideo(dv, settings.MEDIA_ROOT)
     frames = Frame.objects.all().filter(video=dv)
@@ -26,11 +27,9 @@ def perform_indexing(video_id):
         i.count = index_results['count']
         i.algorithm = index_results['index_name']
         i.save()
-    finished = TEvent()
-    finished.completed = True
-    finished.operation = "indexing"
-    finished.video_id = video_id
-    finished.save()
+    start.completed = True
+    start.seconds = time.time() - start_time
+    start.save()
 
 
 @shared_task
@@ -60,6 +59,7 @@ def extract_frames(video_id):
     start.started = True
     start.operation = "extract_frames"
     start.save()
+    start_time = time.time()
     dv = Video.objects.get(id=video_id)
     v = entity.WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
     time.sleep(3) # otherwise ffprobe randomly fails
@@ -90,13 +90,11 @@ def extract_frames(video_id):
                     fl.video = dv
                     fl.source = "directory_name"
                     fl.save()
-    finished = TEvent()
-    finished.completed = True
-    finished.operation = "extract_frames"
-    finished.video_id = video_id
-    finished.save()
     perform_indexing.apply_async(args=[video_id],queue=settings.Q_INDEXER)
     perform_detection.apply_async(args=[video_id], queue=settings.Q_DETECTOR)
+    start.completed = True
+    start.seconds = time.time() - start_time
+    start.save()
     return 0
 
 @shared_task
@@ -106,6 +104,7 @@ def perform_detection(video_id):
     start.started = True
     start.operation = "detection"
     start.save()
+    start_time = time.time()
     dv = Video.objects.get(id=video_id)
     frames = Frame.objects.all().filter(video=dv)
     v = entity.WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
@@ -152,10 +151,8 @@ def perform_detection(video_id):
                 img2.save("{}/{}/detections/{}.jpg".format(settings.MEDIA_ROOT,video_id,dd.pk))
         dv.detections = detections
         dv.save()
-    finished = TEvent()
-    finished.completed = True
-    finished.operation = "detection"
-    finished.video_id = video_id
-    finished.save()
+    start.completed = True
+    start.seconds = time.time() - start_time
+    start.save()
     return returncode
 

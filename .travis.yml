@@ -19,6 +19,9 @@ before_install:
   - sudo apt-get install -y ffmpeg
   - sudo apt-get install -y pkg-config python-dev python-opencv  libopencv-dev python-pip libav-tools   libjpeg-dev  libpng-dev  libtiff-dev  libjasper-dev  python-numpy python-scipy  python-pycurl  python-opencv
   - sudo dpkg -L python-opencv
+  - sudo wget https://yt-dl.org/downloads/latest/youtube-dl -O /bin/youtube-dl
+  - sudo youtube-dl -U
+  - sudo chmod a+rx /bin/youtube-dl
 
 install: "pip install -r requirements.txt > /dev/null"
 

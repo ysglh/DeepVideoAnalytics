@@ -49,9 +49,33 @@
         </div>
         </div>
     </div>
-
-
 </div>
+<div class="row">
+    <div class="box box-primary">
+        <div class="box-header">
+            <h3>Detected objects:</h3>
+    </div>
+    </div>
+    {% for d in detection_list %}
+    <div class="col-sm-3">
+    <div class="box box-primary">
+        <div class="box-header">
+            <h4>{{ d.object_name }}</h4>
+        </div>
+        <div class="box-body text-center">
+            <img src="/media/{{ object.video.pk }}/detections/{{ d.pk }}.jpg" style="margin-left:auto">
+        </div>
+        <div class="box-footer">
+            <h5>Confidence: {{ d.confidence|floatformat }}</h5>
+        </div>
+    </div>
+    </div>
+    {% if forloop.counter|divisibleby:"4" or forloop.last %}
+        </div> <!--end row-->
+    {% endif %}
+
+    {% endfor %}
+
 
 </section>
 {% endblock %}

@@ -14,4 +14,4 @@ if __name__ == '__main__':
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
         handle_uploaded_file(f, name)
-    handle_youtube_video('yolov2','https://www.youtube.com/watch?v=VOC3huqHrss')
+    handle_youtube_video('yolov2','https://www.youtube.com/watch?v=C4qgAaxB_pc')

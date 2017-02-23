@@ -92,6 +92,7 @@
         <div class="box">
         <div class="box-header with-border" >
             <h3>Video</h3>
+            {%  if object.youtube_video %}<a href="{{ object.url }}" target="_blank">{{ object.url }}</a>{% endif %}
         </div>
         <div class="box-body" style="text-align:center">
             <video controls="" preload="metadata" name="media" style="width:90%;margin-left:auto;margin-right:auto">

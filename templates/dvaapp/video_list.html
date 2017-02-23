@@ -39,11 +39,11 @@
                     <th class="text-center">duration</th>
                     <th class="text-center">frames</th>
                     <th class="text-center">detections</th>
-                    <th class="text-center">youtube url</th>
                     <th class="text-center">height</th>
                     <th class="text-center">width</th>
                     <th class="text-center">created</th>
                     <th class="text-center">view</th>
+                    <th class="text-center">youtube url</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -54,11 +54,11 @@
                         <td class="text-right">{{ v.length_in_seconds }} </td>
                         <td class="text-right">{{ v.frames }} </td>
                         <td class="text-right">{{ v.detections }} </td>
-                        <td>{%  if v.youtube_video %}<a href="{{ v.url }}" target="_blank">{{ v.url }}</a>{% endif %}</td>
                         <td class="text-right">{{ v.height }} </td>
                         <td class="text-right">{{ v.width }} </td>
                         <td class="text-center">{{ v.created }}</td>
                         <td class="text-center"><a href="/videos/{{ v.pk }}">view</a></td>
+                        <td>{%  if v.youtube_video %}<a href="{{ v.url }}" target="_blank">{{ v.url }}</a>{% endif %}</td>
                     </tr>
                 {% endfor %}
                 </tbody>

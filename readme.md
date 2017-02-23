@@ -6,7 +6,8 @@ Deep Video Analytics provides a platform for indexing and extracting information
 Deep learning detection and recognition algorithms are used for indexing individual frames / images along with 
 detected objects. The goal of Deep Video analytics is to become a quickly customizable platform for developing 
 visual & video analytics applications, while benefiting from seamless integration with state or the art models released
-by the vision research community. 
+by the vision research community.
+##### Advertisement: If you are interested in Healthcare & Machine Learning please take a look at [Computational Healthcare my research project](http://www.computationalhealthcare.com) 
 
 ### Installation using docker-compose
 

@@ -61,7 +61,7 @@ def start_server_container_gpu(test=False):
     local('python start_detector.py &')
     if test:
         ci()
-    local('python manage.py runserver 0.0.0.0:8000')
+    local('supervisord -n')
 
 
 @task

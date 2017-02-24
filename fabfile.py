@@ -1,13 +1,73 @@
-import os,logging
-from fabric.api import task,local,run,put,get,lcd,cd,sudo
+import os,logging,time,boto3
+from fabric.api import task,local,run,put,get,lcd,cd,sudo,env,puts
 import django,sys
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                     datefmt='%m-%d %H:%M',
                     filename='logs/fab.log',
                     filemode='a')
+AMI = 'ami-b3cc1fa5'
+KeyName = 'C:\\fakepath\\cs5356'
+SecurityGroupId = 'sg-06a6b562'
+IAM_ROLE = {'Arn': 'arn:aws:iam::248089713624:instance-profile/chdeploy',}
+env.user = "ubuntu"
+try:
+    ec2_HOST = file("host").read().strip()
+except:
+    ec2_HOST = ""
+    pass
+env.key_filename = "~/.ssh/cs5356"
 
 
+
+
+def get_status(ec2,spot_request_id):
+    current = ec2.describe_spot_instance_requests(SpotInstanceRequestIds=[spot_request_id,])
+    instance_id = current[u'SpotInstanceRequests'][0][u'InstanceId'] if u'InstanceId' in current[u'SpotInstanceRequests'][0] else None
+    return instance_id
+
+
+@task
+def launch_spot():
+    """
+    A helper script to launch a spot P2 instance running Deep Video Analytics
+    :return:
+    """
+    ec2 = boto3.client('ec2')
+    ec2r = boto3.resource('ec2')
+    ec2spec = dict(ImageId=AMI,
+                   KeyName = KeyName,
+                   SecurityGroupIds = [SecurityGroupId, ],
+                   InstanceType = "p2.xlarge",
+                   Monitoring = {'Enabled': True,},
+                   IamInstanceProfile = IAM_ROLE)
+    output = ec2.request_spot_instances(DryRun=False,
+                                        SpotPrice="0.9",
+                                        InstanceCount=1,
+                                        LaunchSpecification = ec2spec)
+    spot_request_id = output[u'SpotInstanceRequests'][0][u'SpotInstanceRequestId']
+    time.sleep(30)
+    waiter = ec2.get_waiter('spot_instance_request_fulfilled')
+    waiter.wait(SpotInstanceRequestIds=[spot_request_id,])
+    instance_id = get_status(ec2, spot_request_id)
+    while instance_id is None:
+        time.sleep(30)
+        instance_id = get_status(ec2,spot_request_id)
+    instance = ec2r.Instance(instance_id)
+    with open("host",'w') as out:
+        out.write(instance.public_ip_address)
+    time.sleep(12) # wait while the instance starts
+    env.hosts = [instance.public_ip_address,]
+    fh = open("connect.sh", 'w')
+    fh.write("#!/bin/bash\n" + "ssh -i " + env.key_filename + " " + env.user + "@" + env.hosts[0] + "\n")
+    fh.close()
+    local("fab deploy_ec2")
+
+@task
+def deploy_ec2():
+    import webbrowser
+    run('cd deepvideoanalytics && git pull && cd docker_GPU && ./rebuild.sh && nvidia-docker-compose up -d')
+    webbrowser.open('{}:8000'.format(env.hosts[0]))
 
 @task
 def shell():
@@ -63,7 +123,7 @@ def start_server_container_gpu(test=False):
     local("python manage.py collectstatic --no-input")
     local("chmod 0777 -R dva/staticfiles/")
     local("chmod 0777 -R dva/media/")
-    local('python start_extractor.py 3 &') # on GPU machines use more extractors
+    local('python start_extractor.py 2 &') # on GPU machines use more extractors
     local('python start_indexer.py &')
     local('python start_detector.py &')
     if test:

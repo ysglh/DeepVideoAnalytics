@@ -76,8 +76,8 @@ However it runs nginix as root (though within the container). Considering that y
 - [X] Implement a method to backup postgres db & media folder to S3 via a single command
 - [X] Integrate youtube-dl for downloading videos
 - [X] Test Deployment on AWS P2 machines running nvidia-docker 
-- [ ] Improve documentation 
-- [ ] Index detected object and Create a separate query indexer that implements approximate nn search via NMS lib or Anony
+- [X] Implemented nginx <-> uwsgi <-> django on GPU container for optimized serving of videos and static assets.
+- [ ] Index detected object / create a separate query indexer using NMS lib or Anony
 
 
 ### Implemented & Potential algorithms/models

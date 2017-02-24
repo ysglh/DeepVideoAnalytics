@@ -88,10 +88,10 @@ RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main" > /etc/
 RUN apt-get update && apt-get install -y postgresql-client-9.6 zip
 WORKDIR "/root/DVA"
 RUN apt-get update && apt-get install -y nginx supervisor
+RUN git pull
 RUN pip install uwsgi
 RUN echo "daemon off;" >> /etc/nginx/nginx.conf
 COPY nginx-app.conf /etc/nginx/sites-available/default
 COPY supervisor-app.conf /etc/supervisor/conf.d/
-RUN git pull
 RUN python manage.py collectstatic --no-input
 EXPOSE 80

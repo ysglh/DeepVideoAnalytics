@@ -6,7 +6,7 @@ Deep learning detection and recognition algorithms are used for indexing individ
 detected objects. The goal of Deep Video analytics is to become a quickly customizable platform for developing 
 visual & video analytics applications, while benefiting from seamless integration with state or the art models released
 by the vision research community.
-##### Advertisement: If you are interested in Healthcare & Machine Learning please take a look at [Computational Healthcare my research project](http://www.computationalhealthcare.com) 
+##### Advertisement: If you are interested in Healthcare & Machine Learning please take a look at [Computational Healthcare](http://www.computationalhealthcare.com) 
 
 ---
 

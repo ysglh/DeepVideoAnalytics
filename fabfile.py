@@ -56,6 +56,12 @@ def start_server_container(test=False):
 def start_server_container_gpu(test=False):
     local('sleep 60')
     migrate()
+    local('chmod 0777 -R /tmp')
+    local("mv docker_GPU/nginx-app.conf /etc/nginx/sites-available/default")
+    local("mv docker_GPU/supervisor-app.conf /etc/supervisor/conf.d/")
+    local("python manage.py collectstatic --no-input")
+    local("chmod 0777 -R dva/staticfiles/")
+    local("chmod 0777 -R dva/media/")
     local('python start_extractor.py 3 &') # on GPU machines use more extractors
     local('python start_indexer.py &')
     local('python start_detector.py &')

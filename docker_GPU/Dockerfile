@@ -91,7 +91,4 @@ RUN apt-get update && apt-get install -y nginx supervisor
 RUN git pull
 RUN pip install uwsgi
 RUN echo "daemon off;" >> /etc/nginx/nginx.conf
-COPY nginx-app.conf /etc/nginx/sites-available/default
-COPY supervisor-app.conf /etc/supervisor/conf.d/
-RUN python manage.py collectstatic --no-input
 EXPOSE 80

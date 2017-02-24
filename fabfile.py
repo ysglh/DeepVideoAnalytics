@@ -39,11 +39,24 @@ def worker(queue_name,conc=1):
 def server():
     local("python manage.py runserver")
 
+
 @task
 def start_server_container(test=False):
     local('sleep 60')
     migrate()
     local('python start_extractor.py &')
+    local('python start_indexer.py &')
+    local('python start_detector.py &')
+    if test:
+        ci()
+    local('python manage.py runserver 0.0.0.0:8000')
+
+
+@task
+def start_server_container_gpu(test=False):
+    local('sleep 60')
+    migrate()
+    local('python start_extractor.py 3 &') # on GPU machines use more extractors
     local('python start_indexer.py &')
     local('python start_detector.py &')
     if test:

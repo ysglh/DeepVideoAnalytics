@@ -87,3 +87,10 @@ RUN apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys B97
 RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main" > /etc/apt/sources.list.d/pgdg.list
 RUN apt-get update && apt-get install -y postgresql-client-9.6 zip
 WORKDIR "/root/DVA"
+RUN apt-get update && apt-get install -y nginx supervisor
+RUN pip install uwsgi
+RUN echo "daemon off;" >> /etc/nginx/nginx.conf
+RUN mv nginx-app.conf /etc/nginx/sites-available/default
+RUN mv supervisor-app.conf /etc/supervisor/conf.d/
+RUN python manage.py collectstatic --no-input
+EXPOSE 80

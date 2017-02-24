@@ -31,7 +31,7 @@
        - DB_PASS=pgdbpass
      command: bash -c "youtube-dl -U && git pull && fab start_server_container:1"
      ports:
-       - "8000:8000"
+       - "8000:8000","9000:80"
      depends_on:
        - db
        - rabbit

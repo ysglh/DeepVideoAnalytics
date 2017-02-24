@@ -17,7 +17,7 @@ by the vision research community.
 - Operations (Querying, Frame extraction & Indexing) performed using celery tasks and RabbitMQ
 - Separate queues and workers for selection of machines with different spect (GPU vs RAM) 
 - Videos, frames, indexes, numpy vectors stored in media directory, served through nginx
-
+- Explore data, manually run code & tasks without UI via a jupyter notebook (e.g. [explore.ipynb](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/explore.ipynb))
 
 ---
 ## Installation
@@ -42,7 +42,7 @@ Start a P2.xlarge instance with **ami-b3cc1fa5** (N. Virginia), ports 8000, 6006
 cd deepvideoanalytics && git pull && cd docker_GPU && ./rebuild.sh && nvidia-docker-compose up 
 ```
 you can optionally specify "-d" at the end to detach it, but for the very first time its useful to read how each container is started. After approximately 3 ~ 5 minutes the user interface will appear on port 8000 of the instance ip.
-The Process used for [AMI creation is here](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/notes/readme.md)
+The Process used for [AMI creation is here](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/notes/ami.md)
 
 **Security warning! The current GPU container uses nginx <-> uwsgi <-> django setup to ensure smooth playback of videos. 
 However it runs nginix as root (though within the container). Considering that you can now modify AWS Security rules on-the-fly, I highly recommend only allowing inbound traffic from your own IP address.** 
@@ -102,52 +102,6 @@ However it runs nginix as root (though within the container). Considering that y
 
 ![Architecture](demo/architecture.png "System architecture")
 
-
-### Explore without User Interface
-
-You can use the jupyter notebook explore.ipynb to manually run tasks & code against the databases. 
-
-### Simple schema for extensibility
-
- - One directory per video or dataset (a set of images)
- - Extracted frames and detections are stored in detections/ & frames/ under the video directory
- - Indexes (numpy arrays) and list of corresponding frames & detections are stored 
- - Query images are also stored inside media/queries/ named using primary key of the query object.
- - Designed to enables rapid sync with S3 or processing via a third party program.
-
-###Media directory organization example: 
-```
-media/
-├── 1
-│   ├── audio
-│   ├── detections
-│   ├── frames
-│   │   ├── 0.jpg
-│   │   ├── 10.jpg
-│   │   ...
-│   │   └── 98.jpg
-│   ├── indexes
-│   │   ├── alexnet.framelist
-│   │   └── alexnet.npy
-│   └── video
-│       └── 1.mp4
-├── 2
-│   └── video
-│       └── 2.mp4
-│   ├── detections
-│   ├── frames
-│   │   ├── 0.jpg
-│   │   ├── 10.jpg
-...
-└── queries
-    ├── 1.png
-    ├── 10.png
-    ....
-    ├── 8.png
-    └── 9.png
-
-19 directories, 257 files
-```
 
 ## Libraries & Code used
 - Pytorch [License](https://github.com/pytorch/pytorch/blob/master/LICENSE)

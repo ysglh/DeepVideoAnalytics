@@ -20,12 +20,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'gwi1$a3#v9pj=mxydc33p-3jup%0kyn26i*tqe9q*^(rp2$j&^'
+SECRET_KEY = 'changemeabblasdasbdbrp2$j&^' # change this in prod
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"] # Dont use this in prod
 
 #: Only add pickle to this list if your broker is secured
 #: from unwanted access (see userguide/security.html)

@@ -92,5 +92,6 @@ RUN pip install uwsgi
 RUN echo "daemon off;" >> /etc/nginx/nginx.conf
 COPY nginx-app.conf /etc/nginx/sites-available/default
 COPY supervisor-app.conf /etc/supervisor/conf.d/
+RUN git pull
 RUN python manage.py collectstatic --no-input
 EXPOSE 80

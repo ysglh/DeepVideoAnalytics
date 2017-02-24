@@ -26,3 +26,4 @@ Thumbs.db
 /docker/logs/logs
 /docker_GPU/logs/*.log
 /docker_GPU/logs/logs
+/docker_GPU/nvidia-docker-compose.yml

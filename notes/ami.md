@@ -1,7 +1,4 @@
-## A collection of notes about Deep Video Analytics
-
-
-#### Creating AWS AMI for Deep Video Analytics
+# Creating AWS AMI for Deep Video Analytics
 
 Using [ami-b1e2c4a6](https://blog.empiricalci.com/a-gpu-enabled-ami-for-deep-learning-5aa3d694b630#.m1fse4jvi) as a base ami,
 we ran following commands to update cuda (command not shown below), docker engine. Installed docker-compose, nvidia-docker-compose and added ubuntu in group docker.

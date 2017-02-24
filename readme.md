@@ -28,17 +28,14 @@ nvidia-docker-compose up
 ````
 
 ### Deploy on AWS EC2 P2 instances with GPUs
-Using [ami-b1e2c4a6](https://blog.empiricalci.com/a-gpu-enabled-ami-for-deep-learning-5aa3d694b630#.m1fse4jvi) as a base ami,
-we ran following commands to update cuda (command not shown below), docker engine. Installed docker-compose, nvidia-docker-compose and added ubuntu in group docker.
-````bash
-sudo apt-get update && sudo apt-get -y install docker-engine python-pip && sudo pip install --upgrade nvidia-docker-compose
-wget -P /tmp https://github.com/NVIDIA/nvidia-docker/releases/download/v1.0.0/nvidia-docker_1.0.0-1_amd64.deb
-sudo dpkg -i /tmp/nvidia-docker*.deb && rm /tmp/nvidia-docker*.deb
-sudo gpasswd -a ${USER} docker && sudo service docker restart
-sudo curl -L "https://github.com/docker/compose/releases/download/1.11.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose && sudo chmod +x /usr/local/bin/docker-compose
-git clone https://github.com/AKSHAYUBHAT/deepvideoanalytics && cd deepvideoanalytics/docker_GPU/
-````
 
+Start a P2 instance with **ami-b3cc1fa5** (N. Virginia), ports 8000, 6006, 8888 open (preferably to only your IP) and run following command after ssh'ing into the machine.
+````bash
+cd deepvideoanalytics && git pull && cd docker_GPU && ./rebuild.sh && nvidia-docker-compose up 
+````
+you can optionally specify "-d" at the end to detach it, but for the very first time its useful to read how each container is started. After approximately 3 ~ 5 minutes the user interface will appear on port 8000 of the instance ip.
+
+**Process used for [AMI creation is here](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/notes/readme.md)**
 
 
 ## User Interface 
@@ -74,9 +71,9 @@ git clone https://github.com/AKSHAYUBHAT/deepvideoanalytics && cd deepvideoanaly
 - [X] Automated docker based testing
 - [X] Implement a method to backup postgres db & media folder to S3 via a single command
 - [X] Integrate youtube-dl for downloading videos
-- [ ] Test Deployment on AWS P2 machines running nvidia-docker 
-- [ ] Index detected object 
-- [ ] Create a separate query indexer that implements approximate nn search via NMS lib or Anony
+- [X] Test Deployment on AWS P2 machines running nvidia-docker 
+- [ ] Improve documentation 
+- [ ] Index detected object and Create a separate query indexer that implements approximate nn search via NMS lib or Anony
 
 
 ### Implemented & Potential algorithms/models

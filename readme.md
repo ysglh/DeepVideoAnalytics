@@ -1,5 +1,5 @@
 #Deep Video Analytics  •  [![Build Status](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics.svg?branch=master)](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics)
-![Banner](demo/banner_small.png "banner")
+![Banner](notes/banner_small.png "banner")
 
 ### Author: [Akshay Bhat, Cornell University.](http://www.akshaybhat.com)       
 
@@ -10,7 +10,7 @@ detected objects. The goal of Deep Video analytics is to become a quickly custom
 visual & video analytics applications, while benefiting from seamless integration with state or the art models released
 by the vision research community.
 
-##### Advertisement: If you are interested in Healthcare & Machine Learning please take a look at [Computational Healthcare](http://www.computationalhealthcare.com) 
+##### self-promotion: If you are interested in Healthcare & Machine Learning please take a look at [Computational Healthcare](http://www.computationalhealthcare.com) 
 
 ## Features
 - Visual Search using Nearest Neighbors algorithm as a primary interface
@@ -63,18 +63,18 @@ Other than the shared media folder (ideally a mounted EFS or NFS), Postgres and 
 Please [read this regarding trade offs](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/notes/architecture.md).
  
 ## Architecture
-![Architecture](demo/architecture.png "System architecture")
+![Architecture](notes/architecture.png "System architecture")
 
 ## User Interface 
 ### Search
-![UI Screenshot](demo/search.png "search")
+![UI Screenshot](notes/search.png "search")
 ### Past queries
-![UI Screenshot](demo/past_query.png "past queries")
+![UI Screenshot](notes/past_query.png "past queries")
 ### Video list / detail
-![UI Screenshot](demo/video_list.png "Video list")
-![UI Screenshot](demo/video_detail.png "detail")
+![UI Screenshot](notes/video_list.png "Video list")
+![UI Screenshot](notes/video_detail.png "detail")
 ### Frame detail
-![UI Screenshot](demo/frame_detail.png "Frame detail")
+![UI Screenshot](notes/frame_detail.png "Frame detail")
 
 ## Libraries & Code used
 

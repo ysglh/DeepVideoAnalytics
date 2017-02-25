@@ -29,3 +29,4 @@ Thumbs.db
 /docker_GPU/nvidia-docker-compose.yml
 /host
 /connect.sh
+/backups/

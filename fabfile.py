@@ -104,9 +104,9 @@ def server():
 def start_server_container(test=False):
     local('sleep 60')
     migrate()
-    local('python start_extractor.py &')
-    local('python start_indexer.py &')
-    local('python start_detector.py &')
+    local('python startq.py extractor &')
+    local('python startq.py indexer &')
+    local('python startq.py detector &')
     if test:
         ci()
     local('python manage.py runserver 0.0.0.0:8000')
@@ -117,15 +117,15 @@ def start_server_container_gpu(test=False):
     local('sleep 60')
     migrate()
     local('chmod 0777 -R /tmp')
-    local("mv configs/nginx.conf /etc/nginx/")
-    local("mv configs/nginx-app.conf /etc/nginx/sites-available/default")
-    local("mv configs/supervisor-app.conf /etc/supervisor/conf.d/")
+    local("mv docker_GPU/configs/nginx.conf /etc/nginx/")
+    local("mv docker_GPU/configs/nginx-app.conf /etc/nginx/sites-available/default")
+    local("mv docker_GPU/configs/supervisor-app.conf /etc/supervisor/conf.d/")
     local("python manage.py collectstatic --no-input")
     local("chmod 0777 -R dva/staticfiles/")
     local("chmod 0777 -R dva/media/")
-    local('python start_extractor.py 2 &') # on GPU machines use more extractors
-    local('python start_indexer.py &')
-    local('python start_detector.py &')
+    local('python startq.py extractor 2 &') # on GPU machines use more extractors
+    local('python startq.py indexer &')
+    local('python startq.py detector &')
     if test:
         ci()
     local('supervisord -n')
@@ -165,10 +165,10 @@ def quick_test(detection=False):
     clean()
     create_super()
     local('python run_test.py')
-    local('python start_extractor.py &')
-    local('python start_indexer.py &')
+    local('python startq.py extractor &')
+    local('python startq.py indexer &')
     if detection:
-        local('python start_detector.py &')
+        local('python startq.py detector &')
 
 @task
 def test_backup():

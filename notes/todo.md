@@ -1,4 +1,4 @@
-#To Do list
+#To Do list Alpha version
 
 - [x] Django App
 - [x] Tasks using Celery & RabbitMQ
@@ -22,3 +22,9 @@
 - [X] Test Deployment on AWS P2 machines running nvidia-docker 
 - [X] Implemented nginx <-> uwsgi <-> django on GPU container for optimized serving of videos and static assets.
 - [ ] Index detected object / create a separate query indexer using NMS lib or Anony
+
+#To Do list 0.1 version
+- [ ] Attach Open Face Docker container
+- [ ] Enable manual restart of tasks via status page
+- [ ] Cloudformation template for use with ECS & EFS
+- [ ] Improve OpenCV video processing

@@ -30,3 +30,4 @@ Thumbs.db
 /host
 /connect.sh
 /backups/
+/notes/broadcast_index_update.patch

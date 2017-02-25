@@ -18,6 +18,17 @@ by the vision research community.
 - Separate queues and workers for selection of machines with different spect (GPU vs RAM) 
 - Videos, frames, indexes, numpy vectors stored in media directory, served through nginx
 - Explore data, manually run code & tasks without UI via a jupyter notebook (e.g. [explore.ipynb](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/explore.ipynb))
+- A set of notes are available for guidance regarding [multi-machine deployment and design decisions](/notes/readme.md).
+
+## Implemented & Potential algorithms/models
+- [x] Alexnet indexing using Pytorch 
+- [x] [YOLO 9000 (naive implementation, gets reloaded in memory for every video)](http://pjreddie.com/darknet/yolo/)
+- [x] Google inception using Tensorflow 
+- [ ] [Pytorch Squeezenet](http://pytorch.org/docs/torchvision/models.html)
+- [ ] [Facenet](https://github.com/davidsandberg/facenet) or [Openface (via a connected container)](https://github.com/cmusatyalab/openface)
+- [ ] [Soundnet (requires extracting mp3 audio)](http://projects.csail.mit.edu/soundnet/)
+- [ ] [Mapnet (requires converting models from Marvin)](http://www.cs.princeton.edu/~aseff/mapnet/)   
+- [ ] [Keras-js](https://github.com/transcranial/keras-js) which uses Keras inception for client side indexing   
 
 ## Installation
 
@@ -41,25 +52,12 @@ Start a P2.xlarge instance with **ami-b3cc1fa5** (N. Virginia), ports 8000, 6006
 cd deepvideoanalytics && git pull && cd docker_GPU && ./rebuild.sh && nvidia-docker-compose up 
 ```
 you can optionally specify "-d" at the end to detach it, but for the very first time its useful to read how each container is started. After approximately 3 ~ 5 minutes the user interface will appear on port 8000 of the instance ip.
-The Process used for [AMI creation is here](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/notes/ami.md)
+The Process used for [AMI creation is here](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/notes/ami.md) **Security warning!** The current GPU container uses nginx <-> uwsgi <-> django setup to ensure smooth playback of videos. 
+However it runs nginix as root (though within the container). Considering that you can now modify AWS Security rules on-the-fly, I highly recommend allowing inbound traffic only from your own IP address.
 
-**Security warning! The current GPU container uses nginx <-> uwsgi <-> django setup to ensure smooth playback of videos. 
-However it runs nginix as root (though within the container). Considering that you can now modify AWS Security rules on-the-fly, I highly recommend only allowing inbound traffic from your own IP address.** 
-
-#### Deployment on multiple machines with/without GPUs
+### Deployment on multiple machines with/without GPUs
 
 Please read this document for [guidance on multi-machine deployment](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/notes/architecture.md).
-
-
-### Implemented & Potential algorithms/models
-- [x] Alexnet indexing using Pytorch 
-- [x] [YOLO 9000 (naive implementation, gets reloaded in memory for every video)](http://pjreddie.com/darknet/yolo/)
-- [x] Google inception using Tensorflow 
-- [ ] [Pytorch Squeezenet](http://pytorch.org/docs/torchvision/models.html)
-- [ ] [Facenet](https://github.com/davidsandberg/facenet) or [Openface (via a connected container)](https://github.com/cmusatyalab/openface)
-- [ ] [Soundnet](http://projects.csail.mit.edu/soundnet/)
-- [ ] [Mapnet (requires converting models from Marvin)](http://www.cs.princeton.edu/~aseff/mapnet/)   
-- [ ] [Keras-js](https://github.com/transcranial/keras-js) which uses Keras inception for client side indexing   
  
 ## Architecture overview
 ![Architecture](demo/architecture.png "System architecture")

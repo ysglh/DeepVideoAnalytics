@@ -10,7 +10,7 @@ detected objects. The goal of Deep Video analytics is to become a quickly custom
 visual & video analytics applications, while benefiting from seamless integration with state or the art models released
 by the vision research community.
 
-##### self-promotion: If you are interested in Healthcare & Machine Learning please take a look at [Computational Healthcare](http://www.computationalhealthcare.com) 
+##### self-promotion: If you are interested in Healthcare & Machine Learning please take a look at my another Open Source project [Computational Healthcare](http://www.computationalhealthcare.com) 
 
 ## Features
 - Visual Search using Nearest Neighbors algorithm as a primary interface

@@ -7,13 +7,9 @@ engines:
     config:
       languages:
       - python
-  eslint:
+  pep8:
     enabled: true
   fixme:
-    enabled: true
-  phpmd:
-    enabled: true
-  radon:
     enabled: true
 ratings:
   paths:"

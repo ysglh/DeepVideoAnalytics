@@ -16,12 +16,22 @@ def search(request):
         query = Query()
         query.save()
         primary_key = query.pk
+        dv = Video()
+        dv.name = 'query_{}'.format(query.pk)
+        dv.dataset = True
+        dv.query = True
+        dv.parent_query = query
+        dv.save()
+        create_video_folders(dv)
         image_url = request.POST.get('image_url')
         image_data = base64.decodestring(image_url[22:])
         query_path = "{}/queries/{}.png".format(settings.MEDIA_ROOT,primary_key)
+        query_frame_path = "{}/{}/frames/0.png".format(settings.MEDIA_ROOT,dv.pk)
         with open(query_path,'w') as fh:
             fh.write(image_data)
-        result = query_by_image.apply_async(args=[primary_key],queue=settings.Q_INDEXER)
+        with open(query_frame_path,'w') as fh:
+            fh.write(image_data)
+        result = query_by_image.apply_async(args=[primary_key],queue=settings.Q_RETRIEVER)
         user = request.user if request.user.is_authenticated() else None
         query.task_id = result.task_id
         query.user = user
@@ -34,7 +44,6 @@ def search(request):
                     r['url'] = '/media/{}/frames/{}.jpg'.format(r['video_primary_key'],r['frame_index'])
                     results.append(r)
         return JsonResponse(data={'task_id':result.task_id,'primary_key':primary_key,'results':results})
-
 
 
 def index(request):
@@ -166,18 +175,23 @@ def status(request):
     context['query_count'] = Query.objects.count()
     context['events'] = TEvent.objects.all()
     context['detection_count'] = Detection.objects.count()
+
     try:
-        context['indexer_log'] = file("logs/qindexer.log").read()
+        context['indexer_log'] = file("logs/{}.log".format(settings.Q_INDEXER)).read()
     except:
         context['indexer_log'] = ""
     try:
-        context['detector_log'] = file("logs/qdetector.log").read()
+        context['detector_log'] = file("logs/{}.log".format(settings.Q_DETECTOR)).read()
     except:
         context['detector_log'] = ""
     try:
-        context['extract_log'] = file("logs/qextract.log").read()
+        context['extract_log'] = file("logs/{}.log".format(settings.Q_EXTRACTOR)).read()
     except:
         context['extract_log'] = ""
+    try:
+        context['retriever_log'] = file("logs/{}.log".format(settings.Q_RETRIEVER)).read()
+    except:
+        context['retriever_log'] = ""
     try:
         context['fab_log'] = file("logs/fab.log").read()
     except:

@@ -104,9 +104,7 @@ def server():
 def start_server_container(test=False):
     local('sleep 60')
     migrate()
-    local('python utils.py startq extractor &')
-    local('python utils.py startq indexer &')
-    local('python utils.py startq detector &')
+    launch_queues(True)
     if test:
         ci()
     local('python manage.py runserver 0.0.0.0:8000')
@@ -123,9 +121,7 @@ def start_server_container_gpu(test=False):
     local("python manage.py collectstatic --no-input")
     local("chmod 0777 -R dva/staticfiles/")
     local("chmod 0777 -R dva/media/")
-    local('python utils.py startq extractor 2 &') # on GPU machines use more extractors
-    local('python utils.py startq indexer &')
-    local('python utils.py startq detector &')
+    launch_queues(True)
     if test:
         ci()
     local('supervisord -n')
@@ -165,10 +161,7 @@ def quick_test(detection=False):
     clean()
     create_super()
     local('python utils.py test')
-    local('python utils.py startq extractor &')
-    local('python utils.py startq indexer &')
-    if detection:
-        local('python utils.py startq detector &')
+    launch_queues(detection)
 
 @task
 def test_backup():
@@ -180,3 +173,11 @@ def test_backup():
 @task
 def create_super():
     local('echo "from django.contrib.auth.models import User; User.objects.create_superuser(\'akshay\', \'akshay@test.com\', \'super\')" | python manage.py shell')
+
+@task
+def launch_queues(detection=False):
+    local('python utils.py startq extractor &')
+    local('python utils.py startq indexer &')
+    local('python utils.py startq retriever &')
+    if detection:
+        local('python utils.py startq detector &')

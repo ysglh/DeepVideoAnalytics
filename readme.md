@@ -28,6 +28,7 @@ by the vision research community.
 - [x] [YOLO 9000 (naive implementation, gets reloaded in memory for every video)](http://pjreddie.com/darknet/yolo/)
 - [x] Google inception using Tensorflow
 - [ ] [SSD Multibox 500](https://github.com/balancap/SSD-Tensorflow)
+- [ ] [Text detection models](http://www.robots.ox.ac.uk/~vgg/research/text/)
 - [ ] [Pytorch Squeezenet](http://pytorch.org/docs/torchvision/models.html)
 - [ ] [Openface (via a connected container)](https://github.com/cmusatyalab/openface)
 - [ ] [Soundnet (requires extracting mp3 audio)](http://projects.csail.mit.edu/soundnet/)

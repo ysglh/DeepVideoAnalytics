@@ -10,6 +10,7 @@ USAGE = """
 'python utils.py startq indexer'
 'python utils.py startq extractor 3'
 'python utils.py startq detector'
+'python utils.py startq retriever'
 'python utils.py backup'
 'python utils.py restore /path/to/backup_12354668.zip'
 """
@@ -22,9 +23,10 @@ if __name__ == '__main__':
     from dvaapp.models import Video
     from dvaapp.tasks import extract_frames, perform_indexing, perform_detection
     media_dir = settings.MEDIA_ROOT
-    Q_INDEXER = dva.settings.Q_INDEXER
-    Q_EXTRACTOR = dva.settings.Q_EXTRACTOR
-    Q_DETECTOR = dva.settings.Q_DETECTOR
+    Q_INDEXER = settings.Q_INDEXER
+    Q_EXTRACTOR = settings.Q_EXTRACTOR
+    Q_DETECTOR = settings.Q_DETECTOR
+    Q_RETRIEVER = settings.Q_RETRIEVER
     if len(sys.argv) == 1:
         print USAGE
     elif sys.argv[1] == 'startq':
@@ -39,6 +41,8 @@ if __name__ == '__main__':
             command = 'celery -A dva worker -l info -c {} -Q {} -n {}.%h -f logs/{}.log'.format(concurrency,Q_EXTRACTOR,Q_EXTRACTOR,Q_EXTRACTOR)
         elif sys.argv[2] == 'detector':
             command = 'celery -A dva worker -l info -c {} -Q {} -n {}.%h -f logs/{}.log'.format(1, Q_DETECTOR,Q_DETECTOR, Q_DETECTOR)
+        elif sys.argv[2] == 'retriever':
+            command = 'celery -A dva worker -l info -c {} -Q {} -n {}.%h -f logs/{}.log'.format(1, Q_RETRIEVER,Q_RETRIEVER,Q_RETRIEVER)
         else:
             raise NotImplementedError
         print command

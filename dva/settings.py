@@ -36,7 +36,7 @@ CELERY_RESULT_SERIALIZER = 'json'
 Q_EXTRACTOR = 'qextract'
 Q_INDEXER = 'qindexer'
 Q_DETECTOR = 'qdetector'
-
+Q_RETRIEVER = 'qretriever'
 
 # Application definition
 

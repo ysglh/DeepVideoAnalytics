@@ -31,8 +31,10 @@ if __name__ == '__main__':
         os.remove('{}/postgres.dump'.format(media_dir))
         print zipper.returncode
     elif sys.argv[1] == 'restore':
+        if len(sys.argv) == 2:
+            print "usage 'python backup_restory.py backup' or 'python backup_restore.py restore /path/to/backup_12354668.zip'"
         current_path = os.path.abspath(os.path.dirname(__file__))
-        command = ['unzip', '-o', sys.argv[2]]
+        command = ['unzip', '-o', '{}'.format(os.path.join(current_path,sys.argv[2]))]
         print ' '.join(command)
         zipper = subprocess.Popen(command, cwd=media_dir)
         zipper.communicate()

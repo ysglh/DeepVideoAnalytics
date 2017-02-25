@@ -18,14 +18,14 @@ by the vision research community.
 - Separate queues and workers for selection of machines with different spect (GPU vs RAM) 
 - Videos, frames, indexes, numpy vectors stored in media directory, served through nginx
 - Explore data, manually run code & tasks without UI via a jupyter notebook (e.g. [explore.ipynb](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/explore.ipynb))
-- A set of notes are available for guidance regarding [multi-machine deployment and design decisions](/notes/readme.md).
+- [Some documentation on design decision, architecture and deployment.](/notes/readme.md).
 
 ## Implemented & Potential algorithms/models
 - [x] Alexnet indexing using Pytorch 
 - [x] [YOLO 9000 (naive implementation, gets reloaded in memory for every video)](http://pjreddie.com/darknet/yolo/)
 - [x] Google inception using Tensorflow 
 - [ ] [Pytorch Squeezenet](http://pytorch.org/docs/torchvision/models.html)
-- [ ] [Facenet](https://github.com/davidsandberg/facenet) or [Openface (via a connected container)](https://github.com/cmusatyalab/openface)
+- [ ] [Openface (via a connected container)](https://github.com/cmusatyalab/openface)
 - [ ] [Soundnet (requires extracting mp3 audio)](http://projects.csail.mit.edu/soundnet/)
 - [ ] [Mapnet (requires converting models from Marvin)](http://www.cs.princeton.edu/~aseff/mapnet/)   
 - [ ] [Keras-js](https://github.com/transcranial/keras-js) which uses Keras inception for client side indexing   
@@ -39,7 +39,7 @@ git clone https://github.com/AKSHAYUBHAT/DeepVideoAnalytics && cd DeepVideoAnaly
 ```
 ### Installation for machines with GPU or AWS EC2 P2.xlarge instances
 
-#### Machine with GPU
+#### Machine with NVidia GPU with Docker and nvidia-docker installed
 Replace docker-compose by nvidia-docker-compose, the Dockerfile uses tensorflow gpu base image and appropriate version of pytorch. The Makefile for Darknet is also modified accordingly. This code was tested using an older NVidia Titan GPU and nvidia-docker.
 
 ```bash
@@ -57,7 +57,7 @@ However it runs nginix as root (though within the container). Considering that y
 
 ### Deployment on multiple machines with/without GPUs
 
-Please read this document for [guidance on multi-machine deployment](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/notes/architecture.md).
+Please read this document for [guidance](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/notes/architecture.md).
  
 ## Architecture overview
 ![Architecture](demo/architecture.png "System architecture")
@@ -74,7 +74,7 @@ Please read this document for [guidance on multi-machine deployment](https://git
 ![UI Screenshot](demo/frame_detail.png "Frame detail")
 
 ## Libraries & Code used
-** If I have missed anything please email me. **
+**If I have missed anything please email me.**
 
 - Pytorch [License](https://github.com/pytorch/pytorch/blob/master/LICENSE)
 - Darknet [License](https://github.com/pjreddie/darknet/blob/master/LICENSE)

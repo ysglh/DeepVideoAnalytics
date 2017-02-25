@@ -19,11 +19,10 @@ by the vision research community.
 - Videos, frames, indexes, numpy vectors stored in media directory, served through nginx
 - Explore data, manually run code & tasks without UI via a jupyter notebook (e.g. [explore.ipynb](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/explore.ipynb))
 
----
 ## Installation
 
-### One line installation using docker-compose
-
+### On Mac, Windows and Linux machines without NVidia GPUs
+You need to have latest version of Docker installed.
 ````bash
 git clone https://github.com/AKSHAYUBHAT/DeepVideoAnalytics && cd DeepVideoAnalytics/docker && docker-compose up 
 ```
@@ -47,45 +46,9 @@ The Process used for [AMI creation is here](https://github.com/AKSHAYUBHAT/DeepV
 **Security warning! The current GPU container uses nginx <-> uwsgi <-> django setup to ensure smooth playback of videos. 
 However it runs nginix as root (though within the container). Considering that you can now modify AWS Security rules on-the-fly, I highly recommend only allowing inbound traffic from your own IP address.** 
 
-#### Deploying on multiple machine with shared NFS storage
+#### Deployment on multiple machines with/without GPUs
 
-
-## User Interface 
-### Search
-![UI Screenshot](demo/search.png "search")
-### Past queries
-![UI Screenshot](demo/past_query.png "past queries")
-### Video list / detail
-![UI Screenshot](demo/video_list.png "Video list")
-![UI Screenshot](demo/video_detail.png "detail")
-### Frame detail
-![UI Screenshot](demo/frame_detail.png "Frame detail")
-
-##Alpha version To Do list
-**Deep Video Analytics is currently under active development.**
-
-- [x] Django App
-- [x] Tasks using Celery & RabbitMQ
-- [x] Postgres database
-- [x] Deployment using docker-compose
-- [x] Minimal user interface for uploading and browsing uploaded videos/images
-- [x] Task for frame extraction from videos
-- [x] Simple detection models using Darknet YOLO
-- [x] Working visual search & indexer tasks using PyTorch
-- [X] Simple set of tests (E.g. upload a video, perform processing, indexing, detection)
-- [X] Deployment using nvidia-docker-compose for machines with GPU
-- [X] Continuous integration test suite
-- [X] Improved user interface for browsing past queries
-- [X] Improve TEvent model to track state of tasks
-- [X] Improved frame extraction using PySceneDetect (every 100th frame and frame selected by content change)
-- [X] Integrate Tensorflow 1.0
-- [X] Improved models by adding information about user performing the uploading video/dataset
-- [X] Automated docker based testing
-- [X] Implement a method to backup postgres db & media folder to S3 via a single command
-- [X] Integrate youtube-dl for downloading videos
-- [X] Test Deployment on AWS P2 machines running nvidia-docker 
-- [X] Implemented nginx <-> uwsgi <-> django on GPU container for optimized serving of videos and static assets.
-- [ ] Index detected object / create a separate query indexer using NMS lib or Anony
+Please read this document for [guidance on multi-machine deployment](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/notes/architecture.md).
 
 
 ### Implemented & Potential algorithms/models
@@ -98,12 +61,23 @@ However it runs nginix as root (though within the container). Considering that y
 - [ ] [Mapnet (requires converting models from Marvin)](http://www.cs.princeton.edu/~aseff/mapnet/)   
 - [ ] [Keras-js](https://github.com/transcranial/keras-js) which uses Keras inception for client side indexing   
  
-## Distributed architecture
-
+## Architecture overview
 ![Architecture](demo/architecture.png "System architecture")
 
+## User Interface 
+### Search
+![UI Screenshot](demo/search.png "search")
+### Past queries
+![UI Screenshot](demo/past_query.png "past queries")
+### Video list / detail
+![UI Screenshot](demo/video_list.png "Video list")
+![UI Screenshot](demo/video_detail.png "detail")
+### Frame detail
+![UI Screenshot](demo/frame_detail.png "Frame detail")
 
 ## Libraries & Code used
+** If I have missed anything please email me. **
+
 - Pytorch [License](https://github.com/pytorch/pytorch/blob/master/LICENSE)
 - Darknet [License](https://github.com/pjreddie/darknet/blob/master/LICENSE)
 - AdminLTE2 [License](https://github.com/almasaeed2010/AdminLTE/blob/master/LICENSE)

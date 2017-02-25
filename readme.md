@@ -1,7 +1,7 @@
 #Deep Video Analytics  •  [![Build Status](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics.svg?branch=master)](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics)
 ![Banner](notes/banner_small.png "banner")
 
-### Author: [Akshay Bhat, Cornell University.](http://www.akshaybhat.com)       
+#### Author: [Akshay Bhat, Cornell University.](http://www.akshaybhat.com)       
 
 
 Deep Video Analytics provides a platform for indexing and extracting information from videos and images.
@@ -26,7 +26,8 @@ by the vision research community.
 ## Implemented & Potential algorithms/models
 - [x] Alexnet indexing using Pytorch 
 - [x] [YOLO 9000 (naive implementation, gets reloaded in memory for every video)](http://pjreddie.com/darknet/yolo/)
-- [x] Google inception using Tensorflow 
+- [x] Google inception using Tensorflow
+- [ ] [SSD Multibox 500](https://github.com/balancap/SSD-Tensorflow)
 - [ ] [Pytorch Squeezenet](http://pytorch.org/docs/torchvision/models.html)
 - [ ] [Openface (via a connected container)](https://github.com/cmusatyalab/openface)
 - [ ] [Soundnet (requires extracting mp3 audio)](http://projects.csail.mit.edu/soundnet/)

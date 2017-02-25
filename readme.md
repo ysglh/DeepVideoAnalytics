@@ -1,6 +1,7 @@
 #Deep Video Analytics  •  [![Build Status](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics.svg?branch=master)](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics)
-##### Akshay Bhat, Cornell University. [Website & Contact](http://www.akshaybhat.com)       
 ![Banner](demo/banner_small.png "banner")
+
+### Akshay Bhat, Cornell University. [Website & Contact](http://www.akshaybhat.com)       
 
 
 Deep Video Analytics provides a platform for indexing and extracting information from videos and images.

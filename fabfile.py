@@ -1,6 +1,6 @@
 import os,logging,time,boto3
 from fabric.api import task,local,run,put,get,lcd,cd,sudo,env,puts
-import django,sys
+import sys
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                     datefmt='%m-%d %H:%M',
@@ -104,9 +104,9 @@ def server():
 def start_server_container(test=False):
     local('sleep 60')
     migrate()
-    local('python startq.py extractor &')
-    local('python startq.py indexer &')
-    local('python startq.py detector &')
+    local('python utils.py startq extractor &')
+    local('python utils.py startq indexer &')
+    local('python utils.py startq detector &')
     if test:
         ci()
     local('python manage.py runserver 0.0.0.0:8000')
@@ -123,9 +123,9 @@ def start_server_container_gpu(test=False):
     local("python manage.py collectstatic --no-input")
     local("chmod 0777 -R dva/staticfiles/")
     local("chmod 0777 -R dva/media/")
-    local('python startq.py extractor 2 &') # on GPU machines use more extractors
-    local('python startq.py indexer &')
-    local('python startq.py detector &')
+    local('python utils.py startq extractor 2 &') # on GPU machines use more extractors
+    local('python utils.py startq indexer &')
+    local('python utils.py startq detector &')
     if test:
         ci()
     local('supervisord -n')
@@ -157,24 +157,24 @@ def ci():
         local('wget https://www.dropbox.com/s/cjo9b68poqk7gy2/TomorrowNeverDies.mp4')
         local('wget https://www.dropbox.com/s/xwbk5g1qit5s9em/WorldIsNotEnough.mp4')
         local('wget https://www.dropbox.com/s/misaejsbz6722pd/test.png')
-    local('python run_test.py')
+    local('python utils.py test')
 
 
 @task
 def quick_test(detection=False):
     clean()
     create_super()
-    local('python run_test.py')
-    local('python startq.py extractor &')
-    local('python startq.py indexer &')
+    local('python utils.py test')
+    local('python utils.py startq extractor &')
+    local('python utils.py startq indexer &')
     if detection:
-        local('python startq.py detector &')
+        local('python utils.py startq detector &')
 
 @task
 def test_backup():
-    local('python backup.py')
+    local('python utils.py backup')
     clean()
-    local('python restore.py')
+    local('python utils.py restore backups/*.zip')
 
 
 @task

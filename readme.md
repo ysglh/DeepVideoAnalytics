@@ -1,6 +1,8 @@
 #Deep Video Analytics  •  [![Build Status](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics.svg?branch=master)](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics)
 ##### Akshay Bhat, Cornell University. [Website & Contact](http://www.akshaybhat.com)       
 ![Banner](demo/banner_small.png "banner")
+
+
 Deep Video Analytics provides a platform for indexing and extracting information from videos and images.
 Deep learning detection and recognition algorithms are used for indexing individual frames / images along with 
 detected objects. The goal of Deep Video analytics is to become a quickly customizable platform for developing 
@@ -18,7 +20,7 @@ by the vision research community.
 - Separate queues and workers for selection of machines with different spect (GPU vs RAM) 
 - Videos, frames, indexes, numpy vectors stored in media directory, served through nginx
 - Explore data, manually run code & tasks without UI via a jupyter notebook (e.g. [explore.ipynb](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/explore.ipynb))
-- [Some documentation on design decision, architecture and deployment.](/notes/readme.md).
+- [Some documentation on design decision, architecture and deployment](/notes/readme.md).
 
 ## Implemented & Potential algorithms/models
 - [x] Alexnet indexing using Pytorch 
@@ -57,9 +59,9 @@ However it runs nginix as root (though within the container). Considering that y
 
 ### Deployment on multiple machines with/without GPUs
 
-Please read this document for [guidance](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/notes/architecture.md).
+Please [read this](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/notes/architecture.md).
  
-## Architecture overview
+## Architecture
 ![Architecture](demo/architecture.png "System architecture")
 
 ## User Interface 
@@ -74,7 +76,6 @@ Please read this document for [guidance](https://github.com/AKSHAYUBHAT/DeepVide
 ![UI Screenshot](demo/frame_detail.png "Frame detail")
 
 ## Libraries & Code used
-**If I have missed anything please email me.**
 
 - Pytorch [License](https://github.com/pytorch/pytorch/blob/master/LICENSE)
 - Darknet [License](https://github.com/pjreddie/darknet/blob/master/LICENSE)

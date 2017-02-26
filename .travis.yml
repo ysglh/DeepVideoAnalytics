@@ -39,7 +39,7 @@ before_script:
   - sleep 3 # give xvfb some time to start
 
 script:
-  - python utils.py ci_test
+  - fab test:1
   - wget localhost:8000
   - wget localhost:8000/videos/
   - wget localhost:8000/videos/1/

@@ -225,7 +225,7 @@ def test(ci=False):
             name = fname.split('/')[-1].split('.')[0]
             f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
             handle_uploaded_file(f, name)
-        handle_youtube_video('jungle book', 'https://www.youtube.com/watch?v=C4qgAaxB_pc')
+        handle_youtube_video('tomorrow never dies', 'https://www.youtube.com/watch?v=gYtz5sw98Bc')
         for v in Video.objects.all():
             extract_frames(v.pk)
             perform_indexing(v.pk)
@@ -240,7 +240,7 @@ def test(ci=False):
             name = fname.split('/')[-1].split('.')[0]
             f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
             handle_uploaded_file(f, name)
-        handle_youtube_video('jungle book', 'https://www.youtube.com/watch?v=C4qgAaxB_pc')
+        handle_youtube_video('tomorrow never dies', 'https://www.youtube.com/watch?v=gYtz5sw98Bc')
 
 
 @task

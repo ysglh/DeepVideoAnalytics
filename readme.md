@@ -20,7 +20,7 @@ by the vision research community.
 - Operations (Querying, Frame extraction & Indexing) performed using celery tasks and RabbitMQ
 - Separate queues and workers for selection of machines with different specifications (GPU vs RAM) 
 - Videos, frames, indexes, numpy vectors stored in media directory, served through nginx
-- Explore data, manually run code & tasks without UI via a jupyter notebook (e.g. [explore.ipynb](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/explore.ipynb))
+- Explore data, manually run code & tasks without UI via a jupyter notebook [explore.ipynb](experiments/Notebooks/explore.ipynb)
 - [Some documentation on design decision, architecture and deployment](/notes/readme.md).
 
 ## Implemented & Potential algorithms/models

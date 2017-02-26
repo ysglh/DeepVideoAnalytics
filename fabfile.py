@@ -148,7 +148,7 @@ def clean():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from django.conf import settings
-    if sys.platform() == 'darwin':
+    if sys.platform == 'darwin':
         for qname in ['qextract','qindexer','qdetector','qretriever']:
             try:
                 local('rabbitmqadmin purge queue name={}'.format(qname))
@@ -159,7 +159,7 @@ def clean():
     migrate()
     local("rm -rf {}/*".format(settings.MEDIA_ROOT))
     local("mkdir {}/queries".format(settings.MEDIA_ROOT))
-    if sys.platform() == 'darwin':
+    if sys.platform == 'darwin':
         local("rm logs/*.log")
         try:
             local("ps auxww | grep 'celery -A dva worker' | awk '{print $2}' | xargs kill -9")

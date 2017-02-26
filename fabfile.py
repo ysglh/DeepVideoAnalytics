@@ -143,21 +143,28 @@ def start_server_container_gpu(test=False):
 
 @task
 def clean():
-    for qname in ['qextract','qindexer','qdetector','qretriever']:
-        try:
-            local('rabbitmqadmin purge queue name={}'.format(qname))
-        except:
-            logging.warning("coudnt clear queue {}".format(qname))
+    import django, os
+    sys.path.append(os.path.dirname(__file__))
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
+    django.setup()
+    from django.conf import settings
+    if sys.platform() == 'darwin':
+        for qname in ['qextract','qindexer','qdetector','qretriever']:
+            try:
+                local('rabbitmqadmin purge queue name={}'.format(qname))
+            except:
+                logging.warning("coudnt clear queue {}".format(qname))
     local('python manage.py makemigrations')
     local('python manage.py flush --no-input')
     migrate()
-    local("rm logs/*.log")
-    local("rm -rf ~/media/*")
-    local("mkdir ~/media/queries")
-    try:
-        local("ps auxww | grep 'celery -A dva worker' | awk '{print $2}' | xargs kill -9")
-    except:
-        pass
+    local("rm -rf {}/*".format(settings.MEDIA_ROOT))
+    local("mkdir {}/queries".format(settings.MEDIA_ROOT))
+    if sys.platform() == 'darwin':
+        local("rm logs/*.log")
+        try:
+            local("ps auxww | grep 'celery -A dva worker' | awk '{print $2}' | xargs kill -9")
+        except:
+            pass
 
 
 @task
@@ -199,6 +206,11 @@ def create_super():
 
 @task
 def launch_queues(detection=False):
+    """
+    Launch workers for each queue
+    :param detection: use fab launch_queues:1 to lauch detector queue in addition to all others
+    :return:
+    """
     local('fab startq:extractor &')
     local('fab startq:indexer &')
     local('fab startq:retriever &')
@@ -210,6 +222,7 @@ def launch_queues(detection=False):
 def startq(queue_name):
     """
     Start worker to handle a queue, Usage: fab startq:indexer
+    Concurrency is set to 1 but you can edit code to change.
     :param queue_name: indexer, extractor, retriever, detector
     :return:
     """
@@ -225,11 +238,7 @@ def startq(queue_name):
     if queue_name == 'indexer':
         command = 'celery -A dva worker -l info -c {} -Q {} -n {}.%h -f logs/{}.log'.format(1, Q_INDEXER, Q_INDEXER,Q_INDEXER)
     elif queue_name == 'extractor':
-        if len(sys.argv) > 3:
-            concurrency = int(sys.argv[3])
-        else:
-            concurrency = 1
-        command = 'celery -A dva worker -l info -c {} -Q {} -n {}.%h -f logs/{}.log'.format(concurrency,Q_EXTRACTOR,Q_EXTRACTOR,Q_EXTRACTOR)
+        command = 'celery -A dva worker -l info -c {} -Q {} -n {}.%h -f logs/{}.log'.format(1, Q_EXTRACTOR,Q_EXTRACTOR,Q_EXTRACTOR)
     elif queue_name == 'detector':
         command = 'celery -A dva worker -l info -c {} -Q {} -n {}.%h -f logs/{}.log'.format(1, Q_DETECTOR,Q_DETECTOR, Q_DETECTOR)
     elif queue_name == 'retriever':

@@ -128,7 +128,7 @@ class AlexnetIndexer(BaseIndexer):
                 transforms.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225]),
             ])
 
-class IncetionIndexer(BaseIndexer):
+class InceptionIndexer(BaseIndexer):
 
     def __init__(self):
         self.name = "tfinception"
@@ -142,8 +142,9 @@ class IncetionIndexer(BaseIndexer):
     def load(self):
         if self.session is None:
             logging.warning("Loading the network {}".format(self.name))
-            gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.333)
-            self.session = tf.InteractiveSession(config=tf.ConfigProto(gpu_options=gpu_options))            
+            config = tf.ConfigProto()
+            config.gpu_options.allow_growth = True
+            self.session = tf.InteractiveSession(config=config)
             network_path = os.path.abspath(__file__).split('indexer.py')[0]+'data/network.pb'
             with gfile.FastGFile(network_path, 'rb') as f:
                 self.graph_def = tf.GraphDef()
@@ -172,6 +173,6 @@ class IncetionIndexer(BaseIndexer):
 
 INDEXERS = {
     'alex':AlexnetIndexer(),
-    'inception':IncetionIndexer(),
+    'inception':InceptionIndexer(),
 }
 

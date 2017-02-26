@@ -248,8 +248,8 @@ def detect_scenes(cap, scene_manager, start_frame = 0, end_frame = 0, duration_f
         # save images on scene cuts/breaks if requested (scaled if using -df)
         if cut_found:
             scene_index = len(scene_manager.scene_list)
-            output_name = '{}/{}.jpg'.format(scene_manager.save_image_prefix, frames_read)
-            framelist.append(frames_read)
+            output_name = '{}/{}.jpg'.format(scene_manager.save_image_prefix, frames_processed)
+            framelist.append(frames_processed)
             height, width, depth = im_cap.shape
             imgScale = float(scene_manager.rescaled_width) / width
             newX, newY = im_cap.shape[1] * imgScale, im_cap.shape[0] * imgScale

@@ -45,7 +45,7 @@ def server():
 
 
 @task
-def start_server_container(test=False):
+def start_server_container(perform_test=False):
     """
     Start sever container WITHOUT using nginx and uwsgi
     :param test:
@@ -54,13 +54,13 @@ def start_server_container(test=False):
     local('sleep 60')
     migrate()
     launch_queues(True)
-    if test:
-        ci()
+    if perform_test:
+        test()
     local('python manage.py runserver 0.0.0.0:8000')
 
 
 @task
-def start_server_container_gpu(test=False):
+def start_server_container_gpu(perform_test=False):
     """
     Start sever container using nginx and uwsgi
     :param test:
@@ -76,8 +76,8 @@ def start_server_container_gpu(test=False):
     local("chmod 0777 -R dva/staticfiles/")
     local("chmod 0777 -R dva/media/")
     launch_queues(True)
-    if test:
-        ci()
+    if perform_test:
+        test()
     local('supervisord -n')
 
 

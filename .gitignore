@@ -27,7 +27,7 @@ Thumbs.db
 /docker_GPU/logs/*.log
 /docker_GPU/logs/logs
 /docker_GPU/nvidia-docker-compose.yml
-/host
-/connect.sh
+experiments/host
+experiments/connect.sh
 /backups/
 /notes/broadcast_index_update.patch

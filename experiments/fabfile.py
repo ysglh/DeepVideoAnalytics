@@ -1,18 +1,17 @@
 import os,logging,time,boto3, glob,subprocess,calendar,sys
 from fabric.api import task,local,run,put,get,lcd,cd,sudo,env,puts
 logging.basicConfig(level=logging.INFO,format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',datefmt='%m-%d %H:%M',filename='../logs/experiments.log',filemode='a')
+from config import IAM_ROLE,KEY_FILE,KeyName,SecurityGroupId,AMI
 
-AMI = 'ami-b3cc1fa5'  # AMI
-KeyName = 'C:\\fakepath\\cs5356'  # REPLACE WITH YOUR OWN
-SecurityGroupId = 'sg-06a6b562'  # REPLACE WITH YOUR OWN
-IAM_ROLE = {'Arn': 'arn:aws:iam::248089713624:instance-profile/chdeploy',}   # REPLACE WITH YOUR OWN (Provide S3 access to allow backups)
+
 env.user = "ubuntu" # DONT CHANGE
 try:
     ec2_HOST = file("host").read().strip()
 except:
     ec2_HOST = ""
+    logging.warning("No host file available assuming that the instance is no launched")
     pass
-env.key_filename = "~/.ssh/cs5356" # REPLACE WITH YOUR OWN
+env.key_filename = KEY_FILE
 
 
 def get_status(ec2,spot_request_id):
@@ -43,10 +42,11 @@ def launch_spot():
                    Monitoring = {'Enabled': True,},
                    IamInstanceProfile = IAM_ROLE)
     output = ec2.request_spot_instances(DryRun=False,
-                                        SpotPrice="0.9",
+                                        SpotPrice="0.4",
                                         InstanceCount=1,
                                         LaunchSpecification = ec2spec)
     spot_request_id = output[u'SpotInstanceRequests'][0][u'SpotInstanceRequestId']
+    logging.info("instance requested")
     time.sleep(30)
     waiter = ec2.get_waiter('spot_instance_request_fulfilled')
     waiter.wait(SpotInstanceRequestIds=[spot_request_id,])
@@ -57,7 +57,8 @@ def launch_spot():
     instance = ec2r.Instance(instance_id)
     with open("host",'w') as out:
         out.write(instance.public_ip_address)
-    time.sleep(12) # wait while the instance starts
+    logging.info("instance allocated")
+    time.sleep(120) # wait while the instance starts
     env.hosts = [instance.public_ip_address,]
     fh = open("connect.sh", 'w')
     fh.write("#!/bin/bash\n" + "ssh -i " + env.key_filename + " " + env.user + "@" + env.hosts[0] + "\n")

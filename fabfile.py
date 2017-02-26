@@ -132,7 +132,7 @@ def quick_test(detection=False):
     """
     clean()
     create_super()
-    test()  # test without launch tasks
+    test()  # test without launching tasks
     launch_queues(detection)
 
 

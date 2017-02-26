@@ -3,7 +3,6 @@ logs/*.log
 /resources/
 temp_data/*.mp4
 /tests/Goldeneye.mp4
-/tests/test.png
 /tests/WorldIsNotEnough.mp4
 /tests/TomorrowNeverDies.mp4
 *.o

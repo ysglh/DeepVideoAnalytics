@@ -117,10 +117,28 @@ def ci():
     Used in conjunction with travis for Continuous Integration testing
     :return:
     """
-    with lcd("tests"):
-        local('wget https://www.dropbox.com/s/xwbk5g1qit5s9em/WorldIsNotEnough.mp4')
-        local('wget https://www.dropbox.com/s/misaejsbz6722pd/test.png')
-    test(True)
+    import django
+    sys.path.append(os.path.dirname(__file__))
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
+    django.setup()
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    from dvaapp.views import handle_uploaded_file, handle_youtube_video
+    from dvaapp.models import Video
+    from dvaapp.tasks import extract_frames, perform_indexing, perform_detection
+    for fname in glob.glob('tests/ci/*.mp4'):
+        name = fname.split('/')[-1].split('.')[0]
+        f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")
+        handle_uploaded_file(f, name, False)
+    for fname in glob.glob('tests/*.zip'):
+        name = fname.split('/')[-1].split('.')[0]
+        f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
+        handle_uploaded_file(f, name)
+    handle_youtube_video('tomorrow never dies', 'https://www.youtube.com/watch?v=gYtz5sw98Bc')
+    for v in Video.objects.all():
+        extract_frames(v.pk)
+        perform_indexing(v.pk)
+        perform_detection(v.pk)
+    test_backup()
 
 
 @task
@@ -132,7 +150,7 @@ def quick_test(detection=False):
     """
     clean()
     create_super()
-    test()  # test without launching tasks
+    test()
     launch_queues(detection)
 
 
@@ -202,10 +220,9 @@ def startq(queue_name):
 
 
 @task
-def test(ci=False):
+def test():
     """
-    Run tests
-    :param ci: if True (fab test:1) tests are run on Travis this option skips creating tasks and directly calls
+    Run tests by launching tasks
     :return:
     """
     import django
@@ -216,31 +233,15 @@ def test(ci=False):
     from dvaapp.views import handle_uploaded_file, handle_youtube_video
     from dvaapp.models import Video
     from dvaapp.tasks import extract_frames, perform_indexing, perform_detection
-    if ci:
-        for fname in glob.glob('tests/ci/*.mp4'):
-            name = fname.split('/')[-1].split('.')[0]
-            f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")
-            handle_uploaded_file(f, name, False)
-        for fname in glob.glob('tests/*.zip'):
-            name = fname.split('/')[-1].split('.')[0]
-            f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
-            handle_uploaded_file(f, name)
-        handle_youtube_video('tomorrow never dies', 'https://www.youtube.com/watch?v=gYtz5sw98Bc')
-        for v in Video.objects.all():
-            extract_frames(v.pk)
-            perform_indexing(v.pk)
-            perform_detection(v.pk)
-        test_backup()
-    else:
-        for fname in glob.glob('tests/*.mp4'):
-            name = fname.split('/')[-1].split('.')[0]
-            f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")
-            handle_uploaded_file(f, name)
-        for fname in glob.glob('tests/*.zip'):
-            name = fname.split('/')[-1].split('.')[0]
-            f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
-            handle_uploaded_file(f, name)
-        handle_youtube_video('tomorrow never dies', 'https://www.youtube.com/watch?v=gYtz5sw98Bc')
+    for fname in glob.glob('tests/*.mp4'):
+        name = fname.split('/')[-1].split('.')[0]
+        f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")
+        handle_uploaded_file(f, name)
+    for fname in glob.glob('tests/*.zip'):
+        name = fname.split('/')[-1].split('.')[0]
+        f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
+        handle_uploaded_file(f, name)
+    handle_youtube_video('tomorrow never dies', 'https://www.youtube.com/watch?v=gYtz5sw98Bc')
 
 
 @task

@@ -39,7 +39,7 @@ before_script:
   - sleep 3 # give xvfb some time to start
 
 script:
-  - fab test:1
+  - fab ci
   - wget localhost:8000
   - wget localhost:8000/videos/
   - wget localhost:8000/videos/1/

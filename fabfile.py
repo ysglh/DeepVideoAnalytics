@@ -137,7 +137,7 @@ def ci():
     for v in Video.objects.all():
         extract_frames(v.pk)
         perform_indexing(v.pk)
-        perform_detection(v.pk)
+        # perform_detection(v.pk) detection is not performed in CI since it take long time on CPU
     test_backup()
 
 

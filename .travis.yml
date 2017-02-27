@@ -31,7 +31,7 @@ install: "pip install -r requirements.txt > /dev/null"
 
 
 before_script:
-  - cd darknet && make && cd ..
+  - cd darknet && wget https://www.dropbox.com/s/0zopjpswug5rjqy/yolo9000.weights && make && cd ..
   - python manage.py migrate
   - python manage.py runserver 8000 &
   - "export DISPLAY=:99.0"

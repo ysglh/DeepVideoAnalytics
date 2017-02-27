@@ -41,7 +41,7 @@ by the vision research community.
 You need to have latest version of Docker installed.
 ````bash
 git clone https://github.com/AKSHAYUBHAT/DeepVideoAnalytics && cd DeepVideoAnalytics/docker && docker-compose up 
-```
+````
 ### Installation for machines with GPU or AWS P2.xlarge instances
 
 #### Machine with NVidia GPU with Docker and nvidia-docker installed
@@ -85,7 +85,7 @@ Please [read this regarding trade offs](https://github.com/AKSHAYUBHAT/DeepVideo
 - AdminLTE2 [License](https://github.com/almasaeed2010/AdminLTE/blob/master/LICENSE)
 - FabricJS [License](https://github.com/kangax/fabric.js/blob/master/LICENSE)
 - Modified PySceneDetect [License](https://github.com/Breakthrough/PySceneDetect)
-- Modified SSD-TF [Please note that this repo does not specifies any license, the individual files are marked as Apache lincesed](https://github.com/balancap/SSD-Tensorflow)
+- Modified SSD-Tensorflow [Individual files are marked as Apache](https://github.com/balancap/SSD-Tensorflow)
 - Docker 
 - Nvidia-docker
 - OpenCV

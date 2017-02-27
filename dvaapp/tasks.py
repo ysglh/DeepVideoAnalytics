@@ -35,9 +35,16 @@ def perform_indexing(video_id):
 @shared_task
 def query_by_image(query_id):
     dq = Query.objects.get(id=query_id)
+    start = TEvent()
+    start.video_id = Video.objects.get(parent_query=dq)
+    start.started = True
+    start.operation = "query"
+    start.save()
+    start_time = time.time()
     Q = entity.WQuery(dquery=dq, media_dir=settings.MEDIA_ROOT)
     results = Q.find()
     dq.results = True
+    dq.results_metadata = json.dumps(results)
     for algo,rlist in results.iteritems():
         for r in rlist:
             qr = QueryResults()
@@ -45,10 +52,14 @@ def query_by_image(query_id):
             qr.frame_id = r['frame_primary_key']
             qr.video_id = r['video_primary_key']
             qr.algorithm = algo
+            qr.rank = r['rank']
             qr.distance = r['dist']
+            r['detections'] = Detection.objects.filter(frame_id=r['frame_primary_key'])
             qr.save()
-    dq.results_metadata = json.dumps(results)
     dq.save()
+    start.completed = True
+    start.seconds = time.time() - start_time
+    start.save()
     return results
 
 

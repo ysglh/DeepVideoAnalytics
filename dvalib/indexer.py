@@ -75,10 +75,10 @@ class BaseIndexer(object):
         logging.info("query finished")
         results = []
         for i, k in enumerate(ranked[:n]):
-            temp = {'i':i,'algo':self.name,'dist':dist[0,k]}
+            temp = {'rank':i,'algo':self.name,'dist':dist[0,k]}
             temp.update(self.files[k])
             results.append(temp)
-        return results
+        return 0
 
     def index_frames(self,frames,video):
         files = []

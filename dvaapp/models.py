@@ -45,8 +45,6 @@ class FrameLabel(models.Model):
     source = models.TextField()
 
 
-
-
 class Detection(models.Model):
     video = models.ForeignKey(Video,null=True)
     frame = models.ForeignKey(Frame)
@@ -79,5 +77,6 @@ class QueryResults(models.Model):
     query = models.ForeignKey(Query)
     video = models.ForeignKey(Video)
     frame = models.ForeignKey(Frame)
+    rank = models.IntegerField()
     algorithm = models.CharField(max_length=100)
     distance = models.FloatField(default=0.0)

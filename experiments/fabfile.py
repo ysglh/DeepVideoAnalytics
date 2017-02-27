@@ -7,10 +7,12 @@ from config import IAM_ROLE,KEY_FILE,KeyName,SecurityGroupId,AMI
 env.user = "ubuntu" # DONT CHANGE
 try:
     ec2_HOST = file("host").read().strip()
+    env.hosts = [ec2_HOST,]
 except:
     ec2_HOST = ""
     logging.warning("No host file available assuming that the instance is no launched")
     pass
+
 env.key_filename = KEY_FILE
 
 
@@ -58,7 +60,7 @@ def launch_spot():
     with open("host",'w') as out:
         out.write(instance.public_ip_address)
     logging.info("instance allocated")
-    time.sleep(120) # wait while the instance starts
+    time.sleep(10) # wait while the instance starts
     env.hosts = [instance.public_ip_address,]
     fh = open("connect.sh", 'w')
     fh.write("#!/bin/bash\n" + "ssh -i " + env.key_filename + " " + env.user + "@" + env.hosts[0] + "\n")
@@ -74,4 +76,4 @@ def deploy_ec2():
     """
     import webbrowser
     run('cd deepvideoanalytics && git pull && cd docker_GPU && ./rebuild.sh && nvidia-docker-compose up -d')
-    webbrowser.open('{}:8000'.format(env.hosts[0]))
+    # webbrowser.open('{}:8000'.format(env.hosts[0]))

@@ -78,7 +78,7 @@ class BaseIndexer(object):
             temp = {'rank':i,'algo':self.name,'dist':dist[0,k]}
             temp.update(self.files[k])
             results.append(temp)
-        return 0
+        return results
 
     def index_frames(self,frames,video):
         files = []

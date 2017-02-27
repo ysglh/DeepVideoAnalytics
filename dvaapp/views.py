@@ -42,6 +42,7 @@ def search(request):
             for algo,rlist in entries.iteritems():
                 for r in rlist:
                     r['url'] = '/media/{}/frames/{}.jpg'.format(r['video_primary_key'],r['frame_index'])
+                    r['detections'] = [{'pk': d.pk, 'name': d.object_name, 'confidence': d.confidence} for d in Detection.objects.filter(frame_id=r['frame_primary_key'])]
                     results.append(r)
         return JsonResponse(data={'task_id':result.task_id,'primary_key':primary_key,'results':results})
 

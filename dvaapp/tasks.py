@@ -36,7 +36,7 @@ def perform_indexing(video_id):
 def query_by_image(query_id):
     dq = Query.objects.get(id=query_id)
     start = TEvent()
-    start.video_id = Video.objects.get(parent_query=dq)
+    start.video_id = Video.objects.get(parent_query=dq).pk
     start.started = True
     start.operation = "query"
     start.save()
@@ -54,7 +54,6 @@ def query_by_image(query_id):
             qr.algorithm = algo
             qr.rank = r['rank']
             qr.distance = r['dist']
-            r['detections'] = Detection.objects.filter(frame_id=r['frame_primary_key'])
             qr.save()
     dq.save()
     start.completed = True

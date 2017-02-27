@@ -17,7 +17,7 @@ class WQuery(object):
         for index_name,index in indexer.INDEXERS.iteritems():
             results[index_name] = []
             index.load_index(path=self.media_dir)
-            results[index_name]= index.nearest(image_path=self.local_path,n=n)
+            results[index_name] = index.nearest(image_path=self.local_path,n=n)
         return results
 
 class WVideo(object):

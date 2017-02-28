@@ -37,6 +37,15 @@ by the vision research community.
 - [ ] [Mapnet (requires converting models from Marvin)](http://www.cs.princeton.edu/~aseff/mapnet/)   
 - [ ] [Keras-js](https://github.com/transcranial/keras-js) which uses Keras inception for client side indexing   
 
+### Open Issues
+
+- [ ] [OpenCV fails with double free error at cap.release() on some ubuntu machines in spite of running in a docker](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/issues/4)
+- [ ] [Running SSD-Tensorflow in a celery task, the code aborts during second task, as a result its reloaded every time via subprocess]()
+
+### To Do
+
+[Please take a look at this board](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/projects/1)
+
 ## Installation
 
 ### On Mac, Windows and Linux machines without NVidia GPUs

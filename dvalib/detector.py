@@ -1,5 +1,5 @@
 import numpy as np
-import os,glob,logging
+import os,glob,logging,subprocess
 import torch
 import PIL
 from torch.autograd import Variable
@@ -10,7 +10,31 @@ from tensorflow.python.platform import gfile
 from dvalib.ssd.nets import ssd_vgg_300, ssd_common, np_methods
 from dvalib.ssd.preprocessing import ssd_vgg_preprocessing
 import matplotlib.image as mpimg
+from collections import defaultdict
 
+VOC_LABELS = {
+    'none': (0, 'Background'),
+    'aeroplane': (1, 'Vehicle'),
+    'bicycle': (2, 'Vehicle'),
+    'bird': (3, 'Animal'),
+    'boat': (4, 'Vehicle'),
+    'bottle': (5, 'Indoor'),
+    'bus': (6, 'Vehicle'),
+    'car': (7, 'Vehicle'),
+    'cat': (8, 'Animal'),
+    'chair': (9, 'Indoor'),
+    'cow': (10, 'Animal'),
+    'diningtable': (11, 'Indoor'),
+    'dog': (12, 'Animal'),
+    'horse': (13, 'Animal'),
+    'motorbike': (14, 'Vehicle'),
+    'person': (15, 'Person'),
+    'pottedplant': (16, 'Indoor'),
+    'sheep': (17, 'Animal'),
+    'sofa': (18, 'Indoor'),
+    'train': (19, 'Vehicle'),
+    'tvmonitor': (20, 'Indoor'),
+}
 
 class BaseDetector(object):
 
@@ -24,11 +48,52 @@ class BaseDetector(object):
         pass
 
 
+class YOLODetector(object):
+
+    def __init__(self):
+        self.name = "YOLO9000"
+
+    def detect(self,wframes):
+        darknet_path = os.path.join(os.path.abspath(__file__).split('detector.py')[0],'../darknet/')
+        list_path = "{}/{}_list.txt".format(darknet_path, os.getpid())
+        output_path = "{}/{}_output.txt".format(darknet_path, os.getpid())
+        logging.info(darknet_path)
+        path_to_pk = {}
+        with open(list_path, 'w') as framelist:
+            for frame in wframes:
+                framelist.write('{}\n'.format(frame.local_path()))
+                path_to_pk[frame.local_path()] = frame.primary_key
+        # ./darknet detector test cfg/combine9k.data cfg/yolo9000.cfg yolo9000.weights data/list.txt
+        with open(output_path, 'w') as output:
+            args = ["./darknet", 'detector', 'test', 'cfg/combine9k.data', 'cfg/yolo9000.cfg', 'yolo9000.weights',list_path]
+            logging.info(args)
+            returncode = subprocess.call(args, cwd=darknet_path, stdout=output)
+        if returncode == 0:
+            detections = defaultdict(list)
+            for line in file(output_path):
+                if line.strip():
+                    temp = {}
+                    frame_path, name, confidence, left, right, top, bot = line.strip().split('\t')
+                    if frame_path not in path_to_pk:
+                        raise ValueError, frame_path
+                    temp['top'] = int(top)
+                    temp['left'] = int(left)
+                    temp['right'] = int(right)
+                    temp['bot'] = int(bot)
+                    temp['confidence'] = 100.0*float(confidence)
+                    temp['name'] = "{}_{}".format(self.name,name.replace(' ', '_'))
+                    detections[path_to_pk[frame_path]].append(temp)
+            return detections
+        else:
+            raise ValueError,returncode
+
+
 class SSDetector(BaseDetector):
 
     def __init__(self):
         self.isess = None
         self.name = "SSD"
+        self.classnames =  {v[0]:k for k,v in VOC_LABELS.iteritems()}
 
     def load(self):
         slim = tf.contrib.slim
@@ -49,16 +114,31 @@ class SSDetector(BaseDetector):
         saver.restore(self.isess, network_path)
         self.ssd_anchors = ssd_net.anchors(net_shape)
 
-    def detect(self,path, select_threshold=0.5, nms_threshold=.45, net_shape=(300, 300)):
-        img = mpimg.imread(path)
+    def detect(self,wframes, select_threshold=0.5, nms_threshold=.45, net_shape=(300, 300)):
+        detections = defaultdict(list)
         if self.isess is None:
             logging.warning("Loading the SSD network")
             self.load()
             logging.warning("Loading finished")
-        rimg, rpredictions, rlocalisations, rbbox_img = self.isess.run([self.image_4d, self.predictions, self.localisations, self.bbox_img],feed_dict={self.img_input: img})
-        rclasses, rscores, rbboxes = np_methods.ssd_bboxes_select(rpredictions, rlocalisations, self.ssd_anchors,select_threshold=select_threshold, img_shape=net_shape, num_classes=21, decode=True)
-        rbboxes = np_methods.bboxes_clip(rbbox_img, rbboxes)
-        rclasses, rscores, rbboxes = np_methods.bboxes_sort(rclasses, rscores, rbboxes, top_k=400)
-        rclasses, rscores, rbboxes = np_methods.bboxes_nms(rclasses, rscores, rbboxes, nms_threshold=nms_threshold)
-        rbboxes = np_methods.bboxes_resize(rbbox_img, rbboxes)
-        return rclasses, rscores, rbboxes
+        for wf in wframes:
+            img = mpimg.imread(wf.local_path())
+            rimg, rpredictions, rlocalisations, rbbox_img = self.isess.run([self.image_4d, self.predictions, self.localisations, self.bbox_img],feed_dict={self.img_input: img})
+            rclasses, rscores, rbboxes = np_methods.ssd_bboxes_select(rpredictions, rlocalisations, self.ssd_anchors,select_threshold=select_threshold, img_shape=net_shape, num_classes=21, decode=True)
+            rbboxes = np_methods.bboxes_clip(rbbox_img, rbboxes)
+            rclasses, rscores, rbboxes = np_methods.bboxes_sort(rclasses, rscores, rbboxes, top_k=400)
+            rclasses, rscores, rbboxes = np_methods.bboxes_nms(rclasses, rscores, rbboxes, nms_threshold=nms_threshold)
+            rbboxes = np_methods.bboxes_resize(rbbox_img, rbboxes)
+            shape = img.shape
+            for i,bbox in enumerate(rbboxes):
+                top,left = (int(bbox[0] * shape[0]), int(bbox[1] * shape[1]))
+                bot,right = (int(bbox[2] * shape[0]), int(bbox[3] * shape[1]))
+                detections[wf.local_path()].append({
+                    'top':top,
+                    'bot':bot,
+                    'left':left,
+                    'right':right,
+                    'confidence':100*rscores[i],
+                    'name':"{}_{}".format(self.name,self.classnames[rclasses[i]])})
+        return detections
+
+DETECTORS = {'ssd':SSDetector(),} # 'yolo':YOLODetector(),

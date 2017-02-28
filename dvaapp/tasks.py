@@ -4,6 +4,7 @@ from django.conf import settings
 from celery import shared_task
 from .models import Video, Frame, Detection, TEvent, Query, IndexEntries,QueryResults, FrameLabel
 from dvalib import entity
+from dvalib import detector
 from PIL import Image
 import json
 import zipfile
@@ -107,6 +108,7 @@ def extract_frames(video_id):
     start.save()
     return 0
 
+
 @shared_task
 def perform_detection(video_id):
     start = TEvent()
@@ -118,51 +120,31 @@ def perform_detection(video_id):
     dv = Video.objects.get(id=video_id)
     frames = Frame.objects.all().filter(video=dv)
     v = entity.WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
-    wframes = [entity.WFrame(video=v, frame_index=df.frame_index, primary_key=df.pk) for df in frames]
-    darknet_path = os.path.join(settings.BASE_DIR,'darknet/')
-    list_path = "{}/{}_list.txt".format(darknet_path,os.getpid())
-    output_path = "{}/{}_output.txt".format(darknet_path,os.getpid())
-    logging.info(darknet_path)
-    path_to_pk = {}
-    with open(list_path,'w') as framelist:
-        for frame in wframes:
-            framelist.write('{}\n'.format(frame.local_path()))
-            path_to_pk[frame.local_path()] = frame.primary_key
-    #./darknet detector test cfg/combine9k.data cfg/yolo9000.cfg yolo9000.weights data/list.txt
-    with open(output_path,'w') as output:
-        args = ["./darknet", 'detector', 'test', 'cfg/combine9k.data', 'cfg/yolo9000.cfg', 'yolo9000.weights', list_path]
-        logging.info(args)
-        returncode = subprocess.call(args,cwd=darknet_path,stdout=output)
-    if returncode == 0:
-        detections = 0
-        for line in file(output_path):
-            if line.strip():
-                detections += 1
-                frame_path,name,confidence,left,right,top,bot = line.strip().split('\t')
-                if frame_path not in path_to_pk:
-                    raise ValueError,frame_path
-                top = int(top)
-                left = int(left)
-                right = int(right)
-                bot = int(bot)
-                confidence = float(confidence)
+    wframes = {df.pk: entity.WFrame(video=v, frame_index=df.frame_index, primary_key=df.pk) for df in frames}
+    detection_count = 0
+    for alogrithm in detector.DETECTORS.itervalues():
+        frame_detections = alogrithm.detect(wframes.values())
+        print frame_detections.items()
+        for frame_pk,detections in frame_detections.iteritems():
+            for d in detections:
                 dd = Detection()
                 dd.video = dv
-                dd.frame_id = path_to_pk[frame_path]
-                dd.object_name = "darknet_yolo9k_{}".format(name.replace(' ','_'))
-                dd.confidence = confidence
-                dd.x = left
-                dd.y = top
-                dd.w = right - left
-                dd.h = bot - top
+                dd.frame_id = frame_pk
+                dd.object_name = d['name']
+                dd.confidence = d['confidence']
+                dd.x = d['left']
+                dd.y = d['top']
+                dd.w = d['right'] - d['left']
+                dd.h = d['bot'] - d['top']
                 dd.save()
-                img = Image.open(frame_path)
-                img2 = img.crop((left, top, right,bot))
-                img2.save("{}/{}/detections/{}.jpg".format(settings.MEDIA_ROOT,video_id,dd.pk))
-        dv.detections = detections
-        dv.save()
+                img = Image.open(wframes[frame_pk].local_path)
+                img2 = img.crop((d['left'], d['top'], d['right'], d['bot']))
+                img2.save("{}/{}/detections/{}.jpg".format(settings.MEDIA_ROOT, video_id, dd.pk))
+                detection_count += 1
+    dv.detections = detection_count
+    dv.save()
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
-    return returncode
+    return 0
 

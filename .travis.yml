@@ -18,8 +18,9 @@ virtualenv:
   system_site_packages: true
 
 env:
-  - ALEX_ENABLE=1
-  - YOLO_ENABLE=1
+  global:
+    - ALEX_ENABLE=1
+    - YOLO_ENABLE=1
 
 before_install:
   - sudo add-apt-repository ppa:mc3man/trusty-media -y

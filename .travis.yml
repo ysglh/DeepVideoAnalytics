@@ -21,7 +21,7 @@ before_install:
   - sudo add-apt-repository ppa:mc3man/trusty-media -y
   - sudo apt-get update -q
   - sudo apt-get install -y ffmpeg
-  - sudo apt-get install -y pkg-config python-dev python-opencv  libopencv-dev python-pip libav-tools   libjpeg-dev  libpng-dev  libtiff-dev  libjasper-dev  python-numpy python-scipy  python-pycurl  python-opencv
+  - sudo apt-get install -y pkg-config python-dev python-opencv unzip libopencv-dev python-pip libav-tools   libjpeg-dev  libpng-dev  libtiff-dev  libjasper-dev  python-numpy python-scipy  python-pycurl  python-opencv
   - sudo dpkg -L python-opencv
   - sudo wget https://yt-dl.org/downloads/latest/youtube-dl -O /bin/youtube-dl
   - sudo chmod a+rx /bin/youtube-dl
@@ -34,6 +34,7 @@ before_script:
   - cd darknet && wget https://www.dropbox.com/s/0zopjpswug5rjqy/yolo9000.weights && make && cd ..
   - python manage.py migrate
   - python manage.py runserver 8000 &
+  - cd dvalib/ssd/checkpoints && unzip ssd_300_vgg.ckpt.zip && cd ../../..
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
   - sleep 3 # give xvfb some time to start

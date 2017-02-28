@@ -84,5 +84,6 @@ RUN apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys B97
 RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main" > /etc/apt/sources.list.d/pgdg.list
 RUN apt-get update && apt-get install -y postgresql-client-9.6 zip
 RUN pip install --upgrade matplotlib
-VOLUME ["/root/DVA/dva/media"]
 WORKDIR "/root/DVA"
+RUN cd dvalib/ssd/checkpoints && unzip ssd_300_vgg.ckpt.zip
+VOLUME ["/root/DVA/dva/media"]

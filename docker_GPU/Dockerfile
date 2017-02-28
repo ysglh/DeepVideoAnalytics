@@ -90,5 +90,6 @@ WORKDIR "/root/DVA"
 RUN apt-get update && apt-get install -y nginx supervisor
 RUN git pull
 RUN pip install --upgrade uwsgi matplotlib
+RUN cd dvalib/ssd/checkpoints && unzip ssd_300_vgg.ckpt.zip
 RUN echo "daemon off;" >> /etc/nginx/nginx.conf
 EXPOSE 80

@@ -123,6 +123,7 @@ def perform_detection(video_id):
     wframes = {df.pk: entity.WFrame(video=v, frame_index=df.frame_index, primary_key=df.pk) for df in frames}
     detection_count = 0
     for alogrithm in detector.DETECTORS.itervalues():
+        logging.info("starting detection {}".format(alogrithm.name))
         frame_detections = alogrithm.detect(wframes.values())
         for frame_pk,detections in frame_detections.iteritems():
             for d in detections:

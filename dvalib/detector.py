@@ -140,6 +140,7 @@ class SSDetector(BaseDetector):
         self.isess = None
         self.name = "SSD"
         self.classnames =  {v[0]:k for k,v in VOC_LABELS.iteritems()}
+        logging.info("Detector created")
 
     def load(self):
         slim = tf.contrib.slim
@@ -153,7 +154,7 @@ class SSDetector(BaseDetector):
             self.predictions, self.localisations, _, _ = self.ssd_net.net(self.image_4d, is_training=False, reuse=None) # ask paul about reuse = None
         network_path = os.path.abspath(__file__).split('detector.py')[0] + 'ssd/checkpoints/ssd_300_vgg.ckpt'
         config = tf.ConfigProto()
-        config.gpu_options.per_process_gpu_memory_fraction = 0.45
+        config.gpu_options.per_process_gpu_memory_fraction = 0.7
         self.isess = tf.InteractiveSession(config=config)
         self.isess.run(tf.global_variables_initializer())
         saver = tf.train.Saver()

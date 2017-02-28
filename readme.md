@@ -27,7 +27,7 @@ by the vision research community.
 - [x] Google inception using Tensorflow
 - [x] [SSD Multibox 300](https://github.com/balancap/SSD-Tensorflow)  
 - [x] Alexnet indexing using Pytorch  (disabled by default; set ALEX_ENABLE=1 in environment variable to use)
-- [x] [YOLO 9000](http://pjreddie.com/darknet/yolo/) (naive implementation, gets reloaded for each task. set YOLO_ENABLE=1 in environment variable to use)
+- [x] [YOLO 9000](http://pjreddie.com/darknet/yolo/) (disabled by default; set YOLO_ENABLE=1 in environment variable to use)
 
 ## Potential algorithms/models
 - [ ] [Text detection models](http://www.robots.ox.ac.uk/~vgg/research/text/)
@@ -40,7 +40,7 @@ by the vision research community.
 ### Open Issues
 
 - [ ] [OpenCV fails with double free error at cap.release() on some ubuntu machines in spite of running in a docker](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/issues/4)
-- [ ] [Running SSD-Tensorflow in a celery task, the code aborts during second task, as a result its reloaded every time via subprocess]()
+- [ ] [Running SSD-Tensorflow in a celery task, the code aborts during second task, as a result its reloaded every time via subprocess](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/issues/3)
 
 ### To Do
 

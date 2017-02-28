@@ -192,9 +192,15 @@ class SSDetector(BaseDetector):
                     'confidence':100*rscores[i],
                     'name':"{}_{}".format(self.name,self.classnames[rclasses[i]])})
             logging.info("finished {}".format(wf.local_path()))
+        self.isess.close()
+        del self.isess
+        self.isess = None
         return detections
 
 if 'YOLO_ENABLE' in os.environ:
-    DETECTORS = {'ssd': SSDetector(),'yolo':YOLODetector()}
+    DETECTORS = {
+                 'ssd': SSDetector(),
+                 'yolo':YOLODetector()
+                 }
 else:
     DETECTORS = {'ssd': SSDetector(),}

@@ -25,9 +25,9 @@ by the vision research community.
 
 ## Implemented & Potential algorithms/models
 - [x] Alexnet indexing using Pytorch 
-- [x] [YOLO 9000 (naive implementation, gets reloaded in memory for every video)](http://pjreddie.com/darknet/yolo/)
 - [x] Google inception using Tensorflow
-- [ ] [SSD Multibox 500 (coming soon!)](https://github.com/balancap/SSD-Tensorflow)
+- [x] [SSD Multibox 300](https://github.com/balancap/SSD-Tensorflow)
+- [x] [YOLO 9000](http://pjreddie.com/darknet/yolo/) (naive implementation, gets reloaded in memory for every video disabled by default. set YOLO_ENABLE=1 in environment variable to use.
 - [ ] [Text detection models](http://www.robots.ox.ac.uk/~vgg/research/text/)
 - [ ] [Pytorch Squeezenet](http://pytorch.org/docs/torchvision/models.html)
 - [ ] [Openface (via a connected container)](https://github.com/cmusatyalab/openface)

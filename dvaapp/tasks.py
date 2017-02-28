@@ -137,7 +137,7 @@ def perform_detection(video_id):
                 dd.w = d['right'] - d['left']
                 dd.h = d['bot'] - d['top']
                 dd.save()
-                img = Image.open(wframes[frame_pk].local_path)
+                img = Image.open(wframes[frame_pk].local_path())
                 img2 = img.crop((d['left'], d['top'], d['right'], d['bot']))
                 img2.save("{}/{}/detections/{}.jpg".format(settings.MEDIA_ROOT, video_id, dd.pk))
                 detection_count += 1

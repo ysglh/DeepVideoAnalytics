@@ -132,7 +132,7 @@ class SSDetector(BaseDetector):
             for i,bbox in enumerate(rbboxes):
                 top,left = (int(bbox[0] * shape[0]), int(bbox[1] * shape[1]))
                 bot,right = (int(bbox[2] * shape[0]), int(bbox[3] * shape[1]))
-                detections[wf.local_path()].append({
+                detections[wf.primary_key].append({
                     'top':top,
                     'bot':bot,
                     'left':left,
@@ -141,4 +141,7 @@ class SSDetector(BaseDetector):
                     'name':"{}_{}".format(self.name,self.classnames[rclasses[i]])})
         return detections
 
-DETECTORS = {'ssd':SSDetector(),} # 'yolo':YOLODetector(),
+if 'YOLO_ENABLE' in os.environ():
+    DETECTORS = {'ssd': SSDetector(),'yolo':YOLODetector()}
+else:
+    DETECTORS = {'ssd':SSDetector() }

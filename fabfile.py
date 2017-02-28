@@ -154,7 +154,7 @@ def ci():
     for v in Video.objects.all():
         extract_frames(v.pk)
         perform_indexing(v.pk)
-        # perform_detection(v.pk) detection is not performed in CI since it take long time on CPU
+        perform_detection(v.pk)
     test_backup()
 
 
@@ -201,8 +201,7 @@ def launch_queues(detection=False):
     local('fab startq:extractor &')
     local('fab startq:indexer &')
     local('fab startq:retriever &')
-    if detection:
-        local('fab startq:detector &')
+    local('fab startq:detector &')
 
 
 @task

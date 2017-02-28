@@ -163,12 +163,11 @@ class SSDetector(BaseDetector):
 
     def detect(self,wframes, select_threshold=0.5, nms_threshold=.45, net_shape=(300, 300)):
         detections = defaultdict(list)
-        self.load()
+        if self.isess is None:
+            self.load()
         for wf in wframes:
-            logging.info("starting {}".format(wf.local_path()))
             plimg = PIL.Image.open(wf.local_path()).convert('RGB')
             img = pil_to_array(plimg)
-            logging.info("loaded {}".format(wf.local_path()))
             rimg, rpredictions, rlocalisations, rbbox_img = self.isess.run([self.image_4d, self.predictions, self.localisations, self.bbox_img],feed_dict={self.img_input: img})
             rclasses, rscores, rbboxes = np_methods.ssd_bboxes_select(rpredictions, rlocalisations, self.ssd_anchors,select_threshold=select_threshold, img_shape=net_shape, num_classes=21, decode=True)
             rbboxes = np_methods.bboxes_clip(rbbox_img, rbboxes)
@@ -186,16 +185,12 @@ class SSDetector(BaseDetector):
                     'right':right,
                     'confidence':100*rscores[i],
                     'name':"{}_{}".format(self.name,self.classnames[rclasses[i]])})
-            logging.info("finished {}".format(wf.local_path()))
-        self.isess.close()
-        del self.isess
-        self.isess = None
         return detections
 
 if 'YOLO_ENABLE' in os.environ:
     DETECTORS = {
-                 'ssd': SSDetector,
-                 'yolo':YOLODetector
+                 'ssd': SSDetector(),
+                 'yolo':YOLODetector()
                  }
 else:
-    DETECTORS = {'ssd': SSDetector,}
+    DETECTORS = {'ssd': SSDetector(),}

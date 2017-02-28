@@ -24,9 +24,9 @@ by the vision research community.
 - [Some documentation on design decision, architecture and deployment](/notes/readme.md).
 
 ## Implemented algorithms/models
-- [x] Alexnet indexing using Pytorch  (disabled by default; set ALEX_ENABLE=1 in environment variable to use)
 - [x] Google inception using Tensorflow
-- [x] [SSD Multibox 300](https://github.com/balancap/SSD-Tensorflow)
+- [x] [SSD Multibox 300](https://github.com/balancap/SSD-Tensorflow)  
+- [x] Alexnet indexing using Pytorch  (disabled by default; set ALEX_ENABLE=1 in environment variable to use)
 - [x] [YOLO 9000](http://pjreddie.com/darknet/yolo/) (naive implementation, gets reloaded for each task. set YOLO_ENABLE=1 in environment variable to use)
 
 ## Potential algorithms/models

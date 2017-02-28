@@ -67,11 +67,14 @@ class WVideo(object):
             for fname in glob.glob(output_dir+'*_b.jpg'):
                 ind = int(fname.split('/')[-1].replace('_b.jpg', ''))
                 os.rename(fname,fname.replace('{}_b.jpg'.format(ind),'{}.jpg'.format(ind*100)))
-                f = WFrame(frame_index=int(100*ind),video=self)
-                if extract.returncode != 0:
-                    raise ValueError
+            scencedetect = sp.Popen(['fab','pyscenedetect:{},{}'.format(self.primary_key,self.rescaled_width)],cwd=os.path.join(os.path.abspath(__file__).split('entity.py')[0],'../'))
+            scencedetect.wait()
+            for fname in glob.glob(output_dir+'*.jpg'):
+                ind = int(fname.split('/')[-1].replace('.jpg', ''))
+                f = WFrame(frame_index=int(ind),video=self)
                 frames.append(f)
-            self.scene_detection(frames)
+            if scencedetect.returncode != 0:
+                logging.info("pyscene detect failed with {} check fab.log for the reason".format(scencedetect.returncode))
         else:
             zipf = zipfile.ZipFile("{}/{}/video/{}.zip".format(self.media_dir, self.primary_key, self.primary_key), 'r')
             zipf.extractall("{}/{}/frames/".format(self.media_dir, self.primary_key))
@@ -102,16 +105,6 @@ class WVideo(object):
             index.load()
             results.append(index.index_frames(wframes,self))
         return results
-
-    def scene_detection(self,frames):
-        manager = pyscenecustom.manager.SceneManager(save_image_prefix="{}/{}/frames/".format(self.media_dir,self.primary_key),rescaled_width=self.rescaled_width)
-        path = self.local_path
-        framelist = pyscenecustom.detect_scenes_file(path, manager)
-        for s in framelist:
-            f = WFrame(frame_index=s, video=self)
-            frames.append(f)
-        return frames
-
 
 class WFrame(object):
 

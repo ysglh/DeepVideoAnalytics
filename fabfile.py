@@ -364,3 +364,26 @@ def detect(video_id):
                 detection_count += 1
     dv.detections = detection_count
     dv.save()
+
+@task
+def pyscenedetect(video_id,rescaled_width=600):
+    """
+    Pyscenedetect often causes unexplainable double free errors on some machine when executing cap.release()
+    This ensures that the task recovers even if the command running inside a subprocess fails
+    :param video_id:
+    :param rescaled_width:
+    :return:
+    """
+    import django
+    from PIL import Image
+    sys.path.append(os.path.dirname(__file__))
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
+    django.setup()
+    from dvaapp.models import Video
+    from django.conf import settings
+    from dvalib import pyscenecustom,entity
+    dv = Video.objects.get(id=video_id)
+    v = entity.WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
+    manager = pyscenecustom.manager.SceneManager(save_image_prefix="{}/{}/frames/".format(settings.MEDIA_ROOT, video_id), rescaled_width=int(rescaled_width))
+    pyscenecustom.detect_scenes_file(v.local_path, manager)
+

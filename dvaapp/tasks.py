@@ -124,7 +124,6 @@ def perform_detection(video_id):
     detection_count = 0
     for alogrithm in detector.DETECTORS.itervalues():
         frame_detections = alogrithm.detect(wframes.values())
-        print frame_detections.items()
         for frame_pk,detections in frame_detections.iteritems():
             for d in detections:
                 dd = Detection()

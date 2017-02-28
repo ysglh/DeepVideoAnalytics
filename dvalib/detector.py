@@ -121,6 +121,7 @@ class SSDetector(BaseDetector):
             self.load()
             logging.warning("Loading finished")
         for wf in wframes:
+            print wf.local_path()
             img = mpimg.imread(wf.local_path())
             rimg, rpredictions, rlocalisations, rbbox_img = self.isess.run([self.image_4d, self.predictions, self.localisations, self.bbox_img],feed_dict={self.img_input: img})
             rclasses, rscores, rbboxes = np_methods.ssd_bboxes_select(rpredictions, rlocalisations, self.ssd_anchors,select_threshold=select_threshold, img_shape=net_shape, num_classes=21, decode=True)

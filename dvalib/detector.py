@@ -148,9 +148,9 @@ class SSDetector(BaseDetector):
         self.img_input = tf.placeholder(tf.uint8, shape=(None, None, 3))
         self.image_pre, self.labels_pre, self.bboxes_pre, self.bbox_img = ssd_vgg_preprocessing.preprocess_for_eval(self.img_input, None, None,net_shape, data_format, resize=ssd_vgg_preprocessing.Resize.WARP_RESIZE)
         self.image_4d = tf.expand_dims(self.image_pre, 0)
-        ssd_net = ssd_vgg_300.SSDNet()
-        with slim.arg_scope(ssd_net.arg_scope(data_format=data_format)):
-            self.predictions, self.localisations, _, _ = ssd_net.net(self.image_4d, is_training=False, reuse=None) # ask paul about reuse = None
+        self.ssd_net = ssd_vgg_300.SSDNet()
+        with slim.arg_scope(self.ssd_net.arg_scope(data_format=data_format)):
+            self.predictions, self.localisations, _, _ = self.ssd_net.net(self.image_4d, is_training=False, reuse=None) # ask paul about reuse = None
         network_path = os.path.abspath(__file__).split('detector.py')[0] + 'ssd/checkpoints/ssd_300_vgg.ckpt'
         config = tf.ConfigProto()
         config.gpu_options.per_process_gpu_memory_fraction = 0.45
@@ -158,7 +158,7 @@ class SSDetector(BaseDetector):
         self.isess.run(tf.global_variables_initializer())
         saver = tf.train.Saver()
         saver.restore(self.isess, network_path)
-        self.ssd_anchors = ssd_net.anchors(net_shape)
+        self.ssd_anchors = self.ssd_net.anchors(net_shape)
 
     def detect(self,wframes, select_threshold=0.5, nms_threshold=.45, net_shape=(300, 300)):
         detections = defaultdict(list)
@@ -166,9 +166,13 @@ class SSDetector(BaseDetector):
             logging.warning("Loading the SSD network")
             self.load()
             logging.warning("Loading finished")
+        else:
+            logging.info("Network already loaded")
         for wf in wframes:
+            logging.info("starting {}".format(wf.local_path()))
             plimg = PIL.Image.open(wf.local_path()).convert('RGB')
             img = pil_to_array(plimg)
+            logging.info("loaded {}".format(wf.local_path()))
             rimg, rpredictions, rlocalisations, rbbox_img = self.isess.run([self.image_4d, self.predictions, self.localisations, self.bbox_img],feed_dict={self.img_input: img})
             rclasses, rscores, rbboxes = np_methods.ssd_bboxes_select(rpredictions, rlocalisations, self.ssd_anchors,select_threshold=select_threshold, img_shape=net_shape, num_classes=21, decode=True)
             rbboxes = np_methods.bboxes_clip(rbbox_img, rbboxes)
@@ -186,6 +190,7 @@ class SSDetector(BaseDetector):
                     'right':right,
                     'confidence':100*rscores[i],
                     'name':"{}_{}".format(self.name,self.classnames[rclasses[i]])})
+            logging.info("finished {}".format(wf.local_path()))
         return detections
 
 if 'YOLO_ENABLE' in os.environ:

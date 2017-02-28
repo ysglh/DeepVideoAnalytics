@@ -144,7 +144,7 @@ class InceptionIndexer(BaseIndexer):
         if self.session is None:
             logging.warning("Loading the network {}".format(self.name))
             config = tf.ConfigProto()
-            config.gpu_options.per_process_gpu_memory_fraction = 0.25
+            config.gpu_options.per_process_gpu_memory_fraction = 0.15
             self.session = tf.InteractiveSession(config=config)
             network_path = os.path.abspath(__file__).split('indexer.py')[0]+'data/network.pb'
             with gfile.FastGFile(network_path, 'rb') as f:

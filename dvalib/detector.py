@@ -163,12 +163,7 @@ class SSDetector(BaseDetector):
 
     def detect(self,wframes, select_threshold=0.5, nms_threshold=.45, net_shape=(300, 300)):
         detections = defaultdict(list)
-        if self.isess is None:
-            logging.warning("Loading the SSD network")
-            self.load()
-            logging.warning("Loading finished")
-        else:
-            logging.info("Network already loaded")
+        self.load()
         for wf in wframes:
             logging.info("starting {}".format(wf.local_path()))
             plimg = PIL.Image.open(wf.local_path()).convert('RGB')
@@ -199,8 +194,8 @@ class SSDetector(BaseDetector):
 
 if 'YOLO_ENABLE' in os.environ:
     DETECTORS = {
-                 'ssd': SSDetector(),
-                 'yolo':YOLODetector()
+                 'ssd': SSDetector,
+                 'yolo':YOLODetector
                  }
 else:
-    DETECTORS = {'ssd': SSDetector(),}
+    DETECTORS = {'ssd': SSDetector,}

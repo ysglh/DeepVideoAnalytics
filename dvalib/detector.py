@@ -141,7 +141,7 @@ class SSDetector(BaseDetector):
                     'name':"{}_{}".format(self.name,self.classnames[rclasses[i]])})
         return detections
 
-if 'YOLO_ENABLE' in os.environ():
+if 'YOLO_ENABLE' in os.environ:
     DETECTORS = {'ssd': SSDetector(),'yolo':YOLODetector()}
 else:
     DETECTORS = {'ssd':SSDetector() }

@@ -88,8 +88,8 @@ RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main" > /etc/
 RUN apt-get update && apt-get install -y postgresql-client-9.6 zip
 WORKDIR "/root/DVA"
 RUN apt-get update && apt-get install -y nginx supervisor
-RUN git pull
 RUN pip install --upgrade uwsgi matplotlib
+RUN git pull
 RUN cd dvalib/ssd/checkpoints && unzip ssd_300_vgg.ckpt.zip
 RUN echo "daemon off;" >> /etc/nginx/nginx.conf
 EXPOSE 80

@@ -154,7 +154,7 @@ def ci():
     for v in Video.objects.all():
         extract_frames(v.pk)
         perform_indexing(v.pk)
-        perform_detection(v.pk)
+        # perform_detection(v.pk)
     test_backup()
 
 

@@ -85,5 +85,6 @@ RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main" > /etc/
 RUN apt-get update && apt-get install -y postgresql-client-9.6 zip
 RUN pip install --upgrade matplotlib
 WORKDIR "/root/DVA"
+RUN git pull
 RUN cd dvalib/ssd/checkpoints && unzip ssd_300_vgg.ckpt.zip
 VOLUME ["/root/DVA/dva/media"]

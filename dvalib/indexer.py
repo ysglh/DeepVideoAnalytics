@@ -170,9 +170,13 @@ class InceptionIndexer(BaseIndexer):
         pool3_features = self.session.run(pool3,{'incept/DecodeJpeg/contents:0': file(image_path).read()})
         return np.atleast_2d(np.squeeze(pool3_features))
 
-
-INDEXERS = {
-    'alex':AlexnetIndexer(),
-    'inception':InceptionIndexer(),
-}
+if 'ALEX_ENABLE' in os.environ:
+    INDEXERS = {
+        'alex':AlexnetIndexer(),
+        'inception':InceptionIndexer(),
+    }
+else:
+    INDEXERS = {
+        'inception':InceptionIndexer(),
+    }
 

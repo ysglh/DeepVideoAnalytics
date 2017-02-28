@@ -23,11 +23,13 @@ by the vision research community.
 - Explore data, manually run code & tasks without UI via a jupyter notebook [explore.ipynb](experiments/Notebooks/explore.ipynb)
 - [Some documentation on design decision, architecture and deployment](/notes/readme.md).
 
-## Implemented & Potential algorithms/models
-- [x] Alexnet indexing using Pytorch 
+## Implemented algorithms/models
+- [x] Alexnet indexing using Pytorch  (disabled by default; set ALEX_ENABLE=1 in environment variable to use)
 - [x] Google inception using Tensorflow
 - [x] [SSD Multibox 300](https://github.com/balancap/SSD-Tensorflow)
-- [x] [YOLO 9000](http://pjreddie.com/darknet/yolo/) (naive implementation, gets reloaded in memory for every video disabled by default. set YOLO_ENABLE=1 in environment variable to use.
+- [x] [YOLO 9000](http://pjreddie.com/darknet/yolo/) (naive implementation, gets reloaded for each task. set YOLO_ENABLE=1 in environment variable to use)
+
+## Potential algorithms/models
 - [ ] [Text detection models](http://www.robots.ox.ac.uk/~vgg/research/text/)
 - [ ] [Pytorch Squeezenet](http://pytorch.org/docs/torchvision/models.html)
 - [ ] [Openface (via a connected container)](https://github.com/cmusatyalab/openface)

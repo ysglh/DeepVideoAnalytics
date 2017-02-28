@@ -167,7 +167,6 @@ class SSDetector(BaseDetector):
             self.load()
             logging.warning("Loading finished")
         for wf in wframes:
-            print wf.local_path()
             plimg = PIL.Image.open(wf.local_path()).convert('RGB')
             img = pil_to_array(plimg)
             rimg, rpredictions, rlocalisations, rbbox_img = self.isess.run([self.image_4d, self.predictions, self.localisations, self.bbox_img],feed_dict={self.img_input: img})

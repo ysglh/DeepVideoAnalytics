@@ -151,10 +151,11 @@ def ci():
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
         handle_uploaded_file(f, name)
     handle_youtube_video('tomorrow never dies', 'https://www.youtube.com/watch?v=gYtz5sw98Bc')
-    for v in Video.objects.all():
+    for i,v in enumerate(Video.objects.all()):
         extract_frames(v.pk)
         perform_indexing(v.pk)
-        perform_detection(v.pk)
+        if i ==0: # save travis time by just running detection on first video
+            perform_detection(v.pk)
     test_backup()
 
 

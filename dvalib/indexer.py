@@ -128,6 +128,7 @@ class AlexnetIndexer(BaseIndexer):
                 transforms.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225]),
             ])
 
+
 class InceptionIndexer(BaseIndexer):
 
     def __init__(self):
@@ -143,7 +144,7 @@ class InceptionIndexer(BaseIndexer):
         if self.session is None:
             logging.warning("Loading the network {}".format(self.name))
             config = tf.ConfigProto()
-            config.gpu_options.allow_growth = True
+            config.gpu_options.per_process_gpu_memory_fraction = 0.25
             self.session = tf.InteractiveSession(config=config)
             network_path = os.path.abspath(__file__).split('indexer.py')[0]+'data/network.pb'
             with gfile.FastGFile(network_path, 'rb') as f:

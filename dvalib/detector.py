@@ -1,16 +1,10 @@
-import numpy as np
-import os,glob,logging,subprocess
-import torch
-import PIL
-from torch.autograd import Variable
-from torchvision import transforms
-from torchvision.models import alexnet
+import os,logging,subprocess
 import tensorflow as tf
-from tensorflow.python.platform import gfile
-from dvalib.ssd.nets import ssd_vgg_300, ssd_common, np_methods
+import PIL
+from dvalib.ssd.nets import ssd_vgg_300, np_methods
 from dvalib.ssd.preprocessing import ssd_vgg_preprocessing
-import matplotlib.image as mpimg
 from collections import defaultdict
+import numpy as np
 
 VOC_LABELS = {
     'none': (0, 'Background'),
@@ -35,6 +29,58 @@ VOC_LABELS = {
     'train': (19, 'Vehicle'),
     'tvmonitor': (20, 'Indoor'),
 }
+
+
+def pil_to_array(pilImage):
+    """
+    Load a PIL image and return it as a numpy array.  For grayscale
+    images, the return array is MxN.  For RGB images, the return value
+    is MxNx3.  For RGBA images the return value is MxNx4
+    """
+    def toarray(im, dtype=np.uint8):
+        """Return a 1D array of dtype."""
+        # Pillow wants us to use "tobytes"
+        if hasattr(im, 'tobytes'):
+            x_str = im.tobytes('raw', im.mode)
+        else:
+            x_str = im.tostring('raw', im.mode)
+        x = np.fromstring(x_str, dtype)
+        return x
+
+    if pilImage.mode in ('RGBA', 'RGBX'):
+        im = pilImage  # no need to convert images
+    elif pilImage.mode == 'L':
+        im = pilImage  # no need to luminance images
+        # return MxN luminance array
+        x = toarray(im)
+        x.shape = im.size[1], im.size[0]
+        return x
+    elif pilImage.mode == 'RGB':
+        # return MxNx3 RGB array
+        im = pilImage  # no need to RGB images
+        x = toarray(im)
+        x.shape = im.size[1], im.size[0], 3
+        return x
+    elif pilImage.mode.startswith('I;16'):
+        # return MxN luminance array of uint16
+        im = pilImage
+        if im.mode.endswith('B'):
+            x = toarray(im, '>u2')
+        else:
+            x = toarray(im, '<u2')
+        x.shape = im.size[1], im.size[0]
+        return x.astype('=u2')
+    else:  # try to convert to an rgba image
+        try:
+            im = pilImage.convert('RGBA')
+        except ValueError:
+            raise RuntimeError('Unknown image mode')
+
+    # return MxNx4 RGBA array
+    x = toarray(im)
+    x.shape = im.size[1], im.size[0], 4
+    return x
+
 
 class BaseDetector(object):
 
@@ -122,7 +168,8 @@ class SSDetector(BaseDetector):
             logging.warning("Loading finished")
         for wf in wframes:
             print wf.local_path()
-            img = mpimg.imread(wf.local_path())
+            plimg = PIL.Image.open(wf.local_path()).convert('RGB')
+            img = pil_to_array(plimg)
             rimg, rpredictions, rlocalisations, rbbox_img = self.isess.run([self.image_4d, self.predictions, self.localisations, self.bbox_img],feed_dict={self.img_input: img})
             rclasses, rscores, rbboxes = np_methods.ssd_bboxes_select(rpredictions, rlocalisations, self.ssd_anchors,select_threshold=select_threshold, img_shape=net_shape, num_classes=21, decode=True)
             rbboxes = np_methods.bboxes_clip(rbbox_img, rbboxes)

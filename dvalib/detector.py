@@ -152,7 +152,7 @@ class SSDetector(BaseDetector):
         with slim.arg_scope(ssd_net.arg_scope(data_format=data_format)):
             self.predictions, self.localisations, _, _ = ssd_net.net(self.image_4d, is_training=False, reuse=None) # ask paul about reuse = None
         network_path = os.path.abspath(__file__).split('detector.py')[0] + 'ssd/checkpoints/ssd_300_vgg.ckpt'
-        gpu_options = tf.GPUOptions(allow_growth=True)
+        gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.2)
         config = tf.ConfigProto(log_device_placement=False, gpu_options=gpu_options)
         self.isess = tf.InteractiveSession(config=config)
         self.isess.run(tf.global_variables_initializer())

@@ -59,7 +59,7 @@ class SceneManager(object):
         self.detector = self.scene_detectors['content'](30.0, 20)
         self.detector_list = [ self.detector ]
         self.downscale_factor = 4
-        self.frame_skip = 10
+        self.frame_skip = 0
         self.save_images = True
         self.save_image_prefix = save_image_prefix
         self.timecode_list = [None,None,None]

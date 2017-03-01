@@ -60,7 +60,7 @@ Replace docker-compose by nvidia-docker-compose, the Dockerfile uses tensorflow 
 
 ```bash
 pip install --upgrade nvidia-docker-compose
-git clone https://github.com/AKSHAYUBHAT/DeepVideoAnalytics && cd DeepVideoAnalytics/docker_GPU && nvidia-docker-compose up 
+git clone https://github.com/AKSHAYUBHAT/DeepVideoAnalytics && cd DeepVideoAnalytics/docker_GPU && ./rebuild.sh && nvidia-docker-compose up 
 ```
 ##### AWS EC2 AMI available
 Start a P2.xlarge instance with **ami-b3cc1fa5** (N. Virginia), ports 8000, 6006, 8888 open (preferably to only your IP) and run following command after ssh'ing into the machine. 

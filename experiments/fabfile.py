@@ -75,5 +75,14 @@ def deploy_ec2():
     :return:
     """
     import webbrowser
+    for attempt in range(3):
+        try:
+            run('ls')  # just run some command that has no effect to ensure you dont get timed out
+            break  # break if you succeed
+        except:
+            time.sleep(30)  # on error wait 30 seconds
+            pass
     run('cd deepvideoanalytics && git pull && cd docker_GPU && ./rebuild.sh && nvidia-docker-compose up -d')
-    # webbrowser.open('{}:8000'.format(env.hosts[0]))
+    if sys.platform == 'darwin':
+        chrome_path = 'open -a /Applications/Google\ Chrome.app %s'
+        webbrowser.get(chrome_path).open('http://{}:8000'.format(env.hosts[0]))

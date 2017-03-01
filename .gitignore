@@ -33,3 +33,4 @@ experiments/connect.sh
 /darknet/data/images/
 /dvalib/ssd/checkpoints/ssd_300_vgg.ckpt.index
 /dvalib/ssd/checkpoints/ssd_300_vgg.ckpt.data-00000-of-00001
+/notes/website/

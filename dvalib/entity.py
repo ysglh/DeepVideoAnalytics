@@ -67,14 +67,17 @@ class WVideo(object):
             for fname in glob.glob(output_dir+'*_b.jpg'):
                 ind = int(fname.split('/')[-1].replace('_b.jpg', ''))
                 os.rename(fname,fname.replace('{}_b.jpg'.format(ind),'{}.jpg'.format(ind*100)))
-            scencedetect = sp.Popen(['fab','pyscenedetect:{},{}'.format(self.primary_key,self.rescaled_width)],cwd=os.path.join(os.path.abspath(__file__).split('entity.py')[0],'../'))
-            scencedetect.wait()
+            if 'DISABLE_SCENEDETECT' in os.environ:
+                logging.warning("Scene detection is disabled")
+            else:
+                scencedetect = sp.Popen(['fab','pyscenedetect:{},{}'.format(self.primary_key,self.rescaled_width)],cwd=os.path.join(os.path.abspath(__file__).split('entity.py')[0],'../'))
+                scencedetect.wait()
+                if scencedetect.returncode != 0:
+                    logging.info("pyscene detect failed with {} check fab.log for the reason".format(scencedetect.returncode))
             for fname in glob.glob(output_dir+'*.jpg'):
                 ind = int(fname.split('/')[-1].replace('.jpg', ''))
                 f = WFrame(frame_index=int(ind),video=self)
                 frames.append(f)
-            if scencedetect.returncode != 0:
-                logging.info("pyscene detect failed with {} check fab.log for the reason".format(scencedetect.returncode))
         else:
             zipf = zipfile.ZipFile("{}/{}/video/{}.zip".format(self.media_dir, self.primary_key, self.primary_key), 'r')
             zipf.extractall("{}/{}/frames/".format(self.media_dir, self.primary_key))

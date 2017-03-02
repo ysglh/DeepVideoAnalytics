@@ -54,7 +54,7 @@
        - DB_PASS=pgdbpass
        - ENABLE_YOLO=1
        - SCENEDETECT_DISABLE=1
-     command: bash -c "youtube-dl -U && git pull && fab startq:indexer"
+     command: bash -c "youtube-dl -U && git pull && fab startq:extractor"
      depends_on:
        - db
        - rabbit
@@ -75,7 +75,7 @@
        - DB_PASS=pgdbpass
        - ENABLE_YOLO=1
        - SCENEDETECT_DISABLE=1
-     command: bash -c "youtube-dl -U && git pull && fab startq:indexer"
+     command: bash -c "youtube-dl -U && git pull && fab startq:extractor"
      depends_on:
        - db
        - rabbit

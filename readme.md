@@ -46,6 +46,7 @@ by the vision research community.
 
 [Please take a look at this board](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/projects/1)
 
+
 ## Installation
 
 ### On Mac, Windows and Linux machines without NVidia GPUs
@@ -74,6 +75,13 @@ However it runs nginix as root (though within the container). Considering that y
 ### Deployment on multiple machines with/without GPUs
 Other than the shared media folder (ideally a mounted EFS or NFS), Postgres and RabbitMQ are straightforward.
 Please [read this regarding trade offs](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/notes/architecture.md).
+
+## Options specified via environment variable for dva-server container in docker-compose.yml 
+
+- ALEX_ENABLE=1 (to use Alexnet with PyTorch. Otherwise disabled by default)
+- YOLO_ENABLE=1 (to use YOLO 9000. Otherwise disabled by default)
+- DISABLE_SCENEDETECT=1 (to disable scene detection, Otherwise enabled by default)
+
  
 ## Architecture
 ![Architecture](notes/architecture.png "System architecture")

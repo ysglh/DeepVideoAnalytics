@@ -78,7 +78,8 @@ However it runs nginix as root (though within the container). Considering that y
 Other than the shared media folder (ideally a mounted EFS or NFS), Postgres and RabbitMQ are straightforward.
 Please [read this regarding trade offs](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/notes/architecture.md).
 
-## Options specified via environment variable for dva-server container in docker-compose.yml 
+### Options specified via environment variable  
+**E.g. by specifying them in docker-compose.yml**
 
 - ALEX_ENABLE=1 (to use Alexnet with PyTorch. Otherwise disabled by default)
 - YOLO_ENABLE=1 (to use YOLO 9000. Otherwise disabled by default)

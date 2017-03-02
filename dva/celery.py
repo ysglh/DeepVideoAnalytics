@@ -16,6 +16,7 @@ app = Celery('dva')
 app.config_from_object('django.conf:settings')
 app.conf.update(
     CELERY_RESULT_BACKEND='djcelery.backends.database:DatabaseBackend',
+    CELERYD_PREFETCH_MULTIPLIER=1
 )
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 

@@ -1,0 +1,118 @@
+ version: '3'
+ services:
+   db:
+     image: postgres
+     container_name: dva-pg
+     volumes:
+      - dvapgdata:/var/lib/postgresql/data
+     environment:
+      - POSTGRES_USER=pgdbuser
+      - POSTGRES_PASSWORD=pgdbpass
+   rabbit:
+     image: rabbitmq
+     container_name: dva-rmq
+     environment:
+       - RABBITMQ_DEFAULT_USER=dvauser
+       - RABBITMQ_DEFAULT_PASS=localpass
+     volumes:
+       - dvarabbit:/var/lib/rabbitmq
+   dva:
+     build: .
+     image: aub3dva:gpu
+     container_name: dva-server
+     environment:
+       - DOCKER_MODE=true
+       - RABBIT_HOST=rabbit
+       - RABBIT_USER=dvauser
+       - RABBIT_PASS=localpass
+       - DB_HOST=db
+       - DB_NAME=postgres
+       - DB_USER=pgdbuser
+       - DB_PASS=pgdbpass
+       - ENABLE_YOLO=1
+       - SCENEDETECT_DISABLE=1
+     command: bash -c "youtube-dl -U && git pull && fab setup_container_gpu && fab launch_queues:1 && fab process_video_list:experiments/Driving/data.json && supervisord -n"
+     ports:
+       - "8000:80"
+     depends_on:
+       - db
+       - rabbit
+     volumes:
+       - dvadata:/root/DVA/dva/media
+  {% for i in range(3) %}
+   dvae{{i}}:
+     build: .
+     image: aub3dva:gpu
+     container_name: dva-extractor-{{i}}
+     environment:
+       - DOCKER_MODE=true
+       - RABBIT_HOST=rabbit
+       - RABBIT_USER=dvauser
+       - RABBIT_PASS=localpass
+       - DB_HOST=db
+       - DB_NAME=postgres
+       - DB_USER=pgdbuser
+       - DB_PASS=pgdbpass
+       - ENABLE_YOLO=1
+       - SCENEDETECT_DISABLE=1
+     command: bash -c "youtube-dl -U && git pull && fab startq:extractor"
+     devices:
+       - /dev/nvidia{{i+1}}
+     depends_on:
+       - db
+       - rabbit
+     volumes:
+       - dvadata:/root/DVA/dva/media
+ {% endfor %}
+ {% for i in range(4) %}
+   dvawd{{i}}:
+     build: .
+     image: aub3dva:gpu
+     container_name: dva-detector-{{i}}
+     environment:
+       - DOCKER_MODE=true
+       - RABBIT_HOST=rabbit
+       - RABBIT_USER=dvauser
+       - RABBIT_PASS=localpass
+       - DB_HOST=db
+       - DB_NAME=postgres
+       - DB_USER=pgdbuser
+       - DB_PASS=pgdbpass
+       - ENABLE_YOLO=1
+       - SCENEDETECT_DISABLE=1
+     command: bash -c "youtube-dl -U && git pull && fab startq:detector"
+     depends_on:
+       - db
+       - rabbit
+     volumes:
+       - dvadata:/root/DVA/dva/media
+ {% endfor %}
+ {% for i in range(3) %}
+   dvai{{i}}:
+     build: .
+     image: aub3dva:gpu
+     container_name: dva-indexer-{{i}}
+     environment:
+       - DOCKER_MODE=true
+       - RABBIT_HOST=rabbit
+       - RABBIT_USER=dvauser
+       - RABBIT_PASS=localpass
+       - DB_HOST=db
+       - DB_NAME=postgres
+       - DB_USER=pgdbuser
+       - DB_PASS=pgdbpass
+       - ENABLE_YOLO=1
+       - SCENEDETECT_DISABLE=1
+     command: bash -c "youtube-dl -U && git pull && fab startq:indexer"
+     devices:
+       - /dev/nvidia{{i+4}}
+     depends_on:
+       - db
+       - rabbit
+     volumes:
+       - dvadata:/root/DVA/dva/media
+ {% endfor %}
+ volumes:
+  dvapgdata:
+  dvadata:
+  dvarabbit:

@@ -126,7 +126,7 @@ class YOLODetector(object):
                     temp['left'] = int(left)
                     temp['right'] = int(right)
                     temp['bot'] = int(bot)
-                    temp['confidence'] = 100.0*float(confidence)
+                    temp['confidence'] = float(confidence)
                     temp['name'] = "{}_{}".format(self.name,name.replace(' ', '_'))
                     detections[path_to_pk[frame_path]].append(temp)
             return detections

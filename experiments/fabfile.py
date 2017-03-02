@@ -82,7 +82,9 @@ def deploy_ec2():
         except:
             time.sleep(30)  # on error wait 30 seconds
             pass
-    run('cd deepvideoanalytics && git pull && cd docker_GPU && ./rebuild.sh && nvidia-docker-compose up -d')
+    run('cd deepvideoanalytics && git pull')
+    put('aws-docker-compose.yml','deepvideoanalytics/docker_GPU/docker-compose.yml')
+    run('cd deepvideoanalytics && cd docker_GPU && ./rebuild.sh && nvidia-docker-compose up -d')
     if sys.platform == 'darwin':
         chrome_path = 'open -a /Applications/Google\ Chrome.app %s'
         webbrowser.get(chrome_path).open('http://{}:8000'.format(env.hosts[0]))

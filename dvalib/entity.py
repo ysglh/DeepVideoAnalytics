@@ -67,7 +67,7 @@ class WVideo(object):
             for fname in glob.glob(output_dir+'*_b.jpg'):
                 ind = int(fname.split('/')[-1].replace('_b.jpg', ''))
                 os.rename(fname,fname.replace('{}_b.jpg'.format(ind),'{}.jpg'.format(ind*100)))
-            if 'DISABLE_SCENEDETECT' in os.environ:
+            if 'SCENEDETECT_DISABLE' in os.environ:
                 logging.warning("Scene detection is disabled")
             else:
                 scencedetect = sp.Popen(['fab','pyscenedetect:{},{}'.format(self.primary_key,self.rescaled_width)],cwd=os.path.join(os.path.abspath(__file__).split('entity.py')[0],'../'))

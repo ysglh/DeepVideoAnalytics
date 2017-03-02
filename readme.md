@@ -80,7 +80,7 @@ Please [read this regarding trade offs](https://github.com/AKSHAYUBHAT/DeepVideo
 
 - ALEX_ENABLE=1 (to use Alexnet with PyTorch. Otherwise disabled by default)
 - YOLO_ENABLE=1 (to use YOLO 9000. Otherwise disabled by default)
-- DISABLE_SCENEDETECT=1 (to disable scene detection, Otherwise enabled by default)
+- SCENEDETECT_DISABLE=1 (to disable scene detection, Otherwise enabled by default)
 
  
 ## Architecture

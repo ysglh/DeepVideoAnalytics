@@ -58,14 +58,8 @@ def start_server_container(perform_test=False):
         test()
     local('python manage.py runserver 0.0.0.0:8000')
 
-
 @task
-def start_server_container_gpu(perform_test=False):
-    """
-    Start sever container using nginx and uwsgi
-    :param test:
-    :return:
-    """
+def setup_container_gpu():
     local('sleep 60')
     migrate()
     local('chmod 0777 -R /tmp')
@@ -75,6 +69,16 @@ def start_server_container_gpu(perform_test=False):
     local("python manage.py collectstatic --no-input")
     local("chmod 0777 -R dva/staticfiles/")
     local("chmod 0777 -R dva/media/")
+
+
+@task
+def start_server_container_gpu(perform_test=False):
+    """
+    Start sever container using nginx and uwsgi
+    :param test:
+    :return:
+    """
+    setup_container_gpu()
     launch_queues(True)
     if perform_test:
         test()
@@ -387,3 +391,16 @@ def pyscenedetect(video_id,rescaled_width=600):
     manager = pyscenecustom.manager.SceneManager(save_image_prefix="{}/{}/frames/".format(settings.MEDIA_ROOT, video_id), rescaled_width=int(rescaled_width))
     pyscenecustom.detect_scenes_file(v.local_path, manager)
 
+@task
+def process_video_list(filename):
+    """
+    :return:
+    """
+    import django,json
+    sys.path.append(os.path.dirname(__file__))
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
+    django.setup()
+    from dvaapp.views import handle_youtube_video
+    vlist = json.load(file(filename))
+    for video in vlist:
+        handle_youtube_video(video['name'],video['url'])

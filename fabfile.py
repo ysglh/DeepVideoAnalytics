@@ -63,9 +63,21 @@ def setup_container_gpu():
     local('sleep 60')
     migrate()
     local('chmod 0777 -R /tmp')
-    local("mv docker_GPU/configs/nginx.conf /etc/nginx/")
-    local("mv docker_GPU/configs/nginx-app.conf /etc/nginx/sites-available/default")
-    local("mv docker_GPU/configs/supervisor-app.conf /etc/supervisor/conf.d/")
+    try:
+        local("mv docker_GPU/configs/nginx.conf /etc/nginx/")
+    except:
+        print "warning assuming that the config was already moved"
+        pass
+    try:
+        local("mv docker_GPU/configs/nginx-app.conf /etc/nginx/sites-available/default")
+    except:
+        print "warning assuming that the config was already moved"
+        pass
+    try:
+        local("mv docker_GPU/configs/supervisor-app.conf /etc/supervisor/conf.d/")
+    except:
+        print "warning assuming that the config was already moved"
+        pass
     local("python manage.py collectstatic --no-input")
     local("chmod 0777 -R dva/staticfiles/")
     local("chmod 0777 -R dva/media/")

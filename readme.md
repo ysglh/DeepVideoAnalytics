@@ -108,12 +108,20 @@ Please [read this regarding trade offs](https://github.com/AKSHAYUBHAT/DeepVideo
 - FabricJS [License](https://github.com/kangax/fabric.js/blob/master/LICENSE)
 - Modified PySceneDetect [License](https://github.com/Breakthrough/PySceneDetect)
 - Modified SSD-Tensorflow [Individual files are marked as Apache](https://github.com/balancap/SSD-Tensorflow)
+- FAISS [License (Non Commercial)](https://github.com/facebookresearch/faiss)
 - Docker 
 - Nvidia-docker
 - OpenCV
 - Numpy
 - FFMPEG
 - Tensorflow
+
+## References
+
+
+## Citation for Deep Video Analytics
+
+**Coming soon!**
 
 # Copyright
 **Copyright 2016-2017, Akshay Bhat, Cornell University, All rights reserved.**

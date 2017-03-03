@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-docker build -t aub3dva:latest .
+docker build -t akshayubhat/dva:cpu .

@@ -23,7 +23,6 @@
 - [X] Implemented nginx <-> uwsgi <-> django on GPU container for optimized serving of videos and static assets.
 - [ ] Implement smarter index updates via a Broadcast task (update_index) that gets sent to all workers on indexer queue 
 - [ ] Index detected objects
-- [ ] Create a separate query indexer using NMS lib or Anony
 
 #To Do list 0.1 version
 - [ ] Attach Open Face Docker container

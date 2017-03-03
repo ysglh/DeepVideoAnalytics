@@ -1,4 +1,3 @@
-/makefile.inc
 /tests/demo_ivfpq_indexing
 *.swp
 *.swo

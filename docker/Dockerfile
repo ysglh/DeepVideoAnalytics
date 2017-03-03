@@ -87,4 +87,5 @@ RUN pip install --upgrade matplotlib
 WORKDIR "/root/DVA"
 RUN git pull
 RUN cd dvalib/ssd/checkpoints && unzip ssd_300_vgg.ckpt.zip
+RUN apt-get update && apt-get install -y liblapack3 libopenblas-dev
 VOLUME ["/root/DVA/dva/media"]

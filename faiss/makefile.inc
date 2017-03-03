@@ -59,7 +59,7 @@ FAISSSHAREDFLAGS=-shared
 # The library contains both BLAS and Lapack. About 30% slower than MKL.
 #
 BLASCFLAGS=-DFINTEGER=int
-BLASLDFLAGS=/usr/lib/libopenblas.so.0
+BLASLDFLAGS=/usr/lib/libopenblas.so.0 /usr/lib/lapack/liblapack.so.3.0
 #
 
 #

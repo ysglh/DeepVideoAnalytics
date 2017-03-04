@@ -1,3 +1,4 @@
+.idea/
 logs/*.log
 /db.sqlite3
 /resources/

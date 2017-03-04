@@ -98,7 +98,7 @@ WORKDIR "/root/DVA/faiss"
 RUN make
 RUN make py
 WORKDIR "/root/DVA/faiss/gpu"
-RUN make
+RUN make -j10
 RUN make py
 WORKDIR "/root/DVA"
 ENV PYTHONPATH $PYTHONPATH:/root/DVA/faiss

@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 import subprocess,sys,shutil,os,glob,time,logging
 from django.conf import settings
-from celery import shared_task
+from dva.celery import app
 from .models import Video, Frame, Detection, TEvent, Query, IndexEntries,QueryResults, FrameLabel
 from dvalib import entity
 from dvalib import detector
@@ -10,13 +10,19 @@ import json
 import zipfile
 
 
+def process_video_next(video_id,current_task_name):
+    if current_task_name in settings.POST_OPERATION_TASKS:
+        for k in settings.POST_OPERATION_TASKS[current_task_name]:
+            app.send_task(k,args=[video_id,],queue=settings.TASK_NAMES_TO_QUEUE[k])
 
-@shared_task
+
+
+@app.task(name="index_by_id")
 def perform_indexing(video_id):
     start = TEvent()
     start.video_id = video_id
     start.started = True
-    start.operation = "indexing"
+    start.operation = perform_indexing.name
     start.save()
     start_time = time.time()
     dv = Video.objects.get(id=video_id)
@@ -28,18 +34,19 @@ def perform_indexing(video_id):
         i.count = index_results['count']
         i.algorithm = index_results['index_name']
         i.save()
+    process_video_next(video_id, start.operation)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
 
 
-@shared_task
+@app.task(name="query_by_id")
 def query_by_image(query_id):
     dq = Query.objects.get(id=query_id)
     start = TEvent()
     start.video_id = Video.objects.get(parent_query=dq).pk
     start.started = True
-    start.operation = "query"
+    start.operation = query_by_image.name
     start.save()
     start_time = time.time()
     Q = entity.WQuery(dquery=dq, media_dir=settings.MEDIA_ROOT)
@@ -63,12 +70,12 @@ def query_by_image(query_id):
     return results
 
 
-@shared_task
+@app.task(name="extract_frames_by_id")
 def extract_frames(video_id):
     start = TEvent()
     start.video_id = video_id
     start.started = True
-    start.operation = "extract_frames"
+    start.operation = extract_frames.name
     start.save()
     start_time = time.time()
     dv = Video.objects.get(id=video_id)
@@ -101,24 +108,24 @@ def extract_frames(video_id):
                     fl.video = dv
                     fl.source = "directory_name"
                     fl.save()
-    perform_indexing.apply_async(args=[video_id],queue=settings.Q_INDEXER)
-    perform_detection.apply_async(args=[video_id], queue=settings.Q_DETECTOR)
+    process_video_next(video_id,start.operation)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
     return 0
 
 
-@shared_task
+@app.task(name="perform_detection_by_id")
 def perform_detection(video_id):
     start = TEvent()
     start.video_id = video_id
     start.started = True
-    start.operation = "detection"
+    start.operation = perform_detection.name
     start.save()
     start_time = time.time()
     detector = subprocess.Popen(['fab','detect:{}'.format(video_id)],cwd=os.path.join(os.path.abspath(__file__).split('tasks.py')[0],'../'))
     detector.wait()
+    process_video_next(video_id,start.operation)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()

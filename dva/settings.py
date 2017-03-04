@@ -178,3 +178,13 @@ STATICFILES_FINDERS = (
 #'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
+TASK_NAMES_TO_QUEUE = {
+    "index_by_id":Q_INDEXER,
+    "query_by_id":Q_RETRIEVER,
+    "extract_frames_by_id":Q_EXTRACTOR,
+    "perform_detection_by_id":Q_DETECTOR
+}
+
+POST_OPERATION_TASKS = {
+    "extract_frames_by_id":["perform_detection_by_id",'index_by_id']
+}

@@ -9,6 +9,7 @@ from django.utils.decorators import method_decorator
 from .forms import UploadFileForm,YTVideoForm
 from .models import Video,Frame,Detection,Query,QueryResults,TEvent,FrameLabel
 from .tasks import extract_frames,query_by_image
+from dva.celery import app
 
 
 def search(request):
@@ -168,9 +169,25 @@ class FrameDetail(DetailView):
         return context
 
 
-
 def status(request):
     context = { }
+    return render_status(request,context)
+
+
+def retry_task(request,pk):
+    event = TEvent.objects.get(pk=int(pk))
+    context = {}
+    if event.operation != 'query_by_id':
+        result = app.send_task(name=event.operation, args=[event.video_id],queue=settings.TASK_NAMES_TO_QUEUE[event.operation])
+        print result.id
+        context['alert'] = "Operation {} on {} submitted".format(event.operation,event.video.name,queue=settings.TASK_NAMES_TO_QUEUE[event.operation])
+    else:
+        result = app.send_task(event.operation, args=[event.video.parent_query_id])
+        context['alert'] = "Query resubmitted"
+    return render_status(request,context)
+
+
+def render_status(request,context):
     context['video_count'] = Video.objects.count()
     context['frame_count'] = Frame.objects.count()
     context['query_count'] = Query.objects.count()
@@ -198,3 +215,5 @@ def status(request):
     except:
         context['fab_log'] = ""
     return render(request, 'status.html', context)
+
+

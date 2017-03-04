@@ -218,7 +218,8 @@ def launch_queues(detection=False):
     local('fab startq:extractor &')
     local('fab startq:indexer &')
     local('fab startq:retriever &')
-    local('fab startq:detector &')
+    if detection:
+        local('fab startq:detector &')
 
 
 @task

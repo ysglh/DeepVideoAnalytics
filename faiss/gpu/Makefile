@@ -87,7 +87,8 @@ $(LIBNAME).a: $(CPPOBJ) $(CUOBJ)
 
 test/demo_ivfpq_indexing_gpu: test/demo_ivfpq_indexing_gpu.cpp \
 	$(LIBNAME).a ../libfaiss.a
-	$(NVCC) $(NVCCFLAGS) -o $@ $^ -Xcompiler -fopenmp -lcublas
+	$(NVCC) $(NVCCFLAGS) -o $@ $^ -Xcompiler -fopenmp -lcublas \
+	$(BLASLDFLAGSNVCC)
 
 #############################################################
 # Python interface

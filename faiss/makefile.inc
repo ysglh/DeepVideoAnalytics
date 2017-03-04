@@ -127,7 +127,7 @@ NVCCFLAGS= $(CUDAFLAGS) \
 
 
 # BLAS LD flags for nvcc (used to generate an executable)
-BLASLDFLAGSNVCC=-Xlinker $(BLASLDFLAGS)
+BLASLDFLAGSNVCC=-Xlinker /usr/lib/libopenblas.so.0 -Xlinker /usr/lib/lapack/liblapack.so.3.0
 
 # Same, but to generate a .so
-BLASLDFLAGSSONVCC=-Xlinker  $(BLASLDFLAGS)
+BLASLDFLAGSSONVCC=-Xlinker  /usr/lib/libopenblas.so.0 -Xlinker /usr/lib/lapack/liblapack.so.3.0

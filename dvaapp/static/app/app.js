@@ -55,7 +55,10 @@ initialize_ui = function () {
         };
         fr.readAsDataURL(file);
     });
-//    fabric.Image.fromURL("/static/img/demo.jpg", function(oImg){canvas.add(oImg);},load_options = {crossOrigin:"Anonymous"});
+    if (initial_url)
+    {
+        fabric.Image.fromURL(initial_url, function(oImg){canvas.add(oImg);},load_options = {crossOrigin:"Anonymous"});
+    }
 };
 
     function renderVieportBorders() {

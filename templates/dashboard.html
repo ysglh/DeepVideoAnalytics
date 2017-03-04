@@ -189,6 +189,9 @@
     <script>
         var payload = "{{ payload }}";
         var csrf_token = "{% csrf_token %}";
+        {% if initial_url %}
+            var initial_url="{{ initial_url }}";
+        {% endif %}
     </script>
     <script src="/static/plugins/jquery.mousewheel.min.js"></script>
     <script src="/static/plugins/underscore-min.js"></script>

@@ -13,4 +13,5 @@ urlpatterns = [
     url(r'^frames/(?P<pk>\d+)/$', views.FrameDetail.as_view(), name='frames_detail'),
     url(r'^queries/(?P<pk>\d+)/$', views.QueryDetail.as_view(), name='query_detail'),
     url(r'^retry/(?P<pk>\d+)/$', views.retry_task, name='restart_task'),
+    url(r'^requery/(?P<pk>\d+)/$', views.index, name='requery'),
 ]

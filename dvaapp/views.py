@@ -48,7 +48,7 @@ def search(request):
         return JsonResponse(data={'task_id':result.task_id,'primary_key':primary_key,'results':results})
 
 
-def index(request):
+def index(request,pk=None):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         user = request.user if request.user.is_authenticated() else None
@@ -59,6 +59,9 @@ def index(request):
     else:
         form = UploadFileForm()
     context = { 'form' : form }
+    if pk:
+        previous_query = Query.objects.get(pk=pk)
+        context['initial_url'] = '/media/queries/{}.png'.format(pk)
     context['video_count'] = Video.objects.count()
     context['frame_count'] = Frame.objects.count()
     context['query_count'] = Query.objects.count()
@@ -180,10 +183,9 @@ def retry_task(request,pk):
     if event.operation != 'query_by_id':
         result = app.send_task(name=event.operation, args=[event.video_id],queue=settings.TASK_NAMES_TO_QUEUE[event.operation])
         context['alert'] = "Operation {} on {} submitted".format(event.operation,event.video.name,queue=settings.TASK_NAMES_TO_QUEUE[event.operation])
+        return render_status(request, context)
     else:
-        result = app.send_task(event.operation, args=[event.video.parent_query_id],queue=settings.TASK_NAMES_TO_QUEUE[event.operation])
-        context['alert'] = "Query resubmitted"
-    return render_status(request,context)
+        return redirect("/requery/{}/".format(event.video.parent_query_id))
 
 
 def render_status(request,context):

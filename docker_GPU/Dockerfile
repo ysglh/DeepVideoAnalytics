@@ -92,4 +92,14 @@ RUN pip install --upgrade uwsgi matplotlib
 RUN git pull
 RUN cd dvalib/ssd/checkpoints && unzip ssd_300_vgg.ckpt.zip
 RUN echo "daemon off;" >> /etc/nginx/nginx.conf
+RUN apt-get update && apt-get install -y liblapack3 libopenblas-dev
+RUN git pull
+WORKDIR "/root/DVA/faiss"
+RUN make
+RUN make py
+WORKDIR "/root/DVA/faiss/gpu"
+RUN make
+RUN make py
+WORKDIR "/root/DVA"
+ENV PYTHONPATH $PYTHONPATH:/root/DVA/faiss
 EXPOSE 80

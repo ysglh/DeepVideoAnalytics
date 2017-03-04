@@ -172,7 +172,7 @@ def ci():
         perform_indexing(v.pk)
         if i ==0: # save travis time by just running detection on first video
             perform_detection(v.pk)
-    # test_backup()
+    test_backup()
 
 
 @task

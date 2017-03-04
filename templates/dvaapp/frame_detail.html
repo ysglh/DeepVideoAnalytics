@@ -43,7 +43,10 @@
             </div>
     </div>
     <div class="col-lg-6">
-        <div class="box-primary">
+        <div class="box box-primary">
+        <div class="box-header with-borders text-center">
+            <a href="/query_frame/{{ object.pk }}/" class="btn btn-info"><i class="fa fa-search"></i> Query using this frame</a>
+        </div>
         <div class="box-body">
             <img src="{{ url }}" style="width:100%" />
         </div>
@@ -66,8 +69,9 @@
         <div class="box-body text-center">
             <img class="img-responsive" src="/media/{{ object.video.pk }}/detections/{{ d.pk }}.jpg" style="margin-left:auto;margin-right: auto">
         </div>
-        <div class="box-footer">
+        <div class="box-footer text-center">
             <h5>Confidence: {{ d.confidence|floatformat }}</h5>
+            <a href="/query_detection/{{ d.pk }}/" class="btn btn-info"><i class="fa fa-search"></i> Query using this detection</a>
         </div>
     </div>
     </div>

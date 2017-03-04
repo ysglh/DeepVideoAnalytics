@@ -48,7 +48,7 @@ def search(request):
         return JsonResponse(data={'task_id':result.task_id,'primary_key':primary_key,'results':results})
 
 
-def index(request,pk=None):
+def index(request,query_pk=None,frame_pk=None,detection_pk=None):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         user = request.user if request.user.is_authenticated() else None
@@ -59,9 +59,15 @@ def index(request,pk=None):
     else:
         form = UploadFileForm()
     context = { 'form' : form }
-    if pk:
-        previous_query = Query.objects.get(pk=pk)
-        context['initial_url'] = '/media/queries/{}.png'.format(pk)
+    if query_pk:
+        previous_query = Query.objects.get(pk=query_pk)
+        context['initial_url'] = '/media/queries/{}.png'.format(query_pk)
+    elif frame_pk:
+        frame = Frame.objects.get(pk=frame_pk)
+        context['initial_url'] = '/media/{}/frames/{}.jpg'.format(frame.video.pk,frame.frame_index)
+    elif detection_pk:
+        detection = Detection.objects.get(pk=detection_pk)
+        context['initial_url'] = '/media/{}/detections/{}.jpg'.format(detection.video.pk, detection.pk)
     context['video_count'] = Video.objects.count()
     context['frame_count'] = Frame.objects.count()
     context['query_count'] = Query.objects.count()

@@ -37,7 +37,6 @@ install: "pip install -r requirements.txt > /dev/null"
 
 before_script:
   - cd darknet && wget https://www.dropbox.com/s/0zopjpswug5rjqy/yolo9000.weights && make && cd ..
-  - cd faiss && make && make py && cd ..
   - python manage.py migrate
   - python manage.py runserver 8000 &
   - cd dvalib/ssd/checkpoints && unzip ssd_300_vgg.ckpt.zip && cd ../../..

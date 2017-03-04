@@ -98,6 +98,7 @@ WORKDIR "/root/DVA/faiss"
 RUN make
 RUN make py
 WORKDIR "/root/DVA/faiss/gpu"
+RUN git checkout faissgpudev
 RUN make -j10
 RUN make py
 WORKDIR "/root/DVA"

@@ -48,6 +48,7 @@
                 </thead>
                 <tbody>
                 {% for v in video_list %}
+                {% if not v.query %}
                     <tr>
                         <td>{%  if v.dataset and v.query %} Query {% elif v.dataset %} Dataset {% else %}Video {% endif %}</td>
                         <td>{{ v.name }} </td>
@@ -57,13 +58,10 @@
                         <td class="text-right">{{ v.height }} </td>
                         <td class="text-right">{{ v.width }} </td>
                         <td class="text-center">{{ v.created }}</td>
-                        {% if v.query %}
-                            <td class="text-center"><a href="/queries/{{ v.parent_query.pk }}">view</a></td>
-                        {% else %}
-                            <td class="text-center"><a href="/videos/{{ v.pk }}">view</a></td>
-                        {% endif %}
+                        <td class="text-center"><a href="/videos/{{ v.pk }}">view</a></td>
                         <td>{%  if v.youtube_video %}<a href="{{ v.url }}" target="_blank">{{ v.url }}</a>{% endif %}</td>
                     </tr>
+                    {% endif %}
                 {% endfor %}
                 </tbody>
                 </table>

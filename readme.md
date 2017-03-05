@@ -23,24 +23,27 @@ by the vision research community.
 - Explore data, manually run code & tasks without UI via a jupyter notebook [explore.ipynb](experiments/Notebooks/explore.ipynb)
 - [Some documentation on design decision, architecture and deployment](/notes/readme.md).
 
-## Implemented algorithms/models
+## Integrated algorithms/models
 - [x] Google inception using Tensorflow
 - [x] [SSD Multibox 300](https://github.com/balancap/SSD-Tensorflow)  
 - [x] Alexnet indexing using Pytorch  (disabled by default; set ALEX_ENABLE=1 in environment variable to use)
 - [x] [YOLO 9000](http://pjreddie.com/darknet/yolo/) (disabled by default; set YOLO_ENABLE=1 in environment variable to use)
 
-## Potential algorithms/models
-- [ ] [Text detection models](http://www.robots.ox.ac.uk/~vgg/research/text/)
-- [ ] [Pytorch Squeezenet](http://pytorch.org/docs/torchvision/models.html)
-- [ ] [Openface (via a connected container)](https://github.com/cmusatyalab/openface)
-- [ ] [Soundnet (requires extracting mp3 audio)](http://projects.csail.mit.edu/soundnet/)
-- [ ] [Mapnet (requires converting models from Marvin)](http://www.cs.princeton.edu/~aseff/mapnet/)   
-- [ ] [Keras-js](https://github.com/transcranial/keras-js) which uses Keras inception for client side indexing   
+## Ongoing integrations (Should be ready within a week)
+- [X] [Facenet & MTCNN for face detection/alignment/recognition](https://github.com/davidsandberg/facenet) 
+- [X] Facebook FAISS for fast approximate similarity search
+
+## Potential algorithms/models 
+1. [ ] [Text detection models](http://www.robots.ox.ac.uk/~vgg/research/text/)
+2. [ ] [Soundnet (requires extracting mp3 audio)](http://projects.csail.mit.edu/soundnet/)
+3. [ ] [Pytorch Squeezenet](http://pytorch.org/docs/torchvision/models.html)
+4. [ ] [Mapnet (requires converting models from Marvin)](http://www.cs.princeton.edu/~aseff/mapnet/)   
+5. [ ] [Keras-js](https://github.com/transcranial/keras-js) which uses Keras inception for client side indexing   
 
 ### Open Issues
 
-- [ ] [OpenCV fails with double free error at cap.release() on some ubuntu machines in spite of running in a docker](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/issues/4)
-- [ ] [Running SSD-Tensorflow in a celery task, the code aborts during second task, as a result its reloaded every time via subprocess](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/issues/3)
+- [ ] [OpenCV fails with double free error at cap.release() on some ubuntu machines in spite of running in a docker container](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/issues/4)
+- [ ] [When running SSD-TensorFlow in a celery task, the code aborts during second task, as a result its reloaded every time via a subprocess](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/issues/3)
 
 ### To Do
 
@@ -49,7 +52,7 @@ by the vision research community.
 
 ## Installation
 
-**Pre build docker images for both CPU and GPU version are now [available on Docker Hub](https://hub.docker.com/r/akshayubhat/dva/tags/).** 
+**Pre built docker images for both CPU and GPU version are now [available on Docker Hub](https://hub.docker.com/r/akshayubhat/dva/tags/).** 
 
 ### On Mac, Windows and Linux machines without NVidia GPUs
 You need to have latest version of Docker installed.
@@ -109,6 +112,7 @@ Please [read this regarding trade offs](https://github.com/AKSHAYUBHAT/DeepVideo
 - Modified PySceneDetect [License](https://github.com/Breakthrough/PySceneDetect)
 - Modified SSD-Tensorflow [Individual files are marked as Apache](https://github.com/balancap/SSD-Tensorflow)
 - FAISS [License (Non Commercial)](https://github.com/facebookresearch/faiss)
+- Facenet [License](https://github.com/davidsandberg/facenet)
 - Docker 
 - Nvidia-docker
 - OpenCV

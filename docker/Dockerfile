@@ -58,6 +58,7 @@ RUN pip install --upgrade pip \
                           pandas \
                           boto3 \
                           protobuf \
+                          scikit-learn \
                           humanize
 RUN apt-get update && apt-get install -y \
     pkg-config \

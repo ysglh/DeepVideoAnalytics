@@ -35,3 +35,6 @@ experiments/connect.sh
 /dvalib/ssd/checkpoints/ssd_300_vgg.ckpt.index
 /dvalib/ssd/checkpoints/ssd_300_vgg.ckpt.data-00000-of-00001
 /notes/website/
+/dvalib/facenet/facenet_model/model-20170216-091149.ckpt-250000.data-00000-of-00001
+/dvalib/facenet/facenet_model/model-20170216-091149.meta
+/dvalib/facenet/facenet_model/model-20170216-091149.ckpt-250000.index

@@ -68,9 +68,9 @@ def index(request,query_pk=None,frame_pk=None,detection_pk=None):
     elif detection_pk:
         detection = Detection.objects.get(pk=detection_pk)
         context['initial_url'] = '/media/{}/detections/{}.jpg'.format(detection.video.pk, detection.pk)
-    context['video_count'] = Video.objects.count()
     context['frame_count'] = Frame.objects.count()
     context['query_count'] = Query.objects.count()
+    context['video_count'] = Video.objects.count() - context['query_count']
     context['detection_count'] = Detection.objects.count()
     return render(request, 'dashboard.html', context)
 

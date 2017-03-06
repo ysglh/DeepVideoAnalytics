@@ -23,7 +23,9 @@ by the vision research community.
 - Explore data, manually run code & tasks without UI via a jupyter notebook [explore.ipynb](experiments/Notebooks/explore.ipynb)
 - [Some documentation on design decision, architecture and deployment](/notes/readme.md).
 
-## Out of box support for several models
+## Several models included out of the box
+**We take significant efforts to ensure that following models (code+weights included) work without having to write any code.**
+
 - [x] Indexing using Google inception V3 trained on Imagenet
 - [x] [Single Shot Detector (SSD) Multibox 300 training using VOC](https://github.com/balancap/SSD-Tensorflow)  
 - [x] Alexnet using Pytorch  (disabled by default; set ALEX_ENABLE=1 in environment variable to use)
@@ -53,17 +55,16 @@ You need to have latest version of Docker installed.
 ````bash
 git clone https://github.com/AKSHAYUBHAT/DeepVideoAnalytics && cd DeepVideoAnalytics/docker && docker-compose up 
 ````
-### Installation for machines with GPU or AWS P2.xlarge instances
 
-#### Machine with NVidia GPU with Docker and nvidia-docker installed
+### Your machine NVidia GPU with Docker and nvidia-docker installed
 Replace docker-compose by nvidia-docker-compose, the Dockerfile uses tensorflow gpu base image and appropriate version of pytorch. The Makefile for Darknet is also modified accordingly. This code was tested using an older NVidia Titan GPU and nvidia-docker.
 
 ```bash
 pip install --upgrade nvidia-docker-compose
 git clone https://github.com/AKSHAYUBHAT/DeepVideoAnalytics && cd DeepVideoAnalytics/docker_GPU && ./rebuild.sh && nvidia-docker-compose up 
 ```
-##### AWS EC2 AMI available
-Start a P2.xlarge instance with **ami-b3cc1fa5** (N. Virginia), ports 8000, 6006, 8888 open (preferably to only your IP) and run following command after ssh'ing into the machine. 
+### On AWS EC2 with a GPU enabled P2 instance
+We provide an AMI will all dependancies such as docker & drivers. Start a P2.xlarge instance with **ami-b3cc1fa5** (N. Virginia), ports 8000, 6006, 8888 open (preferably to only your IP) and run following command after ssh'ing into the machine. 
 ```bash
 cd deepvideoanalytics && git pull && cd docker_GPU && ./rebuild.sh && nvidia-docker-compose up 
 ```
@@ -71,12 +72,12 @@ you can optionally specify "-d" at the end to detach it, but for the very first 
 The Process used for [AMI creation is here](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/notes/ami.md) **Security warning!** The current GPU container uses nginx <-> uwsgi <-> django setup to ensure smooth playback of videos. 
 However it runs nginix as root (though within the container). Considering that you can now modify AWS Security rules on-the-fly, I highly recommend allowing inbound traffic only from your own IP address.
 
-### Deployment on multiple machines with/without GPUs
-Other than the shared media folder (ideally a mounted EFS or NFS), Postgres and RabbitMQ are straightforward.
+### On multiple machines with/without GPUs
+Other than the shared media folder (ideally a mounted EFS or NFS), configuring Postgres and RabbitMQ is straightforward.
 Please [read this regarding trade offs](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/notes/architecture.md).
 
-### Options specified via environment variable  
-**E.g. by specifying them in docker-compose.yml**
+#### Options specified via environment variable
+Following options can be specified in docker-compose.yml, or your envrionment.
 
 - ALEX_ENABLE=1 (to use Alexnet with PyTorch. Otherwise disabled by default)
 - YOLO_ENABLE=1 (to use YOLO 9000. Otherwise disabled by default)

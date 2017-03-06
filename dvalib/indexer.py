@@ -258,7 +258,13 @@ class FacenetIndexer():
 
     def apply(self,image_path):
         self.load()
-        images = facenet.load_data([image_path,], do_random_crop=False, do_random_flip=False, image_size=self.image_size,do_prewhiten=True)
+        img = PIL.Image.open(image_path).convert('RGB')
+        img = img.resize((self.image_size,self.image_size))
+        img.save("/Users/aub3/debug.jpg")
+        img = np.array(img)
+        img = facenet.prewhiten(img)
+        images = np.zeros((1, self.image_size, self.image_size, 3))
+        images[0, :, :, :] = img
         feed_dict = {self.images_placeholder: images, self.phase_train_placeholder: False}
         return self.session.run(self.embeddings, feed_dict=feed_dict)
 

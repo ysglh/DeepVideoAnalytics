@@ -94,6 +94,8 @@ def query_face_by_image(query_id):
             qr.rank = r['rank']
             qr.distance = r['dist']
             qr.save()
+    dq.results = True
+    dq.save()
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()

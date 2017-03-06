@@ -108,7 +108,9 @@ def align(image_paths, output_dir, image_size=182, margin=44, gpu_memory_fractio
 
 def represent(paths, paths_to_pk, output_dir):
     with tf.Graph().as_default():
-        with tf.Session() as sess:
+        config = tf.ConfigProto()
+        config.gpu_options.per_process_gpu_memory_fraction = 0.15
+        with tf.Session(config=config) as sess:
             output_dir = os.path.expanduser(output_dir)
             if not os.path.isdir(output_dir):
                 os.makedirs(output_dir)

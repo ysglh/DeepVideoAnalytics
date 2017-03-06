@@ -51,9 +51,10 @@ def search(request):
             if face_entries:
                 for algo,rlist in entries.iteritems():
                     for r in rlist:
-                        r['url'] = '/media/{}/frames/{}.jpg'.format(r['video_primary_key'],r['frame_index'])
+                        r['url'] = '/media/{}/detections/{}.jpg'.format(r['video_primary_key'],r['detection_primary_key'])
                         d = Detection.objects.get(pk=r['detection_primary_key'])
-                        r['detections'] = [{'pk': d.pk, 'name': d.object_name, 'confidence': d.confidence},]
+                        r['result_detect'] = True
+                        r['detection'] = [{'pk': d.pk, 'name': d.object_name, 'confidence': d.confidence},]
                         results.append(r)
         return JsonResponse(data={'task_id':result.task_id,'primary_key':primary_key,'results':results})
 

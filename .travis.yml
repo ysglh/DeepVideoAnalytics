@@ -42,7 +42,7 @@ before_script:
   - cd dvalib/ssd/checkpoints && unzip ssd_300_vgg.ckpt.zip && cd ../../..
   - cd dvalib/facenet/facenet_model && wget https://www.dropbox.com/s/4kkq4d2tcpetm8f/model-20170216-091149.ckpt-250000.data-00000-of-00001 && cd ../../..
   - cd dvalib/facenet/facenet_model && wget https://www.dropbox.com/s/s0udsq3kp9c5i5p/model-20170216-091149.ckpt-250000.index && cd ../../..
-  - cd dvalib/facenet/facenet_model && wget https://www.dropbox.com/s/folhr9nzeatwtyx/model-20170216-091149.meta?dl=0 && cd ../../..
+  - cd dvalib/facenet/facenet_model && wget https://www.dropbox.com/s/folhr9nzeatwtyx/model-20170216-091149.meta && cd ../../..
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
   - sleep 3 # give xvfb some time to start

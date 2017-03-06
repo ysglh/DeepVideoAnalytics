@@ -23,15 +23,13 @@ by the vision research community.
 - Explore data, manually run code & tasks without UI via a jupyter notebook [explore.ipynb](experiments/Notebooks/explore.ipynb)
 - [Some documentation on design decision, architecture and deployment](/notes/readme.md).
 
-## Integrated algorithms/models
-- [x] Google inception using Tensorflow
-- [x] [SSD Multibox 300](https://github.com/balancap/SSD-Tensorflow)  
-- [x] Alexnet indexing using Pytorch  (disabled by default; set ALEX_ENABLE=1 in environment variable to use)
+## Out of box support for several models
+- [x] Indexing using Google inception V3 trained on Imagenet
+- [x] [Single Shot Detector (SSD) Multibox 300 training using VOC](https://github.com/balancap/SSD-Tensorflow)  
+- [x] Alexnet using Pytorch  (disabled by default; set ALEX_ENABLE=1 in environment variable to use)
 - [x] [YOLO 9000](http://pjreddie.com/darknet/yolo/) (disabled by default; set YOLO_ENABLE=1 in environment variable to use)
-
-## Ongoing integrations (Should be ready within a week)
-- [X] [Facenet](https://github.com/davidsandberg/facenet) & [TensorFlow port MTCNN for face detection/alignment by David Sandberg](https://github.com/kpzhang93/MTCNN_face_detection_alignment) 
-- [X] Facebook FAISS for fast approximate similarity search
+- [X] [Face detection/alignment/recognition using MTCNN and Facenet](https://github.com/davidsandberg/facenet) 
+- [ ] [Facebook FAISS for fast approximate similarity search (Coming very soon!)]()
 
 ## Potential algorithms/models 
 1. [ ] [Text detection models](http://www.robots.ox.ac.uk/~vgg/research/text/)
@@ -40,19 +38,15 @@ by the vision research community.
 4. [ ] [Mapnet (requires converting models from Marvin)](http://www.cs.princeton.edu/~aseff/mapnet/)   
 5. [ ] [Keras-js](https://github.com/transcranial/keras-js) which uses Keras inception for client side indexing   
 
-### Open Issues
+### Open Issues & To Do
 
 - [ ] [OpenCV fails with double free error at cap.release() on some ubuntu machines in spite of running in a docker container](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/issues/4)
 - [ ] [When running SSD-TensorFlow in a celery task, the code aborts during second task, as a result its reloaded every time via a subprocess](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/issues/3)
-
-### To Do
-
-[Please take a look at this board](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/projects/1)
+- [Please take a look at this board for planned future tasks](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/projects/1)
 
 
 ## Installation
-
-**Pre built docker images for both CPU and GPU version are now [available on Docker Hub](https://hub.docker.com/r/akshayubhat/dva/tags/).** 
+**Pre-built docker images (corrosponding to alpha version) for both CPU and GPU version are now [available on Docker Hub](https://hub.docker.com/r/akshayubhat/dva/tags/).** 
 
 ### On Mac, Windows and Linux machines without NVidia GPUs
 You need to have latest version of Docker installed.

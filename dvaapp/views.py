@@ -49,7 +49,7 @@ def search(request):
         if result_face.successful():
             face_entries = result_face.get()
             if face_entries:
-                for algo,rlist in entries.iteritems():
+                for algo,rlist in face_entries.iteritems():
                     for r in rlist:
                         r['url'] = '/media/{}/detections/{}.jpg'.format(r['video_primary_key'],r['detection_primary_key'])
                         d = Detection.objects.get(pk=r['detection_primary_key'])

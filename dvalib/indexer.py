@@ -202,7 +202,6 @@ class FacenetIndexer():
         query_vector = self.apply(image_path)
         temp = []
         dist = []
-        logging.info("started query")
         for k in xrange(self.index.shape[0]):
             temp.append(self.index[k])
             if (k+1) % 50000 == 0:
@@ -214,7 +213,6 @@ class FacenetIndexer():
             dist.append(spatial.distance.cdist(query_vector,temp))
         dist = np.hstack(dist)
         ranked = np.squeeze(dist.argsort())
-        logging.info("query finished")
         results = []
         for i, k in enumerate(ranked[:n]):
             temp = {'rank':i,'algo':self.name,'dist':dist[0,k]}
@@ -240,10 +238,10 @@ class FacenetIndexer():
                     pass
                 else:
                     for i, f in enumerate(file(fname.replace(".npy", ".framelist")).readlines()):
-                        detection_pk = f.strip()
+                        _,detection_pk = f.strip().split('_')
                         self.files[self.findex] = {
                             'video_primary_key':dirname,
-                            'detection_primary_key':detection_pk
+                            'detection_primary_key':int(detection_pk)
                         }
                         self.findex += 1
                     logging.info("Loaded {}".format(fname))
@@ -260,7 +258,6 @@ class FacenetIndexer():
         self.load()
         img = PIL.Image.open(image_path).convert('RGB')
         img = img.resize((self.image_size,self.image_size))
-        img.save("/Users/aub3/debug.jpg")
         img = np.array(img)
         img = facenet.prewhiten(img)
         images = np.zeros((1, self.image_size, self.image_size, 3))

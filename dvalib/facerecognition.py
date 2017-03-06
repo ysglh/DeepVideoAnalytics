@@ -130,13 +130,14 @@ def represent(paths, paths_to_pk, output_dir):
             emb_array = np.zeros((nrof_images, embedding_size))
             count = 0
             path_count = {}
+            fh = open(os.path.join(output_dir, "facenet.framelist"),'w')
             for i in xrange(nrof_batches):
                 start_index = i * batch_size
                 end_index = min((i + 1) * batch_size, nrof_images)
                 paths_batch = paths[start_index:end_index]
                 for fname in paths_batch:
-                    path_count[count] = paths_to_pk[fname]
                     count += 1
+                    fh.write("{}_{}\n".format(fname,paths_to_pk[fname]))
                 images = facenet.load_data(paths_batch, do_random_crop=False, do_random_flip=False,image_size=image_size, do_prewhiten=True)
                 feed_dict = {images_placeholder: images, phase_train_placeholder: False}
                 emb_array[start_index:end_index, :] = sess.run(embeddings, feed_dict=feed_dict)
@@ -144,7 +145,5 @@ def represent(paths, paths_to_pk, output_dir):
             logging.info("Forward pass took avg of %.3f[seconds/image] for %d images\n" % (time_avg_forward_pass, nrof_images))
             logging.info("Finally saving embeddings and gallery to: %s" % (output_dir))
             np.save(os.path.join(output_dir, "facenet.npy"), emb_array)
-            with open(os.path.join(output_dir, "facenet.framelist"),'w') as fh:
-                for c in range(count):
-                    fh.write("{}\n".format(path_count[c]))
+            fh.close()
             return path_count,emb_array

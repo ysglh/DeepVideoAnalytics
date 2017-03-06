@@ -5,6 +5,7 @@ from dva.celery import app
 from .models import Video, Frame, Detection, TEvent, Query, IndexEntries,QueryResults, FrameLabel
 from dvalib import entity
 from dvalib import detector
+from dvalib import facerecognition
 from PIL import Image
 import json
 import zipfile
@@ -131,3 +132,46 @@ def perform_detection(video_id):
     start.save()
     return 0
 
+
+@app.task(name="face_indexing_by_id")
+def perform_face_indexing(video_id):
+    start = TEvent()
+    start.video_id = video_id
+    start.started = True
+    start.operation = perform_face_indexing.name
+    start.save()
+    start_time = time.time()
+    dv = Video.objects.get(id=video_id)
+    video = entity.WVideo(dv, settings.MEDIA_ROOT)
+    frames = Frame.objects.all().filter(video=dv)
+    wframes = [entity.WFrame(video=video, frame_index=df.frame_index, primary_key=df.pk) for df in frames]
+    input_paths = {f.local_path():f.primary_key for f in wframes}
+    faces_dir = '{}/{}/detections'.format(settings.MEDIA_ROOT,video_id)
+    indexes_dir = '{}/{}/indexes'.format(settings.MEDIA_ROOT,video_id)
+    aligned_paths = facerecognition.align(input_paths.keys(),faces_dir)
+    logging.info(len(aligned_paths))
+    print aligned_paths.values()
+    faces = []
+    count = 0
+    for path,v in aligned_paths.iteritems():
+        for face_path,bb in v:
+            d = Detection()
+            d.video = dv
+            d.confidence = 100.0
+            d.frame_id = input_paths[path]
+            d.object_name = "mtcnn_face"
+            top, left, bottom, right =  bb[0], bb[1], bb[2], bb[3]
+            d.top = top
+            d.left = left
+            d.width = right-left
+            d.height = top-bottom
+            d.save()
+            os.rename(face_path,'{}/{}.png'.format(faces_dir,d.pk))
+            faces.append('{}/{}.png'.format(faces_dir,d.pk))
+            count += 1
+    dv.detections = dv.detections + count
+    dv.save()
+    facerecognition.represent(faces,indexes_dir)
+    start.completed = True
+    start.seconds = time.time() - start_time
+    start.save()

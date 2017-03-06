@@ -417,3 +417,13 @@ def process_video_list(filename):
     vlist = json.load(file(filename))
     for video in vlist:
         handle_youtube_video(video['name'],video['url'])
+
+
+@task
+def quick():
+    import django
+    sys.path.append(os.path.dirname(__file__))
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
+    django.setup()
+    from dvaapp.tasks import perform_face_indexing
+    perform_face_indexing(3)

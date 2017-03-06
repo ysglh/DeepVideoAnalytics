@@ -53,56 +53,54 @@ def align(image_paths, output_dir, image_size=182, margin=44, gpu_memory_fractio
     random_key = np.random.randint(0, high=99999)
     bounding_boxes_filename = os.path.join(output_dir, 'bounding_boxes_%05d.txt' % random_key)
     aligned_paths = defaultdict(list)
-    with open(bounding_boxes_filename, "w") as text_file:
-        nrof_images_total = 0
-        nrof_successfully_aligned = 0
-        output_class_dir = output_dir
-        if not os.path.exists(output_class_dir):
-            os.makedirs(output_class_dir)
-        for image_path in image_paths:
-            nrof_images_total += 1
-            filename = os.path.splitext(os.path.split(image_path)[1])[0]
-            logging.info(image_path)
-            try:
-                img = misc.imread(image_path)
-            except (IOError, ValueError, IndexError) as e:
-                errorMessage = '{}: {}'.format(image_path, e)
-                logging.info(errorMessage)
+    nrof_images_total = 0
+    nrof_successfully_aligned = 0
+    output_class_dir = output_dir
+    if not os.path.exists(output_class_dir):
+        os.makedirs(output_class_dir)
+    for image_path in image_paths:
+        nrof_images_total += 1
+        filename = os.path.splitext(os.path.split(image_path)[1])[0]
+        logging.info(image_path)
+        try:
+            img = misc.imread(image_path)
+        except (IOError, ValueError, IndexError) as e:
+            errorMessage = '{}: {}'.format(image_path, e)
+            logging.info(errorMessage)
+        else:
+            if img.ndim < 2:
+                logging.info('Unable to align "%s"' % image_path)
+                continue
+            if img.ndim == 2:
+                img = facenet.to_rgb(img)
+            img = img[:, :, 0:3]
+            bounding_boxes, _ = detect_face.detect_face(img, minsize, pnet, rnet, onet, threshold, factor)
+            nrof_faces = bounding_boxes.shape[0]
+            if nrof_faces > 0:
+                det_all = bounding_boxes[:, 0:4]
+                img_size = np.asarray(img.shape)[0:2]
+                for boxindex in range(nrof_faces):
+                    # if nrof_faces > 1:
+                    #     bounding_box_size = (det[:, 2] - det[:, 0]) * (det[:, 3] - det[:, 1])
+                    #     img_center = img_size / 2
+                    #     offsets = np.vstack([(det[:, 0] + det[:, 2]) / 2 - img_center[1],(det[:, 1] + det[:, 3]) / 2 - img_center[0]])
+                    #     offset_dist_squared = np.sum(np.power(offsets, 2.0), 0)
+                    #     index = np.argmax(bounding_box_size - offset_dist_squared * 2.0)  # some extra weight on the centering
+                    #     det = det[index, :]
+                    det = np.squeeze(det_all[boxindex, :])
+                    bb = np.zeros(4, dtype=np.int32)
+                    bb[0] = np.maximum(det[0] - margin / 2, 0)
+                    bb[1] = np.maximum(det[1] - margin / 2, 0)
+                    bb[2] = np.minimum(det[2] + margin / 2, img_size[1])
+                    bb[3] = np.minimum(det[3] + margin / 2, img_size[0])
+                    cropped = img[bb[1]:bb[3], bb[0]:bb[2], :]
+                    scaled = misc.imresize(cropped, (image_size, image_size), interp='bilinear')
+                    nrof_successfully_aligned += 1
+                    output_filename = os.path.join(output_class_dir,"face_"+filename+'_'+str(boxindex)+'.jpg')
+                    misc.imsave(output_filename, scaled)
+                    aligned_paths[image_path].append((output_filename,bb))
             else:
-                if img.ndim < 2:
-                    logging.info('Unable to align "%s"' % image_path)
-                    continue
-                if img.ndim == 2:
-                    img = facenet.to_rgb(img)
-                img = img[:, :, 0:3]
-                bounding_boxes, _ = detect_face.detect_face(img, minsize, pnet, rnet, onet, threshold, factor)
-                nrof_faces = bounding_boxes.shape[0]
-                if nrof_faces > 0:
-                    det_all = bounding_boxes[:, 0:4]
-                    img_size = np.asarray(img.shape)[0:2]
-                    for boxindex in range(nrof_faces):
-                        # if nrof_faces > 1:
-                        #     bounding_box_size = (det[:, 2] - det[:, 0]) * (det[:, 3] - det[:, 1])
-                        #     img_center = img_size / 2
-                        #     offsets = np.vstack([(det[:, 0] + det[:, 2]) / 2 - img_center[1],(det[:, 1] + det[:, 3]) / 2 - img_center[0]])
-                        #     offset_dist_squared = np.sum(np.power(offsets, 2.0), 0)
-                        #     index = np.argmax(bounding_box_size - offset_dist_squared * 2.0)  # some extra weight on the centering
-                        #     det = det[index, :]
-                        det = np.squeeze(det_all[boxindex, :])
-                        bb = np.zeros(4, dtype=np.int32)
-                        bb[0] = np.maximum(det[0] - margin / 2, 0)
-                        bb[1] = np.maximum(det[1] - margin / 2, 0)
-                        bb[2] = np.minimum(det[2] + margin / 2, img_size[1])
-                        bb[3] = np.minimum(det[3] + margin / 2, img_size[0])
-                        cropped = img[bb[1]:bb[3], bb[0]:bb[2], :]
-                        scaled = misc.imresize(cropped, (image_size, image_size), interp='bilinear')
-                        nrof_successfully_aligned += 1
-                        output_filename = os.path.join(output_class_dir,"face_"+filename+'_'+str(boxindex)+'.png')
-                        misc.imsave(output_filename, scaled)
-                        aligned_paths[image_path].append((output_filename,bb))
-                        text_file.write('%s %d %d %d %d\n' % (output_filename, bb[0], bb[1], bb[2], bb[3]))
-                else:
-                    logging.info('Unable to align "%s"' % image_path)
+                logging.info('Unable to align "%s"' % image_path)
     logging.info('Total number of images: %d' % nrof_images_total)
     logging.info('Number of successfully aligned images: %d' % nrof_successfully_aligned)
     return aligned_paths

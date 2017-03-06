@@ -126,6 +126,8 @@ def perform_detection(video_id):
     start_time = time.time()
     detector = subprocess.Popen(['fab','detect:{}'.format(video_id)],cwd=os.path.join(os.path.abspath(__file__).split('tasks.py')[0],'../'))
     detector.wait()
+    face_detector = subprocess.Popen(['fab','perform_face_detection:{}'.format(video_id)],cwd=os.path.join(os.path.abspath(__file__).split('tasks.py')[0],'../'))
+    face_detector.wait()
     process_video_next(video_id,start.operation)
     start.completed = True
     start.seconds = time.time() - start_time
@@ -133,14 +135,7 @@ def perform_detection(video_id):
     return 0
 
 
-@app.task(name="face_indexing_by_id")
 def perform_face_indexing(video_id):
-    start = TEvent()
-    start.video_id = video_id
-    start.started = True
-    start.operation = perform_face_indexing.name
-    start.save()
-    start_time = time.time()
     dv = Video.objects.get(id=video_id)
     video = entity.WVideo(dv, settings.MEDIA_ROOT)
     frames = Frame.objects.all().filter(video=dv)
@@ -150,7 +145,6 @@ def perform_face_indexing(video_id):
     indexes_dir = '{}/{}/indexes'.format(settings.MEDIA_ROOT,video_id)
     aligned_paths = facerecognition.align(input_paths.keys(),faces_dir)
     logging.info(len(aligned_paths))
-    print aligned_paths.values()
     faces = []
     count = 0
     for path,v in aligned_paths.iteritems():
@@ -160,18 +154,15 @@ def perform_face_indexing(video_id):
             d.confidence = 100.0
             d.frame_id = input_paths[path]
             d.object_name = "mtcnn_face"
-            top, left, bottom, right =  bb[0], bb[1], bb[2], bb[3]
-            d.top = top
-            d.left = left
-            d.width = right-left
-            d.height = top-bottom
+            top, left, bottom, right = bb[0], bb[1], bb[2], bb[3]
+            d.y = top
+            d.x = left
+            d.w = right-left
+            d.h = bottom-top
             d.save()
-            os.rename(face_path,'{}/{}.png'.format(faces_dir,d.pk))
-            faces.append('{}/{}.png'.format(faces_dir,d.pk))
+            os.rename(face_path,'{}/{}.jpg'.format(faces_dir,d.pk))
+            faces.append('{}/{}.jpg'.format(faces_dir,d.pk))
             count += 1
     dv.detections = dv.detections + count
     dv.save()
-    facerecognition.represent(faces,indexes_dir)
-    start.completed = True
-    start.seconds = time.time() - start_time
-    start.save()
+    # facerecognition.represent(faces,indexes_dir)

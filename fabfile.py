@@ -420,10 +420,10 @@ def process_video_list(filename):
 
 
 @task
-def quick():
+def perform_face_detection(video_id):
     import django
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from dvaapp.tasks import perform_face_indexing
-    perform_face_indexing(3)
+    perform_face_indexing(int(video_id))

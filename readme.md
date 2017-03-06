@@ -30,7 +30,7 @@ by the vision research community.
 - [x] [YOLO 9000](http://pjreddie.com/darknet/yolo/) (disabled by default; set YOLO_ENABLE=1 in environment variable to use)
 
 ## Ongoing integrations (Should be ready within a week)
-- [X] [Facenet & MTCNN for face detection/alignment/recognition](https://github.com/davidsandberg/facenet) 
+- [X] [Facenet](https://github.com/davidsandberg/facenet) & [TensorFlow port MTCNN for face detection/alignment by David Sandberg](https://github.com/kpzhang93/MTCNN_face_detection_alignment) 
 - [X] Facebook FAISS for fast approximate similarity search
 
 ## Potential algorithms/models 
@@ -113,6 +113,7 @@ Please [read this regarding trade offs](https://github.com/AKSHAYUBHAT/DeepVideo
 - Modified SSD-Tensorflow [Individual files are marked as Apache](https://github.com/balancap/SSD-Tensorflow)
 - FAISS [License (Non Commercial)](https://github.com/facebookresearch/faiss)
 - Facenet [License](https://github.com/davidsandberg/facenet)
+- MTCNN [TensorFlow port of MTCNN for face detection/alignment](https://github.com/kpzhang93/MTCNN_face_detection_alignment)
 - Docker 
 - Nvidia-docker
 - OpenCV

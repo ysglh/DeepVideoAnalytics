@@ -146,6 +146,7 @@ def perform_face_indexing(video_id):
     aligned_paths = facerecognition.align(input_paths.keys(),faces_dir)
     logging.info(len(aligned_paths))
     faces = []
+    faces_to_pk = {}
     count = 0
     for path,v in aligned_paths.iteritems():
         for face_path,bb in v:
@@ -162,7 +163,8 @@ def perform_face_indexing(video_id):
             d.save()
             os.rename(face_path,'{}/{}.jpg'.format(faces_dir,d.pk))
             faces.append('{}/{}.jpg'.format(faces_dir,d.pk))
+            faces_to_pk['{}/{}.jpg'.format(faces_dir,d.pk)] = d.pk
             count += 1
     dv.detections = dv.detections + count
     dv.save()
-    # facerecognition.represent(faces,indexes_dir)
+    facerecognition.represent(faces,faces_to_pk,indexes_dir)

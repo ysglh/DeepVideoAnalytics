@@ -10,7 +10,7 @@ from scipy import spatial
 import tensorflow as tf
 from scipy import spatial
 from tensorflow.python.platform import gfile
-
+from facenet import facenet
 
 class BaseIndexer(object):
 
@@ -19,7 +19,6 @@ class BaseIndexer(object):
         self.net = None
         self.indexed_dirs = set()
         self.index, self.files, self.findex = None, {}, 0
-
 
     def load_index(self,path):
         temp_index = []
@@ -170,6 +169,99 @@ class InceptionIndexer(BaseIndexer):
         pool3 = self.session.graph.get_tensor_by_name('incept/pool_3:0')
         pool3_features = self.session.run(pool3,{'incept/DecodeJpeg/contents:0': file(image_path).read()})
         return np.atleast_2d(np.squeeze(pool3_features))
+
+
+class FacenetIndexer():
+
+    def __init__(self):
+        self.name = "facenet"
+        self.net = None
+        self.tf = True
+        self.session = None
+        self.graph_def = None
+        self.indexed_dirs = set()
+        self.index, self.files, self.findex = None, {}, 0
+
+    def load(self):
+        if self.session is None:
+            logging.warning("Loading the network {}".format(self.name))
+            config = tf.ConfigProto()
+            config.gpu_options.per_process_gpu_memory_fraction = 0.15
+            self.session = tf.InteractiveSession(config=config)
+            self.graph_def = tf.Graph().as_default()
+            meta_file, ckpt_file, model_dir = facenet.get_model_filenames()
+            self.saver = tf.train.import_meta_graph(os.path.join(model_dir, meta_file))
+            self.saver.restore(self.session, os.path.join(model_dir, ckpt_file))
+            self.images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
+            self.embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
+            self.phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")
+            self.image_size = self.images_placeholder.get_shape()[1]
+            self.embedding_size = self.embeddings.get_shape()[1]
+
+    def nearest(self,image_path,n=12):
+        query_vector = self.apply(image_path)
+        temp = []
+        dist = []
+        logging.info("started query")
+        for k in xrange(self.index.shape[0]):
+            temp.append(self.index[k])
+            if (k+1) % 50000 == 0:
+                temp = np.transpose(np.dstack(temp)[0])
+                dist.append(spatial.distance.cdist(query_vector,temp))
+                temp = []
+        if temp:
+            temp = np.transpose(np.dstack(temp)[0])
+            dist.append(spatial.distance.cdist(query_vector,temp))
+        dist = np.hstack(dist)
+        ranked = np.squeeze(dist.argsort())
+        logging.info("query finished")
+        results = []
+        for i, k in enumerate(ranked[:n]):
+            temp = {'rank':i,'algo':self.name,'dist':dist[0,k]}
+            temp.update(self.files[k])
+            results.append(temp)
+        return results
+
+    def load_index(self,path):
+        temp_index = []
+        for dirname in os.listdir(path +"/"):
+            fname = "{}/{}/indexes/{}.npy".format(path,dirname,self.name)
+            if dirname not in self.indexed_dirs and dirname != 'queries' and os.path.isfile(fname):
+                logging.info("Starting {}".format(fname))
+                self.indexed_dirs.add(dirname)
+                try:
+                    t = np.load(fname)
+                    if max(t.shape) > 0:
+                        temp_index.append(t)
+                    else:
+                        raise ValueError
+                except:
+                    logging.error("Could not load {}".format(fname))
+                    pass
+                else:
+                    for i, f in enumerate(file(fname.replace(".npy", ".framelist")).readlines()):
+                        detection_pk = f.strip()
+                        self.files[self.findex] = {
+                            'video_primary_key':dirname,
+                            'detection_primary_key':detection_pk
+                        }
+                        self.findex += 1
+                    logging.info("Loaded {}".format(fname))
+        if self.index is None:
+            self.index = np.concatenate(temp_index)
+            self.index = self.index.squeeze()
+            logging.info(self.index.shape)
+        elif temp_index:
+            self.index = np.concatenate([self.index, np.concatenate(temp_index).squeeze()])
+            logging.info(self.index.shape)
+
+
+    def apply(self,image_path):
+        self.load()
+        images = facenet.load_data([image_path,], do_random_crop=False, do_random_flip=False, image_size=self.image_size,do_prewhiten=True)
+        feed_dict = {self.images_placeholder: images, self.phase_train_placeholder: False}
+        return self.session.run(self.embeddings, feed_dict=feed_dict)
+
 
 if 'ALEX_ENABLE' in os.environ:
     INDEXERS = {

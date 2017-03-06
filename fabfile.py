@@ -133,15 +133,19 @@ def restart_queues(detection=False):
     tries to kill all celery workers and restarts them
     :return:
     """
-    try:
-        local("ps auxww | grep 'celery -A dva worker * ' | awk '{print $2}' | xargs kill -9")
-    except:
-        pass
+    kill_queues()
     local('fab startq:extractor &')
     local('fab startq:indexer &')
     local('fab startq:retriever &')
     if detection:
         local('fab startq:detector &')
+
+@task
+def kill_queues():
+    try:
+        local("ps auxww | grep 'celery -A dva worker * ' | awk '{print $2}' | xargs kill -9")
+    except:
+        pass
 
 
 @task

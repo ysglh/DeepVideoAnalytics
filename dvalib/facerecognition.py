@@ -106,7 +106,7 @@ def align(image_paths, output_dir, image_size=182, margin=44, gpu_memory_fractio
     return aligned_paths
 
 
-def represent(paths, output_dir):
+def represent(paths, paths_to_pk, output_dir):
     with tf.Graph().as_default():
         with tf.Session() as sess:
             output_dir = os.path.expanduser(output_dir)
@@ -120,7 +120,6 @@ def represent(paths, output_dir):
             phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")
             image_size = images_placeholder.get_shape()[1]
             embedding_size = embeddings.get_shape()[1]
-            # Run forward pass to calculate embeddings
             logging.info('Generating embeddings from images...\n')
             start_time = time.time()
             batch_size = 25
@@ -134,17 +133,16 @@ def represent(paths, output_dir):
                 end_index = min((i + 1) * batch_size, nrof_images)
                 paths_batch = paths[start_index:end_index]
                 for fname in paths_batch:
-                    path_count[fname] = count
+                    path_count[count] = paths_to_pk[fname]
                     count += 1
                 images = facenet.load_data(paths_batch, do_random_crop=False, do_random_flip=False,image_size=image_size, do_prewhiten=True)
                 feed_dict = {images_placeholder: images, phase_train_placeholder: False}
                 emb_array[start_index:end_index, :] = sess.run(embeddings, feed_dict=feed_dict)
-
             time_avg_forward_pass = (time.time() - start_time) / float(nrof_images)
             logging.info("Forward pass took avg of %.3f[seconds/image] for %d images\n" % (time_avg_forward_pass, nrof_images))
             logging.info("Finally saving embeddings and gallery to: %s" % (output_dir))
             np.save(os.path.join(output_dir, "facenet.npy"), emb_array)
             with open(os.path.join(output_dir, "facenet.framelist"),'w') as fh:
-                for k,v in path_count.iteritems():
-                    fh.write("{}\t{}\n".format(k,v))
+                for c in range(count):
+                    fh.write("{}\n".format(path_count[c]))
             return path_count,emb_array

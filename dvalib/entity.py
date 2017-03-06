@@ -20,6 +20,14 @@ class WQuery(object):
             results[index_name] = index.nearest(image_path=self.local_path,n=n)
         return results
 
+    def find_face(self,n=10):
+        results = {}
+        for index_name,index in indexer.FACEINDEXERS.iteritems():
+            results[index_name] = []
+            index.load_index(path=self.media_dir)
+            results[index_name] = index.nearest(image_path=self.local_path,n=n)
+        return results
+
 class WVideo(object):
 
     def __init__(self,dvideo,media_dir,rescaled_width=600):

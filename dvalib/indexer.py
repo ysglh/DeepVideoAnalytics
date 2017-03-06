@@ -273,3 +273,7 @@ else:
         'inception':InceptionIndexer(),
     }
 
+FACEINDEXERS = {
+    'facenet':FacenetIndexer(),
+}
+

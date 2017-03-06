@@ -71,6 +71,35 @@ def query_by_image(query_id):
     return results
 
 
+@app.task(name="query_face_by_id")
+def query_face_by_image(query_id):
+    dq = Query.objects.get(id=query_id)
+    start = TEvent()
+    start.video_id = Video.objects.get(parent_query=dq).pk
+    start.started = True
+    start.operation = query_face_by_image.name
+    start.save()
+    start_time = time.time()
+    Q = entity.WQuery(dquery=dq, media_dir=settings.MEDIA_ROOT)
+    results = Q.find_face()
+    for algo,rlist in results.iteritems():
+        for r in rlist:
+            qr = QueryResults()
+            qr.query = dq
+            dd = Detection.objects.get(pk=r['detection_primary_key'])
+            qr.detection = dd
+            qr.frame_id = dd.frame_id
+            qr.video_id = r['video_primary_key']
+            qr.algorithm = algo
+            qr.rank = r['rank']
+            qr.distance = r['dist']
+            qr.save()
+    start.completed = True
+    start.seconds = time.time() - start_time
+    start.save()
+    return results
+
+
 @app.task(name="extract_frames_by_id")
 def extract_frames(video_id):
     start = TEvent()

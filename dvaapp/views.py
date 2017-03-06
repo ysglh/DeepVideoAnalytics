@@ -8,7 +8,7 @@ from django.views.generic import ListView,DetailView
 from django.utils.decorators import method_decorator
 from .forms import UploadFileForm,YTVideoForm
 from .models import Video,Frame,Detection,Query,QueryResults,TEvent,FrameLabel
-from .tasks import extract_frames,query_by_image
+from .tasks import extract_frames,query_by_image,query_face_by_image
 from dva.celery import app
 
 
@@ -33,6 +33,7 @@ def search(request):
         with open(query_frame_path,'w') as fh:
             fh.write(image_data)
         result = query_by_image.apply_async(args=[primary_key],queue=settings.Q_RETRIEVER)
+        result_face = query_face_by_image.apply_async(args=[primary_key],queue=settings.Q_FACE_RETRIEVER)
         user = request.user if request.user.is_authenticated() else None
         query.task_id = result.task_id
         query.user = user
@@ -45,6 +46,15 @@ def search(request):
                     r['url'] = '/media/{}/frames/{}.jpg'.format(r['video_primary_key'],r['frame_index'])
                     r['detections'] = [{'pk': d.pk, 'name': d.object_name, 'confidence': d.confidence} for d in Detection.objects.filter(frame_id=r['frame_primary_key'])]
                     results.append(r)
+        if result_face.successful():
+            face_entries = result_face.get()
+            if face_entries:
+                for algo,rlist in entries.iteritems():
+                    for r in rlist:
+                        r['url'] = '/media/{}/frames/{}.jpg'.format(r['video_primary_key'],r['frame_index'])
+                        d = Detection.objects.get(pk=r['detection_primary_key'])
+                        r['detections'] = [{'pk': d.pk, 'name': d.object_name, 'confidence': d.confidence},]
+                        results.append(r)
         return JsonResponse(data={'task_id':result.task_id,'primary_key':primary_key,'results':results})
 
 

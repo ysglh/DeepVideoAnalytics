@@ -77,6 +77,7 @@ class QueryResults(models.Model):
     query = models.ForeignKey(Query)
     video = models.ForeignKey(Video)
     frame = models.ForeignKey(Frame)
+    detection = models.ForeignKey(Detection,null=True)
     rank = models.IntegerField()
     algorithm = models.CharField(max_length=100)
     distance = models.FloatField(default=0.0)

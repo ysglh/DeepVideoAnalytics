@@ -137,6 +137,7 @@ def restart_queues(detection=False):
     local('fab startq:extractor &')
     local('fab startq:indexer &')
     local('fab startq:retriever &')
+    local('fab startq:face &')
     if detection:
         local('fab startq:detector &')
 
@@ -222,6 +223,7 @@ def launch_queues(detection=False):
     local('fab startq:extractor &')
     local('fab startq:indexer &')
     local('fab startq:retriever &')
+    local('fab startq:face &')
     if detection:
         local('fab startq:detector &')
 
@@ -243,6 +245,7 @@ def startq(queue_name):
     Q_EXTRACTOR = settings.Q_EXTRACTOR
     Q_DETECTOR = settings.Q_DETECTOR
     Q_RETRIEVER = settings.Q_RETRIEVER
+    Q_FACE = settings.Q_FACE_RETRIEVER
     if queue_name == 'indexer':
         command = 'celery -A dva worker -l info -c {} -Q {} -n {}.%h -f logs/{}.log'.format(1, Q_INDEXER, Q_INDEXER,Q_INDEXER)
     elif queue_name == 'extractor':
@@ -251,6 +254,8 @@ def startq(queue_name):
         command = 'celery -A dva worker -l info -c {} -Q {} -n {}.%h -f logs/{}.log'.format(1, Q_DETECTOR,Q_DETECTOR, Q_DETECTOR)
     elif queue_name == 'retriever':
         command = 'celery -A dva worker -l info -c {} -Q {} -n {}.%h -f logs/{}.log'.format(1, Q_RETRIEVER,Q_RETRIEVER,Q_RETRIEVER)
+    elif queue_name == 'face':
+        command = 'celery -A dva worker -l info -c {} -Q {} -n {}.%h -f logs/{}.log'.format(1, Q_FACE,Q_FACE,Q_FACE)
     else:
         raise NotImplementedError
     logging.info(command)

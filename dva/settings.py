@@ -37,6 +37,7 @@ Q_EXTRACTOR = 'qextract'
 Q_INDEXER = 'qindexer'
 Q_DETECTOR = 'qdetector'
 Q_RETRIEVER = 'qretriever'
+Q_FACE_RETRIEVER = 'qfaceretriever'
 
 # Application definition
 
@@ -182,7 +183,8 @@ TASK_NAMES_TO_QUEUE = {
     "index_by_id":Q_INDEXER,
     "query_by_id":Q_RETRIEVER,
     "extract_frames_by_id":Q_EXTRACTOR,
-    "perform_detection_by_id":Q_DETECTOR
+    "perform_detection_by_id":Q_DETECTOR,
+    "query_face_by_id":Q_FACE_RETRIEVER
 }
 
 POST_OPERATION_TASKS = {

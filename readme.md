@@ -23,7 +23,7 @@ by the vision research community.
 - Explore data, manually run code & tasks without UI via a jupyter notebook [explore.ipynb](experiments/Notebooks/explore.ipynb)
 - [Some documentation on design decision, architecture and deployment](/notes/readme.md).
 
-## Several models included out of the box
+## Models included out of the box
 **We take significant efforts to ensure that following models (code+weights included) work without having to write any code.**
 
 - [x] Indexing using Google inception V3 trained on Imagenet
@@ -31,20 +31,21 @@ by the vision research community.
 - [x] Alexnet using Pytorch  (disabled by default; set ALEX_ENABLE=1 in environment variable to use)
 - [x] [YOLO 9000](http://pjreddie.com/darknet/yolo/) (disabled by default; set YOLO_ENABLE=1 in environment variable to use)
 - [X] [Face detection/alignment/recognition using MTCNN and Facenet](https://github.com/davidsandberg/facenet) 
-- [ ] [Facebook FAISS for fast approximate similarity search (Coming very soon!)]()
+- [ ] [Facebook FAISS for fast approximate similarity search (coming very soon!)](https://github.com/facebookresearch/faiss)
 
 ## Potential algorithms/models 
+
 1. [ ] [Text detection models](http://www.robots.ox.ac.uk/~vgg/research/text/)
 2. [ ] [Soundnet (requires extracting mp3 audio)](http://projects.csail.mit.edu/soundnet/)
 3. [ ] [Pytorch Squeezenet](http://pytorch.org/docs/torchvision/models.html)
 4. [ ] [Mapnet (requires converting models from Marvin)](http://www.cs.princeton.edu/~aseff/mapnet/)   
 5. [ ] [Keras-js](https://github.com/transcranial/keras-js) which uses Keras inception for client side indexing   
 
-### Open Issues & To Do
+## To Do
 
-- [ ] [OpenCV fails with double free error at cap.release() on some ubuntu machines in spite of running in a docker container](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/issues/4)
-- [ ] [When running SSD-TensorFlow in a celery task, the code aborts during second task, as a result its reloaded every time via a subprocess](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/issues/3)
-- [Please take a look at this board for planned future tasks](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/projects/1)
+[Please take a look at this board for planned future tasks](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/projects/1)
+
+
 
 
 ## Installation

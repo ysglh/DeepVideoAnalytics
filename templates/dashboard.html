@@ -162,7 +162,7 @@
         <div ng-repeat="item in row" class="col-lg-3 col-sm-3 col-xs-6" >
             <div class="box box-primary">
                 <div class="box-header with-border">
-                    <h4>Frame rank {[ item.rank+1 ]}</h4>
+                    <h4>Frame rank {[ item.rank ]}</h4>
                     <p>In  <a href="/videos/{[ item.video_primary_key ]}"> video </a> at {[ item.frame_index ]} found by algorithm {[ item.algo ]}</p>
                 </div>
                 <div class="box-body">
@@ -182,7 +182,7 @@
         <div ng-repeat="item in row" class="col-lg-3 col-sm-3 col-xs-6" >
             <div class="box box-primary">
                 <div class="box-header with-border">
-                    <h4>Detection rank {[ item.rank+1 ]}</h4>
+                    <h4>Detection rank {[ item.rank ]}</h4>
                     <p>In  <a href="/videos/{[ item.video_primary_key ]}"> video </a> at {[ item.frame_index ]} found by algorithm {[ item.algo ]}</p>
                 </div>
                 <div class="box-body">

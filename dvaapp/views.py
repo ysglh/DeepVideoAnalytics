@@ -176,7 +176,17 @@ class QueryDetail(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(QueryDetail, self).get_context_data(**kwargs)
-        context['result_list'] = QueryResults.objects.all().filter(query=self.object)
+        context['results'] = []
+        context['results_detections'] = []
+        for r in QueryResults.objects.all().filter(query=self.object):
+            if r.detection:
+                context['results_detections'].append((r.rank,r))
+            else:
+                context['results'].append((r.rank,r))
+        context['results_detections'].sort()
+        context['results'].sort()
+        context['results'] = zip(*context['results'])[1]
+        context['results_detections'] = zip(*context['results_detections'])[1]
         context['url'] = '{}/queries/{}.png'.format(settings.MEDIA_URL,self.object.pk,self.object.pk)
         return context
 

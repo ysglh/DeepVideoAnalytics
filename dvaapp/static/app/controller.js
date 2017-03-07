@@ -403,6 +403,7 @@ $scope.search = function () {
     }
     $scope.alert_status = true;
     $scope.results = [];
+    $scope.results_detections = [];
     $scope.$apply();
     $scope.$$phase || $scope.$digest();
     $scope.refreshData();
@@ -420,6 +421,7 @@ $scope.search = function () {
             $scope.alert_status = false;
             console.log(response);
             $scope.results = chunk(response.results, 4);
+            $scope.results_detections = chunk(response.results_detections, 4);
             $scope.$$phase || $scope.$digest();
         }
     });
@@ -454,6 +456,7 @@ cveditor.controller('CanvasControls', function($scope) {
     $scope.status = "Please add image to search or upload.";
     $scope.current_mode = null;
     $scope.results = [];
+    $scope.results_detections = [];
     addAccessors($scope);
     watchCanvas($scope);
 });

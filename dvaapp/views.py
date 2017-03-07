@@ -45,7 +45,9 @@ def search(request):
                 for r in rlist:
                     r['url'] = '/media/{}/frames/{}.jpg'.format(r['video_primary_key'],r['frame_index'])
                     r['detections'] = [{'pk': d.pk, 'name': d.object_name, 'confidence': d.confidence} for d in Detection.objects.filter(frame_id=r['frame_primary_key'])]
+                    r['result_type'] = 'frame'
                     results.append(r)
+        results_detections = []
         if result_face.successful():
             face_entries = result_face.get()
             if face_entries:
@@ -55,9 +57,13 @@ def search(request):
                         d = Detection.objects.get(pk=r['detection_primary_key'])
                         r['result_detect'] = True
                         r['frame_primary_key'] = d.frame_id
+                        r['result_type'] = 'detection'
                         r['detection'] = [{'pk': d.pk, 'name': d.object_name, 'confidence': d.confidence},]
-                        results.append(r)
-        return JsonResponse(data={'task_id':result.task_id,'primary_key':primary_key,'results':results})
+                        results_detections.append(r)
+        return JsonResponse(data={'task_id':result.task_id,
+                                  'primary_key':primary_key,
+                                  'results':results,
+                                  'results_detections':results_detections})
 
 
 def index(request,query_pk=None,frame_pk=None,detection_pk=None):

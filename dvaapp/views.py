@@ -54,6 +54,7 @@ def search(request):
                         r['url'] = '/media/{}/detections/{}.jpg'.format(r['video_primary_key'],r['detection_primary_key'])
                         d = Detection.objects.get(pk=r['detection_primary_key'])
                         r['result_detect'] = True
+                        r['frame_primary_key'] = d.frame_id
                         r['detection'] = [{'pk': d.pk, 'name': d.object_name, 'confidence': d.confidence},]
                         results.append(r)
         return JsonResponse(data={'task_id':result.task_id,'primary_key':primary_key,'results':results})

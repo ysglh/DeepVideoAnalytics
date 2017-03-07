@@ -49,8 +49,7 @@ by the vision research community.
 
 
 ## Installation
-
-**Pre-built docker images (corresponding to alpha version) for both CPU and GPU version are now [available on Docker Hub](https://hub.docker.com/r/akshayubhat/dva/tags/).** 
+**Pre-built docker images for both CPU & GPU versions are [available on Docker Hub](https://hub.docker.com/r/akshayubhat/dva/tags/).** 
 
 ### Mac, Windows or Linux without GPU
 You need to have latest version of Docker installed.

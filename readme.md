@@ -1,7 +1,7 @@
 #Deep Video Analytics  •  [![Build Status](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics.svg?branch=master)](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics)
 ![Banner](notes/banner_small.png "banner")
 
-#### Author: [Akshay Bhat, Cornell University.](http://www.akshaybhat.com)       
+#### Author [Akshay Bhat, Cornell University.](http://www.akshaybhat.com)       
 
 
 Deep Video Analytics provides a platform for indexing and extracting information from videos and images.
@@ -10,7 +10,7 @@ detected objects. The goal of Deep Video analytics is to become a quickly custom
 visual & video analytics applications, while benefiting from seamless integration with state or the art models released
 by the vision research community.
 
-##### self-promotion: If you are interested in Healthcare & Machine Learning please take a look at my another Open Source project [Computational Healthcare](http://www.computationalhealthcare.com) 
+##### Self-promotion: If you are interested in Healthcare & Machine Learning please take a look at my another Open Source project [Computational Healthcare](http://www.computationalhealthcare.com) 
 
 ## Features
 - Visual Search using Nearest Neighbors algorithm as a primary interface
@@ -33,11 +33,11 @@ by the vision research community.
 - [X] [Face detection/alignment/recognition using MTCNN and Facenet](https://github.com/davidsandberg/facenet) 
 - [ ] [Facebook FAISS for fast approximate similarity search (coming very soon!)](https://github.com/facebookresearch/faiss)
 
-## Potential algorithms/models 
+## Planned algorithms & models 
 
 1. [ ] [Text detection models](http://www.robots.ox.ac.uk/~vgg/research/text/)
 2. [ ] [Soundnet (requires extracting mp3 audio)](http://projects.csail.mit.edu/soundnet/)
-3. [ ] [Pytorch Squeezenet](http://pytorch.org/docs/torchvision/models.html)
+3. [ ] [Open Images dataset pretrained inception v3](https://github.com/openimages/dataset)
 4. [ ] [Mapnet (requires converting models from Marvin)](http://www.cs.princeton.edu/~aseff/mapnet/)   
 5. [ ] [Keras-js](https://github.com/transcranial/keras-js) which uses Keras inception for client side indexing   
 
@@ -45,22 +45,22 @@ by the vision research community.
 
 [Please take a look at this board for planned future tasks](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/projects/1)
 
-
-
-
 ## Installation
+
 **Pre-built docker images for both CPU & GPU versions are [available on Docker Hub](https://hub.docker.com/r/akshayubhat/dva/tags/).** 
 
-### Mac, Windows or Linux without GPU
-You need to have latest version of Docker installed.
+### Machines without an Nvidia GPU
+Deep Video analytics is implemented using Docker and works on Mac, Windows and Linux. 
+
 ````bash
 git clone https://github.com/AKSHAYUBHAT/DeepVideoAnalytics 
 cd DeepVideoAnalytics/docker && docker-compose up 
 ````
 
-### Machines with NVidia GPU 
+### Machines with Nvidia GPU 
 You need to have latest version of Docker and nvidia-docker installed.
-Replace docker-compose by nvidia-docker-compose, the Dockerfile uses tensorflow gpu base image and appropriate version of pytorch. The Makefile for Darknet is also modified accordingly. This code was tested using an older NVidia Titan GPU and nvidia-docker.
+The GPU Dockerfile is slightly different from the CPU version dockerfile.
+
 
 ```bash
 pip install --upgrade nvidia-docker-compose
@@ -69,19 +69,24 @@ cd DeepVideoAnalytics/docker_GPU && ./rebuild.sh
 nvidia-docker-compose up 
 ```
 
-### AWS EC2 P2 instances
-We provide an AMI will all dependencies such as docker & drivers. Start a P2.xlarge instance with **ami-b3cc1fa5** (N. Virginia), ports 8000, 6006, 8888 open (preferably to only your IP) and run following command after ssh'ing into the machine. 
+### Multiple machines
+Its possible to deploy Deep Video Analytics on multiple machines. Configuring Postgres and RabbitMQ is straightforward. The main issues is correctly mounting the shared media folder (ideally a mounted EFS or NFS).
+Please [read this regarding trade offs](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/notes/architecture.md).
+
+### Amazon P2 instance
+We provide an AMI with all dependencies such as docker & nvidia drivers pre-installed. 
+To use it start a P2.xlarge instance with **ami-b3cc1fa5** (N. Virginia) and ports 8000, 6006, 8888 open (preferably to only your IP). 
+Run following commands after logging into the machine via SSH. 
 ```bash
 cd deepvideoanalytics && git pull 
 cd docker_GPU && ./rebuild.sh && nvidia-docker-compose up 
 ```
-you can optionally specify "-d" at the end to detach it, but for the very first time its useful to read how each container is started. After approximately 3 ~ 5 minutes the user interface will appear on port 8000 of the instance ip.
-The Process used for [AMI creation is here](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/notes/ami.md) **Security warning!** The current GPU container uses nginx <-> uwsgi <-> django setup to ensure smooth playback of videos. 
-However it runs nginix as root (though within the container). Considering that you can now modify AWS Security rules on-the-fly, I highly recommend allowing inbound traffic only from your own IP address.
+You can optionally specify "-d" at the end to detach it, but for the very first time its useful to read how each container is started. After approximately 5 ~ 1 minutes the user interface will appear on port 8000 of the instance ip.
+The Process used for [AMI creation is here](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/notes/ami.md) 
 
-### Multiple machines
-Configuring Postgres and RabbitMQ is straightforward. The main issues is correctly mounting the shared media folder (ideally a mounted EFS or NFS).
-Please [read this regarding trade offs](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/notes/architecture.md).
+**Security warning:** The current GPU container uses nginx <-> uwsgi <-> django setup to ensure smooth playback of videos. 
+However it runs nginix as root (though within the container). Considering that you can now modify AWS Security rules on-the-fly, I highly recommend allowing inbound traffic only from your own IP address.)
+
 
 ## Options
 Following options can be specified in docker-compose.yml, or your environment to selectively enable/disable algorithms.

@@ -185,8 +185,10 @@ class QueryDetail(DetailView):
                 context['results'].append((r.rank,r))
         context['results_detections'].sort()
         context['results'].sort()
-        context['results'] = zip(*context['results'])[1]
-        context['results_detections'] = zip(*context['results_detections'])[1]
+        if context['results']:
+            context['results'] = zip(*context['results'])[1]
+        if context['results_detections']:
+            context['results_detections'] = zip(*context['results_detections'])[1]
         context['url'] = '{}/queries/{}.png'.format(settings.MEDIA_URL,self.object.pk,self.object.pk)
         return context
 

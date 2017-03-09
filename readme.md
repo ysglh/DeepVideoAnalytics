@@ -100,15 +100,20 @@ Following options can be specified in docker-compose.yml, or your environment to
 ![Architecture](notes/architecture.png "System architecture")
 
 ## User Interface 
-### Search
+#### Search across frames
 ![UI Screenshot](notes/search.png "search")
-### Past queries
+#### And specific detected objects such as Faces
+![UI Screenshot](notes/face_recognition.png "face recognition")
+#### Past queries
+![UI Screenshot](notes/query_list.png "past queries")
 ![UI Screenshot](notes/past_query.png "past queries")
-### Video list / detail
+#### Video list / detail
 ![UI Screenshot](notes/video_list.png "Video list")
 ![UI Screenshot](notes/video_detail.png "detail")
-### Frame detail
+#### Frame detail
 ![UI Screenshot](notes/frame_detail.png "Frame detail")
+#### View status of running tasks/queries, retry/rerun failed tasks
+![UI Screenshot](notes/status.png "Frame detail")
 
 ## Libraries & Code used
 

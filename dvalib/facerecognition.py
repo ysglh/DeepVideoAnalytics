@@ -147,4 +147,4 @@ def represent(paths, paths_to_pk, output_dir):
             fh = open(os.path.join(output_dir, "facenet.json"), 'w')
             json.dump(entries,fh)
             fh.close()
-            return path_count,emb_array
+            return path_count,emb_array,entries

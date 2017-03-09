@@ -199,4 +199,12 @@ def perform_face_indexing(video_id):
             count += 1
     dv.detections = dv.detections + count
     dv.save()
-    facerecognition.represent(faces,faces_to_pk,indexes_dir)
+    path_count, emb_array, entries = facerecognition.represent(faces,faces_to_pk,indexes_dir)
+    i = IndexEntries()
+    i.video = dv
+    i.count = len(entries)
+    i.contains_frames = False
+    i.contains_detections = True
+    i.detection_name = "Face"
+    i.algorithm = 'facenet'
+    i.save()

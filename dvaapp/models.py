@@ -59,7 +59,6 @@ class Detection(models.Model):
 
 class IndexEntries(models.Model):
     video = models.ForeignKey(Video)
-    framelist = models.CharField(max_length=100)
     algorithm = models.CharField(max_length=100)
     detection_name = models.CharField(max_length=100)
     count = models.IntegerField()
@@ -67,6 +66,7 @@ class IndexEntries(models.Model):
     contains_frames = models.BooleanField(default=False)
     contains_detections = models.BooleanField(default=False)
     created = models.DateTimeField('date created', auto_now_add=True)
+
 
 class TEvent(models.Model):
     started = models.BooleanField(default=False)

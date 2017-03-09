@@ -214,6 +214,9 @@ class FacenetIndexer(BaseIndexer):
         feed_dict = {self.images_placeholder: images, self.phase_train_placeholder: False}
         return self.session.run(self.embeddings, feed_dict=feed_dict)
 
+    def index_frames(self, frames, video):
+        raise NotImplementedError,"Use represent in facerecognition.py to build index"
+
 
 if 'ALEX_ENABLE' in os.environ:
     INDEXERS = {

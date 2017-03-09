@@ -90,9 +90,9 @@ RUN git pull
 RUN cd dvalib/ssd/checkpoints && unzip ssd_300_vgg.ckpt.zip
 RUN apt-get update && apt-get install -y liblapack3 libopenblas-dev
 RUN git pull
-WORKDIR "/root/DVA/faiss"
-RUN make
-RUN make py
+#WORKDIR "/root/DVA/faiss"
+#RUN make
+#RUN make py
 WORKDIR "/root/DVA"
 RUN git pull
 RUN cd dvalib/facenet/facenet_model && wget https://www.dropbox.com/s/2unad9skmc7msel/model-20170306-150500.ckpt-250000.data-00000-of-00001 && cd ../../..

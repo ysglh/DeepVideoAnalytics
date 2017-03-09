@@ -12,20 +12,30 @@ class WQuery(object):
         self.primary_key = self.dquery.pk
         self.local_path = "{}/queries/{}.png".format(self.media_dir,self.primary_key)
 
-    def find(self,n=10):
+    def find(self,n,index_entries):
         results = {}
-        for index_name,index in indexer.INDEXERS.iteritems():
-            results[index_name] = []
-            index.load_index(path=self.media_dir)
-            results[index_name] = index.nearest(image_path=self.local_path,n=n)
+        for index_name,visual_index in indexer.INDEXERS.iteritems():
+            for entry in index_entries:
+                if entry.video_id not in visual_index.indexed_dirs:
+                    fname = "{}/{}/indexes/{}.npy".format(self.media_dir, entry.video_id, index_name)
+                    vectors = np.load(fname)
+                    vector_entries = json.load(file(fname.replace(".npy", ".json")))
+                    visual_index.load_video_index(entry.video_id,vectors,vector_entries)
+        for index_name,visual_index in indexer.INDEXERS.iteritems():
+            results[index_name] = visual_index.nearest(image_path=self.local_path,n=n)
         return results
 
-    def find_face(self,n=10):
+    def find_face(self,n,index_entries):
         results = {}
-        for index_name,index in indexer.FACEINDEXERS.iteritems():
-            results[index_name] = []
-            index.load_index(path=self.media_dir)
-            results[index_name] = index.nearest(image_path=self.local_path,n=n)
+        index_name = 'facenet'
+        visual_index = indexer.FACEINDEXERS[index_name]
+        for index_entry in index_entries:
+            if index_entry.video_id not in visual_index.indexed_dirs and index_entry.algorithm == index_name:
+                fname = "{}/{}/indexes/{}.npy".format(self.media_dir, index_entry.video_id, index_name)
+                vectors = np.load(fname)
+                vector_entries = json.load(file(fname.replace(".npy", ".json")))
+                visual_index.load_video_index(index_entry.video_id, vectors, vector_entries)
+        results[index_name] = visual_index.nearest(image_path=self.local_path,n=n)
         return results
 
 class WVideo(object):

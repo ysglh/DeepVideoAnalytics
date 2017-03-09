@@ -18,37 +18,23 @@ class BaseIndexer(object):
         self.indexed_dirs = set()
         self.index, self.files, self.findex = None, {}, 0
 
-    def load_index(self,path):
-        temp_index = []
-        for dirname in os.listdir(path +"/"):
-            fname = "{}/{}/indexes/{}.npy".format(path,dirname,self.name)
-            if dirname not in self.indexed_dirs and dirname != 'queries' and os.path.isfile(fname):
-                logging.info("Starting {}".format(fname))
-                self.indexed_dirs.add(dirname)
-                try:
-                    t = np.load(fname)
-                    if max(t.shape) > 0:
-                        temp_index.append(t)
-                    else:
-                        raise ValueError
-                except:
-                    logging.error("Could not load {}".format(fname))
-                    pass
-                else:
-                    with file(fname.replace(".npy", ".json")) as entryfile:
-                        entries = json.load(entryfile)
-                    for i, e in enumerate(entries):
-                        self.files[self.findex] = e
-                        self.files[self.findex]['video_primary_key'] = dirname
-                        self.findex += 1
-                    logging.info("Loaded {}".format(fname))
-        if self.index is None:
-            self.index = np.concatenate(temp_index)
-            self.index = self.index.squeeze()
-            logging.info(self.index.shape)
-        elif temp_index:
-            self.index = np.concatenate([self.index, np.concatenate(temp_index).squeeze()])
-            logging.info(self.index.shape)
+    def load_video_index(self,video_id,numpy_matrix,entries):
+        if video_id not in self.indexed_dirs:
+            logging.info("Starting {}".format(video_id))
+            temp_index = [numpy_matrix, ]
+            self.indexed_dirs.add(video_id)
+            for i, e in enumerate(entries):
+                self.files[self.findex] = e
+                self.files[self.findex]['video_primary_key'] = video_id
+                self.findex += 1
+            logging.info("Loaded {}".format(video_id))
+            if self.index is None:
+                self.index = np.concatenate(temp_index)
+                self.index = self.index.squeeze()
+                logging.info(self.index.shape)
+            else:
+                self.index = np.concatenate([self.index, np.concatenate(temp_index).squeeze()])
+                logging.info(self.index.shape)
 
     def nearest(self,image_path,n=12):
         query_vector = self.apply(image_path)

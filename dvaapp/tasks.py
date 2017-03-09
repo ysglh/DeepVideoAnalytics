@@ -52,7 +52,8 @@ def query_by_image(query_id):
     start.save()
     start_time = time.time()
     Q = entity.WQuery(dquery=dq, media_dir=settings.MEDIA_ROOT)
-    results = Q.find()
+    index_entries = IndexEntries.objects.all()
+    results = Q.find(10,index_entries)
     dq.results = True
     dq.results_metadata = json.dumps(results)
     for algo,rlist in results.iteritems():
@@ -82,7 +83,8 @@ def query_face_by_image(query_id):
     start.save()
     start_time = time.time()
     Q = entity.WQuery(dquery=dq, media_dir=settings.MEDIA_ROOT)
-    results = Q.find_face()
+    index_entries = IndexEntries.objects.all()
+    results = Q.find_face(10,index_entries)
     for algo,rlist in results.iteritems():
         for r in rlist:
             qr = QueryResults()

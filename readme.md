@@ -109,9 +109,9 @@ Following options can be specified in docker-compose.yml, or your environment to
 ![UI Screenshot](notes/past_query.png "past queries")
 #### Video list / detail
 ![UI Screenshot](notes/video_list.png "Video list")
-![UI Screenshot](notes/video_detail.png "detail")
+![UI Screenshot](notes/video_detail_new.png "detail")
 #### Frame detail
-![UI Screenshot](notes/frame_detail.png "Frame detail")
+![UI Screenshot](notes/frame_detail_new.png "Frame detail")
 #### View status of running tasks/queries, retry/rerun failed tasks
 ![UI Screenshot](notes/status.png "Frame detail")
 

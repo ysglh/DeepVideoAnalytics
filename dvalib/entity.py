@@ -110,11 +110,11 @@ class WVideo(object):
         return frames
 
     def index_frames(self,frames):
-        results = []
+        results = {}
         wframes = [WFrame(video=self, frame_index=df.frame_index,primary_key=df.pk) for df in frames]
         for index_name,index in indexer.INDEXERS.iteritems():
             index.load()
-            results.append(index.index_frames(wframes,self))
+            results['index_name'] = index.index_frames(wframes,self)
         return results
 
 class WFrame(object):

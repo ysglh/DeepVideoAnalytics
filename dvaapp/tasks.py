@@ -29,11 +29,12 @@ def perform_indexing(video_id):
     dv = Video.objects.get(id=video_id)
     video = entity.WVideo(dv, settings.MEDIA_ROOT)
     frames = Frame.objects.all().filter(video=dv)
-    for index_results in video.index_frames(frames):
+    for index_name,index_results in video.index_frames(frames).iteritems():
         i = IndexEntries()
         i.video = dv
-        i.count = index_results['count']
-        i.algorithm = index_results['index_name']
+        i.count = len(index_results)
+        i.contains_frames = True
+        i.algorithm = index_name
         i.save()
     process_video_next(video_id, start.operation)
     start.completed = True

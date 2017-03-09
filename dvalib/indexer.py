@@ -94,7 +94,7 @@ class BaseIndexer(object):
             np.save(feats, np.array(features))
         with open(entries_fname, 'w') as entryfile:
             json.dump(entries,entryfile)
-        return {'index_name':self.name,'count':len(features)}
+        return entries
 
 
 class AlexnetIndexer(BaseIndexer):

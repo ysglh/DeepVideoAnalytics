@@ -124,7 +124,7 @@ class WVideo(object):
         wframes = [WFrame(video=self, frame_index=df.frame_index,primary_key=df.pk) for df in frames]
         for index_name,index in indexer.INDEXERS.iteritems():
             index.load()
-            results['index_name'] = index.index_frames(wframes,self)
+            results[index_name] = index.index_frames(wframes,self)
         return results
 
 class WFrame(object):

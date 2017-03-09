@@ -34,6 +34,7 @@ def perform_indexing(video_id):
         i.video = dv
         i.count = len(index_results)
         i.contains_frames = True
+        i.detection_name = 'Frame'
         i.algorithm = index_name
         i.save()
     process_video_next(video_id, start.operation)

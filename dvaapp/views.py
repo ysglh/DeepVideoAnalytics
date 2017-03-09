@@ -213,6 +213,11 @@ def status(request):
     return render_status(request,context)
 
 
+def indexes(request):
+    context = {}
+    return render(request, 'indexes.html', context)
+
+
 def retry_task(request,pk):
     event = TEvent.objects.get(pk=int(pk))
     context = {}

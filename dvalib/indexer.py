@@ -82,7 +82,7 @@ class BaseIndexer(object):
         for i,f in enumerate(frames):
             entry = {
                 'frame_index':f.frame_index,
-                'primary_key':f.primary_key,
+                'frame_primary_key':f.primary_key,
                 'index':i,
                 'type':'frame'
             }

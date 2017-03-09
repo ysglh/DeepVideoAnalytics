@@ -32,7 +32,7 @@ import tensorflow as tf
 import numpy as np
 from .facenet import facenet
 from .facenet.align import detect_face
-import random
+import random, json
 from time import sleep
 
 
@@ -123,14 +123,20 @@ def represent(paths, paths_to_pk, output_dir):
             emb_array = np.zeros((nrof_images, embedding_size))
             count = 0
             path_count = {}
-            fh = open(os.path.join(output_dir, "facenet.framelist"),'w')
+            entries = []
             for i in xrange(nrof_batches):
                 start_index = i * batch_size
                 end_index = min((i + 1) * batch_size, nrof_images)
                 paths_batch = paths[start_index:end_index]
-                for fname in paths_batch:
+                for eindex, fname in enumerate(paths_batch):
                     count += 1
-                    fh.write("{}_{}\n".format(fname,paths_to_pk[fname]))
+                    entry = {
+                        'path': fname,
+                        'detection_primary_key': paths_to_pk[fname],
+                        'index': eindex,
+                        'type': 'detection'
+                    }
+                    entries.append(entry)
                 images = facenet.load_data(paths_batch, do_random_crop=False, do_random_flip=False,image_size=image_size, do_prewhiten=True)
                 feed_dict = {images_placeholder: images, phase_train_placeholder: False}
                 emb_array[start_index:end_index, :] = sess.run(embeddings, feed_dict=feed_dict)
@@ -138,5 +144,7 @@ def represent(paths, paths_to_pk, output_dir):
             logging.info("Forward pass took avg of %.3f[seconds/image] for %d images\n" % (time_avg_forward_pass, nrof_images))
             logging.info("Finally saving embeddings and gallery to: %s" % (output_dir))
             np.save(os.path.join(output_dir, "facenet.npy"), emb_array)
+            fh = open(os.path.join(output_dir, "facenet.json"), 'w')
+            json.dump(entries,fh)
             fh.close()
             return path_count,emb_array

@@ -35,19 +35,11 @@ class BaseIndexer(object):
                     logging.error("Could not load {}".format(fname))
                     pass
                 else:
-                    for i, f in enumerate(file(fname.replace(".npy", ".framelist")).readlines()):
-                        frame_index,frame_pk = f.strip().split('_')
-                        self.files[self.findex] = {
-                            'frame_index':frame_index,
-                            'video_primary_key':dirname,
-                            'frame_primary_key':frame_pk
-                        }
-                        # _,detection_pk = f.strip().split('_')
-                        # self.files[self.findex] = {
-                        #     'video_primary_key':dirname,
-                        #     'detection_primary_key':int(detection_pk)
-                        # }
-
+                    with file(fname.replace(".npy", ".json")) as entryfile:
+                        entries = json.load(entryfile)
+                    for i, e in enumerate(entries):
+                        self.files[self.findex] = e
+                        self.files[self.findex]['video_primary_key'] = dirname
                         self.findex += 1
                     logging.info("Loaded {}".format(fname))
         if self.index is None:
@@ -108,6 +100,7 @@ class BaseIndexer(object):
 class AlexnetIndexer(BaseIndexer):
 
     def __init__(self):
+        super(AlexnetIndexer, self).__init__()
         self.name = "alexnet"
         self.net = None
         self.transform = None
@@ -141,6 +134,7 @@ class AlexnetIndexer(BaseIndexer):
 class InceptionIndexer(BaseIndexer):
 
     def __init__(self):
+        super(InceptionIndexer, self).__init__()
         self.name = "tfinception"
         self.net = None
         self.tf = True
@@ -184,6 +178,7 @@ class InceptionIndexer(BaseIndexer):
 class FacenetIndexer(BaseIndexer):
 
     def __init__(self):
+        super(FacenetIndexer, self).__init__()
         self.name = "facenet"
         self.net = None
         self.tf = True

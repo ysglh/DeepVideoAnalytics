@@ -1,12 +1,10 @@
 import numpy as np
-import os,glob,logging
+import os,logging,json
 import torch
 import PIL
 from torch.autograd import Variable
 from torchvision import transforms
 from torchvision.models import alexnet
-# import alexnet
-from scipy import spatial
 import tensorflow as tf
 from scipy import spatial
 from tensorflow.python.platform import gfile
@@ -44,7 +42,12 @@ class BaseIndexer(object):
                             'video_primary_key':dirname,
                             'frame_primary_key':frame_pk
                         }
-                        # ENGINE.store_vector(index[-1][i, :], "{}".format(findex))
+                        # _,detection_pk = f.strip().split('_')
+                        # self.files[self.findex] = {
+                        #     'video_primary_key':dirname,
+                        #     'detection_primary_key':int(detection_pk)
+                        # }
+
                         self.findex += 1
                     logging.info("Loaded {}".format(fname))
         if self.index is None:
@@ -59,7 +62,6 @@ class BaseIndexer(object):
         query_vector = self.apply(image_path)
         temp = []
         dist = []
-        logging.info("started query")
         for k in xrange(self.index.shape[0]):
             temp.append(self.index[k])
             if (k+1) % 50000 == 0:
@@ -71,7 +73,6 @@ class BaseIndexer(object):
             dist.append(spatial.distance.cdist(query_vector,temp))
         dist = np.hstack(dist)
         ranked = np.squeeze(dist.argsort())
-        logging.info("query finished")
         results = []
         for i, k in enumerate(ranked[:n]):
             temp = {'rank':i+1,'algo':self.name,'dist':dist[0,k]}
@@ -79,19 +80,28 @@ class BaseIndexer(object):
             results.append(temp)
         return results
 
+    def apply(self,path):
+        raise NotImplementedError
+
     def index_frames(self,frames,video):
-        files = []
+        entries = []
         features = []
         media_dir = video.media_dir
-        for f in frames:
-            files.append("{}_{}".format(f.frame_index,f.primary_key))
+        for i,f in enumerate(frames):
+            entry = {
+                'frame_index':f.frame_index,
+                'primary_key':f.primary_key,
+                'index':i,
+                'type':'frame'
+            }
+            entries.append(entry)
             features.append(self.apply(f.local_path()))
         feat_fname = "{}/{}/indexes/{}.npy".format(media_dir,video.primary_key,self.name)
-        files_fname = "{}/{}/indexes/{}.framelist".format(media_dir, video.primary_key,self.name)
+        entries_fname = "{}/{}/indexes/{}.json".format(media_dir, video.primary_key,self.name)
         with open(feat_fname, 'w') as feats:
             np.save(feats, np.array(features))
-        with open(files_fname, 'w') as filelist:
-            filelist.write("\n".join(files))
+        with open(entries_fname, 'w') as entryfile:
+            json.dump(entries,entryfile)
         return {'index_name':self.name,'count':len(features)}
 
 
@@ -171,7 +181,7 @@ class InceptionIndexer(BaseIndexer):
         return np.atleast_2d(np.squeeze(pool3_features))
 
 
-class FacenetIndexer():
+class FacenetIndexer(BaseIndexer):
 
     def __init__(self):
         self.name = "facenet"
@@ -197,62 +207,6 @@ class FacenetIndexer():
             self.phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")
             self.image_size = self.images_placeholder.get_shape()[1]
             self.embedding_size = self.embeddings.get_shape()[1]
-
-    def nearest(self,image_path,n=12):
-        query_vector = self.apply(image_path)
-        temp = []
-        dist = []
-        for k in xrange(self.index.shape[0]):
-            temp.append(self.index[k])
-            if (k+1) % 50000 == 0:
-                temp = np.transpose(np.dstack(temp)[0])
-                dist.append(spatial.distance.cdist(query_vector,temp))
-                temp = []
-        if temp:
-            temp = np.transpose(np.dstack(temp)[0])
-            dist.append(spatial.distance.cdist(query_vector,temp))
-        dist = np.hstack(dist)
-        ranked = np.squeeze(dist.argsort())
-        results = []
-        for i, k in enumerate(ranked[:n]):
-            temp = {'rank':i+1,'algo':self.name,'dist':dist[0,k]}
-            temp.update(self.files[k])
-            results.append(temp)
-        return results
-
-    def load_index(self,path):
-        temp_index = []
-        for dirname in os.listdir(path +"/"):
-            fname = "{}/{}/indexes/{}.npy".format(path,dirname,self.name)
-            if dirname not in self.indexed_dirs and dirname != 'queries' and os.path.isfile(fname):
-                logging.info("Starting {}".format(fname))
-                self.indexed_dirs.add(dirname)
-                try:
-                    t = np.load(fname)
-                    if max(t.shape) > 0:
-                        temp_index.append(t)
-                    else:
-                        raise ValueError
-                except:
-                    logging.error("Could not load {}".format(fname))
-                    pass
-                else:
-                    for i, f in enumerate(file(fname.replace(".npy", ".framelist")).readlines()):
-                        _,detection_pk = f.strip().split('_')
-                        self.files[self.findex] = {
-                            'video_primary_key':dirname,
-                            'detection_primary_key':int(detection_pk)
-                        }
-                        self.findex += 1
-                    logging.info("Loaded {}".format(fname))
-        if self.index is None:
-            self.index = np.concatenate(temp_index)
-            self.index = self.index.squeeze()
-            logging.info(self.index.shape)
-        elif temp_index:
-            self.index = np.concatenate([self.index, np.concatenate(temp_index).squeeze()])
-            logging.info(self.index.shape)
-
 
     def apply(self,image_path):
         self.load()

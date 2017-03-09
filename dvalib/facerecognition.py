@@ -80,13 +80,6 @@ def align(image_paths, output_dir, image_size=182, margin=44, gpu_memory_fractio
                 det_all = bounding_boxes[:, 0:4]
                 img_size = np.asarray(img.shape)[0:2]
                 for boxindex in range(nrof_faces):
-                    # if nrof_faces > 1:
-                    #     bounding_box_size = (det[:, 2] - det[:, 0]) * (det[:, 3] - det[:, 1])
-                    #     img_center = img_size / 2
-                    #     offsets = np.vstack([(det[:, 0] + det[:, 2]) / 2 - img_center[1],(det[:, 1] + det[:, 3]) / 2 - img_center[0]])
-                    #     offset_dist_squared = np.sum(np.power(offsets, 2.0), 0)
-                    #     index = np.argmax(bounding_box_size - offset_dist_squared * 2.0)  # some extra weight on the centering
-                    #     det = det[index, :]
                     det = np.squeeze(det_all[boxindex, :])
                     bb = np.zeros(4, dtype=np.int32)
                     bb[0] = np.maximum(det[0] - margin / 2, 0)

@@ -121,7 +121,7 @@ class InceptionIndexer(BaseIndexer):
 
     def __init__(self):
         super(InceptionIndexer, self).__init__()
-        self.name = "tfinception"
+        self.name = "inception"
         self.net = None
         self.tf = True
         self.session = None

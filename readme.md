@@ -31,7 +31,7 @@ by the vision research community.
 - [x] Alexnet using Pytorch  (disabled by default; set ALEX_ENABLE=1 in environment variable to use)
 - [x] [YOLO 9000](http://pjreddie.com/darknet/yolo/) (disabled by default; set YOLO_ENABLE=1 in environment variable to use)
 - [X] [Face detection/alignment/recognition using MTCNN and Facenet](https://github.com/davidsandberg/facenet) 
-
+- [ ] [Facebook FAISS for fast approximate similarity search (coming very soon!)](https://github.com/facebookresearch/faiss)
 
 ## Planned algorithms & models 
 
@@ -39,9 +39,7 @@ by the vision research community.
 2. [ ] [Soundnet (requires extracting mp3 audio)](http://projects.csail.mit.edu/soundnet/)
 3. [ ] [Open Images dataset pretrained inception v3](https://github.com/openimages/dataset)
 4. [ ] [Mapnet (requires converting models from Marvin)](http://www.cs.princeton.edu/~aseff/mapnet/)   
-5. [ ] [Keras-js](https://github.com/transcranial/keras-js) which uses Keras inception for client side indexing
-6. [ ] [Facebook FAISS for fast approximate similarity search (postponed due to use of non-derivative clause in the license)](https://github.com/facebookresearch/faiss)   
-   
+5. [ ] [Keras-js](https://github.com/transcranial/keras-js) which uses Keras inception for client side indexing   
 
 ## To Do
 
@@ -125,6 +123,7 @@ Following options can be specified in docker-compose.yml, or your environment to
 - FabricJS [License](https://github.com/kangax/fabric.js/blob/master/LICENSE)
 - Modified PySceneDetect [License](https://github.com/Breakthrough/PySceneDetect)
 - Modified SSD-Tensorflow [Individual files are marked as Apache](https://github.com/balancap/SSD-Tensorflow)
+- FAISS [License (Non Commercial)](https://github.com/facebookresearch/faiss)
 - Facenet [License](https://github.com/davidsandberg/facenet)
 - MTCNN [TensorFlow port of MTCNN for face detection/alignment](https://github.com/kpzhang93/MTCNN_face_detection_alignment)
 - Docker 
@@ -132,8 +131,8 @@ Following options can be specified in docker-compose.yml, or your environment to
 - OpenCV
 - Numpy
 - FFMPEG
-- Tensorflow 
-- FAISS [Removed from the REPO due to No Derivatives license terms](https://github.com/facebookresearch/faiss)
+- Tensorflow
+
 # References
 
 1. Schroff, Florian, Dmitry Kalenichenko, and James Philbin. "Facenet: A unified embedding for face recognition and clustering." Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition. 2015.

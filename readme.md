@@ -126,6 +126,7 @@ Following options can be specified in docker-compose.yml, or your environment to
 - FAISS [License (Non Commercial)](https://github.com/facebookresearch/faiss)
 - Facenet [License](https://github.com/davidsandberg/facenet)
 - MTCNN [TensorFlow port of MTCNN for face detection/alignment](https://github.com/kpzhang93/MTCNN_face_detection_alignment)
+- Locally Optimized Product Quantization [License](https://github.com/yahoo/lopq/blob/master/LICENSE)
 - Docker 
 - Nvidia-docker
 - OpenCV

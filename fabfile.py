@@ -436,3 +436,30 @@ def perform_face_detection(video_id):
     django.setup()
     from dvaapp.tasks import perform_face_indexing
     perform_face_indexing(int(video_id))
+
+
+@task
+def build_approximate_index(index_name):
+    import django
+    sys.path.append(os.path.dirname(__file__))
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
+    django.setup()
+    from dvaapp.models import  IndexEntries
+    from django.conf import settings
+    from dvalib import approximate
+    import numpy as np
+    data = []
+    for entry in IndexEntries.objects.all():
+        fname = "{}/{}/indexes/{}.npy".format(settings.MEDIA_ROOT, entry.video_id, index_name)
+        vectors = np.load(fname)
+        data.append(vectors)
+    data = np.concatenate(data).squeeze()
+    logging.info("performing fit on {}".format(data.shape))
+    try:
+        os.mkdir("{}/approximate/".format(settings.MEDIA_ROOT))
+    except:
+        pass
+    lmdb_path = "{}/approximate/{}_lmdb".format(settings.MEDIA_ROOT,index_name)
+    model_path = "{}/approximate/{}_model".format(settings.MEDIA_ROOT,index_name)
+    approximate_model = approximate.ApproximateIndexer(index_name,model_path,lmdb_path)
+    approximate_model.prepare(data)

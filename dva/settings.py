@@ -190,3 +190,20 @@ TASK_NAMES_TO_QUEUE = {
 POST_OPERATION_TASKS = {
     "extract_frames_by_id":["perform_detection_by_id",'index_by_id']
 }
+
+VISUAL_INDEXES = {
+    'inception':
+        {
+            'indexer_task':"index_by_id",
+            'indexer_queue':Q_INDEXER,
+            'retriever_queue':Q_RETRIEVER,
+            'detection_specific':False
+        },
+    'facenet':
+        {
+            'indexer_task': "perform_detection_by_id",
+            'indexer_queue': Q_DETECTOR,
+            'retriever_queue': Q_FACE_RETRIEVER,
+            'detection_specific': True
+        }
+}

@@ -438,29 +438,24 @@ def perform_face_detection(video_id):
     perform_face_indexing(int(video_id))
 
 
-@task
-def build_approximate_index(index_name):
+def setup_django():
     import django
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
-    from dvaapp.models import  IndexEntries
-    from django.conf import settings
-    from dvalib import approximate
-    import numpy as np
-    data = []
-    for entry in IndexEntries.objects.all():
-        fname = "{}/{}/indexes/{}.npy".format(settings.MEDIA_ROOT, entry.video_id, index_name)
-        vectors = np.load(fname)
-        data.append(vectors)
-    data = np.concatenate(data).squeeze()
-    logging.info("performing fit on {}".format(data.shape))
-    try:
-        os.mkdir("{}/approximate/".format(settings.MEDIA_ROOT))
-    except:
-        pass
-    lmdb_path = "{}/approximate/{}_lmdb".format(settings.MEDIA_ROOT,index_name)
-    model_path = "{}/approximate/{}_model".format(settings.MEDIA_ROOT,index_name)
-    approximate_model = approximate.ApproximateIndexer(index_name,model_path,lmdb_path)
-    approximate_model.prepare(data)
-    print approximate_model.search(data[0,:])
+
+
+@task
+def build_external_products_index(input_dir='/Users/aub3/temptest/gtin/', output_dir="/Users/aub3/temptest/products"):
+    """
+    Build external index for products
+    :param input_dir:
+    :param output_dir:
+    :return:
+    """
+    sys.path.append(os.path.dirname(__file__))
+    from dvalib import external_indexed
+    products = external_indexed.ProductsIndex(path=output_dir)
+    products.prepare(input_dir)
+    products.build_approximate()
+

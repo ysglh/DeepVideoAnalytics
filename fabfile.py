@@ -463,3 +463,4 @@ def build_approximate_index(index_name):
     model_path = "{}/approximate/{}_model".format(settings.MEDIA_ROOT,index_name)
     approximate_model = approximate.ApproximateIndexer(index_name,model_path,lmdb_path)
     approximate_model.prepare(data)
+    print approximate_model.search(data[0,:])

@@ -54,3 +54,4 @@ script:
   - wget localhost:8000/videos/1/
   - wget localhost:8000/status
   - wget localhost:8000/queries/
+  - fab build_external_products_index:"tests/external/gtin","tests/external/products"

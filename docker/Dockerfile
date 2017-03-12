@@ -57,6 +57,7 @@ RUN pip install --upgrade pip \
                           requests \
                           pandas \
                           boto3 \
+                          awscli \
                           protobuf \
                           scikit-learn \
                           humanize

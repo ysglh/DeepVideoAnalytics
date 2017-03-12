@@ -10,6 +10,9 @@ class ApproximateIndexer(object):
         self.model_path = model_path
         self.lmdb_path = lmdb_path
 
+    def load(self):
+        self.model.load_proto(self.model_path)
+
     def prepare(self,data):
         print "fitting"
         self.model.fit(data)

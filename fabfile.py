@@ -459,3 +459,9 @@ def build_external_products_index(input_dir='/Users/aub3/temptest/gtin/', output
     products.prepare(input_dir)
     products.build_approximate()
 
+@task
+def push_external_products_index(path='/Users/aub3/temptest/products/'):
+    sys.path.append(os.path.dirname(__file__))
+    from dvalib import external_indexed
+    products = external_indexed.ProductsIndex(path=path)
+    products.push_to_s3()

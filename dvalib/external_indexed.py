@@ -1,5 +1,5 @@
 from .indexer import InceptionIndexer
-import os,shutil,json
+import os,shutil,json, boto3, subprocess, time
 import numpy as np
 import logging
 import approximate
@@ -28,6 +28,20 @@ class ExternalIndexed(object):
             except:
                 pass
 
+    def push_to_s3(self):
+        s3 = boto3.resource('s3')
+        s3.create_bucket(Bucket=self.bucket_name)
+        time.sleep(30) # wait for it to create the bucket
+        upload = subprocess.Popen(args=["aws","s3","cp",".","s3://{}/".format(self.bucket_name),'--recursive'],cwd=self.path)
+        upload.communicate()
+        upload.wait()
+        bucket_request_payment = s3.BucketRequestPayment(self.bucket_name)
+        response = bucket_request_payment.put(RequestPaymentConfiguration={'Payer': 'Requester'})
+        bucket_policy = s3.BucketPolicy(self.bucket_name)
+        response = bucket_policy.put(Policy=json.dumps({"Version": "2012-10-17", "Statement": [
+            {"Sid": "AddPerm", "Effect": "Allow", "Principal": "*", "Action": "s3:GetObject",
+             "Resource": "arn:aws:s3:::{}/*".format(self.bucket_name)}]}))
+
 
 class ProductsIndex(ExternalIndexed):
 
@@ -35,7 +49,7 @@ class ProductsIndex(ExternalIndexed):
         super(ProductsIndex, self).__init__(path=path)
         self.indexer = InceptionIndexer()
         self.name = "products"
-
+        self.bucket_name = "aub3dvaproducts"
 
     def prepare(self,input_path):
         super(ProductsIndex, self).prepare(input_path)
@@ -70,6 +84,11 @@ class ProductsIndex(ExternalIndexed):
             temp = json.load(metadata)
         self.image_filenames = temp['images']
         self.feature_filenames = temp['features']
+
+    def load_approximate(self):
+        lmdb_path = "{}/approximate/{}_lmdb".format(self.path, self.indexer.name)
+        model_path = "{}/approximate/{}_model".format(self.path, self.indexer.name)
+        approximate_model = approximate.ApproximateIndexer(self.indexer.name, model_path, lmdb_path)
 
     def build_approximate(self):
         data = []

@@ -225,6 +225,7 @@ def perform_detection(video_id):
 
 
 def perform_face_indexing(video_id):
+    face_indexer = indexer.FacenetIndexer()
     dv = Video.objects.get(id=video_id)
     video = entity.WVideo(dv, settings.MEDIA_ROOT)
     frames = Frame.objects.all().filter(video=dv)
@@ -256,7 +257,7 @@ def perform_face_indexing(video_id):
             count += 1
     dv.detections = dv.detections + count
     dv.save()
-    path_count, emb_array, entries = facerecognition.represent(faces,faces_to_pk,indexes_dir)
+    path_count, emb_array, entries = face_indexer.index_faces(faces,faces_to_pk,indexes_dir,video_id)
     i = IndexEntries()
     i.video = dv
     i.count = len(entries)

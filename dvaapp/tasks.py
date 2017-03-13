@@ -9,21 +9,8 @@ from dvalib import indexer
 from dvalib import facerecognition
 from PIL import Image
 import json
+import celery
 import zipfile
-
-if 'ALEX_ENABLE' in os.environ:
-    INDEXERS = {
-        'alex':indexer.AlexnetIndexer(),
-        'inception':indexer.InceptionIndexer(),
-    }
-else:
-    INDEXERS = {
-        'inception':indexer.InceptionIndexer(),
-    }
-
-FACEINDEXERS = {
-    'facenet':indexer.FacenetIndexer(),
-}
 
 
 def process_video_next(video_id,current_task_name):
@@ -31,9 +18,34 @@ def process_video_next(video_id,current_task_name):
         for k in settings.POST_OPERATION_TASKS[current_task_name]:
             app.send_task(k,args=[video_id,],queue=settings.TASK_NAMES_TO_QUEUE[k])
 
+class IndexerTask(celery.Task):
+    _frame_indexer = None
+    _detection_indexer = None
+
+    @property
+    def frame_indexer(self):
+        if self._frame_indexer is None:
+            if 'ALEX_ENABLE' in os.environ:
+                self._frame_indexer = {
+                    'alex': indexer.AlexnetIndexer(),
+                    'inception': indexer.InceptionIndexer(),
+                }
+            else:
+                self._frame_indexer = {
+                    'inception': indexer.InceptionIndexer(),
+                }
+        return self._frame_indexer
+
+    @property
+    def detection_indexer(self):
+        if self._detection_indexer is None:
+            self._detection_indexer = {
+                'facenet':indexer.FacenetIndexer(),
+            }
+        return self._detection_indexer
 
 
-@app.task(name="index_by_id")
+@app.task(name="index_by_id",base=IndexerTask)
 def perform_indexing(video_id):
     start = TEvent()
     start.video_id = video_id
@@ -44,7 +56,7 @@ def perform_indexing(video_id):
     dv = Video.objects.get(id=video_id)
     video = entity.WVideo(dv, settings.MEDIA_ROOT)
     frames = Frame.objects.all().filter(video=dv)
-    for index_name,index_results in video.index_frames(frames,INDEXERS).iteritems():
+    for index_name,index_results in video.index_frames(frames,perform_indexing.frame_indexer).iteritems():
         i = IndexEntries()
         i.video = dv
         i.count = len(index_results)
@@ -58,7 +70,7 @@ def perform_indexing(video_id):
     start.save()
 
 
-@app.task(name="query_by_id")
+@app.task(name="query_by_id",base=IndexerTask)
 def query_by_image(query_id):
     dq = Query.objects.get(id=query_id)
     start = TEvent()
@@ -67,7 +79,7 @@ def query_by_image(query_id):
     start.operation = query_by_image.name
     start.save()
     start_time = time.time()
-    Q = entity.WQuery(dquery=dq, media_dir=settings.MEDIA_ROOT,frame_indexers=INDEXERS,detection_indexers=FACEINDEXERS)
+    Q = entity.WQuery(dquery=dq, media_dir=settings.MEDIA_ROOT,frame_indexers=perform_indexing.frame_indexer,detection_indexers=perform_indexing.detection_indexer)
     index_entries = IndexEntries.objects.all()
     results = Q.find(10,index_entries)
     dq.results = True

@@ -101,7 +101,7 @@ def query_by_image(query_id):
     return results
 
 
-@app.task(name="query_face_by_id")
+@app.task(name="query_face_by_id",base=IndexerTask)
 def query_face_by_image(query_id):
     dq = Query.objects.get(id=query_id)
     start = TEvent()
@@ -110,7 +110,7 @@ def query_face_by_image(query_id):
     start.operation = query_face_by_image.name
     start.save()
     start_time = time.time()
-    Q = entity.WQuery(dquery=dq, media_dir=settings.MEDIA_ROOT)
+    Q = entity.WQuery(dquery=dq, media_dir=settings.MEDIA_ROOT,frame_indexers=query_face_by_image.frame_indexer,detection_indexers=query_face_by_image.detection_indexer)
     index_entries = IndexEntries.objects.all()
     results = Q.find_face(10,index_entries)
     for algo,rlist in results.iteritems():

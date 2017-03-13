@@ -1,10 +1,13 @@
 import numpy as np
 import os,logging,json
-import torch
 import PIL
-from torch.autograd import Variable
-from torchvision import transforms
-from torchvision.models import alexnet
+try:
+    import torch
+    from torch.autograd import Variable
+    from torchvision import transforms
+    from torchvision.models import alexnet
+except ImportError:
+    logging.warning("Could not import torch")
 from scipy import spatial
 from tensorflow.python.platform import gfile
 from facenet import facenet

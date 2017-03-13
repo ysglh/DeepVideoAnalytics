@@ -1,27 +1,31 @@
 #Deep Video Analytics  •  [![Build Status](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics.svg?branch=master)](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics)
 ![Banner](notes/banner_small.png "banner")
-
+![UI Screenshot](notes/face_recognition.png "face recognition")
 #### Author [Akshay Bhat, Cornell University.](http://www.akshaybhat.com)       
 
 
 Deep Video Analytics provides a platform for indexing and extracting information from videos and images.
-Deep learning detection and recognition algorithms are used for indexing individual frames / images along with 
+Deep learning detection and recognition algorithms are used for indexing individual frames/images along with 
 detected objects. The goal of Deep Video analytics is to become a quickly customizable platform for developing 
-visual & video analytics applications, while benefiting from seamless integration with state or the art models released
-by the vision research community.
+visual & video analytics applications, while benefiting from seamless integration with state or the art models & datasets
+released by the vision research community.
 
-##### Self-promotion: If you are interested in Healthcare & Machine Learning please take a look at my another Open Source project [Computational Healthcare](http://www.computationalhealthcare.com) 
+[For quick overview of vision behind this project please go through this presentation.](https://docs.google.com/presentation/d/1nweK60ywx1h-MMg75oo0E5jwBQtrFIVK6hPgMuB985U/edit?usp=sharing)
+
+##### self-promotion: If you are interested in Healthcare & Machine Learning please take a look at my another Open Source project [Computational Healthcare](http://www.computationalhealthcare.com) 
 
 ## Features
 - Visual Search using Nearest Neighbors algorithm as a primary interface
 - Upload videos, multiple images (zip file with folder names as labels)
 - Provide Youtube url to be automatically processed/downloaded by youtube-dl
-- Metadata stored in Postgres
-- Operations (Querying, Frame extraction & Indexing) performed using celery tasks and RabbitMQ
-- Separate queues and workers for selection of machines with different specifications (GPU vs RAM) 
+- Leverage pre-trained object recognition/detection, face recognition models for analysis and visual search.
+- Query against pre-indexed external datasets containing millions of images.
+- Metadata stored in Postgres, Operations performed asynchronously using celery tasks. 
+- Separate queues and workers for selection of machines with different specifications (GPU vs RAM).
 - Videos, frames, indexes, numpy vectors stored in media directory, served through nginx
 - Explore data, manually run code & tasks without UI via a jupyter notebook [explore.ipynb](experiments/Notebooks/explore.ipynb)
 - [Some documentation on design decision, architecture and deployment](/notes/readme.md).
+
 
 ## Models included out of the box
 **We take significant efforts to ensure that following models (code+weights included) work without having to write any code.**
@@ -33,16 +37,20 @@ by the vision research community.
 - [X] [Face detection/alignment/recognition using MTCNN and Facenet](https://github.com/davidsandberg/facenet) 
 - [ ] [Facebook FAISS for fast approximate similarity search (coming very soon!)](https://github.com/facebookresearch/faiss)
 
-## Planned algorithms & models 
+## External datasets indexed for use
 
-1. [ ] [Text detection models](http://www.robots.ox.ac.uk/~vgg/research/text/)
-2. [ ] [Soundnet (requires extracting mp3 audio)](http://projects.csail.mit.edu/soundnet/)
-3. [ ] [Open Images dataset pretrained inception v3](https://github.com/openimages/dataset)
-4. [ ] [Mapnet (requires converting models from Marvin)](http://www.cs.princeton.edu/~aseff/mapnet/)   
-5. [ ] [Keras-js](https://github.com/transcranial/keras-js) which uses Keras inception for client side indexing   
+- [ ] [Product images data (coming soon!)](www.product-open-data.com/download/)
+- [ ] [Visual Genome (coming soon!)](http://visualgenome.org/)
+
+## Planned models and datasets
+
+- [ ] [Text detection models](http://www.robots.ox.ac.uk/~vgg/research/text/)
+- [ ] [Soundnet (requires extracting mp3 audio)](http://projects.csail.mit.edu/soundnet/)
+- [ ] [Open Images dataset pretrained inception v3](https://github.com/openimages/dataset)
+- [ ] [Mapnet (requires converting models from Marvin)](http://www.cs.princeton.edu/~aseff/mapnet/)   
+- [ ] [Keras-js](https://github.com/transcranial/keras-js) which uses Keras inception for client side indexing   
 
 ## To Do
-
 [Please take a look at this board for planned future tasks](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/projects/1)
 
 ## Installation

@@ -49,7 +49,7 @@ released by the vision research community.
 - [ ] [Open Images dataset pretrained inception v3](https://github.com/openimages/dataset)   
 - [ ] [Keras-js](https://github.com/transcranial/keras-js) which uses Keras inception for client side indexing   
 
-## Approximate Nearest Neighbors algorithm
+## Approximate Nearest Neighbors indexing algorithms
 
 - [ ] [Yahoo/Flickr Locally Optimized Product Quantization (currently being integrated for querying external data)](https://github.com/yahoo/lopq)
 - [ ] [Facebook FAISS for fast approximate similarity search (lower priority)](https://github.com/facebookresearch/faiss)

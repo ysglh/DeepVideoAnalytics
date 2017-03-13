@@ -14,29 +14,16 @@ class WQuery(object):
         self.frame_indexers = frame_indexers
         self.detection_indexers = detection_indexers
 
-    def find(self,n,index_entries):
+    def find(self,n):
         results = {}
-        for index_name,visual_index in self.frame_indexers.iteritems():
-            for entry in index_entries:
-                if entry.video_id not in visual_index.indexed_dirs:
-                    fname = "{}/{}/indexes/{}.npy".format(self.media_dir, entry.video_id, index_name)
-                    vectors = np.load(fname)
-                    vector_entries = json.load(file(fname.replace(".npy", ".json")))
-                    visual_index.load_video_index(entry.video_id,vectors,vector_entries)
         for index_name,visual_index in self.frame_indexers.iteritems():
             results[index_name] = visual_index.nearest(image_path=self.local_path,n=n)
         return results
 
-    def find_face(self,n,index_entries):
+    def find_face(self,n):
         results = {}
         index_name = 'facenet'
         visual_index = self.detection_indexers[index_name]
-        for index_entry in index_entries:
-            if index_entry.video_id not in visual_index.indexed_dirs and index_entry.algorithm == index_name:
-                fname = "{}/{}/indexes/{}.npy".format(self.media_dir, index_entry.video_id, index_name)
-                vectors = np.load(fname)
-                vector_entries = json.load(file(fname.replace(".npy", ".json")))
-                visual_index.load_video_index(index_entry.video_id, vectors, vector_entries)
         results[index_name] = visual_index.nearest(image_path=self.local_path,n=n)
         return results
 

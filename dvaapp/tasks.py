@@ -18,6 +18,7 @@ def process_video_next(video_id,current_task_name):
         for k in settings.POST_OPERATION_TASKS[current_task_name]:
             app.send_task(k,args=[video_id,],queue=settings.TASK_NAMES_TO_QUEUE[k])
 
+
 class IndexerTask(celery.Task):
     _frame_indexer = None
     _detection_indexer = None
@@ -43,6 +44,26 @@ class IndexerTask(celery.Task):
                 'facenet':indexer.FacenetIndexer(),
             }
         return self._detection_indexer
+
+    def refresh_all_frame_indexes(self):
+        index_entries = IndexEntries.objects.all()
+        for index_name, visual_index in self.frame_indexers.iteritems():
+            for entry in index_entries:
+                if entry.video_id not in visual_index.indexed_dirs:
+                    fname = "{}/{}/indexes/{}.npy".format(settings.MEDIA_ROOT, entry.video_id, index_name)
+                    vectors = indexer.np.load(fname)
+                    vector_entries = json.load(file(fname.replace(".npy", ".json")))
+                    visual_index.load_video_index(entry.video_id, vectors, vector_entries)
+
+    def refresh_detection_index(self,index_name):
+        index_entries = IndexEntries.objects.all()
+        face_index = self.detection_indexer[index_name]
+        for index_entry in index_entries:
+            if index_entry.video_id not in face_index.indexed_dirs and index_entry.algorithm == index_name:
+                fname = "{}/{}/indexes/{}.npy".format(settings.MEDIA_ROOT, index_entry.video_id, index_name)
+                vectors = indexer.np.load(fname)
+                vector_entries = json.load(file(fname.replace(".npy", ".json")))
+                face_index.load_video_index(index_entry.video_id, vectors, vector_entries)
 
 
 @app.task(name="index_by_id",base=IndexerTask)
@@ -79,9 +100,9 @@ def query_by_image(query_id):
     start.operation = query_by_image.name
     start.save()
     start_time = time.time()
-    Q = entity.WQuery(dquery=dq, media_dir=settings.MEDIA_ROOT,frame_indexers=perform_indexing.frame_indexer,detection_indexers=perform_indexing.detection_indexer)
-    index_entries = IndexEntries.objects.all()
-    results = Q.find(10,index_entries)
+    query_by_image.refresh_all_frame_indexes()
+    Q = entity.WQuery(dquery=dq, media_dir=settings.MEDIA_ROOT,frame_indexers=query_by_image.frame_indexer,detection_indexers=query_by_image.detection_indexer)
+    results = Q.find(10)
     dq.results = True
     dq.results_metadata = json.dumps(results)
     for algo,rlist in results.iteritems():
@@ -111,8 +132,8 @@ def query_face_by_image(query_id):
     start.save()
     start_time = time.time()
     Q = entity.WQuery(dquery=dq, media_dir=settings.MEDIA_ROOT,frame_indexers=query_face_by_image.frame_indexer,detection_indexers=query_face_by_image.detection_indexer)
-    index_entries = IndexEntries.objects.all()
-    results = Q.find_face(10,index_entries)
+    query_face_by_image.refresh_detection_index('facenet')
+    results = Q.find_face(10)
     for algo,rlist in results.iteritems():
         for r in rlist:
             qr = QueryResults()

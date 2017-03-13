@@ -1,34 +1,36 @@
 import shlex,json,os,zipfile,glob,logging
 import subprocess as sp
-import indexer
 import numpy as np
 import pyscenecustom
 
+
 class WQuery(object):
 
-    def __init__(self,dquery,media_dir):
+    def __init__(self,dquery,media_dir,frame_indexers,detection_indexers):
         self.media_dir = media_dir
         self.dquery = dquery
         self.primary_key = self.dquery.pk
         self.local_path = "{}/queries/{}.png".format(self.media_dir,self.primary_key)
+        self.frame_indexers = frame_indexers
+        self.detection_indexers = detection_indexers
 
     def find(self,n,index_entries):
         results = {}
-        for index_name,visual_index in indexer.INDEXERS.iteritems():
+        for index_name,visual_index in self.frame_indexers.iteritems():
             for entry in index_entries:
                 if entry.video_id not in visual_index.indexed_dirs:
                     fname = "{}/{}/indexes/{}.npy".format(self.media_dir, entry.video_id, index_name)
                     vectors = np.load(fname)
                     vector_entries = json.load(file(fname.replace(".npy", ".json")))
                     visual_index.load_video_index(entry.video_id,vectors,vector_entries)
-        for index_name,visual_index in indexer.INDEXERS.iteritems():
+        for index_name,visual_index in self.frame_indexers.iteritems():
             results[index_name] = visual_index.nearest(image_path=self.local_path,n=n)
         return results
 
     def find_face(self,n,index_entries):
         results = {}
         index_name = 'facenet'
-        visual_index = indexer.FACEINDEXERS[index_name]
+        visual_index = self.detection_indexers[index_name]
         for index_entry in index_entries:
             if index_entry.video_id not in visual_index.indexed_dirs and index_entry.algorithm == index_name:
                 fname = "{}/{}/indexes/{}.npy".format(self.media_dir, index_entry.video_id, index_name)
@@ -119,10 +121,10 @@ class WVideo(object):
                     logging.warning("skipping {} ".format(subdir))
         return frames
 
-    def index_frames(self,frames):
+    def index_frames(self,frames,indexers):
         results = {}
         wframes = [WFrame(video=self, frame_index=df.frame_index,primary_key=df.pk) for df in frames]
-        for index_name,index in indexer.INDEXERS.iteritems():
+        for index_name,index in indexers.iteritems():
             index.load()
             results[index_name] = index.index_frames(wframes,self)
         return results

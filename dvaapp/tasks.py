@@ -5,10 +5,25 @@ from dva.celery import app
 from .models import Video, Frame, Detection, TEvent, Query, IndexEntries,QueryResults, FrameLabel
 from dvalib import entity
 from dvalib import detector
+from dvalib import indexer
 from dvalib import facerecognition
 from PIL import Image
 import json
 import zipfile
+
+if 'ALEX_ENABLE' in os.environ:
+    INDEXERS = {
+        'alex':indexer.AlexnetIndexer(),
+        'inception':indexer.InceptionIndexer(),
+    }
+else:
+    INDEXERS = {
+        'inception':indexer.InceptionIndexer(),
+    }
+
+FACEINDEXERS = {
+    'facenet':indexer.FacenetIndexer(),
+}
 
 
 def process_video_next(video_id,current_task_name):
@@ -29,7 +44,7 @@ def perform_indexing(video_id):
     dv = Video.objects.get(id=video_id)
     video = entity.WVideo(dv, settings.MEDIA_ROOT)
     frames = Frame.objects.all().filter(video=dv)
-    for index_name,index_results in video.index_frames(frames).iteritems():
+    for index_name,index_results in video.index_frames(frames,INDEXERS).iteritems():
         i = IndexEntries()
         i.video = dv
         i.count = len(index_results)
@@ -52,7 +67,7 @@ def query_by_image(query_id):
     start.operation = query_by_image.name
     start.save()
     start_time = time.time()
-    Q = entity.WQuery(dquery=dq, media_dir=settings.MEDIA_ROOT)
+    Q = entity.WQuery(dquery=dq, media_dir=settings.MEDIA_ROOT,frame_indexers=INDEXERS,detection_indexers=FACEINDEXERS)
     index_entries = IndexEntries.objects.all()
     results = Q.find(10,index_entries)
     dq.results = True

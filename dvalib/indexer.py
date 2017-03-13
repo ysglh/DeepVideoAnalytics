@@ -204,17 +204,4 @@ class FacenetIndexer(BaseIndexer):
         raise NotImplementedError,"Use represent in facerecognition.py to build index"
 
 
-if 'ALEX_ENABLE' in os.environ:
-    INDEXERS = {
-        'alex':AlexnetIndexer(),
-        'inception':InceptionIndexer(),
-    }
-else:
-    INDEXERS = {
-        'inception':InceptionIndexer(),
-    }
-
-FACEINDEXERS = {
-    'facenet':FacenetIndexer(),
-}
 

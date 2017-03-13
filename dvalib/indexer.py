@@ -5,10 +5,11 @@ import PIL
 from torch.autograd import Variable
 from torchvision import transforms
 from torchvision.models import alexnet
-import tensorflow as tf
 from scipy import spatial
 from tensorflow.python.platform import gfile
 from facenet import facenet
+import tensorflow as tf
+
 
 class BaseIndexer(object):
 

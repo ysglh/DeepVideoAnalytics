@@ -27,6 +27,7 @@ class WQuery(object):
         results[index_name] = visual_index.nearest(image_path=self.local_path,n=n)
         return results
 
+
 class WVideo(object):
 
     def __init__(self,dvideo,media_dir,rescaled_width=600):
@@ -113,7 +114,26 @@ class WVideo(object):
         wframes = [WFrame(video=self, frame_index=df.frame_index,primary_key=df.pk) for df in frames]
         for index_name,index in indexers.iteritems():
             index.load()
-            results[index_name] = index.index_frames(wframes,self)
+            entries = []
+            paths = []
+            for i, f in enumerate(wframes):
+                entry = {
+                    'frame_index': f.frame_index,
+                    'frame_primary_key': f.primary_key,
+                    'video_primary_key': self.primary_key,
+                    'index': i,
+                    'type': 'frame'
+                }
+                paths.append(f.local_path())
+                entries.append(entry)
+            features = index.index_paths(paths)
+            feat_fname = "{}/{}/indexes/{}.npy".format(self.media_dir, self.primary_key, index.name)
+            entries_fname = "{}/{}/indexes/{}.json".format(self.media_dir, self.primary_key, index.name)
+            with open(feat_fname, 'w') as feats:
+                np.save(feats, np.array(features))
+            with open(entries_fname, 'w') as entryfile:
+                json.dump(entries, entryfile)
+            results[index_name] = entries
         return results
 
 class WFrame(object):

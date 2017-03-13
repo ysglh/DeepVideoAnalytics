@@ -19,26 +19,21 @@ class BaseIndexer(object):
     def __init__(self):
         self.name = "base"
         self.net = None
-        self.indexed_dirs = set()
+        self.indexed_videos = set()
         self.index, self.files, self.findex = None, {}, 0
 
-    def load_video_index(self,video_id,numpy_matrix,entries):
-        if video_id not in self.indexed_dirs:
-            logging.info("Starting {}".format(video_id))
-            temp_index = [numpy_matrix, ]
-            self.indexed_dirs.add(video_id)
-            for i, e in enumerate(entries):
-                self.files[self.findex] = e
-                self.files[self.findex]['video_primary_key'] = video_id
-                self.findex += 1
-            logging.info("Loaded {}".format(video_id))
-            if self.index is None:
-                self.index = np.concatenate(temp_index)
-                self.index = self.index.squeeze()
-                logging.info(self.index.shape)
-            else:
-                self.index = np.concatenate([self.index, np.concatenate(temp_index).squeeze()])
-                logging.info(self.index.shape)
+    def load_index(self,numpy_matrix,entries):
+        temp_index = [numpy_matrix, ]
+        for i, e in enumerate(entries):
+            self.files[self.findex] = e
+            self.findex += 1
+        if self.index is None:
+            self.index = np.concatenate(temp_index)
+            self.index = self.index.squeeze()
+            logging.info(self.index.shape)
+        else:
+            self.index = np.concatenate([self.index, np.concatenate(temp_index).squeeze()])
+            logging.info(self.index.shape)
 
     def nearest(self,image_path,n=12):
         query_vector = self.apply(image_path)
@@ -65,26 +60,11 @@ class BaseIndexer(object):
     def apply(self,path):
         raise NotImplementedError
 
-    def index_frames(self,frames,video):
-        entries = []
+    def index_paths(self,paths):
         features = []
-        media_dir = video.media_dir
-        for i,f in enumerate(frames):
-            entry = {
-                'frame_index':f.frame_index,
-                'frame_primary_key':f.primary_key,
-                'index':i,
-                'type':'frame'
-            }
-            entries.append(entry)
-            features.append(self.apply(f.local_path()))
-        feat_fname = "{}/{}/indexes/{}.npy".format(media_dir,video.primary_key,self.name)
-        entries_fname = "{}/{}/indexes/{}.json".format(media_dir, video.primary_key,self.name)
-        with open(feat_fname, 'w') as feats:
-            np.save(feats, np.array(features))
-        with open(entries_fname, 'w') as entryfile:
-            json.dump(entries,entryfile)
-        return entries
+        for path in paths:
+            features.append(self.apply(path))
+        return features
 
 
 class AlexnetIndexer(BaseIndexer):
@@ -94,7 +74,6 @@ class AlexnetIndexer(BaseIndexer):
         self.name = "alexnet"
         self.net = None
         self.transform = None
-        self.indexed_dirs = set()
         self.index, self.files, self.findex = None, {}, 0
 
     def apply(self,path):
@@ -130,7 +109,6 @@ class InceptionIndexer(BaseIndexer):
         self.tf = True
         self.session = None
         self.graph_def = None
-        self.indexed_dirs = set()
         self.index, self.files, self.findex = None, {}, 0
 
     def load(self):
@@ -174,7 +152,6 @@ class FacenetIndexer(BaseIndexer):
         self.tf = True
         self.session = None
         self.graph_def = None
-        self.indexed_dirs = set()
         self.index, self.files, self.findex = None, {}, 0
 
     def load(self):

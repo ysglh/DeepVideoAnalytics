@@ -49,21 +49,27 @@ class IndexerTask(celery.Task):
         index_entries = IndexEntries.objects.all()
         for index_name, visual_index in self.frame_indexer.iteritems():
             for entry in index_entries:
-                if entry.video_id not in visual_index.indexed_dirs:
+                if entry.video_id not in visual_index.indexed_videos:
                     fname = "{}/{}/indexes/{}.npy".format(settings.MEDIA_ROOT, entry.video_id, index_name)
                     vectors = indexer.np.load(fname)
                     vector_entries = json.load(file(fname.replace(".npy", ".json")))
-                    visual_index.load_video_index(entry.video_id, vectors, vector_entries)
+                    logging.info("Starting {} in {}".format(entry.video_id,visual_index.name))
+                    visual_index.load_index(vectors, vector_entries)
+                    visual_index.indexed_videos.add(entry.video_id)
+                    logging.info("finished {} in {}, current shape {}".format(entry.video_id,visual_index.name,visual_index.index.shape))
 
     def refresh_detection_index(self,index_name):
         index_entries = IndexEntries.objects.all()
-        face_index = self.detection_indexer[index_name]
+        visual_index = self.detection_indexer[index_name]
         for index_entry in index_entries:
-            if index_entry.video_id not in face_index.indexed_dirs and index_entry.algorithm == index_name:
+            if index_entry.video_id not in index_entry.indexed_dirs and index_entry.algorithm == index_name:
                 fname = "{}/{}/indexes/{}.npy".format(settings.MEDIA_ROOT, index_entry.video_id, index_name)
                 vectors = indexer.np.load(fname)
                 vector_entries = json.load(file(fname.replace(".npy", ".json")))
-                face_index.load_video_index(index_entry.video_id, vectors, vector_entries)
+                logging.info("Starting {} in {}".format(index_entry.video_id, visual_index.name))
+                visual_index.load_index(vectors, vector_entries)
+                visual_index.indexed_videos.add(index_entry.video_id)
+                logging.info("finished {} in {}, current shape {}".format(index_entry.video_id, visual_index.name,visual_index.index.shape))
 
 
 @app.task(name="index_by_id",base=IndexerTask)

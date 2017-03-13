@@ -257,6 +257,7 @@ def load_data(image_paths, do_random_crop, do_random_flip, image_size, do_prewhi
     images = np.zeros((nrof_samples, image_size, image_size, 3))
     for i in range(nrof_samples):
         img = PIL.Image.open(image_paths[i]).convert('RGB')
+        img = np.array(img)
         if img.ndim == 2:
             img = to_rgb(img)
         if do_prewhiten:

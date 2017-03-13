@@ -21,4 +21,3 @@ https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.0.0a0-cp27-none
 enum34
 scikit-learn
 awscli
-Pillow

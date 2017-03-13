@@ -416,7 +416,7 @@ def pyscenedetect(video_id,rescaled_width=600):
 @task
 def process_video_list(filename):
     """
-    :return:
+    submit multiple videos from a json file
     """
     import django,json
     sys.path.append(os.path.dirname(__file__))

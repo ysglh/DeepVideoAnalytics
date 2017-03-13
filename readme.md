@@ -162,4 +162,8 @@ Following options can be specified in docker-compose.yml, or your environment to
 **Citation for Deep Video Analytics coming soon.**
 
 # Copyright
+
 **Copyright 2016-2017, Akshay Bhat, Cornell University, All rights reserved.**
+Please contact me for more information, I plan on relaxing the license soon, once a beta version is reached 
+(To the extent allowed by the code/models included.e.g. FAISS disallows commercial use.). 
+ 

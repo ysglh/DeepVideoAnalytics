@@ -47,7 +47,7 @@ class IndexerTask(celery.Task):
 
     def refresh_all_frame_indexes(self):
         index_entries = IndexEntries.objects.all()
-        for index_name, visual_index in self.frame_indexers.iteritems():
+        for index_name, visual_index in self.frame_indexer.iteritems():
             for entry in index_entries:
                 if entry.video_id not in visual_index.indexed_dirs:
                     fname = "{}/{}/indexes/{}.npy".format(settings.MEDIA_ROOT, entry.video_id, index_name)

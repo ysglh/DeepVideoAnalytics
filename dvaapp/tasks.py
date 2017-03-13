@@ -62,7 +62,7 @@ class IndexerTask(celery.Task):
         index_entries = IndexEntries.objects.all()
         visual_index = self.detection_indexer[index_name]
         for index_entry in index_entries:
-            if index_entry.video_id not in index_entry.indexed_dirs and index_entry.algorithm == index_name:
+            if index_entry.video_id not in visual_index.indexed_videos and index_entry.algorithm == index_name:
                 fname = "{}/{}/indexes/{}.npy".format(settings.MEDIA_ROOT, index_entry.video_id, index_name)
                 vectors = indexer.np.load(fname)
                 vector_entries = json.load(file(fname.replace(".npy", ".json")))

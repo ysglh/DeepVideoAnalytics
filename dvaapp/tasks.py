@@ -114,7 +114,7 @@ def facenet_query_by_image(query_id):
     start.save()
     start_time = time.time()
     facenet_query_by_image.refresh_index('facenet')
-    facenet = inception_query_by_image.visual_indexer['facenet']
+    facenet = facenet_query_by_image.visual_indexer['facenet']
     Q = entity.WQuery(dquery=dq, media_dir=settings.MEDIA_ROOT,visual_index=facenet)
     results = Q.find(10)
     for algo,rlist in results.iteritems():
@@ -182,16 +182,31 @@ def extract_frames(video_id):
     return 0
 
 
-@app.task(name="perform_detection_by_id")
-def perform_detection(video_id):
+@app.task(name="perform_yolo_ssd_detection_by_id")
+def perform_yolo_ssd_detection_by_id(video_id):
     start = TEvent()
     start.video_id = video_id
     start.started = True
-    start.operation = perform_detection.name
+    start.operation = perform_yolo_ssd_detection_by_id.name
     start.save()
     start_time = time.time()
     detector = subprocess.Popen(['fab','detect:{}'.format(video_id)],cwd=os.path.join(os.path.abspath(__file__).split('tasks.py')[0],'../'))
     detector.wait()
+    process_video_next(video_id,start.operation)
+    start.completed = True
+    start.seconds = time.time() - start_time
+    start.save()
+    return 0
+
+
+@app.task(name="perform_face_detection_indexing_by_id")
+def perform_face_detection_indexing_by_id(video_id):
+    start = TEvent()
+    start.video_id = video_id
+    start.started = True
+    start.operation = perform_face_detection_indexing_by_id.name
+    start.save()
+    start_time = time.time()
     face_detector = subprocess.Popen(['fab','perform_face_detection:{}'.format(video_id)],cwd=os.path.join(os.path.abspath(__file__).split('tasks.py')[0],'../'))
     face_detector.wait()
     process_video_next(video_id,start.operation)

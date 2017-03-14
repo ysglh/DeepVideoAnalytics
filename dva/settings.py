@@ -38,6 +38,7 @@ Q_INDEXER = 'qindexer'
 Q_DETECTOR = 'qdetector'
 Q_RETRIEVER = 'qretriever'
 Q_FACE_RETRIEVER = 'qfaceretriever'
+Q_FACE_DETECTOR = 'qfacedetector'
 
 # Application definition
 
@@ -184,12 +185,15 @@ TASK_NAMES_TO_QUEUE = {
     "inception_query_by_image":Q_RETRIEVER,
     "facenet_query_by_image":Q_FACE_RETRIEVER,
     "extract_frames_by_id":Q_EXTRACTOR,
-    "perform_detection_by_id":Q_DETECTOR
+    "perform_yolo_ssd_detection_by_id":Q_DETECTOR,
+    "perform_face_detection_indexing_by_id":Q_FACE_DETECTOR
 }
 
 POST_OPERATION_TASKS = {
-    "extract_frames_by_id":["perform_detection_by_id",'inpcetion_index_by_id']
-}
+    "extract_frames_by_id":['perform_yolo_ssd_detection_by_id',
+                            'inpcetion_index_by_id',
+                            'perform_face_detection_indexing_by_id']
+    }
 
 VISUAL_INDEXES = {
     'inception':

@@ -253,6 +253,14 @@ def render_status(request,context):
     except:
         context['retriever_log'] = ""
     try:
+        context['face_retriever_log'] = file("logs/{}.log".format(settings.Q_FACE_RETRIEVER)).read()
+    except:
+        context['face_retriever_log'] = ""
+    try:
+        context['face_detector_log'] = file("logs/{}.log".format(settings.Q_FACE_DETECTOR)).read()
+    except:
+        context['face_detector_log'] = ""
+    try:
         context['fab_log'] = file("logs/fab.log").read()
     except:
         context['fab_log'] = ""

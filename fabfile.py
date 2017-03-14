@@ -109,7 +109,7 @@ def clean():
     django.setup()
     from django.conf import settings
     if sys.platform == 'darwin':
-        for qname in ['qextract','qindexer','qdetector','qretriever']:
+        for qname in set(settings.TASK_NAMES_TO_QUEUE.values()):
             try:
                 local('rabbitmqadmin purge queue name={}'.format(qname))
             except:
@@ -138,6 +138,7 @@ def restart_queues(detection=False):
     local('fab startq:indexer &')
     local('fab startq:retriever &')
     local('fab startq:face &')
+    local('fab startq:facedetector &')
     if detection:
         local('fab startq:detector &')
 
@@ -162,7 +163,7 @@ def ci():
     from django.core.files.uploadedfile import SimpleUploadedFile
     from dvaapp.views import handle_uploaded_file, handle_youtube_video
     from dvaapp.models import Video
-    from dvaapp.tasks import extract_frames, perform_indexing, perform_detection
+    from dvaapp.tasks import extract_frames, perform_face_indexing, inpcetion_index_by_id, perform_yolo_ssd_detection_by_id
     for fname in glob.glob('tests/ci/*.mp4'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")
@@ -174,9 +175,10 @@ def ci():
     handle_youtube_video('tomorrow never dies', 'https://www.youtube.com/watch?v=gYtz5sw98Bc')
     for i,v in enumerate(Video.objects.all()):
         extract_frames(v.pk)
-        perform_indexing(v.pk)
+        inpcetion_index_by_id(v.pk)
         if i ==0: # save travis time by just running detection on first video
-            perform_detection(v.pk)
+            perform_yolo_ssd_detection_by_id(v.pk)
+            perform_face_indexing(v.pk)
     test_backup()
 
 
@@ -224,6 +226,7 @@ def launch_queues(detection=False):
     local('fab startq:indexer &')
     local('fab startq:retriever &')
     local('fab startq:face &')
+    local('fab startq:facedetector &')
     if detection:
         local('fab startq:detector &')
 
@@ -246,6 +249,7 @@ def startq(queue_name):
     Q_DETECTOR = settings.Q_DETECTOR
     Q_RETRIEVER = settings.Q_RETRIEVER
     Q_FACE = settings.Q_FACE_RETRIEVER
+    Q_FACEDETECTOR = settings.Q_FACE_DETECTOR
     if queue_name == 'indexer':
         command = 'celery -A dva worker -l info -c {} -Q {} -n {}.%h -f logs/{}.log'.format(1, Q_INDEXER, Q_INDEXER,Q_INDEXER)
     elif queue_name == 'extractor':
@@ -256,6 +260,8 @@ def startq(queue_name):
         command = 'celery -A dva worker -l info -c {} -Q {} -n {}.%h -f logs/{}.log'.format(1, Q_RETRIEVER,Q_RETRIEVER,Q_RETRIEVER)
     elif queue_name == 'face':
         command = 'celery -A dva worker -l info -P solo -c {} -Q {} -n {}.%h -f logs/{}.log'.format(1, Q_FACE,Q_FACE,Q_FACE)
+    elif queue_name == 'facedetector':
+        command = 'celery -A dva worker -l info -P solo -c {} -Q {} -n {}.%h -f logs/{}.log'.format(1, Q_FACEDETECTOR,Q_FACEDETECTOR,Q_FACEDETECTOR)
     else:
         raise NotImplementedError
     logging.info(command)
@@ -274,8 +280,6 @@ def test():
     django.setup()
     from django.core.files.uploadedfile import SimpleUploadedFile
     from dvaapp.views import handle_uploaded_file, handle_youtube_video
-    from dvaapp.models import Video
-    from dvaapp.tasks import extract_frames, perform_indexing, perform_detection
     for fname in glob.glob('tests/*.mp4'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")
@@ -418,6 +422,7 @@ def pyscenedetect(video_id,rescaled_width=600):
     v = entity.WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
     manager = pyscenecustom.manager.SceneManager(save_image_prefix="{}/{}/frames/".format(settings.MEDIA_ROOT, video_id), rescaled_width=int(rescaled_width))
     pyscenecustom.detect_scenes_file(v.local_path, manager)
+
 
 @task
 def process_video_list(filename):

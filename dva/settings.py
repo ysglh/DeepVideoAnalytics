@@ -198,23 +198,27 @@ POST_OPERATION_TASKS = {
 VISUAL_INDEXES = {
     'inception':
         {
-            'indexer_task':"index_by_id",
+            'indexer_task':"inpcetion_index_by_id",
             'indexer_queue':Q_INDEXER,
             'retriever_queue':Q_RETRIEVER,
             'detection_specific':False
         },
     'facenet':
         {
-            'indexer_task': "perform_detection_by_id",
-            'indexer_queue': Q_DETECTOR,
+            'indexer_task': "perform_face_detection_indexing_by_id",
+            'indexer_queue': Q_FACE_DETECTOR,
             'retriever_queue': Q_FACE_RETRIEVER,
             'detection_specific': True
         },
-    'alexnet':
-        {
-         'indexer_task': "perform_detection_by_id",
-         'indexer_queue': Q_DETECTOR,
-         'retriever_queue': Q_FACE_RETRIEVER,
-         'detection_specific': True
-        }
+    }
+
+if 'ALEX_ENABLE' in os.environ:
+    TASK_NAMES_TO_QUEUE['alexnet_index_by_id'] = Q_INDEXER
+    TASK_NAMES_TO_QUEUE['alexnet_query_by_image'] = Q_RETRIEVER
+    POST_OPERATION_TASKS['extract_frames_by_id'].append('alexnet_index_by_id')
+    VISUAL_INDEXES['alexnet'] = {
+         'indexer_task': "alexnet_index_by_id",
+         'indexer_queue': Q_INDEXER,
+         'retriever_queue': Q_RETRIEVER,
+         'detection_specific': False
     }

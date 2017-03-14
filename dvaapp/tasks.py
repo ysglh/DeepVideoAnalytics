@@ -25,9 +25,10 @@ class IndexerTask(celery.Task):
     @property
     def visual_indexer(self):
         if self._visual_indexer is None:
-            self._visual_indexer = {'inception': indexer.InceptionIndexer(), 'facenet': indexer.FacenetIndexer()}
-            if 'ALEX_ENABLE' in os.environ:
-                self._visual_indexer['alexnet'] = indexer.AlexnetIndexer()
+            self._visual_indexer = {'inception': indexer.InceptionIndexer(),
+                                    'facenet': indexer.FacenetIndexer(),
+                                    'alexnet': indexer.AlexnetIndexer()
+                                    }
         return self._visual_indexer
 
     def refresh_index(self,index_name):
@@ -72,6 +73,32 @@ def inpcetion_index_by_id(video_id):
     start.save()
 
 
+@app.task(name="alexnet_index_by_id",base=IndexerTask)
+def alexnet_index_by_id(video_id):
+    start = TEvent()
+    start.video_id = video_id
+    start.started = True
+    start.operation = inpcetion_index_by_id.name
+    start.save()
+    start_time = time.time()
+    dv = Video.objects.get(id=video_id)
+    video = entity.WVideo(dv, settings.MEDIA_ROOT)
+    frames = Frame.objects.all().filter(video=dv)
+    visual_index = alexnet_index_by_id.visual_indexer['alexnet']
+    index_name, index_results = video.index_frames(frames,visual_index)
+    i = IndexEntries()
+    i.video = dv
+    i.count = len(index_results)
+    i.contains_frames = True
+    i.detection_name = 'Frame'
+    i.algorithm = index_name
+    i.save()
+    process_video_next(video_id, start.operation)
+    start.completed = True
+    start.seconds = time.time() - start_time
+    start.save()
+
+
 @app.task(name="inception_query_by_image",base=IndexerTask)
 def inception_query_by_image(query_id):
     dq = Query.objects.get(id=query_id)
@@ -84,6 +111,38 @@ def inception_query_by_image(query_id):
     inception_query_by_image.refresh_index('inception')
     inception = inception_query_by_image.visual_indexer['inception']
     Q = entity.WQuery(dquery=dq, media_dir=settings.MEDIA_ROOT,visual_index=inception)
+    results = Q.find(10)
+    dq.results = True
+    dq.results_metadata = json.dumps(results)
+    for algo,rlist in results.iteritems():
+        for r in rlist:
+            qr = QueryResults()
+            qr.query = dq
+            qr.frame_id = r['frame_primary_key']
+            qr.video_id = r['video_primary_key']
+            qr.algorithm = algo
+            qr.rank = r['rank']
+            qr.distance = r['dist']
+            qr.save()
+    dq.save()
+    start.completed = True
+    start.seconds = time.time() - start_time
+    start.save()
+    return results
+
+
+@app.task(name="alexnet_query_by_image",base=IndexerTask)
+def alexnet_query_by_image(query_id):
+    dq = Query.objects.get(id=query_id)
+    start = TEvent()
+    start.video_id = Video.objects.get(parent_query=dq).pk
+    start.started = True
+    start.operation = alexnet_query_by_image.name
+    start.save()
+    start_time = time.time()
+    alexnet_query_by_image.refresh_index('alexnet')
+    alexnet = alexnet_query_by_image.visual_indexer['alexnet']
+    Q = entity.WQuery(dquery=dq, media_dir=settings.MEDIA_ROOT,visual_index=alexnet)
     results = Q.find(10)
     dq.results = True
     dq.results_metadata = json.dumps(results)

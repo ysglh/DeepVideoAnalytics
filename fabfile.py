@@ -352,7 +352,10 @@ def restore(path):
 @task
 def detect(video_id):
     """
-    This is a HACK since Tensorflow is absolutely atrocious in allocating and freeing up memory
+    This is a HACK since Tensorflow is absolutely atrocious in allocating and freeing up memory.
+    Once a process / session is allocated a memory it cannot be forced to clear it up.
+    As a result this code gets called via a subprocess which clears memory when it exits.
+
     :param video_id:
     :return:
     """
@@ -369,7 +372,10 @@ def detect(video_id):
     v = entity.WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
     wframes = {df.pk: entity.WFrame(video=v, frame_index=df.frame_index, primary_key=df.pk) for df in frames}
     detection_count = 0
-    for alogrithm in detector.DETECTORS.itervalues():
+    detector_list = {'ssd': detector.SSDetector(),}
+    if 'YOLO_ENABLE' in os.environ:
+        detector_list['yolo'] = detector.YOLODetector()
+    for alogrithm in detector_list.itervalues():
         logging.info("starting detection {}".format(alogrithm.name))
         frame_detections = alogrithm.detect(wframes.values())
         for frame_pk,detections in frame_detections.iteritems():

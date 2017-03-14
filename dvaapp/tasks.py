@@ -6,8 +6,8 @@ from .models import Video, Frame, Detection, TEvent, Query, IndexEntries,QueryRe
 from dvalib import entity
 from dvalib import detector
 from dvalib import indexer
-from dvalib import facerecognition
 from PIL import Image
+from scipy import misc
 import json
 import celery
 import zipfile
@@ -233,13 +233,14 @@ def perform_face_indexing(video_id):
     input_paths = {f.local_path():f.primary_key for f in wframes}
     faces_dir = '{}/{}/detections'.format(settings.MEDIA_ROOT,video_id)
     indexes_dir = '{}/{}/indexes'.format(settings.MEDIA_ROOT,video_id)
-    aligned_paths = facerecognition.align(input_paths.keys(),faces_dir)
+    face_detector = detector.FaceDetector()
+    aligned_paths = face_detector.detect(wframes)
     logging.info(len(aligned_paths))
     faces = []
     faces_to_pk = {}
     count = 0
     for path,v in aligned_paths.iteritems():
-        for face_path,bb in v:
+        for scaled_img,bb in v:
             d = Detection()
             d.video = dv
             d.confidence = 100.0
@@ -251,7 +252,10 @@ def perform_face_indexing(video_id):
             d.w = right-left
             d.h = bottom-top
             d.save()
+            face_path = '{}/{}.jpg'.format(faces_dir,d.pk)
             os.rename(face_path,'{}/{}.jpg'.format(faces_dir,d.pk))
+            output_filename = os.path.join(faces_dir,face_path)
+            misc.imsave(output_filename, scaled_img)
             faces.append('{}/{}.jpg'.format(faces_dir,d.pk))
             faces_to_pk['{}/{}.jpg'.format(faces_dir,d.pk)] = d.pk
             count += 1

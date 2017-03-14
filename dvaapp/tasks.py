@@ -78,7 +78,7 @@ def alexnet_index_by_id(video_id):
     start = TEvent()
     start.video_id = video_id
     start.started = True
-    start.operation = inpcetion_index_by_id.name
+    start.operation = alexnet_index_by_id.name
     start.save()
     start_time = time.time()
     dv = Video.objects.get(id=video_id)

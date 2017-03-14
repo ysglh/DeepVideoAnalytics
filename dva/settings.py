@@ -180,15 +180,15 @@ STATICFILES_FINDERS = (
 )
 
 TASK_NAMES_TO_QUEUE = {
-    "index_by_id":Q_INDEXER,
-    "query_by_id":Q_RETRIEVER,
+    "inpcetion_index_by_id":Q_INDEXER,
+    "inception_query_by_image":Q_RETRIEVER,
+    "facenet_query_by_image":Q_FACE_RETRIEVER,
     "extract_frames_by_id":Q_EXTRACTOR,
-    "perform_detection_by_id":Q_DETECTOR,
-    "query_face_by_id":Q_FACE_RETRIEVER
+    "perform_detection_by_id":Q_DETECTOR
 }
 
 POST_OPERATION_TASKS = {
-    "extract_frames_by_id":["perform_detection_by_id",'index_by_id']
+    "extract_frames_by_id":["perform_detection_by_id",'inpcetion_index_by_id']
 }
 
 VISUAL_INDEXES = {
@@ -205,5 +205,12 @@ VISUAL_INDEXES = {
             'indexer_queue': Q_DETECTOR,
             'retriever_queue': Q_FACE_RETRIEVER,
             'detection_specific': True
+        },
+    'alexnet':
+        {
+         'indexer_task': "perform_detection_by_id",
+         'indexer_queue': Q_DETECTOR,
+         'retriever_queue': Q_FACE_RETRIEVER,
+         'detection_specific': True
         }
-}
+    }

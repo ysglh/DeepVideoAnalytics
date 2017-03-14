@@ -8,7 +8,7 @@ from django.views.generic import ListView,DetailView
 from django.utils.decorators import method_decorator
 from .forms import UploadFileForm,YTVideoForm
 from .models import Video,Frame,Detection,Query,QueryResults,TEvent,FrameLabel
-from .tasks import extract_frames,query_by_image,query_face_by_image
+from .tasks import extract_frames,facenet_query_by_image,inception_query_by_image
 from dva.celery import app
 
 
@@ -32,8 +32,8 @@ def search(request):
             fh.write(image_data)
         with open(query_frame_path,'w') as fh:
             fh.write(image_data)
-        result = query_by_image.apply_async(args=[primary_key],queue=settings.Q_RETRIEVER)
-        result_face = query_face_by_image.apply_async(args=[primary_key],queue=settings.Q_FACE_RETRIEVER)
+        result = inception_query_by_image.apply_async(args=[primary_key],queue=settings.TASK_NAMES_TO_QUEUE[inception_query_by_image.name])
+        result_face = facenet_query_by_image.apply_async(args=[primary_key],queue=settings.TASK_NAMES_TO_QUEUE[facenet_query_by_image.name])
         user = request.user if request.user.is_authenticated() else None
         query.task_id = result.task_id
         query.user = user

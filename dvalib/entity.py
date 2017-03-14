@@ -6,26 +6,18 @@ import pyscenecustom
 
 class WQuery(object):
 
-    def __init__(self,dquery,media_dir,frame_indexers,detection_indexers):
+    def __init__(self,dquery,media_dir,visual_index):
         self.media_dir = media_dir
         self.dquery = dquery
         self.primary_key = self.dquery.pk
         self.local_path = "{}/queries/{}.png".format(self.media_dir,self.primary_key)
-        self.frame_indexers = frame_indexers
-        self.detection_indexers = detection_indexers
+        self.visual_index = visual_index
 
     def find(self,n):
         results = {}
-        for index_name,visual_index in self.frame_indexers.iteritems():
-            results[index_name] = visual_index.nearest(image_path=self.local_path,n=n)
+        results[self.visual_index.name] = self.visual_index.nearest(image_path=self.local_path,n=n)
         return results
 
-    def find_face(self,n):
-        results = {}
-        index_name = 'facenet'
-        visual_index = self.detection_indexers[index_name]
-        results[index_name] = visual_index.nearest(image_path=self.local_path,n=n)
-        return results
 
 
 class WVideo(object):
@@ -109,32 +101,30 @@ class WVideo(object):
                     logging.warning("skipping {} ".format(subdir))
         return frames
 
-    def index_frames(self,frames,indexers):
+    def index_frames(self,frames,visual_index):
         results = {}
         wframes = [WFrame(video=self, frame_index=df.frame_index,primary_key=df.pk) for df in frames]
-        for index_name,index in indexers.iteritems():
-            index.load()
-            entries = []
-            paths = []
-            for i, f in enumerate(wframes):
-                entry = {
-                    'frame_index': f.frame_index,
-                    'frame_primary_key': f.primary_key,
-                    'video_primary_key': self.primary_key,
-                    'index': i,
-                    'type': 'frame'
-                }
-                paths.append(f.local_path())
-                entries.append(entry)
-            features = index.index_paths(paths)
-            feat_fname = "{}/{}/indexes/{}.npy".format(self.media_dir, self.primary_key, index.name)
-            entries_fname = "{}/{}/indexes/{}.json".format(self.media_dir, self.primary_key, index.name)
-            with open(feat_fname, 'w') as feats:
-                np.save(feats, np.array(features))
-            with open(entries_fname, 'w') as entryfile:
-                json.dump(entries, entryfile)
-            results[index_name] = entries
-        return results
+        visual_index.load()
+        entries = []
+        paths = []
+        for i, f in enumerate(wframes):
+            entry = {
+                'frame_index': f.frame_index,
+                'frame_primary_key': f.primary_key,
+                'video_primary_key': self.primary_key,
+                'index': i,
+                'type': 'frame'
+            }
+            paths.append(f.local_path())
+            entries.append(entry)
+        features = visual_index.index_paths(paths)
+        feat_fname = "{}/{}/indexes/{}.npy".format(self.media_dir, self.primary_key, visual_index.name)
+        entries_fname = "{}/{}/indexes/{}.json".format(self.media_dir, self.primary_key, visual_index.name)
+        with open(feat_fname, 'w') as feats:
+            np.save(feats, np.array(features))
+        with open(entries_fname, 'w') as entryfile:
+            json.dump(entries, entryfile)
+        return visual_index.name,entries
 
 class WFrame(object):
 

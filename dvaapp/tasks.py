@@ -20,47 +20,19 @@ def process_video_next(video_id,current_task_name):
 
 
 class IndexerTask(celery.Task):
-    _frame_indexer = None
-    _detection_indexer = None
+    _visual_indexer = None
 
     @property
-    def frame_indexer(self):
-        if self._frame_indexer is None:
+    def visual_indexer(self):
+        if self._visual_indexer is None:
+            self._visual_indexer = {'inception': indexer.InceptionIndexer(), 'facenet': indexer.FacenetIndexer()}
             if 'ALEX_ENABLE' in os.environ:
-                self._frame_indexer = {
-                    'alex': indexer.AlexnetIndexer(),
-                    'inception': indexer.InceptionIndexer(),
-                }
-            else:
-                self._frame_indexer = {
-                    'inception': indexer.InceptionIndexer(),
-                }
-        return self._frame_indexer
+                self._visual_indexer['alexnet'] = indexer.AlexnetIndexer()
+        return self._visual_indexer
 
-    @property
-    def detection_indexer(self):
-        if self._detection_indexer is None:
-            self._detection_indexer = {
-                'facenet':indexer.FacenetIndexer(),
-            }
-        return self._detection_indexer
-
-    def refresh_all_frame_indexes(self):
+    def refresh_index(self,index_name):
         index_entries = IndexEntries.objects.all()
-        for index_name, visual_index in self.frame_indexer.iteritems():
-            for entry in index_entries:
-                if entry.video_id not in visual_index.indexed_videos:
-                    fname = "{}/{}/indexes/{}.npy".format(settings.MEDIA_ROOT, entry.video_id, index_name)
-                    vectors = indexer.np.load(fname)
-                    vector_entries = json.load(file(fname.replace(".npy", ".json")))
-                    logging.info("Starting {} in {}".format(entry.video_id,visual_index.name))
-                    visual_index.load_index(vectors, vector_entries)
-                    visual_index.indexed_videos.add(entry.video_id)
-                    logging.info("finished {} in {}, current shape {}".format(entry.video_id,visual_index.name,visual_index.index.shape))
-
-    def refresh_detection_index(self,index_name):
-        index_entries = IndexEntries.objects.all()
-        visual_index = self.detection_indexer[index_name]
+        visual_index = self.visual_indexer[index_name]
         for index_entry in index_entries:
             if index_entry.video_id not in visual_index.indexed_videos and index_entry.algorithm == index_name:
                 fname = "{}/{}/indexes/{}.npy".format(settings.MEDIA_ROOT, index_entry.video_id, index_name)
@@ -72,42 +44,46 @@ class IndexerTask(celery.Task):
                 logging.info("finished {} in {}, current shape {}".format(index_entry.video_id, visual_index.name,visual_index.index.shape))
 
 
-@app.task(name="index_by_id",base=IndexerTask)
-def perform_indexing(video_id):
+
+
+@app.task(name="inpcetion_index_by_id",base=IndexerTask)
+def inpcetion_index_by_id(video_id):
     start = TEvent()
     start.video_id = video_id
     start.started = True
-    start.operation = perform_indexing.name
+    start.operation = inpcetion_index_by_id.name
     start.save()
     start_time = time.time()
     dv = Video.objects.get(id=video_id)
     video = entity.WVideo(dv, settings.MEDIA_ROOT)
     frames = Frame.objects.all().filter(video=dv)
-    for index_name,index_results in video.index_frames(frames,perform_indexing.frame_indexer).iteritems():
-        i = IndexEntries()
-        i.video = dv
-        i.count = len(index_results)
-        i.contains_frames = True
-        i.detection_name = 'Frame'
-        i.algorithm = index_name
-        i.save()
+    visual_index = inpcetion_index_by_id.visual_indexer['inception']
+    index_name, index_results = video.index_frames(frames,visual_index)
+    i = IndexEntries()
+    i.video = dv
+    i.count = len(index_results)
+    i.contains_frames = True
+    i.detection_name = 'Frame'
+    i.algorithm = index_name
+    i.save()
     process_video_next(video_id, start.operation)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
 
 
-@app.task(name="query_by_id",base=IndexerTask)
-def query_by_image(query_id):
+@app.task(name="inception_query_by_image",base=IndexerTask)
+def inception_query_by_image(query_id):
     dq = Query.objects.get(id=query_id)
     start = TEvent()
     start.video_id = Video.objects.get(parent_query=dq).pk
     start.started = True
-    start.operation = query_by_image.name
+    start.operation = inception_query_by_image.name
     start.save()
     start_time = time.time()
-    query_by_image.refresh_all_frame_indexes()
-    Q = entity.WQuery(dquery=dq, media_dir=settings.MEDIA_ROOT,frame_indexers=query_by_image.frame_indexer,detection_indexers=query_by_image.detection_indexer)
+    inception_query_by_image.refresh_index('inception')
+    inception = inception_query_by_image.visual_indexer['inception']
+    Q = entity.WQuery(dquery=dq, media_dir=settings.MEDIA_ROOT,visual_index=inception)
     results = Q.find(10)
     dq.results = True
     dq.results_metadata = json.dumps(results)
@@ -128,18 +104,19 @@ def query_by_image(query_id):
     return results
 
 
-@app.task(name="query_face_by_id",base=IndexerTask)
-def query_face_by_image(query_id):
+@app.task(name="facenet_query_by_image",base=IndexerTask)
+def facenet_query_by_image(query_id):
     dq = Query.objects.get(id=query_id)
     start = TEvent()
     start.video_id = Video.objects.get(parent_query=dq).pk
     start.started = True
-    start.operation = query_face_by_image.name
+    start.operation = facenet_query_by_image.name
     start.save()
     start_time = time.time()
-    Q = entity.WQuery(dquery=dq, media_dir=settings.MEDIA_ROOT,frame_indexers=query_face_by_image.frame_indexer,detection_indexers=query_face_by_image.detection_indexer)
-    query_face_by_image.refresh_detection_index('facenet')
-    results = Q.find_face(10)
+    facenet_query_by_image.refresh_index('facenet')
+    facenet = inception_query_by_image.visual_indexer['facenet']
+    Q = entity.WQuery(dquery=dq, media_dir=settings.MEDIA_ROOT,visual_index=facenet)
+    results = Q.find(10)
     for algo,rlist in results.iteritems():
         for r in rlist:
             qr = QueryResults()

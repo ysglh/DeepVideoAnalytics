@@ -253,11 +253,10 @@ def perform_face_indexing(video_id):
             d.h = bottom-top
             d.save()
             face_path = '{}/{}.jpg'.format(faces_dir,d.pk)
-            os.rename(face_path,'{}/{}.jpg'.format(faces_dir,d.pk))
             output_filename = os.path.join(faces_dir,face_path)
             misc.imsave(output_filename, scaled_img)
-            faces.append('{}/{}.jpg'.format(faces_dir,d.pk))
-            faces_to_pk['{}/{}.jpg'.format(faces_dir,d.pk)] = d.pk
+            faces.append(face_path)
+            faces_to_pk[face_path] = d.pk
             count += 1
     dv.detections = dv.detections + count
     dv.save()

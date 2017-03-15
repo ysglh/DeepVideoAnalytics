@@ -311,6 +311,7 @@ def perform_face_indexing(video_id):
             faces.append(face_path)
             faces_to_pk[face_path] = d.pk
             count += 1
+    dv.refresh_from_db()
     dv.detections = dv.detections + count
     dv.save()
     path_count, emb_array, entries = face_indexer.index_faces(faces,faces_to_pk,indexes_dir,video_id)

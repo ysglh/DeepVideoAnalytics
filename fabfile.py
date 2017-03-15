@@ -398,7 +398,8 @@ def detect(video_id):
                 img2 = img.crop((d['left'], d['top'], d['right'], d['bot']))
                 img2.save("{}/{}/detections/{}.jpg".format(settings.MEDIA_ROOT, video_id, dd.pk))
                 detection_count += 1
-    dv.detections = detection_count
+    dv.refresh_from_db()
+    dv.detections = dv.detections + detection_count
     dv.save()
 
 @task

@@ -253,6 +253,8 @@ def perform_yolo_ssd_detection_by_id(video_id):
     start_time = time.time()
     detector = subprocess.Popen(['fab','detect:{}'.format(video_id)],cwd=os.path.join(os.path.abspath(__file__).split('tasks.py')[0],'../'))
     detector.wait()
+    if detector.returncode != 0:
+        raise ValueError,"Task failed with returncode {}".format(detector.returncode)
     process_video_next(video_id,start.operation)
     start.completed = True
     start.seconds = time.time() - start_time
@@ -270,6 +272,8 @@ def perform_face_detection_indexing_by_id(video_id):
     start_time = time.time()
     face_detector = subprocess.Popen(['fab','perform_face_detection:{}'.format(video_id)],cwd=os.path.join(os.path.abspath(__file__).split('tasks.py')[0],'../'))
     face_detector.wait()
+    if face_detector.returncode != 0:
+        raise ValueError,"Task failed with returncode {}".format(face_detector.returncode)
     process_video_next(video_id,start.operation)
     start.completed = True
     start.seconds = time.time() - start_time

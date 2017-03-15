@@ -13,7 +13,71 @@
 </section>
 <section class="content">
     <div class="row">
+        <div class="col-lg-6">
+            <div class="box box-primary">
+                <div class="box-header">
+                    <h4>Configured indexes</h4>
+                </div>
+                <div class="box-body">
+                    <table class="table dataTables-dict">
+                    <thead>
+                    <tr>
+                        <th>Index name</th>
+                        <th>Indexer task</th>
+                        <th>Indexer queue</th>
+                        <th>Retriever queue</th>
+                        <th>Detection specific</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for name,i in visual_index_list %}
+                        <tr>
+                            <td>{{ name }} </td>
+                            <td>{{ i.indexer_task }}</td>
+                            <td>{{ i.indexer_queue }}</td>
+                            <td>{{ i.retriever_queue }}</td>
+                            <td>{{ i.detection_specific }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="box box-primary">
+                <div class="box-header">
+                    <h4>Index entries</h4>
+                </div>
+                <div class="box-body">
+                    <table class="table dataTables-dict">
+                    <thead>
+                    <tr>
+                        <th>Index name</th>
+                        <th>Video name</th>
+                        <th>Indexed object</th>
+                        <th>Approximate</th>
+                        <th>count</th>
+                        <th>created</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for k in index_entries %}
+                        <tr>
+                            <td>{{ k.algorithm }}</td>
+                            <td>{{ k.video.name }} </td>
+                            <td>{{ k.detection_name }} </td>
+                            <td>{{ k.approximate }} </td>
+                            <td class="text-right">{{ k.count }}</td>
+                            <td class="text-center">{{ k.created }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    </table>
 
+                </div>
+            </div>
+        </div>
     </div>
 </section>
 {% endblock %}

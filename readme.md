@@ -106,8 +106,8 @@ Following options can be specified in docker-compose.yml, or your environment to
 
 - ALEX_ENABLE=1 (to use Alexnet with PyTorch. Otherwise disabled by default)
 - YOLO_ENABLE=1 (to use YOLO 9000. Otherwise disabled by default)
-- SCENEDETECT_DISABLE=1 (to disable scene detection, Otherwise enabled by default)
-
+- SCENEDETECT_DISABLE=1 (to disable scene detection. Otherwise enabled by default)
+- RESCALE_DISABLE=1 (to disable rescaling of frame extracted from videos. Otherwise enabled by default)
  
 ## Architecture
 ![Architecture](notes/architecture.png "System architecture")

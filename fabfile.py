@@ -402,7 +402,7 @@ def detect(video_id):
     dv.save()
 
 @task
-def pyscenedetect(video_id,rescaled_width=600):
+def pyscenedetect(video_id,rescaled_width=600,rescale=True):
     """
     Pyscenedetect often causes unexplainable double free errors on some machine when executing cap.release()
     This ensures that the task recovers even if the command running inside a subprocess fails
@@ -420,7 +420,9 @@ def pyscenedetect(video_id,rescaled_width=600):
     from dvalib import pyscenecustom,entity
     dv = Video.objects.get(id=video_id)
     v = entity.WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
-    manager = pyscenecustom.manager.SceneManager(save_image_prefix="{}/{}/frames/".format(settings.MEDIA_ROOT, video_id), rescaled_width=int(rescaled_width))
+    if 'RESCALE_DISABLE' in os.environ:
+        rescale = False
+    manager = pyscenecustom.manager.SceneManager(save_image_prefix="{}/{}/frames/".format(settings.MEDIA_ROOT, video_id), rescaled_width=int(rescaled_width),rescale=rescale)
     pyscenecustom.detect_scenes_file(v.local_path, manager)
 
 

@@ -196,7 +196,7 @@ def facenet_query_by_image(query_id):
     return results
 
 
-@app.task(name="extract_frames_by_id")
+@app.task(name="extract_frames_by_id",rescale=True)
 def extract_frames(video_id):
     start = TEvent()
     start.video_id = video_id
@@ -214,7 +214,9 @@ def extract_frames(video_id):
         dv.height = v.height
         dv.width = v.width
         dv.save()
-    frames = v.extract_frames()
+    if 'RESCALE_DISABLE' in os.environ:
+        rescale = False
+    frames = v.extract_frames(rescale)
     dv.frames = len(frames)
     dv.save()
     for f in frames:

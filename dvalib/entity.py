@@ -55,11 +55,14 @@ class WVideo(object):
         except:
             raise ValueError,str(self.metadata)
 
-    def extract_frames(self):
+    def extract_frames(self,rescale=True):
         frames = []
         if not self.dvideo.dataset:
             output_dir = "{}/{}/{}/".format(self.media_dir,self.primary_key,'frames')
-            command = 'ffmpeg -i {} -vf "select=not(mod(n\,100)),scale={}:-1" -vsync vfr  {}/%d_b.jpg'.format(self.local_path,self.rescaled_width,output_dir)
+            if rescale:
+                command = 'ffmpeg -i {} -vf "select=not(mod(n\,100)),scale={}:-1" -vsync vfr  {}/%d_b.jpg'.format(self.local_path,self.rescaled_width,output_dir)
+            else:
+                command = 'ffmpeg -i {} -vf "select=not(mod(n\,100))" -vsync vfr  {}/%d_b.jpg'.format(self.local_path, output_dir)
             extract = sp.Popen(shlex.split(command))
             extract.wait()
             if extract.returncode != 0:

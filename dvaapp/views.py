@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView,DetailView
 from django.utils.decorators import method_decorator
 from .forms import UploadFileForm,YTVideoForm
-from .models import Video,Frame,Detection,Query,QueryResults,TEvent,FrameLabel,IndexEntries
+from .models import Video,Frame,Detection,Query,QueryResults,TEvent,FrameLabel,IndexEntries,ExternalDataset
 from .tasks import extract_frames,facenet_query_by_image,inception_query_by_image
 from dva.celery import app
 
@@ -88,7 +88,8 @@ def index(request,query_pk=None,frame_pk=None,detection_pk=None):
         context['initial_url'] = '/media/{}/detections/{}.jpg'.format(detection.video.pk, detection.pk)
     context['frame_count'] = Frame.objects.count()
     context['query_count'] = Query.objects.count()
-    context['index_entries'] = IndexEntries.objects.count()
+    context['index_entries_count'] = IndexEntries.objects.count()
+    context['external_datasets_count'] = ExternalDataset.objects.count()
     context['video_count'] = Video.objects.count() - context['query_count']
     context['detection_count'] = Detection.objects.count()
     return render(request, 'dashboard.html', context)

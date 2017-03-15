@@ -107,4 +107,24 @@ class ProductsIndex(ExternalIndexed):
         print approximate_model.search(data[0, :])
 
 
+class VisualGenomeIndex(ExternalIndexed):
+
+    def __init__(self,path):
+        super(VisualGenomeIndex, self).__init__(path=path)
+        self.indexer = InceptionIndexer()
+        self.name = "products"
+        self.bucket_name = "aub3dvavisualgenome"
+
+    def prepare(self,input_path):
+        raise NotImplementedError
+
+    def load_metadata(self):
+        raise NotImplementedError
+
+    def load_approximate(self):
+        raise NotImplementedError
+
+    def build_approximate(self):
+        raise NotImplementedError
+
 

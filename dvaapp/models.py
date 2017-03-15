@@ -68,6 +68,17 @@ class IndexEntries(models.Model):
     created = models.DateTimeField('date created', auto_now_add=True)
 
 
+class ExternalDataset(models.Model):
+    algorithm = models.CharField(max_length=100)
+    name = models.CharField(max_length=100)
+    count_images = models.IntegerField()
+    count_entries = models.IntegerField()
+    cached_image_count = models.IntegerField()
+    index_downloaded = models.BooleanField(default=False)
+    created = models.DateTimeField('date created', auto_now_add=True)
+
+
+
 class TEvent(models.Model):
     started = models.BooleanField(default=False)
     completed = models.BooleanField(default=False)

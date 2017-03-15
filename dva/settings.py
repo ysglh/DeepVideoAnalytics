@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os,dj_database_url,sys
+from dvalib import external_indexed
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -211,6 +212,18 @@ VISUAL_INDEXES = {
             'detection_specific': True
         },
     }
+
+EXTERNAL_DATASETS = {
+    'products':external_indexed.ProductsIndex(path="{}/external/{}".format(MEDIA_ROOT,'products')),
+    'visual_genome':external_indexed.VisualGenomeIndex(path="{}/external/{}".format(MEDIA_ROOT,'products')),
+}
+
+for create_dirname in ['queries','external']:
+    if not os.path.isdir("{}/{}".format(MEDIA_ROOT,create_dirname)):
+        try:
+            os.mkdir("{}/{}".format(MEDIA_ROOT,create_dirname))
+        except:
+            pass
 
 if 'ALEX_ENABLE' in os.environ:
     TASK_NAMES_TO_QUEUE['alexnet_index_by_id'] = Q_INDEXER

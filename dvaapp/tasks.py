@@ -196,8 +196,8 @@ def facenet_query_by_image(query_id):
     return results
 
 
-@app.task(name="extract_frames_by_id",rescale=True)
-def extract_frames(video_id):
+@app.task(name="extract_frames_by_id")
+def extract_frames(video_id,rescale=True):
     start = TEvent()
     start.video_id = video_id
     start.started = True

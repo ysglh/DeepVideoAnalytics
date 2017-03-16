@@ -1,4 +1,5 @@
-#Deep Video Analytics  •  [![Build Status](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics.svg?branch=master)](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics)
+# Deep Video Analytics  •  [![Build Status](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics.svg?branch=master)](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics)
+
 ![Banner](notes/banner_small.png "banner")
 ![UI Screenshot](notes/face_recognition.png "face recognition")
 #### Author [Akshay Bhat, Cornell University.](http://www.akshaybhat.com)       

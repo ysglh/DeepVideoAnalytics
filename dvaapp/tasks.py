@@ -243,15 +243,34 @@ def extract_frames(video_id,rescale=True):
     return 0
 
 
-@app.task(name="perform_yolo_ssd_detection_by_id")
-def perform_yolo_ssd_detection_by_id(video_id):
+@app.task(name="perform_yolo_detection_by_id")
+def perform_yolo_detection_by_id(video_id):
     start = TEvent()
     start.video_id = video_id
     start.started = True
-    start.operation = perform_yolo_ssd_detection_by_id.name
+    start.operation = perform_yolo_detection_by_id.name
     start.save()
     start_time = time.time()
-    detector = subprocess.Popen(['fab','detect:{}'.format(video_id)],cwd=os.path.join(os.path.abspath(__file__).split('tasks.py')[0],'../'))
+    detector = subprocess.Popen(['fab','yolo_detect:{}'.format(video_id)],cwd=os.path.join(os.path.abspath(__file__).split('tasks.py')[0],'../'))
+    detector.wait()
+    if detector.returncode != 0:
+        raise ValueError,"Task failed with returncode {}".format(detector.returncode)
+    process_video_next(video_id,start.operation)
+    start.completed = True
+    start.seconds = time.time() - start_time
+    start.save()
+    return 0
+
+
+@app.task(name="perform_ssd_detection_by_id")
+def perform_ssd_detection_by_id(video_id):
+    start = TEvent()
+    start.video_id = video_id
+    start.started = True
+    start.operation = perform_ssd_detection_by_id.name
+    start.save()
+    start_time = time.time()
+    detector = subprocess.Popen(['fab','ssd_detect:{}'.format(video_id)],cwd=os.path.join(os.path.abspath(__file__).split('tasks.py')[0],'../'))
     detector.wait()
     if detector.returncode != 0:
         raise ValueError,"Task failed with returncode {}".format(detector.returncode)

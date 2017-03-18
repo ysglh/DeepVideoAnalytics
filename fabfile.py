@@ -354,7 +354,7 @@ def restore(path):
 
 
 @task
-def detect(video_id):
+def yolo_detect(video_id):
     """
     This is a HACK since Tensorflow is absolutely atrocious in allocating and freeing up memory.
     Once a process / session is allocated a memory it cannot be forced to clear it up.
@@ -376,37 +376,82 @@ def detect(video_id):
     v = entity.WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
     wframes = {df.pk: entity.WFrame(video=v, frame_index=df.frame_index, primary_key=df.pk) for df in frames}
     detection_count = 0
-    detector_list = {'ssd': detector.SSDetector(),}
-    if 'YOLO_ENABLE' in os.environ:
-        detector_list['yolo'] = detector.YOLODetector()
-    for alogrithm in detector_list.itervalues():
-        logging.info("starting detection {}".format(alogrithm.name))
-        frame_detections = alogrithm.detect(wframes.values())
-        for frame_pk,detections in frame_detections.iteritems():
-            for d in detections:
-                dd = Detection()
-                dd.video = dv
-                dd.frame_id = frame_pk
-                dd.object_name = d['name']
-                dd.confidence = d['confidence']
-                dd.x = d['left']
-                dd.y = d['top']
-                dd.w = d['right'] - d['left']
-                dd.h = d['bot'] - d['top']
-                dd.save()
-                img = Image.open(wframes[frame_pk].local_path())
-                img2 = img.crop((d['left'], d['top'], d['right'], d['bot']))
-                img2.save("{}/{}/detections/{}.jpg".format(settings.MEDIA_ROOT, video_id, dd.pk))
-                detection_count += 1
+    algorithm = detector.YOLODetector()
+    logging.info("starting detection {}".format(algorithm.name))
+    frame_detections = algorithm.detect(wframes.values())
+    for frame_pk,detections in frame_detections.iteritems():
+        for d in detections:
+            dd = Detection()
+            dd.video = dv
+            dd.frame_id = frame_pk
+            dd.object_name = d['name']
+            dd.confidence = d['confidence']
+            dd.x = d['left']
+            dd.y = d['top']
+            dd.w = d['right'] - d['left']
+            dd.h = d['bot'] - d['top']
+            dd.save()
+            img = Image.open(wframes[frame_pk].local_path())
+            img2 = img.crop((d['left'], d['top'], d['right'], d['bot']))
+            img2.save("{}/{}/detections/{}.jpg".format(settings.MEDIA_ROOT, video_id, dd.pk))
+            detection_count += 1
     dv.refresh_from_db()
     dv.detections = dv.detections + detection_count
     dv.save()
+
+
+@task
+def ssd_detect(video_id):
+    """
+    This is a HACK since Tensorflow is absolutely atrocious in allocating and freeing up memory.
+    Once a process / session is allocated a memory it cannot be forced to clear it up.
+    As a result this code gets called via a subprocess which clears memory when it exits.
+
+    :param video_id:
+    :return:
+    """
+    import django
+    from PIL import Image
+    sys.path.append(os.path.dirname(__file__))
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
+    django.setup()
+    from django.conf import settings
+    from dvaapp.models import Video,Detection,Frame
+    from dvalib import entity,detector
+    dv = Video.objects.get(id=video_id)
+    frames = Frame.objects.all().filter(video=dv)
+    v = entity.WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
+    wframes = {df.pk: entity.WFrame(video=v, frame_index=df.frame_index, primary_key=df.pk) for df in frames}
+    detection_count = 0
+    algorithm = detector.SSDetector()
+    logging.info("starting detection {}".format(algorithm.name))
+    frame_detections = algorithm.detect(wframes.values())
+    for frame_pk,detections in frame_detections.iteritems():
+        for d in detections:
+            dd = Detection()
+            dd.video = dv
+            dd.frame_id = frame_pk
+            dd.object_name = d['name']
+            dd.confidence = d['confidence']
+            dd.x = d['left']
+            dd.y = d['top']
+            dd.w = d['right'] - d['left']
+            dd.h = d['bot'] - d['top']
+            dd.save()
+            img = Image.open(wframes[frame_pk].local_path())
+            img2 = img.crop((d['left'], d['top'], d['right'], d['bot']))
+            img2.save("{}/{}/detections/{}.jpg".format(settings.MEDIA_ROOT, video_id, dd.pk))
+            detection_count += 1
+    dv.refresh_from_db()
+    dv.detections = dv.detections + detection_count
+    dv.save()
+
 
 @task
 def pyscenedetect(video_id,rescaled_width=600,rescale=True):
     """
     Pyscenedetect often causes unexplainable double free errors on some machine when executing cap.release()
-    This ensures that the task recovers even if the command running inside a subprocess fails
+    This ensures that the task recovers partial frame data i.e. every nth frame even if the command running inside a subprocess fails
     :param video_id:
     :param rescaled_width:
     :return:

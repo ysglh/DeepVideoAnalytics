@@ -36,3 +36,4 @@ experiments/connect.sh
 /dvalib/ssd/checkpoints/ssd_300_vgg.ckpt.data-00000-of-00001
 /notes/website/
 /dvalib/facenet/facenet_model/model-*
+/notes/deepvideoanalytics_march_mid.mov

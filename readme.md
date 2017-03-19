@@ -4,16 +4,13 @@
 ![UI Screenshot](notes/face_recognition.png "face recognition")
 #### Author [Akshay Bhat, Cornell University.](http://www.akshaybhat.com)       
 
+#### [Watch demo video](https://deepvideoanalytics.com)
 
 Deep Video Analytics provides a platform for indexing and extracting information from videos and images.
 Deep learning detection and recognition algorithms are used for indexing individual frames/images along with 
 detected objects. The goal of Deep Video analytics is to become a quickly customizable platform for developing 
 visual & video analytics applications, while benefiting from seamless integration with state or the art models & datasets
-released by the vision research community.
-
-[For quick overview of vision behind this project please go through this presentation.](https://docs.google.com/presentation/d/1nweK60ywx1h-MMg75oo0E5jwBQtrFIVK6hPgMuB985U/edit?usp=sharing)
-
-##### self-promotion: If you are interested in Healthcare & Machine Learning please take a look at my another Open Source project [Computational Healthcare](http://www.computationalhealthcare.com) 
+released by the vision research community. 
 
 ## Features
 - Visual Search using Nearest Neighbors algorithm as a primary interface
@@ -27,6 +24,7 @@ released by the vision research community.
 - Explore data, manually run code & tasks without UI via a jupyter notebook [explore.ipynb](experiments/Notebooks/explore.ipynb)
 - [Some documentation on design decision, architecture and deployment](/notes/readme.md).
 
+##### self-promotion: If you are interested in Healthcare & Machine Learning please take a look at my another Open Source project [Computational Healthcare](http://www.computationalhealthcare.com)
 
 ## Models included out of the box
 **We take significant efforts to ensure that following models (code+weights included) work without having to write any code.**
@@ -112,22 +110,6 @@ Following options can be specified in docker-compose.yml, or your environment to
  
 ## Architecture
 ![Architecture](notes/architecture.png "System architecture")
-
-## User Interface 
-#### Search across frames
-![UI Screenshot](notes/search.png "search")
-#### And specific detected objects such as Faces
-![UI Screenshot](notes/face_recognition.png "face recognition")
-#### Past queries
-![UI Screenshot](notes/query_list.png "past queries")
-![UI Screenshot](notes/past_query.png "past queries")
-#### Video list / detail
-![UI Screenshot](notes/video_list.png "Video list")
-![UI Screenshot](notes/video_detail_new.png "detail")
-#### Frame detail
-![UI Screenshot](notes/frame_detail_new.png "Frame detail")
-#### View status of running tasks/queries, retry/rerun failed tasks
-![UI Screenshot](notes/status.png "Frame detail")
 
 ## Libraries & Code used
 

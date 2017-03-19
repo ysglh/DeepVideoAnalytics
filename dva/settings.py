@@ -204,6 +204,7 @@ VISUAL_INDEXES = {
         {
             'indexer_task':"inpcetion_index_by_id",
             'indexer_queue':Q_INDEXER,
+            'retriever_task':"inception_query_by_image",
             'retriever_queue':Q_RETRIEVER,
             'detection_specific':False
         },
@@ -211,6 +212,7 @@ VISUAL_INDEXES = {
         {
             'indexer_task': "perform_face_detection_indexing_by_id",
             'indexer_queue': Q_FACE_DETECTOR,
+            'retriever_task':"facenet_query_by_image",
             'retriever_queue': Q_FACE_RETRIEVER,
             'detection_specific': True
         },

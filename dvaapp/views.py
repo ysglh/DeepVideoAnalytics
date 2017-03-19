@@ -32,26 +32,19 @@ def search(request):
             fh.write(image_data)
         with open(query_frame_path,'w') as fh:
             fh.write(image_data)
-        result = inception_query_by_image.apply_async(args=[primary_key],queue=settings.TASK_NAMES_TO_QUEUE[inception_query_by_image.name])
-        result_face = facenet_query_by_image.apply_async(args=[primary_key],queue=settings.TASK_NAMES_TO_QUEUE[facenet_query_by_image.name])
+        task_results = {}
         user = request.user if request.user.is_authenticated() else None
-        query.task_id = result.task_id
+        for visual_index_name,visual_index in settings.VISUAL_INDEXES.iteritems():
+            task_name = visual_index['retriever_task']
+            task_results[visual_index_name] = app.send_task(task_name, args=[primary_key,],queue=settings.TASK_NAMES_TO_QUEUE[task_name])
         query.user = user
         query.save()
         results = []
-        entries = result.get()
-        if entries:
-            for algo,rlist in entries.iteritems():
-                for r in rlist:
-                    r['url'] = '/media/{}/frames/{}.jpg'.format(r['video_primary_key'],r['frame_index'])
-                    r['detections'] = [{'pk': d.pk, 'name': d.object_name, 'confidence': d.confidence} for d in Detection.objects.filter(frame_id=r['frame_primary_key'])]
-                    r['result_type'] = 'frame'
-                    results.append(r)
         results_detections = []
-        if result_face.successful():
-            face_entries = result_face.get()
-            if face_entries:
-                for algo,rlist in face_entries.iteritems():
+        for visual_index_name,result in task_results.iteritems():
+            entries = result.get()
+            if entries and settings.VISUAL_INDEXES[visual_index_name]['detection_specific']:
+                for algo,rlist in entries.iteritems():
                     for r in rlist:
                         r['url'] = '/media/{}/detections/{}.jpg'.format(r['video_primary_key'],r['detection_primary_key'])
                         d = Detection.objects.get(pk=r['detection_primary_key'])
@@ -60,10 +53,15 @@ def search(request):
                         r['result_type'] = 'detection'
                         r['detection'] = [{'pk': d.pk, 'name': d.object_name, 'confidence': d.confidence},]
                         results_detections.append(r)
-        return JsonResponse(data={'task_id':result.task_id,
-                                  'primary_key':primary_key,
-                                  'results':results,
-                                  'results_detections':results_detections})
+            elif entries:
+                for algo, rlist in entries.iteritems():
+                    for r in rlist:
+                        r['url'] = '/media/{}/frames/{}.jpg'.format(r['video_primary_key'], r['frame_index'])
+                        r['detections'] = [{'pk': d.pk, 'name': d.object_name, 'confidence': d.confidence} for d in
+                                           Detection.objects.filter(frame_id=r['frame_primary_key'])]
+                        r['result_type'] = 'frame'
+                        results.append(r)
+        return JsonResponse(data={'task_id':"",'primary_key':primary_key,'results':results,'results_detections':results_detections})
 
 
 def index(request,query_pk=None,frame_pk=None,detection_pk=None):
@@ -93,6 +91,11 @@ def index(request,query_pk=None,frame_pk=None,detection_pk=None):
     context['video_count'] = Video.objects.count() - context['query_count']
     context['detection_count'] = Detection.objects.count()
     return render(request, 'dashboard.html', context)
+
+
+def annotate(request,query_pk=None,frame_pk=None,detection_pk=None):
+    raise NotImplementedError
+    # return render(request, 'annotate.html', context)
 
 
 def yt(request):

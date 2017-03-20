@@ -23,8 +23,6 @@ released by the vision research community.
 - Videos, frames, indexes, numpy vectors stored in media directory, served through nginx
 - Explore data, manually run code & tasks without UI via a jupyter notebook [explore.ipynb](experiments/Notebooks/explore.ipynb)
 
-##### self-promotion: If you are interested in Healthcare & Machine Learning please take a look at my another Open Source project [Computational Healthcare](http://www.computationalhealthcare.com)
-
 ## Models included out of the box
 **We take significant efforts to ensure that following models (code+weights included) work without having to write any code.**
 
@@ -34,28 +32,7 @@ released by the vision research community.
 - [x] [YOLO 9000](http://pjreddie.com/darknet/yolo/) (disabled by default; set YOLO_ENABLE=1 in environment variable to use)
 - [x] [Face detection/alignment/recognition using MTCNN and Facenet](https://github.com/davidsandberg/facenet) 
 
-## External datasets indexed for use
-
-- [ ] [Product images data (coming soon!)](http://www.product-open-data.com/download/)
-- [ ] [Visual Genome (coming soon!)](http://visualgenome.org/)
-
-## Planned models and datasets
-
-- [ ] [MultiNet or KittiBox](https://github.com/MarvinTeichmann/MultiNet)
-- [ ] [Text detection models](http://www.robots.ox.ac.uk/~vgg/research/text/)
-- [ ] [Soundnet (requires extracting mp3 audio)](http://projects.csail.mit.edu/soundnet/)
-- [ ] [Open Images dataset pretrained inception v3](https://github.com/openimages/dataset)   
-- [ ] [Keras-js](https://github.com/transcranial/keras-js) which uses Keras inception for client side indexing   
-
-## Approximate Nearest Neighbors indexing algorithms
-
-- [ ] [Yahoo/Flickr Locally Optimized Product Quantization (currently being integrated for querying external data)](https://github.com/yahoo/lopq)
-- [ ] [Facebook FAISS for fast approximate similarity search (lower priority)](https://github.com/facebookresearch/faiss)
-
-
-## To Do
-[Please take a look at this board for planned future tasks](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/projects/1)
-
+##### self-promotion: If you are interested in Healthcare & Machine Learning please take a look at my another Open Source project [Computational Healthcare](http://www.computationalhealthcare.com)
 
 ## Libraries & Code used
 

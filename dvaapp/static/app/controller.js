@@ -302,7 +302,7 @@ $scope.deselect = function(){
 
 $scope.add_bounding_box = function (){
     current_id = $scope.boxes.length;
-    rect = new fabric.Rect({ left: 100, top: 50, width: 100, height: 100, fill: 'red',opacity:0.3,'id':current_id});
+    rect = new fabric.Rect({ left: 100, top: 50, width: 100, height: 100, fill: 'red',opacity:0.3,'id':current_id, 'new_annotation':true});
     rect.lockRotation = true;
     $scope.boxes.push(rect);
     canvas.add(rect);
@@ -508,6 +508,24 @@ cveditor.controller('CanvasControls', function($scope) {
     $scope.results = [];
     $scope.boxes = [];
     $scope.results_detections = [];
+    if(annotation_mode)
+    {
+        for (var bindex in existing){
+            current_id = $scope.boxes.length;
+            b = existing[bindex];
+            rect = new fabric.Rect({ left: b.x, top: b.y, width: b.w, height: b.h, fill: 'green',opacity:0.3,'id':current_id,'new_annotation':false});
+            rect.lockRotation = true;
+            rect.lockMovementX = true;
+            rect.lockMovementY = true;
+            rect.lockScalingX = true;
+            rect.lockScalingY = true;
+            rect.lockRotation = true;
+            rect.hasControls = false;
+            $scope.boxes.push(rect);
+            canvas.add(rect);
+        }
+        canvas.renderAll();
+    }
     addAccessors($scope);
     watchCanvas($scope);
 });

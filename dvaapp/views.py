@@ -2,7 +2,7 @@ from django.shortcuts import render,redirect
 from django.conf import settings
 from django.http import HttpResponse,JsonResponse,HttpResponseRedirect
 import requests
-import os,base64
+import os,base64, json
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView,DetailView
 from django.utils.decorators import method_decorator
@@ -95,7 +95,7 @@ def index(request,query_pk=None,frame_pk=None,detection_pk=None):
 
 
 def annotate(request,query_pk=None,frame_pk=None,detection_pk=None):
-    context = { 'frame':None, 'detection':None }
+    context = { 'frame':None, 'detection':None ,'existing':[]}
     if query_pk:
         previous_query = Query.objects.get(pk=query_pk)
         context['initial_url'] = '/media/queries/{}.png'.format(query_pk)
@@ -103,6 +103,18 @@ def annotate(request,query_pk=None,frame_pk=None,detection_pk=None):
         frame = Frame.objects.get(pk=frame_pk)
         context['frame'] = frame
         context['initial_url'] = '/media/{}/frames/{}.jpg'.format(frame.video.pk,frame.frame_index)
+        for d in Detection.objects.filter(frame=frame):
+            temp = {
+                'x':d.x,
+                'y':d.y,
+                'h':d.h,
+                'w':d.w,
+                'detection':True,
+                'annotation':False,
+                'name':d.object_name
+            }
+            context['existing'].append(temp)
+        context['existing'] = json.dumps(context['existing'])
     elif detection_pk:
         detection = Detection.objects.get(pk=detection_pk)
         context['detection'] = detection

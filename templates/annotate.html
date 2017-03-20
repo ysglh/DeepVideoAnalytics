@@ -92,15 +92,15 @@
                             </div>
                         </div>
                         <div class="col-lg-9">
-                            <div class="form-group">
+                            <div class="form-group" ng-if="box.new_annotation">
                                 <label for="top">name</label>
                                 <input name="name" id="{[ box.id ]}_name" class="form-control" type="text" required="" placeholder="name"  >
                             </div>
-                            <div class="form-group">
+                            <div class="form-group" ng-if="box.new_annotation">
                                 <label for="top">Text metadata</label>
                                 <textarea name="metadata" id="{[ box.id ]}_metadata" class="form-control" rows="6" required="" placeholder="metadata" ></textarea>
                             </div>
-                            <div class="form-group">
+                            <div class="form-group" ng-if="box.new_annotation">
                                 <button ng-click="submit_annotation(box.id)" id="{[ box.id ]}_submit" class="btn btn-primary btn-block">submit</button>
                             </div>
                         </div>
@@ -119,6 +119,7 @@
     <script>
         var status = "Please add bounding box to annotate.";
         var payload = "{{ payload }}";
+        var existing = JSON.parse('{{ existing|safe }}');
         var csrf_token = "{% csrf_token %}";
         var alert = "add bounding box";
         var annotation_mode = true;

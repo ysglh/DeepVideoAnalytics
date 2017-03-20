@@ -4,7 +4,7 @@
 ![UI Screenshot](notes/face_recognition.png "face recognition")
 #### Author [Akshay Bhat, Cornell University.](http://www.akshaybhat.com)       
 
-### [Visit the website to watch demo video of the user interface and for installation instructions](https://deepvideoanalytics.com)
+### [Visit the website for demo video of the UI and installation instructions](https://deepvideoanalytics.com)
 
 Deep Video Analytics provides a platform for indexing and extracting information from videos and images.
 Deep learning detection and recognition algorithms are used for indexing individual frames/images along with 

@@ -301,8 +301,8 @@ $scope.deselect = function(){
 
 
 $scope.add_bounding_box = function (){
-
-    rect = new fabric.Rect({ left: 100, top: 50, width: 100, height: 100, fill: 'green',opacity:0.3});
+    current_id = $scope.boxes.length;
+    rect = new fabric.Rect({ left: 100, top: 50, width: 100, height: 100, fill: 'red',opacity:0.3,'id':current_id});
     rect.lockRotation = true;
     $scope.boxes.push(rect);
     canvas.add(rect);
@@ -428,6 +428,35 @@ $scope.search = function () {
             $scope.results = chunk(response.results, 4);
             $scope.results_detections = chunk(response.results_detections, 4);
             $scope.$$phase || $scope.$digest();
+        }
+    });
+};
+
+
+$scope.submit_annotation = function(box_id){
+    console.log(box_id);
+    box = $scope.boxes[box_id];
+    $.ajax({
+        type: "POST",
+        url: '.',
+        data:{
+            'csrfmiddlewaretoken':$(csrf_token).val(),
+            'h':box.height,
+            'y':box.top,
+            'w':box.width,
+            'x':box.left,
+            'name':$('#'+box.id+'_name').val(),
+            'metadata':$('#'+box.id+'_metadata').val()
+        },
+        dataType: 'json',
+        async: true,
+        success:function(response) {
+            $scope.status = "Submitted annotations";
+            $scope.alert_status = false;
+            $('#'+box_id+'_submit').hide();
+            $scope.boxes[box_id].fill = 'green';
+            $scope.$$phase || $scope.$digest();
+            canvas.renderAll();
         }
     });
 };

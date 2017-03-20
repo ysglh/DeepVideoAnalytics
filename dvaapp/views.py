@@ -6,8 +6,8 @@ import os,base64
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView,DetailView
 from django.utils.decorators import method_decorator
-from .forms import UploadFileForm,YTVideoForm
-from .models import Video,Frame,Detection,Query,QueryResults,TEvent,FrameLabel,IndexEntries,ExternalDataset
+from .forms import UploadFileForm,YTVideoForm,AnnotationForm
+from .models import Video,Frame,Detection,Query,QueryResults,TEvent,FrameLabel,IndexEntries,ExternalDataset, Annotation
 from .tasks import extract_frames,facenet_query_by_image,inception_query_by_image
 from dva.celery import app
 
@@ -94,8 +94,6 @@ def index(request,query_pk=None,frame_pk=None,detection_pk=None):
 
 
 def annotate(request,query_pk=None,frame_pk=None,detection_pk=None):
-    if request.method == 'POST':
-        raise ValueError
     context = { }
     if query_pk:
         previous_query = Query.objects.get(pk=query_pk)
@@ -106,6 +104,21 @@ def annotate(request,query_pk=None,frame_pk=None,detection_pk=None):
     elif detection_pk:
         detection = Detection.objects.get(pk=detection_pk)
         context['initial_url'] = '/media/{}/detections/{}.jpg'.format(detection.video.pk, detection.pk)
+    if request.method == 'POST':
+        form = AnnotationForm(request.POST)
+        if form.is_valid():
+            annotation = Annotation()
+            annotation.x = form.cleaned_data['x']
+            annotation.y = form.cleaned_data['y']
+            annotation.h = form.cleaned_data['h']
+            annotation.w = form.cleaned_data['w']
+            annotation.name = form.cleaned_data['name']
+            annotation.metadata_text = form.cleaned_data['metadata']
+            if frame_pk:
+                annotation.frame = frame
+                annotation.video = frame.video
+            annotation.save()
+        return JsonResponse({'status':True})
     return render(request, 'annotate.html', context)
 
 

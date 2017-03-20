@@ -4,7 +4,7 @@
 ![UI Screenshot](notes/face_recognition.png "face recognition")
 #### Author [Akshay Bhat, Cornell University.](http://www.akshaybhat.com)       
 
-### [Watch demo video of the user interface on the website](https://deepvideoanalytics.com)
+### [Visit the website to watch demo video of the user interface and for installation instructions](https://deepvideoanalytics.com)
 
 Deep Video Analytics provides a platform for indexing and extracting information from videos and images.
 Deep learning detection and recognition algorithms are used for indexing individual frames/images along with 
@@ -22,7 +22,6 @@ released by the vision research community.
 - Separate queues and workers for selection of machines with different specifications (GPU vs RAM).
 - Videos, frames, indexes, numpy vectors stored in media directory, served through nginx
 - Explore data, manually run code & tasks without UI via a jupyter notebook [explore.ipynb](experiments/Notebooks/explore.ipynb)
-- [Some documentation on design decision, architecture and deployment](/notes/readme.md).
 
 ##### self-promotion: If you are interested in Healthcare & Machine Learning please take a look at my another Open Source project [Computational Healthcare](http://www.computationalhealthcare.com)
 
@@ -57,59 +56,6 @@ released by the vision research community.
 ## To Do
 [Please take a look at this board for planned future tasks](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/projects/1)
 
-## Installation
-
-**Pre-built docker images for both CPU & GPU versions are [available on Docker Hub](https://hub.docker.com/r/akshayubhat/dva/tags/).** 
-
-### Machines without an Nvidia GPU
-Deep Video analytics is implemented using Docker and works on Mac, Windows and Linux. 
-
-````bash
-git clone https://github.com/AKSHAYUBHAT/DeepVideoAnalytics 
-cd DeepVideoAnalytics/docker && docker-compose up 
-````
-
-### Machines with Nvidia GPU 
-You need to have latest version of Docker and nvidia-docker installed.
-The GPU Dockerfile is slightly different from the CPU version dockerfile.
-
-
-```bash
-pip install --upgrade nvidia-docker-compose
-git clone https://github.com/AKSHAYUBHAT/DeepVideoAnalytics 
-cd DeepVideoAnalytics/docker_GPU && ./rebuild.sh 
-nvidia-docker-compose up 
-```
-
-### Multiple machines
-Its possible to deploy Deep Video Analytics on multiple machines. Configuring Postgres and RabbitMQ is straightforward. The main issues is correctly mounting the shared media folder (ideally a mounted EFS or NFS).
-Please [read this regarding trade offs](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/notes/architecture.md).
-
-### Amazon P2 instance
-We provide an AMI with all dependencies such as docker & nvidia drivers pre-installed. 
-To use it start a P2.xlarge instance with **ami-b3cc1fa5** (N. Virginia) and ports 8000, 6006, 8888 open (preferably to only your IP). 
-Run following commands after logging into the machine via SSH. 
-```bash
-cd deepvideoanalytics && git pull 
-cd docker_GPU && ./rebuild.sh && nvidia-docker-compose up 
-```
-You can optionally specify "-d" at the end to detach it, but for the very first time its useful to read how each container is started. After approximately 5 ~ 1 minutes the user interface will appear on port 8000 of the instance ip.
-The Process used for [AMI creation is here](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/notes/ami.md) 
-
-**Security warning:** The current GPU container uses nginx <-> uwsgi <-> django setup to ensure smooth playback of videos. 
-However it runs nginix as root (though within the container). Considering that you can now modify AWS Security rules on-the-fly, I highly recommend allowing inbound traffic only from your own IP address.)
-
-
-## Options
-Following options can be specified in docker-compose.yml, or your environment to selectively enable/disable algorithms.
-
-- ALEX_ENABLE=1 (to use Alexnet with PyTorch. Otherwise disabled by default)
-- YOLO_ENABLE=1 (to use YOLO 9000. Otherwise disabled by default)
-- SCENEDETECT_DISABLE=1 (to disable scene detection. Otherwise enabled by default)
-- RESCALE_DISABLE=1 (to disable rescaling of frame extracted from videos. Otherwise enabled by default)
- 
-## Architecture
-![Architecture](notes/architecture.png "System architecture")
 
 ## Libraries & Code used
 

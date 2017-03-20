@@ -64,6 +64,7 @@ initialize_ui = function () {
                 oImg.lockScalingX = true;
                 oImg.lockScalingY = true;
                 oImg.lockRotation = true;
+                oImg.hasControls = false;
                 canvas.add(oImg);
             },load_options = {crossOrigin:"Anonymous"});
         }

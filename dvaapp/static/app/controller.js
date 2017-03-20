@@ -441,11 +441,21 @@ function watchCanvas($scope) {
     canvas.renderAll();
   }
 
-  canvas
+  if (annotation_mode){
+    canvas
+    .on('object:moving', updateScope)
+    .on('object:scaling', updateScope)
+    .on('group:selected', updateScope)
+    .on('path:created', updateScope)
+    .on('selection:cleared', updateScope);
+  }
+  else {
+        canvas
     .on('object:selected', updateScope)
     .on('group:selected', updateScope)
     .on('path:created', updateScope)
     .on('selection:cleared', updateScope);
+  }
 }
 
 

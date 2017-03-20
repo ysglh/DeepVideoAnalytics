@@ -322,7 +322,7 @@ def perform_face_indexing(video_id):
             d.confidence = 100.0
             d.frame_id = input_paths[path]
             d.object_name = "mtcnn_face"
-            top, left, bottom, right = bb[0], bb[1], bb[2], bb[3]
+            left, top, right, bottom = bb[0], bb[1], bb[2], bb[3]
             d.y = top
             d.x = left
             d.w = right-left

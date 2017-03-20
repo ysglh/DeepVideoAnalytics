@@ -39,6 +39,32 @@
                 {% endfor %}
                 </tbody>
                 </table>
+                {% if annotation_list %}
+                <table class="table">
+                <thead>
+                <tr>
+                        <th>Annotation</th>
+                        <th>User</th>
+                        <th>x</th>
+                        <th>y</th>
+                        <th>w</th>
+                        <th>h</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for d in annotation_list %}
+                    <tr>
+                        <td>{{ d.name }} </td>
+                        <td>{{ d.user }} </td>
+                        <td>{{ d.x }} </td>
+                        <td>{{ d.y }} </td>
+                        <td>{{ d.w }} </td>
+                        <td>{{ d.h }} </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+                </table>
+                {% endif %}
                 </div>
             </div>
     </div>

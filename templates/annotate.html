@@ -7,10 +7,18 @@
 </div>
 {% endblock %}
 {% block page_content %}
-<section class="content-header" xmlns="http://www.w3.org/1999/html">
+<section class="content-header" style="padding-top:0px" xmlns="http://www.w3.org/1999/html">
+<div class="row">
+    <div class="box box-info">
+        <div class="box-header">
+            {% if frame %}
+            <h4>Annotate frame <a href="/frames/{{ frame.pk }}">{{ frame.frame_index }}</a> in <a href="/videos/{{ frame.video.pk }}">{{ frame.video.name }}</a> </h4>
+            {% endif %}
+        </div>
+    </div>
+</div>
 </section>
 <section class="content">
-
 <div class="row large-margin">
     <div class="col-xs-1 col-sm-1 m-t" object-buttons-enabled="getSelected()" id="side_options">
         <div class="outer">
@@ -102,7 +110,7 @@
     </div>
 
     </div>
-</div>
+
 </section>
 {% endblock %}
 

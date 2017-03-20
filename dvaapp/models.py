@@ -99,6 +99,7 @@ class QueryResults(models.Model):
 
 class Annotation(models.Model):
     video = models.ForeignKey(Video)
+    user = models.ForeignKey(User,null=True)
     frame = models.ForeignKey(Frame,null=True)
     detection = models.ForeignKey(Detection,null=True)
     multi_frame = models.BooleanField(default=False)

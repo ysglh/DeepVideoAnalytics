@@ -95,15 +95,17 @@ def index(request,query_pk=None,frame_pk=None,detection_pk=None):
 
 
 def annotate(request,query_pk=None,frame_pk=None,detection_pk=None):
-    context = { }
+    context = { 'frame':None, 'detection':None }
     if query_pk:
         previous_query = Query.objects.get(pk=query_pk)
         context['initial_url'] = '/media/queries/{}.png'.format(query_pk)
     elif frame_pk:
         frame = Frame.objects.get(pk=frame_pk)
+        context['frame'] = frame
         context['initial_url'] = '/media/{}/frames/{}.jpg'.format(frame.video.pk,frame.frame_index)
     elif detection_pk:
         detection = Detection.objects.get(pk=detection_pk)
+        context['detection'] = detection
         context['initial_url'] = '/media/{}/detections/{}.jpg'.format(detection.video.pk, detection.pk)
     if request.method == 'POST':
         form = AnnotationForm(request.POST)
@@ -233,6 +235,7 @@ class FrameDetail(DetailView):
     def get_context_data(self, **kwargs):
         context = super(FrameDetail, self).get_context_data(**kwargs)
         context['detection_list'] = Detection.objects.all().filter(frame=self.object)
+        context['annotation_list'] = Annotation.objects.all().filter(frame=self.object)
         context['video'] = self.object.video
         context['url'] = '{}/{}/frames/{}.jpg'.format(settings.MEDIA_URL,self.object.video.pk,self.object.frame_index)
         return context

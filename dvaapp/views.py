@@ -109,9 +109,18 @@ def annotate(request,query_pk=None,frame_pk=None,detection_pk=None):
                 'y':d.y,
                 'h':d.h,
                 'w':d.w,
-                'detection':True,
-                'annotation':False,
+                'box_type':"detection",
                 'name':d.object_name
+            }
+            context['existing'].append(temp)
+        for d in Annotation.objects.filter(frame=frame):
+            temp = {
+                'x':d.x,
+                'y':d.y,
+                'h':d.h,
+                'w':d.w,
+                'box_type':"annotation",
+                'name':d.name
             }
             context['existing'].append(temp)
         context['existing'] = json.dumps(context['existing'])

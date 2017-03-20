@@ -441,9 +441,9 @@ $scope.submit_annotation = function(box_id){
         url: '.',
         data:{
             'csrfmiddlewaretoken':$(csrf_token).val(),
-            'h':box.height,
+            'h':box.height*box.scaleY,
             'y':box.top,
-            'w':box.width,
+            'w':box.width*box.scaleX,
             'x':box.left,
             'name':$('#'+box.id+'_name').val(),
             'metadata':$('#'+box.id+'_metadata').val()
@@ -507,13 +507,15 @@ cveditor.controller('CanvasControls', function($scope) {
     $scope.current_mode = null;
     $scope.results = [];
     $scope.boxes = [];
+    $scope.existing_boxes = [];
     $scope.results_detections = [];
     if(annotation_mode)
     {
         for (var bindex in existing){
             current_id = $scope.boxes.length;
             b = existing[bindex];
-            rect = new fabric.Rect({ left: b.x, top: b.y, width: b.w, height: b.h, fill: 'green',opacity:0.3,'id':current_id,'new_annotation':false});
+            rect = new fabric.Rect({ left: b.x, top: b.y, width: b.w, height: b.h, fill: 'green',
+                opacity:0.3,'id':current_id,'new_annotation':false,'name':b['name'],'box_type':b['box_type']});
             rect.lockRotation = true;
             rect.lockMovementX = true;
             rect.lockMovementY = true;
@@ -521,8 +523,9 @@ cveditor.controller('CanvasControls', function($scope) {
             rect.lockScalingY = true;
             rect.lockRotation = true;
             rect.hasControls = false;
-            $scope.boxes.push(rect);
+            $scope.existing_boxes.push(rect);
             canvas.add(rect);
+            canvas.bringToFront(rect);
         }
         canvas.renderAll();
     }

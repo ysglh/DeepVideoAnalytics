@@ -92,15 +92,15 @@
                             </div>
                         </div>
                         <div class="col-lg-9">
-                            <div class="form-group" ng-if="box.new_annotation">
+                            <div class="form-group">
                                 <label for="top">name</label>
                                 <input name="name" id="{[ box.id ]}_name" class="form-control" type="text" required="" placeholder="name"  >
                             </div>
-                            <div class="form-group" ng-if="box.new_annotation">
+                            <div class="form-group">
                                 <label for="top">Text metadata</label>
                                 <textarea name="metadata" id="{[ box.id ]}_metadata" class="form-control" rows="6" required="" placeholder="metadata" ></textarea>
                             </div>
-                            <div class="form-group" ng-if="box.new_annotation">
+                            <div class="form-group">
                                 <button ng-click="submit_annotation(box.id)" id="{[ box.id ]}_submit" class="btn btn-primary btn-block">submit</button>
                             </div>
                         </div>
@@ -108,8 +108,40 @@
             </div>
         </div>
     </div>
-
-    </div>
+</div>
+<div class="row m-t">
+        <div ng-repeat="box in existing_boxes" class="col-lg-2 col-md-3" >
+            <div class="box box-primary">
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <h4>Existing</h4>
+                                <h4>{[ box.box_type]}</h4>
+                                <h4>{[ box.name]}</h4>
+                            </div>
+                            <div class="form-group">
+                                <label for="top">top</label>
+                                <input name="top" class="form-control" type="text" required="" placeholder="top" value="{[ box.top]}" >
+                            </div>
+                            <div class="form-group">
+                                <label for="left">left</label>
+                                <input name="left" class="form-control" type="text" required="" placeholder="top" value="{[ box.left]}" >
+                            </div>
+                            <div class="form-group">
+                                <label for="height">height</label>
+                                <input name="height" class="form-control" type="text" required="" placeholder="top" value="{[ box.height*box.scaleY ]}" >
+                            </div>
+                            <div class="form-group">
+                                <label for="width">width</label>
+                                <input name="width" class="form-control" type="text" required="" placeholder="top" value="{[ box.width*box.scaleX ]}" >
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+</div>
 
 </section>
 {% endblock %}

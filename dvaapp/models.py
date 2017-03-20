@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.contrib.auth.models import User
-from django.contrib.postgres.fields import JSONField
 
 
 class Query(models.Model):
@@ -105,9 +104,9 @@ class Annotation(models.Model):
     multi_frame = models.BooleanField(default=False)
     start_frame = models.ForeignKey(Frame,null=True,related_name='start_frame')
     end_frame = models.ForeignKey(Frame,null=True,related_name='end_frame')
-    metadata_json = JSONField(default={})
     metadata_text = models.TextField(default="")
     name = models.TextField(default="unnamed_annotation")
+    full_frame = models.BooleanField(default=True)
     x = models.IntegerField(default=0)
     y = models.IntegerField(default=0)
     h = models.IntegerField(default=0)

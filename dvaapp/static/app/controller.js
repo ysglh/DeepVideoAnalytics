@@ -396,6 +396,19 @@ $scope.clear_results = function () {
     $scope.$$phase || $scope.$digest();
 };
 
+$scope.toggle_visibility = function(box_index){
+    box = $scope.existing_boxes[box_index];
+    if(box.visible){
+        box.opacity = 0.0;
+        box.visible = false;
+    }
+    else{
+        box.opacity = 0.5;
+        box.visible = true;
+    }
+    canvas.deactivateAll().renderAll();
+};
+
 $scope.search = function () {
     debugger;
     $scope.clear_results();
@@ -512,10 +525,10 @@ cveditor.controller('CanvasControls', function($scope) {
     if(annotation_mode)
     {
         for (var bindex in existing){
-            current_id = $scope.boxes.length;
+            current_id = $scope.existing_boxes.length;
             b = existing[bindex];
             rect = new fabric.Rect({ left: b.x, top: b.y, width: b.w, height: b.h, fill: 'green',
-                opacity:0.3,'id':current_id,'new_annotation':false,'name':b['name'],'box_type':b['box_type']});
+                opacity:0.5,'id':current_id,'new_annotation':false,'name':b['name'],'visible':true,'box_type':b['box_type']});
             rect.lockRotation = true;
             rect.lockMovementX = true;
             rect.lockMovementY = true;

@@ -90,6 +90,7 @@ def index(request,query_pk=None,frame_pk=None,detection_pk=None):
     context['external_datasets_count'] = ExternalDataset.objects.count()
     context['video_count'] = Video.objects.count() - context['query_count']
     context['detection_count'] = Detection.objects.count()
+    context['annotation_count'] = Annotation.objects.count()
     return render(request, 'dashboard.html', context)
 
 

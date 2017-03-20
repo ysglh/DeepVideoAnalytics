@@ -455,6 +455,12 @@ $scope.submit_annotation = function(box_id){
             $scope.alert_status = false;
             $('#'+box_id+'_submit').hide();
             $scope.boxes[box_id].fill = 'green';
+            $scope.boxes[box_id].lockMovementX = true;
+            $scope.boxes[box_id].lockMovementY = true;
+            $scope.boxes[box_id].lockScalingX = true;
+            $scope.boxes[box_id].lockScalingY = true;
+            $scope.boxes[box_id].lockRotation = true;
+            $scope.boxes[box_id].hasControls = false;
             $scope.$$phase || $scope.$digest();
             canvas.renderAll();
         }

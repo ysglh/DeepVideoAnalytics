@@ -57,7 +57,20 @@ initialize_ui = function () {
     });
     if (initial_url)
     {
-        fabric.Image.fromURL(initial_url, function(oImg){canvas.add(oImg);},load_options = {crossOrigin:"Anonymous"});
+        if (annotation_mode){
+            fabric.Image.fromURL(initial_url, function(oImg){
+                oImg.lockMovementX = true;
+                oImg.lockMovementY = true;
+                oImg.lockScalingX = true;
+                oImg.lockScalingY = true;
+                oImg.lockRotation = true;
+                canvas.add(oImg);
+            },load_options = {crossOrigin:"Anonymous"});
+        }
+        else{
+            fabric.Image.fromURL(initial_url, function(oImg){canvas.add(oImg);},load_options = {crossOrigin:"Anonymous"});
+        }
+
     }
 };
 

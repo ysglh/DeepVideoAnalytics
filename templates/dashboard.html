@@ -206,6 +206,7 @@
 
 {% block page_js %}
     <script>
+        var status = "Please add image to search or upload.";
         var payload = "{{ payload }}";
         var csrf_token = "{% csrf_token %}";
         {% if initial_url %}

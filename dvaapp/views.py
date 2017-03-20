@@ -94,8 +94,19 @@ def index(request,query_pk=None,frame_pk=None,detection_pk=None):
 
 
 def annotate(request,query_pk=None,frame_pk=None,detection_pk=None):
-    raise NotImplementedError
-    # return render(request, 'annotate.html', context)
+    if request.method == 'POST':
+        raise ValueError
+    context = { }
+    if query_pk:
+        previous_query = Query.objects.get(pk=query_pk)
+        context['initial_url'] = '/media/queries/{}.png'.format(query_pk)
+    elif frame_pk:
+        frame = Frame.objects.get(pk=frame_pk)
+        context['initial_url'] = '/media/{}/frames/{}.jpg'.format(frame.video.pk,frame.frame_index)
+    elif detection_pk:
+        detection = Detection.objects.get(pk=detection_pk)
+        context['initial_url'] = '/media/{}/detections/{}.jpg'.format(detection.video.pk, detection.pk)
+    return render(request, 'annotate.html', context)
 
 
 def yt(request):

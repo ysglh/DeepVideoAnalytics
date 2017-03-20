@@ -38,8 +38,6 @@ function setActiveProp(name, value) {
   canvas.renderAll();
 }
 
-
-
 function addAccessors($scope) {
 
   $scope.getOpacity = function() {
@@ -302,6 +300,13 @@ $scope.deselect = function(){
 };
 
 
+$scope.add_bounding_box = function (){
+
+    rect = new fabric.Rect({ left: 100, top: 50, width: 100, height: 100, fill: 'green',opacity:0.3});
+    rect.lockRotation = true;
+    $scope.boxes.push(rect);
+    canvas.add(rect);
+};
 
 
 
@@ -453,9 +458,10 @@ cveditor.controller('CanvasControls', function($scope) {
     $scope.getActiveStyle = getActiveStyle;
     $scope.dev = false;
     $scope.alert_status = false;
-    $scope.status = "Please add image to search or upload.";
+    $scope.status = status;
     $scope.current_mode = null;
     $scope.results = [];
+    $scope.boxes = [];
     $scope.results_detections = [];
     addAccessors($scope);
     watchCanvas($scope);

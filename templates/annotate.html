@@ -39,8 +39,6 @@
             <button id="bring-forward" class="btn btn-info  btn-object-action btn-move"  ng-click="bringForward()"><i class="fa fa-step-forward"></i>&nbsp;&nbsp;Move forward</button>
             <button id="send-to-back" class="btn btn-info  btn-object-action btn-move"  ng-click="sendToBack()"><i class="fa fa-backward"></i>&nbsp;&nbsp;Send to back</button>
             <button id="bring-to-front" class="btn btn-info  btn-object-action btn-move"  ng-click="bringToFront()"><i class="fa fa-forward"></i>&nbsp;&nbsp;Bring to front</button>
-            <h5 style="text-align: center">Scale</h5>
-            <input value="100" max="200" type="range" bind-value-to="scale">
             <div id="color-opacity-controls" ng-show="canvas.getActiveObject()">
                 <h5 style="text-align: center">Opacity</h5>
                 <input value="100" type="range" bind-value-to="opacity">
@@ -51,37 +49,69 @@
     </div>
     </div>
     </div>
-    <div class="col-xs-4 col-sm-4 col-md-4 col-lg-4  m-t input">
+    <div class="col-xs-11 col-sm-11 col-md-11 col-lg-11  m-t">
         <div class="operations">
             <form id="image-form"  onsubmit="return false;">
                 <input type='file'  id='imgfile' style="display:none"/>
-                <a type='button' class="btn btn-info" id='btnLoad' ng-click='load_image();'><i class="fa fa-image"></i>&nbsp;&nbsp;Add image</a>
+                <a type='button' class="btn btn-info" id='btnLoad' ng-click='add_bounding_box();'><i class="fa fa-image"></i>&nbsp;&nbsp;Add bounding box</a>
             </form>
-            <button  style="display:None" id="drawing-mode_f"
-              ng-click="setFreeDrawingMode(!getFreeDrawingMode(1),1)"
-              ng-class="{'btn-inverse': getFreeDrawingMode(1)}" class="btn bg-green ">
-              <i class="fa fa-pencil"></i>&nbsp;&nbsp;Highlight </button>
-            <button id="drawing-mode_b"
-              ng-click="setFreeDrawingMode(!getFreeDrawingMode(2),2)"
-              ng-class="{'btn-inverse': getFreeDrawingMode(2)}" class="btn btn-warning ">
-              <i class="fa fa-pencil"></i>&nbsp;&nbsp;Exclude </button>
             <div ng-show="getFreeDrawingMode(1)" class="drawing-mode">
                 <button id="drawing-mode_x" ng-click="setFreeDrawingMode(!getFreeDrawingMode(1),1)" class="btn bg-red  stop_btn"> <i class="fa fa-close"></i>&nbsp;&nbsp;Stop Drawing!</button>
             </div>
-            <button href="" class="btn btn-warning" id="search_quick" ng-click="search()"><i class="fa fa-search"></i>&nbsp;&nbsp;Approximate Search</button>
-            <button href="" class="btn btn-success" id="segment" ng-click="search()"><i class="fa fa-search"></i>&nbsp;&nbsp;Exact Search</button>
         </div>
-        <div id="canvas-wrapper">
-            <canvas id="canvas"  width="500" height="500"></canvas>
+        <div id="canvas-wrapper" >
+            <canvas id="canvas" height="600px" width="900px"></canvas>
         </div>
     </div>
-    <div class=" col-xs-12 col-sm-12 col-md-6 col-lg-4 m-t uploadmenu">
-            <div class="row">
-            <div class="col-lg-6">
-            </div>
-            <div class="col-lg-6">
+</div>
+<div class="row m-t">
+    <div ng-repeat="box in boxes" class="col-lg-12" >
+        <div class="box box-primary">
+            <div class="box-body">
+                <form role="form"  method="post" action="/annotate" >
+                    <div class="row">
+                        <div class="col-lg-3">
+                            <div class="form-group">
+                                <label for="top">top</label>
+                                <input name="top" class="form-control" type="text" required="" placeholder="top" value="{[ box.top]}" >
+                            </div>
+                            <div class="form-group">
+                                <label for="left">left</label>
+                                <input name="left" class="form-control" type="text" required="" placeholder="top" value="{[ box.left]}" >
+                            </div>
+                            <div class="form-group">
+                                <label for="height">height</label>
+                                <input name="height" class="form-control" type="text" required="" placeholder="top" value="{[ box.height*box.scaleY ]}" >
+                            </div>
+                            <div class="form-group">
+                                <label for="width">width</label>
+                                <input name="width" class="form-control" type="text" required="" placeholder="top" value="{[ box.width*box.scaleX ]}" >
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group">
+                                <label for="top">name</label>
+                                <input name="name" class="form-control" type="text" required="" placeholder="name"  >
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group">
+                                <label for="top">JSON metadata</label>
+                                <input name="json metadata" class="form-control" type="text" required="" placeholder="name"  >
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary btn-block">submit</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
+    </div>
+
     </div>
 </div>
 </section>
@@ -90,9 +120,11 @@
 
 {% block page_js %}
     <script>
+        var status = "Please add bounding box to annotate.";
         var payload = "{{ payload }}";
         var csrf_token = "{% csrf_token %}";
-        var annotation_ui = true;
+        var alert = "add bounding box";
+        var annotation_mode = true;
         {% if initial_url %}
             var initial_url="{{ initial_url }}";
         {% else %}

@@ -29,7 +29,7 @@
     <div class="col-lg-12">
         <div class="box box-primary" style="margin-left:auto;margin-right:auto;width:1100px;">
             <div class="box-header with-border">
-            <h4>Existing annotations and detections (Refresh the entire page to reload new annotations)</h4>
+            <h4>Existing annotations and detections (refresh the page to reload new annotations)</h4>
         </div>
         <div class="box-body">
         <table class="table table-bordered">
@@ -62,16 +62,10 @@
 </div>
 <div class="row large-margin">
     <div class="col-lg-12" style="text-align:center">
-        <div style="margin-bottom:10px">
-            <button type="button" class="btn btn-info"  id="reset_zoom" ng-click="resetZoom()"><i class="fa fa-refresh"></i>&nbsp;Reset Zoom</button>
-            <a type='button' class="btn btn-info" id='btnLoad' ng-click='add_bounding_box();'><i class="fa fa-square"></i>&nbsp;&nbsp;Add bounding box for annotation</a>
-            <span> Use mousewheel or touchpad to zoom in/out and pan.</span>
-            <span ng-show="canvas.getActiveGroup()">
-                <button type="button" class="btn  btn-danger btn-object-action bg-maroon " id="remove-selected-group" ng-click="removeSelected()"><i class="fa fa-trash"></i>&nbsp;&nbsp;Delete</button>
-                <button type="button" class="btn  btn-object-action " id="deselect_group" ng-click="deselect()"><i class="fa fa-minus"></i>&nbsp;&nbsp;Deselect</button>
-            </span>
+        <div id="canvas-wrapper" style="margin-left:auto;margin-right:auto">
+            <canvas id="canvas" height="600px" width="1100px"></canvas>
         </div>
-        <div style="height:50px" style="margin-bottom:10px">
+        <div style="height:50px;margin-bottom:10px;margin-top:15px">
             <span ng-show="canvas.getActiveObject()">
                 <button id="send-backwards" class="btn btn-info  btn-object-action " ng-click="sendBackwards()"><i class="fa fa-step-backward"></i>&nbsp;&nbsp;Move back</button>
                 <button id="bring-forward" class="btn btn-info  btn-object-action "  ng-click="bringForward()"><i class="fa fa-step-forward"></i>&nbsp;&nbsp;Move forward</button>
@@ -84,8 +78,14 @@
                 <button type="button" class="btn  btn-object-action bg-yellow " id="deselect" ng-click="deselect()"><i class="fa fa-minus"></i>&nbsp;&nbsp;Deselect</button>
             </span>
         </div>
-        <div id="canvas-wrapper" style="margin-left:auto;margin-right:auto">
-            <canvas id="canvas" height="600px" width="1100px"></canvas>
+        <div style="margin-bottom:10px">
+            <button type="button" class="btn btn-info"  id="reset_zoom" ng-click="resetZoom()"><i class="fa fa-refresh"></i>&nbsp;Reset Zoom</button>
+            <a type='button' class="btn btn-info" id='btnLoad' ng-click='add_bounding_box();'><i class="fa fa-square"></i>&nbsp;&nbsp;Add bounding box for annotation</a>
+            <span> Use mousewheel or touchpad to zoom in/out and pan.</span>
+            <span ng-show="canvas.getActiveGroup()">
+                <button type="button" class="btn  btn-danger btn-object-action bg-maroon " id="remove-selected-group" ng-click="removeSelected()"><i class="fa fa-trash"></i>&nbsp;&nbsp;Delete</button>
+                <button type="button" class="btn  btn-object-action " id="deselect_group" ng-click="deselect()"><i class="fa fa-minus"></i>&nbsp;&nbsp;Deselect</button>
+            </span>
         </div>
 
     </div>

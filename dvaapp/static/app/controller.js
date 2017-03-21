@@ -483,6 +483,7 @@ $scope.submit_annotation = function(box_id){
                 'y': box.top,
                 'w': box.width * box.scaleX,
                 'x': box.left,
+                'high_level':false,
                 'name': $('#' + box.id + '_name').val(),
                 'metadata': $('#' + box.id + '_metadata').val()
             },
@@ -501,6 +502,38 @@ $scope.submit_annotation = function(box_id){
                 $scope.boxes[box_id].hasControls = false;
                 $scope.$$phase || $scope.$digest();
                 canvas.renderAll();
+            }
+        });
+    }
+    else {
+        alert("Name cannot be empty!");
+    }
+};
+
+$scope.submit_high_level_annotation = function(){
+    $scope.high_level_alert = "Submitting";
+    if($('#high_level_name').val().length > 0) {
+        $.ajax({
+            type: "POST",
+            url: '.',
+            data: {
+                'csrfmiddlewaretoken': $(csrf_token).val(),
+                'h': 0,
+                'y': 0,
+                'w': 0,
+                'x': 0,
+                'high_level':true,
+                'name': $('#high_level_name').val(),
+                'metadata': $('#high_level_metadata').val()
+            },
+            dataType: 'json',
+            async: true,
+            success: function (response) {
+                $scope.high_level_alert = "Submitted! You can add another frame level annotation.";
+                $scope.status = "Submitted annotations";
+                $scope.$$phase || $scope.$digest();
+                canvas.renderAll();
+
             }
         });
     }
@@ -551,6 +584,7 @@ cveditor.controller('CanvasControls', function($scope) {
     $scope.boxes = [];
     $scope.existing_boxes = [];
     $scope.results_detections = [];
+    $scope.high_level_alert = "Add frame level annotation";
     if(annotation_mode)
     {
         for (var bindex in existing){

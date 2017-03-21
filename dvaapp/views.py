@@ -138,6 +138,8 @@ def annotate(request,query_pk=None,frame_pk=None,detection_pk=None):
             annotation.y = form.cleaned_data['y']
             annotation.h = form.cleaned_data['h']
             annotation.w = form.cleaned_data['w']
+            if form.cleaned_data['high_level']:
+                annotation.full_frame = True
             annotation.name = form.cleaned_data['name']
             annotation.metadata_text = form.cleaned_data['metadata']
             if frame_pk:
@@ -146,7 +148,7 @@ def annotate(request,query_pk=None,frame_pk=None,detection_pk=None):
             annotation.save()
             return JsonResponse({'status': True})
         else:
-            raise ValueError
+            raise ValueError,form.errors
     return render(request, 'annotate.html', context)
 
 

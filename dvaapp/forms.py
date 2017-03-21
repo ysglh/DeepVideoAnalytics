@@ -16,6 +16,6 @@ class AnnotationForm(forms.Form):
     y = forms.FloatField()
     h = forms.FloatField()
     w = forms.FloatField()
-    metadata = forms.CharField()
+    metadata = forms.CharField(required=False)
     name = forms.CharField()
 

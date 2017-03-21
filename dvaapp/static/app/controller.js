@@ -445,39 +445,68 @@ $scope.search = function () {
     });
 };
 
+$scope.delete_object = function(box_id,pk,object_type){
+    if (confirm('Confirm delete ')){
+        $.ajax({
+        type: "POST",
+        url: '/delete',
+        dataType: 'json',
+        async: true,
+        data: {
+            'pk':pk,
+            'object_type':object_type,
+            'csrfmiddlewaretoken':$(csrf_token).val()
+        },
+        success: function (response) {
+            box = $scope.existing_boxes[box_id];
+            box.opacity = 0.0;
+            $scope.existing_boxes.splice(box_id, 1);
+            canvas.renderAll();
+            $scope.$$phase || $scope.$digest();
+        }
+    });
+    }
+};
+
+
 
 $scope.submit_annotation = function(box_id){
     console.log(box_id);
     box = $scope.boxes[box_id];
-    $.ajax({
-        type: "POST",
-        url: '.',
-        data:{
-            'csrfmiddlewaretoken':$(csrf_token).val(),
-            'h':box.height*box.scaleY,
-            'y':box.top,
-            'w':box.width*box.scaleX,
-            'x':box.left,
-            'name':$('#'+box.id+'_name').val(),
-            'metadata':$('#'+box.id+'_metadata').val()
-        },
-        dataType: 'json',
-        async: true,
-        success:function(response) {
-            $scope.status = "Submitted annotations";
-            $scope.alert_status = false;
-            $('#'+box_id+'_submit').hide();
-            $scope.boxes[box_id].fill = 'green';
-            $scope.boxes[box_id].lockMovementX = true;
-            $scope.boxes[box_id].lockMovementY = true;
-            $scope.boxes[box_id].lockScalingX = true;
-            $scope.boxes[box_id].lockScalingY = true;
-            $scope.boxes[box_id].lockRotation = true;
-            $scope.boxes[box_id].hasControls = false;
-            $scope.$$phase || $scope.$digest();
-            canvas.renderAll();
-        }
-    });
+    if($('#'+box.id+'_name').val().length > 0) {
+        $.ajax({
+            type: "POST",
+            url: '.',
+            data: {
+                'csrfmiddlewaretoken': $(csrf_token).val(),
+                'h': box.height * box.scaleY,
+                'y': box.top,
+                'w': box.width * box.scaleX,
+                'x': box.left,
+                'name': $('#' + box.id + '_name').val(),
+                'metadata': $('#' + box.id + '_metadata').val()
+            },
+            dataType: 'json',
+            async: true,
+            success: function (response) {
+                $scope.status = "Submitted annotations";
+                $scope.alert_status = false;
+                $('#' + box_id + '_submit').hide();
+                $scope.boxes[box_id].fill = 'green';
+                $scope.boxes[box_id].lockMovementX = true;
+                $scope.boxes[box_id].lockMovementY = true;
+                $scope.boxes[box_id].lockScalingX = true;
+                $scope.boxes[box_id].lockScalingY = true;
+                $scope.boxes[box_id].lockRotation = true;
+                $scope.boxes[box_id].hasControls = false;
+                $scope.$$phase || $scope.$digest();
+                canvas.renderAll();
+            }
+        });
+    }
+    else {
+        alert("Name cannot be empty!");
+    }
 };
 
 }
@@ -528,7 +557,8 @@ cveditor.controller('CanvasControls', function($scope) {
             current_id = $scope.existing_boxes.length;
             b = existing[bindex];
             rect = new fabric.Rect({ left: b.x, top: b.y, width: b.w, height: b.h, fill: 'green',
-                opacity:0.5,'id':current_id,'new_annotation':false,'name':b['name'],'visible':true,'box_type':b['box_type']});
+                opacity:0.5,'id':current_id,'new_annotation':false,'name':b['name'],'visible':true,'box_type':b['box_type'],'pk':b['pk']});
+            rect.annotation = b['box_type'] == 'annotation';
             rect.lockRotation = true;
             rect.lockMovementX = true;
             rect.lockMovementY = true;

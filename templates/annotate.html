@@ -27,7 +27,7 @@
 <section class="content">
 <div class="row m-t m-b">
     <div class="col-lg-12">
-        <div class="box box-primary" style="margin-left:auto;margin-right:auto;width:1000px;">
+        <div class="box box-primary" style="margin-left:auto;margin-right:auto;width:1100px;">
             <div class="box-header with-border">
             <h4>Existing annotations and detections</h4>
         </div>
@@ -41,16 +41,18 @@
             <th>height</th>
             <th>width</th>
             <th>visible</th>
+            <th>delete</th>
         </tr></thead>
         <tbody>
         <tr ng-repeat="box in existing_boxes" >
-        <td>{[ box.box_type]}</td>
-        <td>{[ box.name]}</td>
-        <td class="text-right">{[ box.top]}</td>
-        <td class="text-right">{[ box.left]}</td>
-        <td class="text-right">{[ box.height*box.scaleY ]}</td>
-        <td class="text-right">{[ box.width*box.scaleX ]}</td>
-        <td class="text-center"><input type="checkbox" ng-checked="{[box.visible]}" ng-click="toggle_visibility(box.id)"></td>
+            <td>{[ box.box_type]}</td>
+            <td>{[ box.name]}</td>
+            <td class="text-right">{[ box.top]}</td>
+            <td class="text-right">{[ box.left]}</td>
+            <td class="text-right">{[ box.height*box.scaleY ]}</td>
+            <td class="text-right">{[ box.width*box.scaleX ]}</td>
+            <td class="text-center"><input type="checkbox" ng-checked="{[box.visible]}" ng-click="toggle_visibility(box.id)"></td>
+            <td class="text-center"><a ng-show="{[ box.annotation ]}" class="btn btn-warning" ng-click="delete_object(box.id,box.pk,box.box_type)"><i class="fa fa-trash"></i> Delete</a></td>
         </tr>
         </tbody>
         </table>
@@ -71,8 +73,6 @@
         </div>
         <div style="height:50px" style="margin-bottom:10px">
             <span ng-show="canvas.getActiveObject()">
-                <button type="button" class="btn  btn-danger btn-object-action bg-maroon " id="remove-selected" ng-click="removeSelected()"><i class="fa fa-minus"></i>&nbsp;&nbsp;Delete</button>
-                <button type="button" class="btn  btn-info btn-object-action " id="duplicate" ng-click="duplicate()"><i class="fa fa-copy"></i>&nbsp;&nbsp;Duplicate</button>
                 <button id="send-backwards" class="btn btn-info  btn-object-action " ng-click="sendBackwards()"><i class="fa fa-step-backward"></i>&nbsp;&nbsp;Move back</button>
                 <button id="bring-forward" class="btn btn-info  btn-object-action "  ng-click="bringForward()"><i class="fa fa-step-forward"></i>&nbsp;&nbsp;Move forward</button>
                 <button id="send-to-back" class="btn btn-info  btn-object-action "  ng-click="sendToBack()"><i class="fa fa-backward"></i>&nbsp;&nbsp;Send to back</button>
@@ -85,14 +85,14 @@
             </span>
         </div>
         <div id="canvas-wrapper" style="margin-left:auto;margin-right:auto">
-            <canvas id="canvas" height="600px" width="1000px"></canvas>
+            <canvas id="canvas" height="600px" width="1100px"></canvas>
         </div>
 
     </div>
 </div>
 <div class="row m-t">
     <div class="col-lg-12">
-    <div class="row" style="width:1000px;margin: 0 auto;">
+    <div class="row" style="width:1100px;margin: 0 auto;">
     <div ng-repeat="box in boxes" class="col-xs-4" >
         <div class="box box-primary">
             <div class="box-body">
@@ -146,7 +146,7 @@
         var payload = "{{ payload }}";
         var existing = JSON.parse('{{ existing|safe }}');
         var csrf_token = "{% csrf_token %}";
-        var alert = "add bounding box";
+        var alert_status = "add bounding box";
         var annotation_mode = true;
         {% if initial_url %}
             var initial_url="{{ initial_url }}";

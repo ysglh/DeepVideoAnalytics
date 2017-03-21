@@ -109,6 +109,7 @@ def annotate(request,query_pk=None,frame_pk=None,detection_pk=None):
                 'y':d.y,
                 'h':d.h,
                 'w':d.w,
+                'pk':d.pk,
                 'box_type':"detection",
                 'name':d.object_name
             }
@@ -119,6 +120,7 @@ def annotate(request,query_pk=None,frame_pk=None,detection_pk=None):
                 'y':d.y,
                 'h':d.h,
                 'w':d.w,
+                'pk': d.pk,
                 'box_type':"annotation",
                 'name':d.name
             }
@@ -142,7 +144,9 @@ def annotate(request,query_pk=None,frame_pk=None,detection_pk=None):
                 annotation.frame = frame
                 annotation.video = frame.video
             annotation.save()
-        return JsonResponse({'status':True})
+            return JsonResponse({'status': True})
+        else:
+            raise ValueError
     return render(request, 'annotate.html', context)
 
 
@@ -274,6 +278,15 @@ def indexes(request):
     }
 
     return render(request, 'indexes.html', context)
+
+
+def delete_object(request):
+    if request.method == 'POST':
+        pk = request.POST.get('pk')
+        if request.POST.get('object_type') == 'annotation':
+            annotation = Annotation.objects.get(pk=pk)
+            annotation.delete()
+    return JsonResponse({'status':True})
 
 
 def external(request):

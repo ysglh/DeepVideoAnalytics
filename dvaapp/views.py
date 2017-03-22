@@ -266,6 +266,9 @@ class FrameDetail(DetailView):
         context['annotation_list'] = Annotation.objects.all().filter(frame=self.object)
         context['video'] = self.object.video
         context['url'] = '{}/{}/frames/{}.jpg'.format(settings.MEDIA_URL,self.object.video.pk,self.object.frame_index)
+        context['previous_frame'] = Frame.objects.filter(video=self.object.video,frame_index__lt=self.object.frame_index).order_by('-frame_index')[0:1]
+        context['next_frame'] = Frame.objects.filter(video=self.object.video,frame_index__gt=self.object.frame_index).order_by('frame_index')[0:1]
+
         return context
 
 

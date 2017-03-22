@@ -57,19 +57,20 @@ class WVideo(object):
 
     def extract_frames(self,rescale=True):
         frames = []
+        denominator = 30
         if not self.dvideo.dataset:
             output_dir = "{}/{}/{}/".format(self.media_dir,self.primary_key,'frames')
             if rescale:
-                command = 'ffmpeg -i {} -vf "select=not(mod(n\,100)),scale={}:-1" -vsync vfr  {}/%d_b.jpg'.format(self.local_path,self.rescaled_width,output_dir)
+                command = 'ffmpeg -i {} -vf "select=not(mod(n\,{})),scale={}:-1" -vsync vfr  {}/%d_b.jpg'.format(self.local_path,denominator,self.rescaled_width,output_dir)
             else:
-                command = 'ffmpeg -i {} -vf "select=not(mod(n\,100))" -vsync vfr  {}/%d_b.jpg'.format(self.local_path, output_dir)
+                command = 'ffmpeg -i {} -vf "select=not(mod(n\,{}))" -vsync vfr  {}/%d_b.jpg'.format(self.local_path,denominator,output_dir)
             extract = sp.Popen(shlex.split(command))
             extract.wait()
             if extract.returncode != 0:
                 raise ValueError
             for fname in glob.glob(output_dir+'*_b.jpg'):
                 ind = int(fname.split('/')[-1].replace('_b.jpg', ''))
-                os.rename(fname,fname.replace('{}_b.jpg'.format(ind),'{}.jpg'.format(ind*100)))
+                os.rename(fname,fname.replace('{}_b.jpg'.format(ind),'{}.jpg'.format(ind*denominator)))
             if 'SCENEDETECT_DISABLE' in os.environ:
                 logging.warning("Scene detection is disabled")
             else:

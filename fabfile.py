@@ -163,7 +163,7 @@ def ci():
     from django.core.files.uploadedfile import SimpleUploadedFile
     from dvaapp.views import handle_uploaded_file, handle_youtube_video
     from dvaapp.models import Video
-    from dvaapp.tasks import extract_frames, perform_face_indexing, inpcetion_index_by_id, perform_ssd_detection_by_id, perform_yolo_detection_by_id
+    from dvaapp.tasks import extract_frames, perform_face_indexing, inception_index_by_id, perform_ssd_detection_by_id, perform_yolo_detection_by_id
     for fname in glob.glob('tests/ci/*.mp4'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")
@@ -175,7 +175,7 @@ def ci():
     handle_youtube_video('tomorrow never dies', 'https://www.youtube.com/watch?v=gYtz5sw98Bc')
     for i,v in enumerate(Video.objects.all()):
         extract_frames(v.pk)
-        inpcetion_index_by_id(v.pk)
+        inception_index_by_id(v.pk)
         if i ==0: # save travis time by just running detection on first video
             perform_ssd_detection_by_id(v.pk)
             perform_yolo_detection_by_id(v.pk)

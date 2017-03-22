@@ -49,6 +49,15 @@
                         <td class="text-center"><a href="/frames/{{ d.frame.pk }}">view</a></td>
                     </tr>
                 {% endfor %}
+                {% for d in annotation_list %}
+                    <tr>
+                        <td class="text-left">annotation : {{ d.name }} </td>
+                        <td class="text-right"> 100 %</td>
+                        <td class="text-right">{% widthratio d.h 1 d.w %}</td>
+                        <td class="text-right">{{ d.frame.frame_index }} </td>
+                        <td class="text-center"><a href="/frames/{{ d.frame.pk }}">view</a></td>
+                    </tr>
+                {% endfor %}
                 </tbody>
                 </table>
                 </div>

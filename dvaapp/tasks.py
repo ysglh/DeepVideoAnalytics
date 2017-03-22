@@ -40,7 +40,10 @@ class IndexerTask(celery.Task):
                 vectors = indexer.np.load(fname)
                 vector_entries = json.load(file(fname.replace(".npy", ".json")))
                 logging.info("Starting {} in {}".format(index_entry.video_id, visual_index.name))
-                visual_index.load_index(vectors, vector_entries)
+                try:
+                    visual_index.load_index(vectors, vector_entries)
+                except:
+                    logging.info("ERROR Failed to load {} ".format(index_entry.video_id))
                 visual_index.indexed_videos.add(index_entry.video_id)
                 logging.info("finished {} in {}, current shape {}".format(index_entry.video_id, visual_index.name,visual_index.index.shape))
 

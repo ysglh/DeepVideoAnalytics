@@ -182,7 +182,8 @@ STATICFILES_FINDERS = (
 )
 
 TASK_NAMES_TO_QUEUE = {
-    "inpcetion_index_by_id":Q_INDEXER,
+    "inception_index_by_id":Q_INDEXER,
+    "inception_index_ssd_detection_by_id":Q_INDEXER,
     "inception_query_by_image":Q_RETRIEVER,
     "facenet_query_by_image":Q_FACE_RETRIEVER,
     "extract_frames_by_id":Q_EXTRACTOR,
@@ -195,14 +196,14 @@ TASK_NAMES_TO_QUEUE = {
 
 POST_OPERATION_TASKS = {
     "extract_frames_by_id":['perform_ssd_detection_by_id',
-                            'inpcetion_index_by_id',
+                            'inception_index_by_id',
                             'perform_face_detection_indexing_by_id']
     }
 
 VISUAL_INDEXES = {
     'inception':
         {
-            'indexer_task':"inpcetion_index_by_id",
+            'indexer_task':"inception_index_by_id",
             'indexer_queue':Q_INDEXER,
             'retriever_task':"inception_query_by_image",
             'retriever_queue':Q_RETRIEVER,

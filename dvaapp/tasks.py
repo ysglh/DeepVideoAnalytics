@@ -35,45 +35,72 @@ class IndexerTask(celery.Task):
         index_entries = IndexEntries.objects.all()
         visual_index = self.visual_indexer[index_name]
         for index_entry in index_entries:
-            if index_entry.video_id not in visual_index.indexed_videos and index_entry.algorithm == index_name:
-                fname = "{}/{}/indexes/{}.npy".format(settings.MEDIA_ROOT, index_entry.video_id, index_name)
+            if index_entry.pk not in visual_index.loaded_entries and index_entry.algorithm == index_name:
+                fname = "{}/{}/indexes/{}".format(settings.MEDIA_ROOT, index_entry.video_id, index_entry.features_file_name)
                 vectors = indexer.np.load(fname)
-                vector_entries = json.load(file(fname.replace(".npy", ".json")))
+                vector_entries = json.load(file("{}/{}/indexes/{}".format(settings.MEDIA_ROOT, index_entry.video_id, index_entry.entries_file_name)))
                 logging.info("Starting {} in {}".format(index_entry.video_id, visual_index.name))
                 try:
                     visual_index.load_index(vectors, vector_entries)
                 except:
                     logging.info("ERROR Failed to load {} ".format(index_entry.video_id))
-                visual_index.indexed_videos.add(index_entry.video_id)
+                visual_index.loaded_entries.add(index_entry.pk)
                 logging.info("finished {} in {}, current shape {}".format(index_entry.video_id, visual_index.name,visual_index.index.shape))
 
 
-
-
-@app.task(name="inpcetion_index_by_id",base=IndexerTask)
-def inpcetion_index_by_id(video_id):
+@app.task(name="inception_index_by_id",base=IndexerTask)
+def inception_index_by_id(video_id):
     start = TEvent()
     start.video_id = video_id
     start.started = True
-    start.operation = inpcetion_index_by_id.name
+    start.operation = inception_index_by_id.name
     start.save()
     start_time = time.time()
     dv = Video.objects.get(id=video_id)
     video = entity.WVideo(dv, settings.MEDIA_ROOT)
     frames = Frame.objects.all().filter(video=dv)
-    visual_index = inpcetion_index_by_id.visual_indexer['inception']
-    index_name, index_results = video.index_frames(frames,visual_index)
+    visual_index = inception_index_by_id.visual_indexer['inception']
+    index_name, index_results, feat_fname, entries_fname = video.index_frames(frames,visual_index)
     i = IndexEntries()
     i.video = dv
     i.count = len(index_results)
     i.contains_frames = True
     i.detection_name = 'Frame'
     i.algorithm = index_name
+    i.entries_file_name = entries_fname.split('/')[-1]
+    i.features_file_name = feat_fname.split('/')[-1]
     i.save()
     process_video_next(video_id, start.operation)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
+
+
+@app.task(name="inception_index_ssd_detection_by_id",base=IndexerTask)
+def inception_index_ssd_detection_by_id(video_id):
+    pass
+    # start = TEvent()
+    # start.video_id = video_id
+    # start.started = True
+    # start.operation = inception_index_by_id.name
+    # start.save()
+    # start_time = time.time()
+    # dv = Video.objects.get(id=video_id)
+    # video = entity.WVideo(dv, settings.MEDIA_ROOT)
+    # detections = Detection.objects.all().filter(video=dv)
+    # visual_index = inception_index_by_id.visual_indexer['inception']
+    # index_name, index_results = video.index_frames(frames,visual_index)
+    # i = IndexEntries()
+    # i.video = dv
+    # i.count = len(index_results)
+    # i.contains_frames = True
+    # i.detection_name = 'Frame'
+    # i.algorithm = index_name
+    # i.save()
+    # process_video_next(video_id, start.operation)
+    # start.completed = True
+    # start.seconds = time.time() - start_time
+    # start.save()
 
 
 @app.task(name="alexnet_index_by_id",base=IndexerTask)
@@ -88,13 +115,15 @@ def alexnet_index_by_id(video_id):
     video = entity.WVideo(dv, settings.MEDIA_ROOT)
     frames = Frame.objects.all().filter(video=dv)
     visual_index = alexnet_index_by_id.visual_indexer['alexnet']
-    index_name, index_results = video.index_frames(frames,visual_index)
+    index_name, index_results, feat_fname, entries_fname = video.index_frames(frames,visual_index)
     i = IndexEntries()
     i.video = dv
     i.count = len(index_results)
     i.contains_frames = True
     i.detection_name = 'Frame'
     i.algorithm = index_name
+    i.entries_file_name = entries_fname.split('/')[-1]
+    i.features_file_name = feat_fname.split('/')[-1]
     i.save()
     process_video_next(video_id, start.operation)
     start.completed = True
@@ -340,7 +369,7 @@ def perform_face_indexing(video_id):
     dv.refresh_from_db()
     dv.detections = dv.detections + count
     dv.save()
-    path_count, emb_array, entries = face_indexer.index_faces(faces,faces_to_pk,indexes_dir,video_id)
+    path_count, emb_array, entries,feat_fname, entries_fname = face_indexer.index_faces(faces,faces_to_pk,indexes_dir,video_id)
     i = IndexEntries()
     i.video = dv
     i.count = len(entries)
@@ -348,4 +377,6 @@ def perform_face_indexing(video_id):
     i.contains_detections = True
     i.detection_name = "Face"
     i.algorithm = 'facenet'
+    i.entries_file_name = entries_fname.split('/')[-1]
+    i.features_file_name = feat_fname.split('/')[-1]
     i.save()

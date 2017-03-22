@@ -20,7 +20,7 @@ class BaseIndexer(object):
     def __init__(self):
         self.name = "base"
         self.net = None
-        self.indexed_videos = set()
+        self.loaded_entries = set()
         self.index, self.files, self.findex = None, {}, 0
 
     def load_index(self,numpy_matrix,entries):
@@ -234,8 +234,10 @@ class FacenetIndexer(BaseIndexer):
                     logging.info("Forward pass took avg of %.3f[seconds/image] for %d images\n" % (
                     time_avg_forward_pass, nrof_images))
                     logging.info("Finally saving embeddings and gallery to: %s" % (output_dir))
-                np.save(os.path.join(output_dir, "facenet.npy"), emb_array)
-                fh = open(os.path.join(output_dir, "facenet.json"), 'w')
+                feat_fname = os.path.join(output_dir, "facenet.npy")
+                entries_fname = os.path.join(output_dir, "facenet.json")
+                np.save(feat_fname, emb_array)
+                fh = open(entries_fname, 'w')
                 json.dump(entries, fh)
                 fh.close()
-                return path_count, emb_array, entries
+                return path_count, emb_array, entries, feat_fname, entries_fname

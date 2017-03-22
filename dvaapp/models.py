@@ -58,6 +58,8 @@ class Detection(models.Model):
 
 class IndexEntries(models.Model):
     video = models.ForeignKey(Video)
+    features_file_name = models.CharField(max_length=100)
+    entries_file_name = models.CharField(max_length=100)
     algorithm = models.CharField(max_length=100)
     detection_name = models.CharField(max_length=100)
     count = models.IntegerField()

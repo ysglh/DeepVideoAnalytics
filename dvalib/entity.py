@@ -121,13 +121,13 @@ class WVideo(object):
             paths.append(f.local_path())
             entries.append(entry)
         features = visual_index.index_paths(paths)
-        feat_fname = "{}/{}/indexes/{}.npy".format(self.media_dir, self.primary_key, visual_index.name)
-        entries_fname = "{}/{}/indexes/{}.json".format(self.media_dir, self.primary_key, visual_index.name)
+        feat_fname = "{}/{}/indexes/frames_{}.npy".format(self.media_dir, self.primary_key, visual_index.name)
+        entries_fname = "{}/{}/indexes/frames_{}.json".format(self.media_dir, self.primary_key, visual_index.name)
         with open(feat_fname, 'w') as feats:
             np.save(feats, np.array(features))
         with open(entries_fname, 'w') as entryfile:
             json.dump(entries, entryfile)
-        return visual_index.name,entries
+        return visual_index.name,entries,feat_fname,entries_fname
 
 class WFrame(object):
 

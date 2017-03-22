@@ -33,8 +33,11 @@ class BaseIndexer(object):
             self.index = self.index.squeeze()
             logging.info(self.index.shape)
         else:
-            self.index = np.concatenate([self.index, np.concatenate(temp_index).squeeze()])
-            logging.info(self.index.shape)
+            try:
+                self.index = np.concatenate([self.index, np.concatenate(temp_index).squeeze()])
+                logging.info(self.index.shape)
+            except:
+                logging.info("Failed to load {}".format(numpy_matrix.shape))
 
     def nearest(self,image_path,n=12):
         query_vector = self.apply(image_path)

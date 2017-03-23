@@ -150,6 +150,8 @@ def inception_query_by_image(query_id):
         for r in rlist:
             qr = QueryResults()
             qr.query = dq
+            if 'detection_primary_key' in r:
+                qr.detection_id = r['detection_primary_key']
             qr.frame_id = r['frame_primary_key']
             qr.video_id = r['video_primary_key']
             qr.algorithm = algo

@@ -251,19 +251,19 @@ class QueryDetail(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(QueryDetail, self).get_context_data(**kwargs)
-        context['results'] = []
-        context['results_detections'] = []
+        context['inception'] = []
+        context['facenet'] = []
         for r in QueryResults.objects.all().filter(query=self.object):
-            if r.detection:
-                context['results_detections'].append((r.rank,r))
+            if r.algorithm == 'facenet':
+                context['facenet'].append((r.rank,r))
             else:
-                context['results'].append((r.rank,r))
-        context['results_detections'].sort()
-        context['results'].sort()
-        if context['results']:
-            context['results'] = zip(*context['results'])[1]
-        if context['results_detections']:
-            context['results_detections'] = zip(*context['results_detections'])[1]
+                context['inception'].append((r.rank,r))
+        context['facenet'].sort()
+        context['inception'].sort()
+        if context['inception']:
+            context['inception'] = zip(*context['inception'])[1]
+        if context['facenet']:
+            context['facenet'] = zip(*context['facenet'])[1]
         context['url'] = '{}/queries/{}.png'.format(settings.MEDIA_URL,self.object.pk,self.object.pk)
         return context
 

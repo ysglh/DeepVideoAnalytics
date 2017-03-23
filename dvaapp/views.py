@@ -103,6 +103,8 @@ def annotate(request,query_pk=None,frame_pk=None,detection_pk=None):
         frame = Frame.objects.get(pk=frame_pk)
         context['frame'] = frame
         context['initial_url'] = '/media/{}/frames/{}.jpg'.format(frame.video.pk,frame.frame_index)
+        context['previous_frame'] = Frame.objects.filter(video=frame.video,frame_index__lt=frame.frame_index).order_by('-frame_index')[0:1]
+        context['next_frame'] = Frame.objects.filter(video=frame.video,frame_index__gt=frame.frame_index).order_by('frame_index')[0:1]
         for d in Detection.objects.filter(frame=frame):
             temp = {
                 'x':d.x,

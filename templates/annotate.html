@@ -16,9 +16,12 @@
 <section class="content-header" style="padding-top:0px" xmlns="http://www.w3.org/1999/html">
 <div class="row">
     <div class="box box-info">
-        <div class="box-header">
+        <div class="box-header text-center">
             {% if frame %}
+            {% if previous_frame %}<a href="/annotate_frame/{{ previous_frame.0.pk }}" class="btn btn-success pull-left"><i class="fa fa-backward "></i> Previous</a> {% endif %}
+            {% if next_frame %}<a href="/annotate_frame/{{ next_frame.0.pk }}" class="btn btn-success pull-right"><i class="fa fa-forward"></i> Next</a>{% endif %}
             <h4>Annotate frame <a href="/frames/{{ frame.pk }}">{{ frame.frame_index }}</a> in <a href="/videos/{{ frame.video.pk }}">{{ frame.video.name }}</a> </h4>
+            <a href="/query_frame/{{ frame.pk }}/" class="btn btn-info"><i class="fa fa-search"></i> Query using this frame</a>
             {% endif %}
         </div>
     </div>

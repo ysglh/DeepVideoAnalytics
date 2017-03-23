@@ -1,5 +1,22 @@
 from django.conf.urls import url,include
 import views
+from django.contrib.auth.models import User
+from rest_framework import routers, serializers, viewsets
+
+
+class UserSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = User
+        fields = ('url', 'username', 'email', 'is_staff')
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+
+router = routers.DefaultRouter()
+router.register(r'users', UserViewSet)
 
 urlpatterns = [
     url(r'^$', views.index, name='app'),
@@ -22,5 +39,7 @@ urlpatterns = [
     url(r'^query_detection/(?P<detection_pk>\d+)/$', views.index, name='query_detection'),
     url(r'^annotate_frame/(?P<frame_pk>\d+)/$', views.annotate, name='annotate_frame'),
     url(r'^annotate_detection/(?P<detection_pk>\d+)/$', views.annotate, name='annotate_detection'),
-    url(r'^delete', views.delete_object, name='delete_object')
+    url(r'^delete', views.delete_object, name='delete_object'),
+    url(r'^api/', include(router.urls)),
+    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 ]

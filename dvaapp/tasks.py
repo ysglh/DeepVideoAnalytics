@@ -78,29 +78,30 @@ def inception_index_by_id(video_id):
 
 @app.task(name="inception_index_ssd_detection_by_id",base=IndexerTask)
 def inception_index_ssd_detection_by_id(video_id):
-    pass
-    # start = TEvent()
-    # start.video_id = video_id
-    # start.started = True
-    # start.operation = inception_index_by_id.name
-    # start.save()
-    # start_time = time.time()
-    # dv = Video.objects.get(id=video_id)
-    # video = entity.WVideo(dv, settings.MEDIA_ROOT)
-    # detections = Detection.objects.all().filter(video=dv)
-    # visual_index = inception_index_by_id.visual_indexer['inception']
-    # index_name, index_results = video.index_frames(frames,visual_index)
-    # i = IndexEntries()
-    # i.video = dv
-    # i.count = len(index_results)
-    # i.contains_frames = True
-    # i.detection_name = 'Frame'
-    # i.algorithm = index_name
-    # i.save()
-    # process_video_next(video_id, start.operation)
-    # start.completed = True
-    # start.seconds = time.time() - start_time
-    # start.save()
+    start = TEvent()
+    start.video_id = video_id
+    start.started = True
+    start.operation = inception_index_ssd_detection_by_id.name
+    start.save()
+    start_time = time.time()
+    dv = Video.objects.get(id=video_id)
+    video = entity.WVideo(dv, settings.MEDIA_ROOT)
+    detections = Detection.objects.all().filter(video=dv,object_name__startswith='SSD_',w__gte=50,h__gte=50)
+    visual_index = inception_index_ssd_detection_by_id.visual_indexer['inception']
+    index_name, index_results, feat_fname, entries_fname = video.index_detections(detections,'SSD',visual_index)
+    i = IndexEntries()
+    i.video = dv
+    i.count = len(index_results)
+    i.contains_detections = True
+    i.detection_name = 'SSD'
+    i.algorithm = index_name
+    i.entries_file_name = entries_fname.split('/')[-1]
+    i.features_file_name = feat_fname.split('/')[-1]
+    i.save()
+    process_video_next(video_id, start.operation)
+    start.completed = True
+    start.seconds = time.time() - start_time
+    start.save()
 
 
 @app.task(name="alexnet_index_by_id",base=IndexerTask)

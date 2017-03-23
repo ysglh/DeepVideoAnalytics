@@ -130,6 +130,30 @@ class WVideo(object):
             json.dump(entries, entryfile)
         return visual_index.name,entries,feat_fname,entries_fname
 
+    def index_detections(self,detections,detection_name,visual_index):
+        visual_index.load()
+        entries = []
+        paths = []
+        for i, d in enumerate(detections):
+            entry = {
+                'frame_index': d.frame.frame_index,
+                'detection_primary_key': d.pk,
+                'frame_primary_key': d.frame.pk,
+                'video_primary_key': self.primary_key,
+                'index': i,
+                'type': 'detection'
+            }
+            paths.append("{}/{}/detections/{}.jpg".format(self.media_dir, self.primary_key, d.pk))
+            entries.append(entry)
+        features = visual_index.index_paths(paths)
+        feat_fname = "{}/{}/indexes/{}_{}.npy".format(self.media_dir, self.primary_key,detection_name, visual_index.name)
+        entries_fname = "{}/{}/indexes/{}_{}.json".format(self.media_dir, self.primary_key,detection_name, visual_index.name)
+        with open(feat_fname, 'w') as feats:
+            np.save(feats, np.array(features))
+        with open(entries_fname, 'w') as entryfile:
+            json.dump(entries, entryfile)
+        return visual_index.name,entries,feat_fname,entries_fname
+
 class WFrame(object):
 
     def __init__(self,frame_index=None,video=None,primary_key=None,name=None,subdir=None):

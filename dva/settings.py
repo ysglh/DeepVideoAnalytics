@@ -204,10 +204,9 @@ TASK_NAMES_TO_QUEUE = {
 }
 
 POST_OPERATION_TASKS = {
-    "extract_frames_by_id":['perform_ssd_detection_by_id',
-                            'inception_index_by_id',
-                            'perform_face_detection_indexing_by_id']
-    }
+    "extract_frames_by_id":['perform_ssd_detection_by_id','inception_index_by_id','perform_face_detection_indexing_by_id'],
+    'perform_ssd_detection_by_id':['inception_index_ssd_detection_by_id',]
+}
 
 VISUAL_INDEXES = {
     'inception':

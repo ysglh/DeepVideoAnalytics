@@ -5,6 +5,8 @@ urlpatterns = [
     url(r'^$', views.index, name='app'),
     url(r'^status$', views.status, name='status'),
     url(r'^indexes', views.indexes, name='indexes'),
+    url(r'^annotations', views.annotations, name='annotations'),
+    url(r'^detections', views.detections, name='detections'),
     url(r'^external', views.external, name='external'),
     url(r'^youtube$', views.yt, name='youtube'),
     url(r'^videos/$', views.VideoList.as_view()),

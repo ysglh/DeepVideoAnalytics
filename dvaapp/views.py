@@ -288,6 +288,16 @@ def indexes(request):
     return render(request, 'indexes.html', context)
 
 
+def annotations(request):
+    context = {}
+    return render(request, 'annotations.html', context)
+
+
+def detections(request):
+    context = {}
+    return render(request, 'detections.html', context)
+
+
 def delete_object(request):
     if request.method == 'POST':
         pk = request.POST.get('pk')

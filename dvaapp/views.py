@@ -10,6 +10,19 @@ from .forms import UploadFileForm,YTVideoForm,AnnotationForm
 from .models import Video,Frame,Detection,Query,QueryResults,TEvent,FrameLabel,IndexEntries,ExternalDataset, Annotation
 from .tasks import extract_frames,facenet_query_by_image,inception_query_by_image
 from dva.celery import app
+import serializers
+from rest_framework import viewsets
+from django.contrib.auth.models import User
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = serializers.UserSerializer
+
+
+class VideoViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Video.objects.all()
+    serializer_class = serializers.VideoSerializer
 
 
 def search(request):

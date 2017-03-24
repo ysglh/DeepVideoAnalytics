@@ -86,6 +86,7 @@ def inception_index_ssd_detection_by_id(video_id):
     dv = Video.objects.get(id=video_id)
     video = entity.WVideo(dv, settings.MEDIA_ROOT)
     detections = Detection.objects.all().filter(video=dv,object_name__startswith='SSD_',w__gte=50,h__gte=50)
+    logging.info("Indexing {} SSD detections".format(detections.count()))
     visual_index = inception_index_ssd_detection_by_id.visual_indexer['inception']
     index_name, index_results, feat_fname, entries_fname = video.index_detections(detections,'SSD',visual_index)
     i = IndexEntries()

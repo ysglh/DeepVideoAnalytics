@@ -252,7 +252,7 @@ def startq(queue_name):
     Q_FACE = settings.Q_FACE_RETRIEVER
     Q_FACEDETECTOR = settings.Q_FACE_DETECTOR
     if queue_name == 'indexer':
-        command = 'celery -A dva worker -l info -c {} -Q {} -n {}.%h -f logs/{}.log'.format(1, Q_INDEXER, Q_INDEXER,Q_INDEXER)
+        command = 'celery -A dva worker -l info -P solo -c {} -Q {} -n {}.%h -f logs/{}.log'.format(1, Q_INDEXER, Q_INDEXER,Q_INDEXER)
     elif queue_name == 'extractor':
         command = 'celery -A dva worker -l info -c {} -Q {} -n {}.%h -f logs/{}.log'.format(1, Q_EXTRACTOR,Q_EXTRACTOR,Q_EXTRACTOR)
     elif queue_name == 'detector':

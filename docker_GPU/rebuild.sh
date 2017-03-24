@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-docker build -t aub3dva:gpu .
+nvidia-docker build -t akshayubhat/dva:gpu-latest .

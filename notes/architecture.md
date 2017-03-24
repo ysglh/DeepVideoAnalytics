@@ -1,6 +1,16 @@
 # Schema, Architecture & Backups 
 **(Currently writing)**
 
+### App server/workers, db, queue server and volumes 
+![Architecture](architecture.png "architecture")
+
+
+
+
+### Execution of celery tasks and data 
+![Flowchart](flowchart.png "flowchart")
+
+
 ## Deploying on multiple machines
 As an example consider the case where you have
 - Webserver on Heroku

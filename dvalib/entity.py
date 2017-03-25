@@ -69,8 +69,8 @@ class WVideo(object):
             if extract.returncode != 0:
                 raise ValueError
             for fname in glob.glob(output_dir+'*_b.jpg'):
-                ind = int(fname.split('/')[-1].replace('_b.jpg', '')) - denominator # the first frame is 0th
-                os.rename(fname,fname.replace('{}_b.jpg'.format(ind),'{}.jpg'.format(ind*denominator)))
+                ind = int(fname.split('/')[-1].replace('_b.jpg', ''))
+                os.rename(fname,fname.replace('{}_b.jpg'.format(ind),'{}.jpg'.format((ind-1)*denominator)))
             if 'SCENEDETECT_DISABLE' in os.environ:
                 logging.warning("Scene detection is disabled")
             else:

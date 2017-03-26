@@ -3,6 +3,7 @@
 {% block ng_control %}ng-controller="CanvasControls"{% endblock %}
 {% block page_css %}
     <link rel="stylesheet" href="/static/app/app.css">
+    <link rel="stylesheet" href="/static/jsoneditor/jsoneditor.min.css">
     <style>
     .canvas-container { margin:0 auto ;  }
     </style>
@@ -58,7 +59,8 @@
         <div class="box-body">
             <div class="row">
                 <div class="col-lg-4"><div class="form-group"><label for="top">name</label><input name="name" id="high_level_name" class="form-control" type="text" required="" placeholder="name"  ></div></div>
-                <div class="col-lg-4"><div class="form-group"><label for="top">Text metadata</label><textarea name="metadata" id="high_level_metadata" class="form-control" rows="3" required="" placeholder="metadata" ></textarea></div></div>
+                <div class="col-lg-4"><div class="form-group"><div id="jsoneditor" style="width:100%;height:200px"></div>
+                </div></div>
                 <div class="col-lg-4"><div class="form-group"><button ng-click="submit_high_level_annotation()"  id="high_level_submit" class="btn btn-primary btn-block">submit</button></div>
                 <div id="high_status" ng-model="status" ng-show="checkStatus()" class="alert alert-info"><h5>{[ high_level_alert ]}</h5>
                 </div>
@@ -152,6 +154,7 @@
 
 
 {% block page_js %}
+    <script src="/static/jsoneditor/jsoneditor.min.js"></script>
     <script>
         var status = "Please add bounding box to annotate.";
         var payload = "{{ payload }}";
@@ -164,6 +167,8 @@
         {% else %}
             var initial_url=null;
         {% endif %}
+        var high_level_editor = new JSONEditor(document.getElementById('jsoneditor'),{});
+        high_level_editor.set({});
     </script>
     <script src="/static/plugins/jquery.mousewheel.min.js"></script>
     <script src="/static/plugins/underscore-min.js"></script>

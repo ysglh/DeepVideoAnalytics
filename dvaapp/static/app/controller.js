@@ -541,7 +541,7 @@ $scope.submit_high_level_annotation = function(){
                 'x': 0,
                 'high_level':true,
                 'name': $('#high_level_name').val(),
-                'metadata': $('#high_level_metadata').val()
+                'metadata': JSON.stringify(high_level_editor.get())
             },
             dataType: 'json',
             async: true,

@@ -37,11 +37,6 @@ class Frame(models.Model):
     subdir = models.TextField(default="") # Retains information if the source is a dataset for labeling
 
 
-class FrameLabel(models.Model):
-    frame = models.ForeignKey(Frame)
-    video = models.ForeignKey(Video)
-    label = models.TextField()
-    source = models.TextField()
 
 
 class Detection(models.Model):
@@ -110,6 +105,7 @@ class Annotation(models.Model):
     metadata_text = models.TextField(default="")
     name = models.TextField(default="unnamed_annotation")
     full_frame = models.BooleanField(default=True)
+    label_count = models.IntegerField(default=0)
     x = models.IntegerField(default=0)
     y = models.IntegerField(default=0)
     h = models.IntegerField(default=0)
@@ -117,8 +113,15 @@ class Annotation(models.Model):
     created = models.DateTimeField('date created', auto_now_add=True)
 
 
-class AnnotationTag(models.Model):
-    tag_name = models.CharField(max_length=200)
+class VLabel(models.Model):
+    label_name = models.CharField(max_length=200,unique=True)
     created = models.DateTimeField('date created', auto_now_add=True)
 
 
+class FrameLabel(models.Model):
+    frame = models.ForeignKey(Frame)
+    video = models.ForeignKey(Video)
+    annotation = models.ForeignKey(Annotation,null=True)
+    label_parent = models.ForeignKey(VLabel,null=True)
+    label = models.TextField()
+    source = models.TextField()

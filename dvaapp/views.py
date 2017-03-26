@@ -25,6 +25,16 @@ class VideoViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.VideoSerializer
 
 
+class FrameLabelViewSet(viewsets.ModelViewSet):
+    queryset = FrameLabel.objects.all()
+    serializer_class = serializers.FrameLabelSerializer
+
+
+class VLabelViewSet(viewsets.ModelViewSet):
+    queryset = VLabel.objects.all()
+    serializer_class = serializers.VLabelSerializer
+
+
 def search(request):
     if request.method == 'POST':
         query = Query()

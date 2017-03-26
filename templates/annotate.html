@@ -19,11 +19,11 @@
     <div class="box box-info">
         <div class="box-header text-center" >
             {% if frame %}
-            {% if previous_frame %}<a href="/annotate_frame/{{ previous_frame.0.pk }}" class="btn btn-success pull-left"><i class="fa fa-backward "></i> Previous</a> {% endif %}
-            {% if next_frame %}<a href="/annotate_frame/{{ next_frame.0.pk }}" class="btn btn-success pull-right"><i class="fa fa-forward"></i> Next</a>{% endif %}
             <h4>Annotate frame <a href="/frames/{{ frame.pk }}">{{ frame.frame_index }}</a> in <a href="/videos/{{ frame.video.pk }}">{{ frame.video.name }}</a> </h4>
+            {% if previous_frame %}<a style="display: inline-block;margin-right:15px" href="/annotate_frame/{{ previous_frame.0.pk }}" class="btn btn-success"><i class="fa fa-backward "></i> Previous</a> {% endif %}
             <a style="display: inline-block;margin-right:15px" href="/query_frame/{{ frame.pk }}/" class="btn btn-info"><i class="fa fa-search"></i> Query using this frame</a>
-            <a type='button' class="btn btn-info" id='btnLoad' ng-click='add_bounding_box();'><i class="fa fa-square"></i>&nbsp;Add bounding box or frame level annotation</a>
+            <a style="display: inline-block;margin-right:15px" type='button' class="btn btn-info" id='btnLoad' ng-click='add_bounding_box();'><i class="fa fa-square"></i>&nbsp;Add bounding box or frame level annotation</a>
+            {% if next_frame %}<a style="display: inline-block;margin-right:15px" href="/annotate_frame/{{ next_frame.0.pk }}" class="btn btn-success"><i class="fa fa-forward"></i> Next</a>{% endif %}
             {% endif %}
     </div>
     </div>
@@ -90,12 +90,12 @@
                     <input value="100" type="range" bind-value-to="opacity" style="margin: 0 0 0 0;width:100px">
                 </span>
                 <button type="button" class="btn  btn-object-action bg-yellow " id="deselect" ng-click="deselect()"><i class="fa fa-minus"></i>&nbsp;&nbsp;Deselect</button>
-                <button type="button" class="btn btn-info"  id="reset_zoom" ng-click="resetZoom()"><i class="fa fa-refresh"></i>&nbsp;Reset Zoom</button>
-                <span ng-show="canvas.getActiveGroup()">
-                    <button type="button" class="btn  btn-danger btn-object-action bg-maroon " id="remove-selected-group" ng-click="removeSelected()"><i class="fa fa-trash"></i>&nbsp;&nbsp;Delete</button>
-                    <button type="button" class="btn  btn-object-action " id="deselect_group" ng-click="deselect()"><i class="fa fa-minus"></i>&nbsp;&nbsp;Deselect</button>
-                </span>
             </span>
+            <span ng-show="canvas.getActiveGroup()">
+                <button type="button" class="btn  btn-danger btn-object-action bg-maroon " id="remove-selected-group" ng-click="removeSelected()"><i class="fa fa-trash"></i>&nbsp;&nbsp;Delete</button>
+                <button type="button" class="btn  btn-object-action " id="deselect_group" ng-click="deselect()"><i class="fa fa-minus"></i>&nbsp;&nbsp;Deselect</button>
+            </span>
+            <button type="button" class="btn btn-info pull-right"  id="reset_zoom" ng-click="resetZoom()"><i class="fa fa-refresh"></i>&nbsp;Reset Zoom</button>
         </div>
         <div style="margin-bottom:10px">
 

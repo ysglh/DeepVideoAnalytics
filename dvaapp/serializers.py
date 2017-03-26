@@ -1,6 +1,6 @@
 from rest_framework import serializers, viewsets
 from django.contrib.auth.models import User
-from models import Video, FrameLabel, VLabel, Frame, Annotation
+from models import Video, FrameLabel, VLabel, Frame, Annotation, Detection, Query, QueryResults
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -20,9 +20,13 @@ class VideoSerializer(serializers.HyperlinkedModelSerializer):
                   'uploaded',
                   'dataset',
                   'uploader',
+                  'frames',
                   'detections',
                   'metadata',
                   'query',
+                  'url',
+                  'youtube_video',
+                  'parent_query'
                   )
 
 
@@ -44,6 +48,20 @@ class FrameSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('video','name','frame_index','subdir')
 
 
+class DetectionSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Detection
+        fields = ('video',
+                  'object_name',
+                  'frame',
+                  'x',
+                  'y',
+                  'h',
+                  'w',
+                  'confidence',
+                  'metadata')
+
+
 class AnnotationSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Annotation
@@ -58,3 +76,24 @@ class AnnotationSerializer(serializers.HyperlinkedModelSerializer):
                   'user',
                   'created',
                   'metadata_text')
+
+
+class QuerySerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Query
+        fields = ('created',
+                  'user',
+                  'results',
+                  'results_metadata',)
+
+
+class QueryResultsSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = QueryResults
+        fields = ('query',
+                  'video',
+                  'frame',
+                  'rank',
+                  'algorithm',
+                  'distance',
+                  'detection',)

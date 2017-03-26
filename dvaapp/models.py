@@ -37,8 +37,6 @@ class Frame(models.Model):
     subdir = models.TextField(default="") # Retains information if the source is a dataset for labeling
 
 
-
-
 class Detection(models.Model):
     video = models.ForeignKey(Video,null=True)
     frame = models.ForeignKey(Frame)
@@ -72,7 +70,6 @@ class ExternalDataset(models.Model):
     cached_image_count = models.IntegerField()
     index_downloaded = models.BooleanField(default=False)
     created = models.DateTimeField('date created', auto_now_add=True)
-
 
 
 class TEvent(models.Model):

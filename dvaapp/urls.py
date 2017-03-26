@@ -10,6 +10,9 @@ router.register(r'frames', views.FrameViewSet)
 router.register(r'vlabels', views.VLabelViewSet)
 router.register(r'framelabels', views.FrameLabelViewSet)
 router.register(r'annotations', views.AnnotationViewSet)
+router.register(r'detections', views.DetectionViewSet)
+router.register(r'queries', views.QueryViewSet)
+router.register(r'queryresults', views.QueryResultsViewSet)
 
 
 urlpatterns = [

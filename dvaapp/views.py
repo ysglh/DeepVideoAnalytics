@@ -35,6 +35,21 @@ class FrameViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.FrameSerializer
 
 
+class DetectionViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Detection.objects.all()
+    serializer_class = serializers.DetectionSerializer
+
+
+class QueryViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Query.objects.all()
+    serializer_class = serializers.QuerySerializer
+
+
+class QueryResultsViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = QueryResults.objects.all()
+    serializer_class = serializers.QueryResultsSerializer
+
+
 class AnnotationViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Annotation.objects.all()
     serializer_class = serializers.AnnotationSerializer

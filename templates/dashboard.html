@@ -18,11 +18,11 @@
         <div class="inner">
         <form id="image-form" style="width:100%;"  onsubmit="return false;">
             <input type='file'  id='imgfile' style="display:none"/>
-            <a type='button' class="btn btn-success btn-move" id='btnLoad' ng-click='load_image();'><i class="fa fa-image"></i>&nbsp;&nbsp;Add image</a>
+            <a type='button' class="btn btn-primary btn-move" id='btnLoad' ng-click='load_image();'><i class="fa fa-image"></i>&nbsp;&nbsp;Add image</a>
         </form>
+        <button type="button" class="btn btn-info  btn-move"  id="reset_zoom" ng-click="resetZoom()"><i class="fa fa-refresh"></i>&nbsp;Reset Zoom</button>
         <button type="button" class="btn btn-danger  btn-move"  id="clear" ng-click="confirmClear()"><i class="fa fa-trash"></i>&nbsp;&nbsp;Clean editor</button>
         <button type="button" class="btn btn-warning  btn-move"  id="clear_mask" ng-click="confirmClearMasks()"><i class="fa fa-trash"></i>&nbsp;Clear masks</button>
-        <button type="button" class="btn btn-info  btn-move"  id="reset_zoom" ng-click="resetZoom()"><i class="fa fa-refresh"></i>&nbsp;Reset Zoom</button>
         <button id="drawing-mode_b"
           ng-click="setFreeDrawingMode(!getFreeDrawingMode(2),2)"
           ng-class="{'btn-inverse': getFreeDrawingMode(2)}" class="btn btn-move btn-warning ">
@@ -86,7 +86,7 @@
         </div>
         <div>
             <button href="" class="btn btn-info" id="segment" ng-click="search()"><i class="fa fa-search-plus"></i>&nbsp;&nbsp;Approximate Search</button>
-            <button href="" class="btn btn-success" id="search_quick" ng-click="search()"><i class="fa fa-search"></i>&nbsp;&nbsp;Exact Search</button>
+            <button href="" class="btn btn-primary" id="search_quick" ng-click="search()"><i class="fa fa-search"></i>&nbsp;&nbsp;Exact Search</button>
         </div>
     </div>
     <div class=" col-xs-12 col-sm-12 col-md-6 col-lg-4 m-t uploadmenu">

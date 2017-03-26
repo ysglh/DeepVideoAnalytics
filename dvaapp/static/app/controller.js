@@ -391,7 +391,7 @@ function chunk(arr, size) {
 
 
 $scope.clear_results = function () {
-    $scope.results = [""];
+    $scope.results = [];
     $scope.$apply();
     $scope.$$phase || $scope.$digest();
 };
@@ -411,6 +411,20 @@ $scope.toggle_visibility = function(box_index){
 
 $scope.search = function () {
     debugger;
+    var image_data = null;
+    console.log($scope.send_entire_image);
+    if($scope.send_entire_image)
+    {
+        if(canvas.getObjects().length != 1)
+        {
+            alert("Canvas contains more than one image, either keep only one image or deselect send entire image option.")
+            return null;
+        }
+        image_data = canvas.getObjects()[0].toDataURL();
+    }
+    else {
+        image_data = canvas.toDataURL();
+    }
     $scope.clear_results();
     $scope.setFreeDrawingMode(false,$scope.current_mode);
     $scope.check_movement();
@@ -425,13 +439,15 @@ $scope.search = function () {
     $scope.$apply();
     $scope.$$phase || $scope.$digest();
     $scope.refreshData();
+    var selected_indexers = JSON.stringify($("#indexer_list").val());
     $.ajax({
         type: "POST",
         url: '/Search',
         dataType: 'json',
         async: true,
         data: {
-            'image_url': canvas.toDataURL(),
+            'image_url': image_data,
+            'selected_indexers':selected_indexers,
             'csrfmiddlewaretoken':$(csrf_token).val()
         },
         success: function (response) {
@@ -585,6 +601,7 @@ cveditor.controller('CanvasControls', function($scope) {
     $scope.existing_boxes = [];
     $scope.results_detections = [];
     $scope.high_level_alert = "Add frame level annotation";
+    $scope.send_entire_image = false;
     if(annotation_mode)
     {
         for (var bindex in existing){

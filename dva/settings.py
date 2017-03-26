@@ -177,6 +177,7 @@ STATIC_URL = '/static/'
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 MEDIA_ROOT = '/Users/aub3/media/' if sys.platform == 'darwin' else os.path.join(PROJECT_ROOT, 'media')
 MEDIA_URL = '/media/'
+DATA_UPLOAD_MAX_MEMORY_SIZE=26214400
 
 STATIC_ROOT = os.path.join(PROJECT_ROOT, 'staticfiles')
 STATICFILES_DIRS = (

@@ -38,6 +38,7 @@ def search(request):
         dv.save()
         create_video_folders(dv)
         image_url = request.POST.get('image_url')
+        selected_indexers = json.loads(request.POST.get('selected_indexers'))
         image_data = base64.decodestring(image_url[22:])
         query_path = "{}/queries/{}.png".format(settings.MEDIA_ROOT,primary_key)
         query_frame_path = "{}/{}/frames/0.png".format(settings.MEDIA_ROOT,dv.pk)
@@ -49,7 +50,8 @@ def search(request):
         user = request.user if request.user.is_authenticated() else None
         for visual_index_name,visual_index in settings.VISUAL_INDEXES.iteritems():
             task_name = visual_index['retriever_task']
-            task_results[visual_index_name] = app.send_task(task_name, args=[primary_key,],queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+            if visual_index_name in selected_indexers:
+                task_results[visual_index_name] = app.send_task(task_name, args=[primary_key,],queue=settings.TASK_NAMES_TO_QUEUE[task_name])
         query.user = user
         query.save()
         results = []
@@ -88,6 +90,7 @@ def index(request,query_pk=None,frame_pk=None,detection_pk=None):
     else:
         form = UploadFileForm()
     context = { 'form' : form }
+    context['indexes'] = settings.VISUAL_INDEXES
     if query_pk:
         previous_query = Query.objects.get(pk=query_pk)
         context['initial_url'] = '/media/queries/{}.png'.format(query_pk)

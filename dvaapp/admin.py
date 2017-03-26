@@ -1,5 +1,10 @@
 from django.contrib import admin
-from .models import Video,Frame,Detection,TEvent,IndexEntries,QueryResults,Query,FrameLabel,Annotation
+from .models import Video,Frame,Detection,TEvent,IndexEntries,QueryResults,Query,FrameLabel,Annotation,AnnotationTag
+
+
+@admin.register(AnnotationTag)
+class AnnotationTagAdmin(admin.ModelAdmin):
+    pass
 
 
 @admin.register(Annotation)

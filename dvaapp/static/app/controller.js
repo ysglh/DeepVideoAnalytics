@@ -306,6 +306,8 @@ $scope.add_bounding_box = function (){
     rect.lockRotation = true;
     $scope.boxes.push(rect);
     canvas.add(rect);
+    $scope.$apply();
+    $('#'+current_id+'_tags').select2({theme: "bootstrap"});
 };
 
 
@@ -502,6 +504,7 @@ $scope.submit_annotation = function(box_id){
                 'x': box.left,
                 'high_level':$('#'+box.id+'_frame_level').prop('checked'),
                 'name': $('#' + box.id + '_name').val(),
+                'tags': JSON.stringify($('#' + box.id + '_tags').val()),
                 'metadata': $('#' + box.id + '_metadata').val()
             },
             dataType: 'json',
@@ -518,6 +521,9 @@ $scope.submit_annotation = function(box_id){
                     $scope.boxes[box_id].opacity = 0.0;
                 }
                 frame_level.attr("disabled", true);
+                $('#' + box.id + '_tags').attr("disabled",true);
+                $('#' + box.id + '_name').attr("disabled",true);
+                $('#' + box.id + '_metadata').attr("disabled",true);
                 $('#' + box_id + '_submit').hide();
                 $scope.boxes[box_id].fill = 'green';
                 $scope.boxes[box_id].lockMovementX = true;

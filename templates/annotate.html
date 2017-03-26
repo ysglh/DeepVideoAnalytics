@@ -54,19 +54,28 @@
                                 <input name="width" class="form-control" type="text" required="" placeholder="top" value="{[ box.width*box.scaleX ]}" disabled="disabled" >
                             </div>
                         </div>
-                        <div class="col-xs-4">
+                        <div class="col-xs-3">
                             <div class="form-group">
                                 <label for="top">Text metadata</label>
                                 <textarea name="metadata" id="{[ box.id ]}_metadata" class="form-control" rows="5" required="" placeholder="metadata" ></textarea>
                             </div>
                         </div>
                         <div class="col-xs-4">
+                        <label style="font-weight:bold">Assign tags/labels: </label>
+                            <select class="js-example-basic-multiple" multiple="multiple" id="{[ box.id ]}_tags" style="width:100%">
+                            {% for tag in available_tags %}
+                                <option value="{{ tag }}">{{ tag }}</option>
+                            {% endfor %}
+                            </select>
+                            <h5>Add, update, edit tags <a href="/annotations/">here</a></h5>
+                        </div>
+                        <div class="col-xs-3">
                             <div class="form-group">
                                 <label for="top">name</label>
                                 <input name="name" id="{[ box.id ]}_name" class="form-control" type="text" required="" placeholder="name"  >
                             </div>
                             <div class="form-group">
-                                <label for="{[ box.id ]}_frame_level"> Apply to entire frame (ignore bounding box)</label>
+                                <label for="{[ box.id ]}_frame_level"> Entire frame (ignore bounding box)</label>
                                 <input name="{[ box.id ]}_frame_level" id="{[ box.id ]}_frame_level" class="checkbox" type="checkbox" style="display:inline-block">
                             </div>
                             <div>

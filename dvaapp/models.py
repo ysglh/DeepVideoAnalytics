@@ -115,3 +115,10 @@ class Annotation(models.Model):
     h = models.IntegerField(default=0)
     w = models.IntegerField(default=0)
     created = models.DateTimeField('date created', auto_now_add=True)
+
+
+class AnnotationTag(models.Model):
+    tag_name = models.CharField(max_length=200)
+    created = models.DateTimeField('date created', auto_now_add=True)
+
+

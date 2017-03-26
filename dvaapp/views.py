@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView,DetailView
 from django.utils.decorators import method_decorator
 from .forms import UploadFileForm,YTVideoForm,AnnotationForm
-from .models import Video,Frame,Detection,Query,QueryResults,TEvent,FrameLabel,IndexEntries,ExternalDataset, Annotation
+from .models import Video,Frame,Detection,Query,QueryResults,TEvent,FrameLabel,IndexEntries,ExternalDataset, Annotation, AnnotationTag
 from .tasks import extract_frames,facenet_query_by_image,inception_query_by_image
 from dva.celery import app
 import serializers
@@ -111,7 +111,8 @@ def index(request,query_pk=None,frame_pk=None,detection_pk=None):
 
 
 def annotate(request,query_pk=None,frame_pk=None,detection_pk=None):
-    context = { 'frame':None, 'detection':None ,'existing':[]}
+    context = {'frame':None, 'detection':None ,'existing':[]}
+    context['available_tags'] = [tag.tag_name for tag in AnnotationTag.objects.all()]
     if query_pk:
         previous_query = Query.objects.get(pk=query_pk)
         context['initial_url'] = '/media/queries/{}.png'.format(query_pk)
@@ -170,6 +171,13 @@ def annotate(request,query_pk=None,frame_pk=None,detection_pk=None):
                 annotation.frame = frame
                 annotation.video = frame.video
             annotation.save()
+            # if form.cleaned_data['tags']:
+            #     applied_tags = json.loads(form.cleaned_data['tags'])
+            #     for tag in applied_tags:
+            #         applied_tag = AppliedTag()
+            #         applied_tag.tag_id = tag
+            #         applied_tag.annotation = annotation
+            #         applied_tag.save()
             return JsonResponse({'status': True})
         else:
             raise ValueError,form.errors

@@ -25,11 +25,6 @@ class VideoViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.VideoSerializer
 
 
-class FrameLabelViewSet(viewsets.ModelViewSet):
-    queryset = FrameLabel.objects.all()
-    serializer_class = serializers.FrameLabelSerializer
-
-
 class FrameViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Frame.objects.all()
     serializer_class = serializers.FrameSerializer
@@ -53,6 +48,21 @@ class QueryResultsViewSet(viewsets.ReadOnlyModelViewSet):
 class AnnotationViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Annotation.objects.all()
     serializer_class = serializers.AnnotationSerializer
+
+
+class TEventViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = TEvent.objects.all()
+    serializer_class = serializers.TEventSerializer
+
+
+class IndexEntriesViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = IndexEntries.objects.all()
+    serializer_class = serializers.IndexEntriesSerializer
+
+
+class FrameLabelViewSet(viewsets.ModelViewSet):
+    queryset = FrameLabel.objects.all()
+    serializer_class = serializers.FrameLabelSerializer
 
 
 class VLabelViewSet(viewsets.ModelViewSet):

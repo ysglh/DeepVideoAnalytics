@@ -13,6 +13,8 @@ router.register(r'annotations', views.AnnotationViewSet)
 router.register(r'detections', views.DetectionViewSet)
 router.register(r'queries', views.QueryViewSet)
 router.register(r'queryresults', views.QueryResultsViewSet)
+router.register(r'indexentries', views.IndexEntriesViewSet)
+router.register(r'taskevents', views.TEventViewSet)
 
 
 urlpatterns = [

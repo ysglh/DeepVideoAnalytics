@@ -1,6 +1,7 @@
 from rest_framework import serializers, viewsets
 from django.contrib.auth.models import User
-from models import Video, FrameLabel, VLabel, Frame, Annotation, Detection, Query, QueryResults
+from models import Video, FrameLabel, VLabel, Frame, Annotation, Detection, Query, QueryResults, TEvent, IndexEntries
+
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -11,89 +12,57 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 class VideoSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Video
-        fields = ('name',
-                  'height',
-                  'width',
-                  'length_in_seconds',
-                  'created',
-                  'description',
-                  'uploaded',
-                  'dataset',
-                  'uploader',
-                  'frames',
-                  'detections',
-                  'metadata',
-                  'query',
-                  'url',
-                  'youtube_video',
-                  'parent_query'
-                  )
+        fields = '__all__'
 
 
 class FrameLabelSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = FrameLabel
-        fields = ('frame', 'video', 'label', 'source', 'label_parent', 'annotation')
+        fields = '__all__'
 
 
 class VLabelSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = VLabel
-        fields = ('created','label_name')
+        fields = '__all__'
 
 
 class FrameSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Frame
-        fields = ('video','name','frame_index','subdir')
+        fields = '__all__'
 
 
 class DetectionSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Detection
-        fields = ('video',
-                  'object_name',
-                  'frame',
-                  'x',
-                  'y',
-                  'h',
-                  'w',
-                  'confidence',
-                  'metadata')
+        fields = '__all__'
 
 
 class AnnotationSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Annotation
-        fields = ('video',
-                  'name',
-                  'frame',
-                  'x',
-                  'y',
-                  'h',
-                  'w',
-                  'label_count',
-                  'user',
-                  'created',
-                  'metadata_text')
+        fields = '__all__'
 
 
 class QuerySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Query
-        fields = ('created',
-                  'user',
-                  'results',
-                  'results_metadata',)
+        fields = '__all__'
 
 
 class QueryResultsSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = QueryResults
-        fields = ('query',
-                  'video',
-                  'frame',
-                  'rank',
-                  'algorithm',
-                  'distance',
-                  'detection',)
+        fields = '__all__'
+
+
+class TEventSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = TEvent
+        fields = '__all__'
+
+class IndexEntriesSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = IndexEntries
+        fields = '__all__'

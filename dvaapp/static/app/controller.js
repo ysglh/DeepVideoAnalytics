@@ -447,6 +447,7 @@ $scope.search = function () {
         async: true,
         data: {
             'image_url': image_data,
+            'count': $('#result_count').val(),
             'selected_indexers':selected_indexers,
             'csrfmiddlewaretoken':$(csrf_token).val()
         },

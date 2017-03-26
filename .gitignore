@@ -37,3 +37,4 @@ experiments/connect.sh
 /notes/website/
 /dvalib/facenet/facenet_model/model-*
 /notes/deepvideoanalytics_march_mid.mov
+/tests/external/drive_test.mp4

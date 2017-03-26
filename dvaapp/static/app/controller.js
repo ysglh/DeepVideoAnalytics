@@ -500,7 +500,7 @@ $scope.submit_annotation = function(box_id){
                 'y': box.top,
                 'w': box.width * box.scaleX,
                 'x': box.left,
-                'high_level':false,
+                'high_level':$('#'+box.id+'_frame_level').prop('checked'),
                 'name': $('#' + box.id + '_name').val(),
                 'metadata': $('#' + box.id + '_metadata').val()
             },
@@ -509,6 +509,15 @@ $scope.submit_annotation = function(box_id){
             success: function (response) {
                 $scope.status = "Submitted annotations";
                 $scope.alert_status = false;
+                var frame_level = $('#'+box.id+'_frame_level');
+                if(frame_level.prop('checked')){
+                    box.top = 0;
+                    box.left = 0;
+                    box.scaleY = 0;
+                    box.scaleX = 0;
+                    $scope.boxes[box_id].opacity = 0.0;
+                }
+                frame_level.attr("disabled", true);
                 $('#' + box_id + '_submit').hide();
                 $scope.boxes[box_id].fill = 'green';
                 $scope.boxes[box_id].lockMovementX = true;
@@ -527,37 +536,6 @@ $scope.submit_annotation = function(box_id){
     }
 };
 
-$scope.submit_high_level_annotation = function(){
-    $scope.high_level_alert = "Submitting";
-    if($('#high_level_name').val().length > 0) {
-        $.ajax({
-            type: "POST",
-            url: '.',
-            data: {
-                'csrfmiddlewaretoken': $(csrf_token).val(),
-                'h': 0,
-                'y': 0,
-                'w': 0,
-                'x': 0,
-                'high_level':true,
-                'name': $('#high_level_name').val(),
-                'metadata': JSON.stringify(high_level_editor.get())
-            },
-            dataType: 'json',
-            async: true,
-            success: function (response) {
-                $scope.high_level_alert = "Submitted! You can add another frame level annotation.";
-                $scope.status = "Submitted annotations";
-                $scope.$$phase || $scope.$digest();
-                canvas.renderAll();
-
-            }
-        });
-    }
-    else {
-        alert("Name cannot be empty!");
-    }
-};
 
 }
 
@@ -608,7 +586,7 @@ cveditor.controller('CanvasControls', function($scope) {
         for (var bindex in existing){
             current_id = $scope.existing_boxes.length;
             b = existing[bindex];
-            rect = new fabric.Rect({ left: b.x, top: b.y, width: b.w, height: b.h, fill: 'green',
+            rect = new fabric.Rect({ left: b.x, top: b.y, width: b.w, height: b.h, fill: 'green','full_frame':b['full_frame'],
                 opacity:0.5,'id':current_id,'new_annotation':false,'name':b['name'],'visible':true,'box_type':b['box_type'],'pk':b['pk']});
             rect.annotation = b['box_type'] == 'annotation';
             rect.lockRotation = true;

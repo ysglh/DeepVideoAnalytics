@@ -129,7 +129,8 @@ def annotate(request,query_pk=None,frame_pk=None,detection_pk=None):
                 'w':d.w,
                 'pk':d.pk,
                 'box_type':"detection",
-                'name':d.object_name
+                'name':d.object_name,
+                'full_frame': False
             }
             context['existing'].append(temp)
         for d in Annotation.objects.filter(frame=frame):
@@ -140,7 +141,8 @@ def annotate(request,query_pk=None,frame_pk=None,detection_pk=None):
                 'w':d.w,
                 'pk': d.pk,
                 'box_type':"annotation",
-                'name':d.name
+                'name':d.name,
+                'full_frame':d.full_frame
             }
             context['existing'].append(temp)
         context['existing'] = json.dumps(context['existing'])
@@ -158,6 +160,10 @@ def annotate(request,query_pk=None,frame_pk=None,detection_pk=None):
             annotation.w = form.cleaned_data['w']
             if form.cleaned_data['high_level']:
                 annotation.full_frame = True
+                annotation.x = 0
+                annotation.y = 0
+                annotation.h = 0
+                annotation.w = 0
             annotation.name = form.cleaned_data['name']
             annotation.metadata_text = form.cleaned_data['metadata']
             if frame_pk:

@@ -6,8 +6,11 @@ from rest_framework import routers
 router = routers.DefaultRouter()
 router.register(r'users', views.UserViewSet)
 router.register(r'videos', views.VideoViewSet)
+router.register(r'frames', views.FrameViewSet)
 router.register(r'vlabels', views.VLabelViewSet)
 router.register(r'framelabels', views.FrameLabelViewSet)
+router.register(r'annotations', views.AnnotationViewSet)
+
 
 urlpatterns = [
     url(r'^$', views.index, name='app'),

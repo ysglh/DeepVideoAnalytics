@@ -30,6 +30,16 @@ class FrameLabelViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.FrameLabelSerializer
 
 
+class FrameViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Frame.objects.all()
+    serializer_class = serializers.FrameSerializer
+
+
+class AnnotationViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Annotation.objects.all()
+    serializer_class = serializers.AnnotationSerializer
+
+
 class VLabelViewSet(viewsets.ModelViewSet):
     queryset = VLabel.objects.all()
     serializer_class = serializers.VLabelSerializer

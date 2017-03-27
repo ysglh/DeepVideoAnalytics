@@ -28,11 +28,13 @@ class VideoViewSet(viewsets.ReadOnlyModelViewSet):
 class FrameViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Frame.objects.all()
     serializer_class = serializers.FrameSerializer
+    filter_fields = ('frame_index', 'subdir', 'name', 'video')
 
 
 class DetectionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Detection.objects.all()
     serializer_class = serializers.DetectionSerializer
+    filter_fields = ('video', 'frame', 'object_name')
 
 
 class QueryViewSet(viewsets.ReadOnlyModelViewSet):
@@ -43,21 +45,25 @@ class QueryViewSet(viewsets.ReadOnlyModelViewSet):
 class QueryResultsViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = QueryResults.objects.all()
     serializer_class = serializers.QueryResultsSerializer
+    filter_fields = ('frame', 'video')
 
 
 class AnnotationViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Annotation.objects.all()
     serializer_class = serializers.AnnotationSerializer
+    filter_fields = ('video','frame')
 
 
 class TEventViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = TEvent.objects.all()
     serializer_class = serializers.TEventSerializer
+    filter_fields = ('video','operation')
 
 
 class IndexEntriesViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = IndexEntries.objects.all()
     serializer_class = serializers.IndexEntriesSerializer
+    filter_fields = ('video','algorithm','detection_name')
 
 
 class FrameLabelViewSet(viewsets.ModelViewSet):

@@ -29,12 +29,18 @@ class Video(models.Model):
     query = models.BooleanField(default=False)
     parent_query = models.ForeignKey(Query,null=True)
 
+    def __unicode__(self):
+        return u'{}'.format(self.name)
+
 
 class Frame(models.Model):
     video = models.ForeignKey(Video,null=True)
     frame_index = models.IntegerField()
     name = models.CharField(max_length=200,null=True)
     subdir = models.TextField(default="") # Retains information if the source is a dataset for labeling
+
+    def __unicode__(self):
+        return u'{}:{}'.format(self.video_id, self.frame_index)
 
 
 class Detection(models.Model):

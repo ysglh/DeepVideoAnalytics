@@ -187,7 +187,7 @@ def annotate(request,query_pk=None,frame_pk=None,detection_pk=None):
                 'w':d.w,
                 'pk':d.pk,
                 'box_type':"detection",
-                'name':d.object_name,
+                'label':d.object_name,
                 'full_frame': False
             }
             context['existing'].append(temp)
@@ -199,7 +199,7 @@ def annotate(request,query_pk=None,frame_pk=None,detection_pk=None):
                 'w':d.w,
                 'pk': d.pk,
                 'box_type':"annotation",
-                'name':d.name,
+                'label':d.label,
                 'full_frame':d.full_frame
             }
             context['existing'].append(temp)
@@ -213,6 +213,8 @@ def annotate(request,query_pk=None,frame_pk=None,detection_pk=None):
         if form.is_valid():
             if form.cleaned_data['tags']:
                 applied_tags = json.loads(form.cleaned_data['tags'])
+                if form.cleaned_data['metadata'].strip():
+                    create_annotation(form, "metadata", label_dict, frame_pk, frame)
                 if applied_tags:
                     for label_name in applied_tags:
                         create_annotation(form, label_name, label_dict, frame_pk, frame)
@@ -235,10 +237,10 @@ def create_annotation(form,label_name,label_dict,frame_pk,frame):
         annotation.y = form.cleaned_data['y']
         annotation.h = form.cleaned_data['h']
         annotation.w = form.cleaned_data['w']
-    annotation.name = form.cleaned_data['name']
     annotation.metadata_text = form.cleaned_data['metadata']
     annotation.label = label_name
-    annotation.label_parent = label_dict[label_name]
+    if label_name in label_dict:
+        annotation.label_parent_id = label_dict[label_name]
     if frame_pk:
         annotation.frame = frame
         annotation.video = frame.video

@@ -492,54 +492,47 @@ $scope.delete_object = function(box_id,pk,object_type){
 $scope.submit_annotation = function(box_id){
     console.log(box_id);
     box = $scope.boxes[box_id];
-    if($('#'+box.id+'_name').val().length > 0) {
-        $.ajax({
-            type: "POST",
-            url: '.',
-            data: {
-                'csrfmiddlewaretoken': $(csrf_token).val(),
-                'h': box.height * box.scaleY,
-                'y': box.top,
-                'w': box.width * box.scaleX,
-                'x': box.left,
-                'high_level':$('#'+box.id+'_frame_level').prop('checked'),
-                'name': $('#' + box.id + '_name').val(),
-                'tags': JSON.stringify($('#' + box.id + '_tags').val()),
-                'metadata': $('#' + box.id + '_metadata').val()
-            },
-            dataType: 'json',
-            async: true,
-            success: function (response) {
-                $scope.status = "Submitted annotations";
-                $scope.alert_status = false;
-                var frame_level = $('#'+box.id+'_frame_level');
-                if(frame_level.prop('checked')){
-                    box.top = 0;
-                    box.left = 0;
-                    box.scaleY = 0;
-                    box.scaleX = 0;
-                    $scope.boxes[box_id].opacity = 0.0;
-                }
-                frame_level.attr("disabled", true);
-                $('#' + box.id + '_tags').attr("disabled",true);
-                $('#' + box.id + '_name').attr("disabled",true);
-                $('#' + box.id + '_metadata').attr("disabled",true);
-                $('#' + box_id + '_submit').hide();
-                $scope.boxes[box_id].fill = 'green';
-                $scope.boxes[box_id].lockMovementX = true;
-                $scope.boxes[box_id].lockMovementY = true;
-                $scope.boxes[box_id].lockScalingX = true;
-                $scope.boxes[box_id].lockScalingY = true;
-                $scope.boxes[box_id].lockRotation = true;
-                $scope.boxes[box_id].hasControls = false;
-                $scope.$$phase || $scope.$digest();
-                canvas.renderAll();
+    $.ajax({
+        type: "POST",
+        url: '.',
+        data: {
+            'csrfmiddlewaretoken': $(csrf_token).val(),
+            'h': box.height * box.scaleY,
+            'y': box.top,
+            'w': box.width * box.scaleX,
+            'x': box.left,
+            'high_level':$('#'+box.id+'_frame_level').prop('checked'),
+            'tags': JSON.stringify($('#' + box.id + '_tags').val()),
+            'metadata': $('#' + box.id + '_metadata').val()
+        },
+        dataType: 'json',
+        async: true,
+        success: function (response) {
+            $scope.status = "Submitted annotations";
+            $scope.alert_status = false;
+            var frame_level = $('#'+box.id+'_frame_level');
+            if(frame_level.prop('checked')){
+                box.top = 0;
+                box.left = 0;
+                box.scaleY = 0;
+                box.scaleX = 0;
+                $scope.boxes[box_id].opacity = 0.0;
             }
-        });
-    }
-    else {
-        alert("Name cannot be empty!");
-    }
+            frame_level.attr("disabled", true);
+            $('#' + box.id + '_tags').attr("disabled",true);
+            $('#' + box.id + '_metadata').attr("disabled",true);
+            $('#' + box_id + '_submit').hide();
+            $scope.boxes[box_id].fill = 'green';
+            $scope.boxes[box_id].lockMovementX = true;
+            $scope.boxes[box_id].lockMovementY = true;
+            $scope.boxes[box_id].lockScalingX = true;
+            $scope.boxes[box_id].lockScalingY = true;
+            $scope.boxes[box_id].lockRotation = true;
+            $scope.boxes[box_id].hasControls = false;
+            $scope.$$phase || $scope.$digest();
+            canvas.renderAll();
+        }
+    })
 };
 
 
@@ -593,7 +586,7 @@ cveditor.controller('CanvasControls', function($scope) {
             current_id = $scope.existing_boxes.length;
             b = existing[bindex];
             rect = new fabric.Rect({ left: b.x, top: b.y, width: b.w, height: b.h, fill: 'green','full_frame':b['full_frame'],
-                opacity:0.5,'id':current_id,'new_annotation':false,'name':b['name'],'visible':true,'box_type':b['box_type'],'pk':b['pk']});
+                opacity:0.5,'id':current_id,'new_annotation':false,'label':b['label'],'visible':true,'box_type':b['box_type'],'pk':b['pk']});
             rect.annotation = b['box_type'] == 'annotation';
             rect.lockRotation = true;
             rect.lockMovementX = true;

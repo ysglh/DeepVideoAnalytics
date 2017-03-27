@@ -111,7 +111,6 @@ class Annotation(models.Model):
     start_frame = models.ForeignKey(Frame,null=True,related_name='start_frame')
     end_frame = models.ForeignKey(Frame,null=True,related_name='end_frame')
     metadata_text = models.TextField(default="")
-    name = models.TextField(default="unnamed_annotation")
     label_parent = models.ForeignKey(VLabel, null=True)
     label = models.TextField(default="empty")
     source = models.TextField(default="user_interface")

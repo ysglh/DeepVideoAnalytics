@@ -19,5 +19,3 @@ class AnnotationForm(forms.Form):
     metadata = forms.CharField(required=False)
     tags = forms.CharField(required=False)
     high_level = forms.BooleanField(required=False)
-    name = forms.CharField()
-

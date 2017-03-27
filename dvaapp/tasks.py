@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import subprocess,sys,shutil,os,glob,time,logging
 from django.conf import settings
 from dva.celery import app
-from .models import Video, Frame, Detection, TEvent, Query, IndexEntries,QueryResults, FrameLabel
+from .models import Video, Frame, Detection, TEvent, Query, IndexEntries,QueryResults, Annotation
 from dvalib import entity
 from dvalib import detector
 from dvalib import indexer
@@ -265,10 +265,11 @@ def extract_frames(video_id,rescale=True):
         if f.name:
             for l in f.subdir.split('/'):
                 if l != dv.name and l.strip():
-                    fl = FrameLabel()
+                    fl = Annotation()
                     fl.frame = df
                     fl.label = l
                     fl.video = dv
+                    fl.full_frame = True
                     fl.source = "directory_name"
                     fl.save()
     process_video_next(video_id,start.operation)

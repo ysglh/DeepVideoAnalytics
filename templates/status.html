@@ -53,7 +53,7 @@
     <div class="col-lg-9">
         <div class="box">
             <div class="box-header with-border">
-                <h3>Events</h3>
+                <h3>Incomplete or Failed Events</h3>
             </div>
             <div class="box-body">
                 <table class="table dataTables">
@@ -70,6 +70,7 @@
                     </thead>
                     <tbody>
                     {% for e in events %}
+                        {% if e.seconds < 0 %}
                         <tr>
                             <td>{{ e.video.name }}</td>
                             <td>{{ e.operation }}</td>
@@ -79,6 +80,42 @@
                             <td class="text-right">{{ e.seconds|floatformat }}</td>
                             <td class="text-center"><a href="/retry/{{ e.pk }}/">Retry</a></td>
                         </tr>
+                        {% endif %}
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="box">
+            <div class="box-header with-border">
+                <h3>Successful Events</h3>
+            </div>
+            <div class="box-body">
+                <table class="table dataTables">
+                    <thead>
+                    <tr>
+                        <th>Video</th>
+                        <th>Operation</th>
+                        <th>Started</th>
+                        <th>Completed</th>
+                        <th>timestamp</th>
+                        <th>time taken in seconds</th>
+                        <th class="text-center">retry task</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for e in events %}
+                        {% if e.seconds > 0 %}
+                        <tr>
+                            <td>{{ e.video.name }}</td>
+                            <td>{{ e.operation }}</td>
+                            <td class="text-center">{{ e.started }}</td>
+                            <td class="text-center">{{ e.completed }}</td>
+                            <td class="text-center">{{ e.created }}</td>
+                            <td class="text-right">{{ e.seconds|floatformat }}</td>
+                            <td class="text-center"><a href="/retry/{{ e.pk }}/">Retry</a></td>
+                        </tr>
+                        {% endif %}
                     {% endfor %}
                     </tbody>
                 </table>

@@ -100,5 +100,5 @@ RUN cd dvalib/facenet/facenet_model && wget https://www.dropbox.com/s/2unad9skmc
 RUN cd dvalib/facenet/facenet_model && wget https://www.dropbox.com/s/j8ky6bl0jgpygp6/model-20170306-150500.ckpt-250000.index && cd ../../..
 RUN cd dvalib/facenet/facenet_model && wget https://www.dropbox.com/s/tnebmpku7xtzwnv/model-20170306-150500.meta && cd ../../..
 ENV PYTHONPATH $PYTHONPATH:/root/DVA/faiss
-RUN pip install --upgrade django-crispy-forms
+RUN git pull && pip install --upgrade django-crispy-forms
 VOLUME ["/root/DVA/dva/media"]

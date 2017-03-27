@@ -7,12 +7,13 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView,DetailView
 from django.utils.decorators import method_decorator
 from .forms import UploadFileForm,YTVideoForm,AnnotationForm
-from .models import Video,Frame,Detection,Query,QueryResults,TEvent,FrameLabel,IndexEntries,ExternalDataset, Annotation, VLabel
+from .models import Video,Frame,Detection,Query,QueryResults,TEvent,IndexEntries,ExternalDataset, Annotation, VLabel
 from .tasks import extract_frames,facenet_query_by_image,inception_query_by_image
 from dva.celery import app
 import serializers
-from rest_framework import viewsets
+from rest_framework import viewsets,mixins
 from django.contrib.auth.models import User
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -21,57 +22,60 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class VideoViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = Video.objects.all()
     serializer_class = serializers.VideoSerializer
 
 
 class FrameViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = Frame.objects.all()
     serializer_class = serializers.FrameSerializer
     filter_fields = ('frame_index', 'subdir', 'name', 'video')
 
 
 class DetectionViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = Detection.objects.all()
     serializer_class = serializers.DetectionSerializer
     filter_fields = ('video', 'frame', 'object_name')
 
 
 class QueryViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = Query.objects.all()
     serializer_class = serializers.QuerySerializer
 
 
 class QueryResultsViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = QueryResults.objects.all()
     serializer_class = serializers.QueryResultsSerializer
     filter_fields = ('frame', 'video')
 
 
-class AnnotationViewSet(viewsets.ReadOnlyModelViewSet):
+class AnnotationViewSet(mixins.ListModelMixin,mixins.RetrieveModelMixin,mixins.CreateModelMixin,mixins.DestroyModelMixin,viewsets.GenericViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = Annotation.objects.all()
     serializer_class = serializers.AnnotationSerializer
     filter_fields = ('video','frame')
 
 
 class TEventViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = TEvent.objects.all()
     serializer_class = serializers.TEventSerializer
     filter_fields = ('video','operation')
 
 
 class IndexEntriesViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = IndexEntries.objects.all()
     serializer_class = serializers.IndexEntriesSerializer
     filter_fields = ('video','algorithm','detection_name')
 
-
-class FrameLabelViewSet(viewsets.ModelViewSet):
-    queryset = FrameLabel.objects.all()
-    serializer_class = serializers.FrameLabelSerializer
-
-
 class VLabelViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = VLabel.objects.all()
     serializer_class = serializers.VLabelSerializer
 
@@ -226,17 +230,18 @@ def annotate(request,query_pk=None,frame_pk=None,detection_pk=None):
             if form.cleaned_data['tags']:
                 applied_tags = json.loads(form.cleaned_data['tags'])
                 if applied_tags:
-                    annotation.label_count = len(applied_tags)
-                    annotation.save()
+                    # annotation.label_count = len(applied_tags)
+                    # annotation.save()
                     for label_name in applied_tags:
-                        applied_tag = FrameLabel()
-                        applied_tag.label = ''
-                        applied_tag.label_parent_id = label_dict[label_name]
-                        applied_tag.annotation = annotation
-                        applied_tag.frame_id = annotation.frame_id
-                        applied_tag.video_id = annotation.video_id
-                        applied_tag.label = label_name
-                        applied_tag.save()
+                        # applied_tag = FrameLabel()
+                        # applied_tag.label = ''
+                        # applied_tag.label_parent_id = label_dict[label_name]
+                        # applied_tag.annotation = annotation
+                        # applied_tag.frame_id = annotation.frame_id
+                        # applied_tag.video_id = annotation.video_id
+                        # applied_tag.label = label_name
+                        # applied_tag.save()
+                        pass
             return JsonResponse({'status': True})
         else:
             raise ValueError,form.errors
@@ -314,7 +319,7 @@ class VideoDetail(DetailView):
         context['frame_list'] = Frame.objects.all().filter(video=self.object)
         context['detection_list'] = Detection.objects.all().filter(video=self.object)
         context['annotation_list'] = Annotation.objects.all().filter(video=self.object)
-        context['label_list'] = FrameLabel.objects.all().filter(video=self.object)
+        context['label_list'] = Annotation.objects.all().filter(video=self.object)
         context['url'] = '{}/{}/video/{}.mp4'.format(settings.MEDIA_URL,self.object.pk,self.object.pk)
         return context
 

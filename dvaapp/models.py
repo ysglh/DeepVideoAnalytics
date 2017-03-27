@@ -97,7 +97,19 @@ class QueryResults(models.Model):
     distance = models.FloatField(default=0.0)
 
 
+class VLabel(models.Model):
+    label_name = models.CharField(max_length=200,unique=True)
+    created = models.DateTimeField('date created', auto_now_add=True)
+
+
 class Annotation(models.Model):
+    """
+    frame = models.ForeignKey(Frame)
+    video = models.ForeignKey(Video)
+    annotation = models.ForeignKey(Annotation,null=True)
+    label =
+    source = models.TextField()
+    """
     video = models.ForeignKey(Video)
     user = models.ForeignKey(User,null=True)
     frame = models.ForeignKey(Frame,null=True)
@@ -107,24 +119,13 @@ class Annotation(models.Model):
     end_frame = models.ForeignKey(Frame,null=True,related_name='end_frame')
     metadata_text = models.TextField(default="")
     name = models.TextField(default="unnamed_annotation")
+    label_parent = models.ForeignKey(VLabel, null=True)
+    label = models.TextField(default="empty")
+    source = models.TextField(default="user_interface")
     full_frame = models.BooleanField(default=True)
-    label_count = models.IntegerField(default=0)
     x = models.IntegerField(default=0)
     y = models.IntegerField(default=0)
     h = models.IntegerField(default=0)
     w = models.IntegerField(default=0)
     created = models.DateTimeField('date created', auto_now_add=True)
 
-
-class VLabel(models.Model):
-    label_name = models.CharField(max_length=200,unique=True)
-    created = models.DateTimeField('date created', auto_now_add=True)
-
-
-class FrameLabel(models.Model):
-    frame = models.ForeignKey(Frame)
-    video = models.ForeignKey(Video)
-    annotation = models.ForeignKey(Annotation,null=True)
-    label_parent = models.ForeignKey(VLabel,null=True)
-    label = models.TextField()
-    source = models.TextField()

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Video,Frame,Detection,TEvent,IndexEntries,QueryResults,Query,FrameLabel,Annotation,VLabel
+from .models import Video,Frame,Detection,TEvent,IndexEntries,QueryResults,Query,Annotation,VLabel
 
 
 @admin.register(VLabel)
@@ -25,12 +25,6 @@ class QueryResultsAdmin(admin.ModelAdmin):
 @admin.register(Query)
 class QueryAdmin(admin.ModelAdmin):
     pass
-
-
-@admin.register(FrameLabel)
-class FrameLabelAdmin(admin.ModelAdmin):
-    pass
-
 
 @admin.register(Frame)
 class FrameAdmin(admin.ModelAdmin):

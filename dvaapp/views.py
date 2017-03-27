@@ -169,6 +169,7 @@ def annotate(request,query_pk=None,frame_pk=None,detection_pk=None):
     context = {'frame':None, 'detection':None ,'existing':[]}
     label_dict = {tag.label_name:tag.pk for tag in VLabel.objects.all()}
     context['available_tags'] = label_dict.keys()
+    frame = None
     if query_pk:
         previous_query = Query.objects.get(pk=query_pk)
         context['initial_url'] = '/media/queries/{}.png'.format(query_pk)
@@ -210,42 +211,38 @@ def annotate(request,query_pk=None,frame_pk=None,detection_pk=None):
     if request.method == 'POST':
         form = AnnotationForm(request.POST)
         if form.is_valid():
-            annotation = Annotation()
-            annotation.x = form.cleaned_data['x']
-            annotation.y = form.cleaned_data['y']
-            annotation.h = form.cleaned_data['h']
-            annotation.w = form.cleaned_data['w']
-            if form.cleaned_data['high_level']:
-                annotation.full_frame = True
-                annotation.x = 0
-                annotation.y = 0
-                annotation.h = 0
-                annotation.w = 0
-            annotation.name = form.cleaned_data['name']
-            annotation.metadata_text = form.cleaned_data['metadata']
-            if frame_pk:
-                annotation.frame = frame
-                annotation.video = frame.video
-            annotation.save()
             if form.cleaned_data['tags']:
                 applied_tags = json.loads(form.cleaned_data['tags'])
                 if applied_tags:
-                    # annotation.label_count = len(applied_tags)
-                    # annotation.save()
                     for label_name in applied_tags:
-                        # applied_tag = FrameLabel()
-                        # applied_tag.label = ''
-                        # applied_tag.label_parent_id = label_dict[label_name]
-                        # applied_tag.annotation = annotation
-                        # applied_tag.frame_id = annotation.frame_id
-                        # applied_tag.video_id = annotation.video_id
-                        # applied_tag.label = label_name
-                        # applied_tag.save()
-                        pass
+                        create_annotation(form, label_name, label_dict, frame_pk, frame)
             return JsonResponse({'status': True})
         else:
             raise ValueError,form.errors
     return render(request, 'annotate.html', context)
+
+
+def create_annotation(form,label_name,label_dict,frame_pk,frame):
+    annotation = Annotation()
+    if form.cleaned_data['high_level']:
+        annotation.full_frame = True
+        annotation.x = 0
+        annotation.y = 0
+        annotation.h = 0
+        annotation.w = 0
+    else:
+        annotation.x = form.cleaned_data['x']
+        annotation.y = form.cleaned_data['y']
+        annotation.h = form.cleaned_data['h']
+        annotation.w = form.cleaned_data['w']
+    annotation.name = form.cleaned_data['name']
+    annotation.metadata_text = form.cleaned_data['metadata']
+    annotation.label = label_name
+    annotation.label_parent = label_dict[label_name]
+    if frame_pk:
+        annotation.frame = frame
+        annotation.video = frame.video
+    annotation.save()
 
 
 def yt(request):

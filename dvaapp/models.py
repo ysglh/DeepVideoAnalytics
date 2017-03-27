@@ -103,13 +103,6 @@ class VLabel(models.Model):
 
 
 class Annotation(models.Model):
-    """
-    frame = models.ForeignKey(Frame)
-    video = models.ForeignKey(Video)
-    annotation = models.ForeignKey(Annotation,null=True)
-    label =
-    source = models.TextField()
-    """
     video = models.ForeignKey(Video)
     user = models.ForeignKey(User,null=True)
     frame = models.ForeignKey(Frame,null=True)

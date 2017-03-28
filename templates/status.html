@@ -50,6 +50,19 @@
                 </table>
             </div>
         </div>
+        <div class="box box-primary">
+            <div class="box-header with-border">Queues</div>
+            <div class="box-body">
+                <table class="table dataTables">
+                    <thead><tr><th>Queue</th></tr></thead>
+                    <tbody>
+                    {% for k in settings_queues %}
+                            <tr><td>{{ k }}</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
     <div class="col-lg-3">
         <div class="box box-primary">
@@ -59,19 +72,6 @@
                     <thead><tr><th>Task</th></tr></thead>
                     <tbody>
                     {% for k in settings_tasks %}
-                            <tr><td>{{ k }}</td></tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <div class="box box-primary">
-            <div class="box-header with-border">Queues</div>
-            <div class="box-body">
-                <table class="table dataTables">
-                    <thead><tr><th>Queue</th></tr></thead>
-                    <tbody>
-                    {% for k in settings_queues %}
                             <tr><td>{{ k }}</td></tr>
                     {% endfor %}
                     </tbody>

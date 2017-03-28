@@ -179,6 +179,7 @@ def annotate(request,query_pk=None,frame_pk=None,detection_pk=None):
         context['initial_url'] = '/media/{}/frames/{}.jpg'.format(frame.video.pk,frame.frame_index)
         context['previous_frame'] = Frame.objects.filter(video=frame.video,frame_index__lt=frame.frame_index).order_by('-frame_index')[0:1]
         context['next_frame'] = Frame.objects.filter(video=frame.video,frame_index__gt=frame.frame_index).order_by('frame_index')[0:1]
+        context['detections'] = Detection.objects.filter(frame=frame)
         for d in Detection.objects.filter(frame=frame):
             temp = {
                 'x':d.x,
@@ -188,7 +189,8 @@ def annotate(request,query_pk=None,frame_pk=None,detection_pk=None):
                 'pk':d.pk,
                 'box_type':"detection",
                 'label':d.object_name,
-                'full_frame': False
+                'full_frame': False,
+                'detection_pk':None
             }
             context['existing'].append(temp)
         for d in Annotation.objects.filter(frame=frame):
@@ -200,6 +202,7 @@ def annotate(request,query_pk=None,frame_pk=None,detection_pk=None):
                 'pk': d.pk,
                 'box_type':"annotation",
                 'label':d.label,
+                'detection_pk': d.detection_id,
                 'full_frame':d.full_frame
             }
             context['existing'].append(temp)
@@ -237,6 +240,9 @@ def create_annotation(form,label_name,label_dict,frame_pk,frame):
         annotation.y = form.cleaned_data['y']
         annotation.h = form.cleaned_data['h']
         annotation.w = form.cleaned_data['w']
+    if form.cleaned_data['detection'] >= 0:
+        detection = Detection.objects.get(pk=int(form.cleaned_data['detection']))
+        annotation.detection=detection
     annotation.metadata_text = form.cleaned_data['metadata']
     annotation.label = label_name
     if label_name in label_dict:

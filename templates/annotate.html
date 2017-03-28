@@ -57,21 +57,28 @@
                         <div class="col-xs-5">
                             <div class="form-group">
                                 <label for="top">Text metadata</label>
-                                <textarea name="metadata" id="{[ box.id ]}_metadata" class="form-control" rows="5" required="" placeholder="metadata" ></textarea>
+                                <textarea name="metadata" id="{[ box.id ]}_metadata" class="form-control" rows="2" required="" placeholder="metadata" ></textarea>
                             </div>
-                        </div>
-                        <div class="col-xs-5">
-                        <label style="font-weight:bold">Assign tags/labels (Define new tags <a href="/annotations/">here</a>) :</label>
+                            <label style="font-weight:bold">Assign tags/labels (Define new tags <a href="/annotations/">here</a>) :</label>
                             <select class="js-example-basic-multiple" multiple="multiple" id="{[ box.id ]}_tags" style="width:100%">
                             {% for tag in available_tags %}
                                 <option value="{{ tag }}">{{ tag }}</option>
+                            {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-xs-5">
+                            <label style="font-weight:bold">Associate with a detection:</label>
+                            <select class="js-example-basic" id="{[ box.id ]}_detection" style="width:100%">
+                            <option value="-1" selected="selected">None</option>
+                            {% for d in detections %}
+                                <option value="{{ d.pk }}">detection {{ d.object_name }} {{ d.pk }}</option>
                             {% endfor %}
                             </select>
                             <div class="form-group" style="margin-top:8px">
                                 <label for="{[ box.id ]}_frame_level"> Entire frame (ignore bounding box)</label>
                                 <input name="{[ box.id ]}_frame_level" id="{[ box.id ]}_frame_level" class="checkbox" type="checkbox" style="display:inline-block">
                             </div>
-                            <div>
+                            <div style="margin-top:26px">
                                 <button ng-click="submit_annotation(box.id)" id="{[ box.id ]}_submit" class="btn btn-primary btn-block">submit</button>
                             </div>
                         </div>
@@ -121,6 +128,7 @@
         <div class="box-body text-center" >
         <table class="table table-bordered">
         <thead><tr>
+            <th>id</th>
             <th>type</th>
             <th>label / name</th>
             <th>top</th>
@@ -128,11 +136,13 @@
             <th>height</th>
             <th>width</th>
             <th>full frame</th>
+            <th>detection</th>
             <th>visible</th>
             <th>delete</th>
         </tr></thead>
         <tbody>
         <tr ng-repeat="box in existing_boxes" >
+            <td class="text-center">{[ box.pk]}</td>
             <td>{[ box.box_type]}</td>
             <td>{[ box.label]}</td>
             <td class="text-right">{[ box.top]}</td>
@@ -140,6 +150,7 @@
             <td class="text-right">{[ box.height*box.scaleY ]}</td>
             <td class="text-right">{[ box.width*box.scaleX ]}</td>
             <td class="text-center">{[ box.full_frame ]}</td>
+            <td class="text-center">{[ box.detection_pk ]}</td>
             <td class="text-center"><input type="checkbox" ng-checked="{[box.visible]}" ng-click="toggle_visibility(box.id)"></td>
             <td class="text-center"><a ng-show="{[ box.annotation ]}" class="btn btn-warning" ng-click="delete_object(box.id,box.pk,box.box_type)"><i class="fa fa-trash"></i> Delete</a></td>
         </tr>

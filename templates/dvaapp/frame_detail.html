@@ -18,6 +18,7 @@
                 <table class="table">
                 <thead>
                 <tr>
+                        <th>id</th>
                         <th>object</th>
                         <th>confidence</th>
                         <th>x</th>
@@ -29,6 +30,7 @@
                 <tbody>
                 {% for d in detection_list %}
                     <tr>
+                        <td>{{ d.pk }}</td>
                         <td>{{ d.object_name }} </td>
                         <td>{{ d.confidence }} </td>
                         <td>{{ d.x }} </td>
@@ -44,6 +46,8 @@
                 <thead>
                 <tr>
                         <th>Annotation</th>
+                        <th>Full frame</th>
+                        <th>detection_id</th>
                         <th>User</th>
                         <th>x</th>
                         <th>y</th>
@@ -54,7 +58,9 @@
                 <tbody>
                 {% for d in annotation_list %}
                     <tr>
-                        <td>{{ d.name }} </td>
+                        <td>{{ d.label }} </td>
+                        <td>{{ d.full_frame }}</td>
+                        <td>{{ d.detection_id }}</td>
                         <td>{{ d.user }} </td>
                         <td>{{ d.x }} </td>
                         <td>{{ d.y }} </td>

@@ -308,6 +308,7 @@ $scope.add_bounding_box = function (){
     canvas.add(rect);
     $scope.$apply();
     $('#'+current_id+'_tags').select2({theme: "bootstrap"});
+    $('#'+current_id+'_detection').select2({theme: "bootstrap"});
 };
 
 
@@ -465,7 +466,7 @@ $scope.search = function () {
 };
 
 $scope.delete_object = function(box_id,pk,object_type){
-    if (confirm('Confirm delete ')){
+    if (confirm('Confirm delete')){
         $.ajax({
         type: "POST",
         url: '/delete',
@@ -492,6 +493,8 @@ $scope.delete_object = function(box_id,pk,object_type){
 $scope.submit_annotation = function(box_id){
     console.log(box_id);
     box = $scope.boxes[box_id];
+    var high_level = $('#'+box.id+'_frame_level');
+    var detection = $('#' + box.id + '_detection');
     $.ajax({
         type: "POST",
         url: '.',
@@ -501,7 +504,8 @@ $scope.submit_annotation = function(box_id){
             'y': box.top,
             'w': box.width * box.scaleX,
             'x': box.left,
-            'high_level':$('#'+box.id+'_frame_level').prop('checked'),
+            'high_level':high_level.prop('checked'),
+            'detection':detection.val(),
             'tags': JSON.stringify($('#' + box.id + '_tags').val()),
             'metadata': $('#' + box.id + '_metadata').val()
         },
@@ -580,13 +584,17 @@ cveditor.controller('CanvasControls', function($scope) {
     $scope.results_detections = [];
     $scope.high_level_alert = "Add frame level annotation";
     $scope.send_entire_image = false;
+    $scope.selected_detection = -1;
     if(annotation_mode)
     {
         for (var bindex in existing){
             current_id = $scope.existing_boxes.length;
             b = existing[bindex];
-            rect = new fabric.Rect({ left: b.x, top: b.y, width: b.w, height: b.h, fill: 'green','full_frame':b['full_frame'],
-                opacity:0.5,'id':current_id,'new_annotation':false,'label':b['label'],'visible':true,'box_type':b['box_type'],'pk':b['pk']});
+            rect = new fabric.Rect({ left: b.x, top: b.y, width: b.w, height: b.h, fill: 'green',
+                'full_frame':b['full_frame'],
+                opacity:0.5,'id':current_id,'new_annotation':false,
+                'label':b['label'],'visible':true,'box_type':b['box_type'],
+                'pk':b['pk'],'detection_pk':b['detection_pk']});
             rect.annotation = b['box_type'] == 'annotation';
             rect.lockRotation = true;
             rect.lockMovementX = true;

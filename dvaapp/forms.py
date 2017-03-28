@@ -16,6 +16,7 @@ class AnnotationForm(forms.Form):
     y = forms.FloatField()
     h = forms.FloatField()
     w = forms.FloatField()
+    detection = forms.IntegerField()
     metadata = forms.CharField(required=False)
     tags = forms.CharField(required=False)
     high_level = forms.BooleanField(required=False)

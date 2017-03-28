@@ -1,4 +1,6 @@
 from django import forms
+from django.forms import ModelForm
+from models import VLabel
 
 
 class UploadFileForm(forms.Form):
@@ -20,3 +22,10 @@ class AnnotationForm(forms.Form):
     metadata = forms.CharField(required=False)
     tags = forms.CharField(required=False)
     high_level = forms.BooleanField(required=False)
+
+
+class VLabelForm(ModelForm):
+    class Meta:
+        model = VLabel
+        fields = ['label_name']
+

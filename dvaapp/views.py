@@ -6,7 +6,7 @@ import os,base64, json
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView,DetailView
 from django.utils.decorators import method_decorator
-from .forms import UploadFileForm,YTVideoForm,AnnotationForm
+from .forms import UploadFileForm,YTVideoForm,AnnotationForm,VLabelForm
 from .models import Video,Frame,Detection,Query,QueryResults,TEvent,IndexEntries,ExternalDataset, Annotation, VLabel
 from .tasks import extract_frames,facenet_query_by_image,inception_query_by_image
 from dva.celery import app
@@ -14,6 +14,7 @@ import serializers
 from rest_framework import viewsets,mixins
 from django.contrib.auth.models import User
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from django.db.models import Count
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -388,7 +389,19 @@ def indexes(request):
 
 
 def annotations(request):
-    context = {}
+    if request.method == 'POST':
+        form = VLabelForm(request.POST)
+        if form.is_valid():
+            label = form.save(commit=False)
+            label.save()
+    form = VLabelForm()
+    context = {'form': form,
+               'vlabels':VLabel.objects.all(),
+               'label_name_stats':Annotation.objects.all().filter(label_parent_id__isnull=True).values('label').annotate(total=Count('label'),parents=Count('label_parent_id',distinct=True),frame_count=Count('frame',distinct=True),video_count=Count('video',distinct=True)).order_by('total'),
+               'label_parent_stats':Annotation.objects.all().filter(label_parent_id__isnull=False).values('label').annotate(total=Count('label'),parents=Count('label_parent_id',distinct=True),frame_count=Count('frame',distinct=True),video_count=Count('video',distinct=True)).order_by('total'),
+               'annotations_count':Annotation.objects.all().count(),
+               'labels_count':VLabel.objects.all().count(),
+               }
     return render(request, 'annotations.html', context)
 
 

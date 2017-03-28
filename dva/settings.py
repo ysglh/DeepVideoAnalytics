@@ -202,6 +202,23 @@ TASK_NAMES_TO_QUEUE = {
     "alexnet_query_by_image":Q_RETRIEVER,
 }
 
+VIDEO_TASK = 'video'
+QUERY_TASK = 'query'
+
+TASK_NAMES_TO_TYPE = {
+    "inception_index_by_id":VIDEO_TASK,
+    "inception_index_ssd_detection_by_id":VIDEO_TASK,
+    "inception_query_by_image":QUERY_TASK,
+    "facenet_query_by_image":QUERY_TASK,
+    "extract_frames_by_id":VIDEO_TASK,
+    "perform_ssd_detection_by_id":VIDEO_TASK,
+    "perform_yolo_detection_by_id":VIDEO_TASK,
+    "perform_face_detection_indexing_by_id":VIDEO_TASK,
+    "alexnet_index_by_id":VIDEO_TASK,
+    "alexnet_query_by_image":QUERY_TASK,
+}
+
+
 POST_OPERATION_TASKS = {
     "extract_frames_by_id":['perform_ssd_detection_by_id','inception_index_by_id','perform_face_detection_indexing_by_id'],
     'perform_ssd_detection_by_id':['inception_index_ssd_detection_by_id',]

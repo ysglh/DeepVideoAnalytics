@@ -427,7 +427,7 @@ def external(request):
 def retry_task(request,pk):
     event = TEvent.objects.get(pk=int(pk))
     context = {}
-    if event.operation != 'query_by_id':
+    if settings.TASK_NAMES_TO_TYPE[event.operation] == settings.VIDEO_TASK:
         result = app.send_task(name=event.operation, args=[event.video_id],queue=settings.TASK_NAMES_TO_QUEUE[event.operation])
         context['alert'] = "Operation {} on {} submitted".format(event.operation,event.video.name,queue=settings.TASK_NAMES_TO_QUEUE[event.operation])
         return render_status(request, context)
@@ -441,7 +441,11 @@ def render_status(request,context):
     context['query_count'] = Query.objects.count()
     context['events'] = TEvent.objects.all()
     context['detection_count'] = Detection.objects.count()
-
+    context['settings_task_names_to_type'] = settings.TASK_NAMES_TO_TYPE
+    context['settings_task_names_to_queue'] = settings.TASK_NAMES_TO_QUEUE
+    context['settings_post_operation_tasks'] = settings.POST_OPERATION_TASKS
+    context['settings_tasks'] = set(settings.TASK_NAMES_TO_QUEUE.keys())
+    context['settings_queues'] = set(settings.TASK_NAMES_TO_QUEUE.values())
     try:
         context['indexer_log'] = file("logs/{}.log".format(settings.Q_INDEXER)).read()
     except:

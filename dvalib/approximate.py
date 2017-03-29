@@ -1,5 +1,8 @@
-import lopq
-from lopq.search import LOPQSearcherLMDB
+try:
+    import lopq
+    from lopq.search import LOPQSearcherLMDB
+except:
+    pass
 
 class ApproximateIndexer(object):
 

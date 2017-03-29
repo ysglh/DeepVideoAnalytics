@@ -99,7 +99,7 @@ class ProductsIndex(ExternalIndexed):
         lmdb_path = "{}/approximate/{}_lmdb".format(self.path, self.indexer.name)
         model_path = "{}/approximate/{}_model".format(self.path, self.indexer.name)
         approximate_model = approximate.ApproximateIndexer(self.indexer.name, model_path, lmdb_path)
-        approximate_model.prepare(data)
+        approximate_model.experiment(data)
 
 class VisualGenomeIndex(ExternalIndexed):
 

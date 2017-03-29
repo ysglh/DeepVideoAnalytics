@@ -32,7 +32,7 @@ def pca(data):
 
 class ApproximateIndexer(object):
 
-    def __init__(self,index_name,model_path,lmdb_path,V=16, M=8):
+    def __init__(self,index_name,model_path,lmdb_path,V=16, M=16):
         self.model = LOPQModel(V,M)
         self.index_name = index_name
         self.searcher = None
@@ -42,36 +42,37 @@ class ApproximateIndexer(object):
     def load(self):
         self.model.load_proto(self.model_path)
 
-
-    def prepare(self,data):
-        print data.shape
-        train, test = train_test_split(data, test_size=0.2)
-        nns = compute_all_neighbors(test, train)
-        pca_reduction = PCA(n_components=32)
-        pca_reduction.fit(train)
-        train = pca_reduction.transform(train)
+    def fit(self,train):
         print train.shape
-        P, mu = pca(train)
-        train = train - mu
-        train = np.dot(train,P)
-        test = pca_reduction.transform(test)
-        print test.shape
-        test = test - mu
-        test = np.dot(test,P)
-        print "fitting"
-        self.model.fit(train,n_init=1)
-        print "exporting"
-        self.model.export_proto(self.model_path)
-        # print "starting searcher"
-        # self.searcher = LOPQSearcherLMDB(self.model,self.lmdb_path)
-        # print "adding data"
-        # self.add_data(data)
-        searcher = LOPQSearcher(self.model)
-        print "adding data"
-        searcher.add_data(train)
-        recall, _ = get_recall(searcher, test, nns)
-        print 'Recall (V=%d, M=%d, subquants=%d): %s' % (self.model.V, self.model.M, self.model.subquantizer_clusters, str(recall))
+        self.pca_reduction = PCA(n_components=256)
+        self.pca_reduction.fit(train)
+        train = self.pca_reduction.transform(train)
+        self.P, self.mu = pca(train)
+        train = np.dot(train, self.P)
+        print train.shape
+        self.model.fit(train, n_init=1)
 
+    def transform(self,test):
+        print test.shape
+        test = self.pca_reduction.transform(test)
+        test = test - self.mu
+        test = np.dot(test,self.P)
+        print test.shape
+        return test
+
+    def fit_model(self,train):
+        self.fit(train)
+        self.model.export_proto(self.model_path)
+        self.searcher = LOPQSearcher(self.model) # LOPQSearcherLMDB(self.model,self.lmdb_path)
+
+    def experiment(self,data):
+        train, test = train_test_split(data, test_size=0.1)
+        print data.shape,train.shape,test.shape
+        nns = compute_all_neighbors(test, train)
+        self.fit_model(train)
+        self.searcher.add_data(self.transform(train))
+        recall, _ = get_recall(self.searcher, self.transform(test), nns)
+        print 'Recall (V={}, M={}, subquants={}): {}'.format(self.model.V, self.model.M, self.model.subquantizer_clusters, str(recall))
 
     def add_data(self,data):
         self.searcher.add_data(data)

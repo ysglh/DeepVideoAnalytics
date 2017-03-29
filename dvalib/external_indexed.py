@@ -97,7 +97,7 @@ class ProductsIndex(ExternalIndexed):
         logging.info("performing fit on {}".format(data.shape))
         lmdb_path = "{}/approximate/{}_lmdb".format(self.path, self.indexer.name)
         model_path = "{}/approximate/{}_model".format(self.path, self.indexer.name)
-
+        self.data = data
 
 class VisualGenomeIndex(ExternalIndexed):
 

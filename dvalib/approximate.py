@@ -1,5 +1,5 @@
 import lopq
-
+from lopq.search import LOPQSearcherLMDB
 
 class ApproximateIndexer(object):
 
@@ -19,7 +19,7 @@ class ApproximateIndexer(object):
         print "exporting"
         self.model.export_proto(self.model_path)
         print "starting searcher"
-        self.searcher = lopq.LOPQSearcherLMDB(self.model,self.lmdb_path)
+        self.searcher = LOPQSearcherLMDB(self.model,self.lmdb_path)
         print "adding data"
         self.add_data(data)
 

@@ -506,19 +506,6 @@ def setup_django():
     django.setup()
 
 
-@task
-def build_external_products_index(input_dir='/Users/aub3/temptest/gtin/', output_dir="/Users/aub3/temptest/products"):
-    """
-    Build external index for products
-    :param input_dir:
-    :param output_dir:
-    :return:
-    """
-    sys.path.append(os.path.dirname(__file__))
-    from dvalib import external_indexed
-    products = external_indexed.ProductsIndex(path=output_dir)
-    products.prepare(input_dir)
-    products.build_approximate()
 
 @task
 def push_external_products_index(path='/Users/aub3/temptest/products/'):

@@ -2,7 +2,6 @@ from .indexer import InceptionIndexer
 import os,shutil,json, boto3, subprocess, time
 import numpy as np
 import logging
-import approximate
 
 
 class ExternalIndexed(object):
@@ -50,6 +49,7 @@ class ProductsIndex(ExternalIndexed):
         self.indexer = InceptionIndexer()
         self.name = "products"
         self.bucket_name = "aub3dvaproducts"
+        self.data = None
 
     def prepare(self,input_path):
         super(ProductsIndex, self).prepare(input_path)
@@ -85,11 +85,6 @@ class ProductsIndex(ExternalIndexed):
         self.image_filenames = temp['images']
         self.feature_filenames = temp['features']
 
-    def load_approximate(self):
-        lmdb_path = "{}/approximate/{}_lmdb".format(self.path, self.indexer.name)
-        model_path = "{}/approximate/{}_model".format(self.path, self.indexer.name)
-        approximate_model = approximate.ApproximateIndexer(self.indexer.name, model_path, lmdb_path)
-
     def build_approximate(self):
         data = []
         self.load_metadata()
@@ -102,9 +97,6 @@ class ProductsIndex(ExternalIndexed):
         logging.info("performing fit on {}".format(data.shape))
         lmdb_path = "{}/approximate/{}_lmdb".format(self.path, self.indexer.name)
         model_path = "{}/approximate/{}_model".format(self.path, self.indexer.name)
-        approximate_model = approximate.ApproximateIndexer(self.indexer.name, model_path, lmdb_path)
-        approximate_model.prepare(data)
-        print approximate_model.search(data[0, :])
 
 
 class VisualGenomeIndex(ExternalIndexed):

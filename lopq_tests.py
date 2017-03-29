@@ -12,6 +12,7 @@ try:
 except:
     pass
 
+
 def load_oxford_data():
     from lopq.utils import load_xvecs
 

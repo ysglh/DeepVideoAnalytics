@@ -2,6 +2,7 @@ from .indexer import InceptionIndexer
 import os,shutil,json, boto3, subprocess, time
 import numpy as np
 import logging
+from dvalib import approximate
 
 
 class ExternalIndexed(object):
@@ -97,7 +98,8 @@ class ProductsIndex(ExternalIndexed):
         logging.info("performing fit on {}".format(data.shape))
         lmdb_path = "{}/approximate/{}_lmdb".format(self.path, self.indexer.name)
         model_path = "{}/approximate/{}_model".format(self.path, self.indexer.name)
-        self.data = data
+        approximate_model = approximate.ApproximateIndexer(self.indexer.name, model_path, lmdb_path)
+        approximate_model.prepare(data)
 
 class VisualGenomeIndex(ExternalIndexed):
 

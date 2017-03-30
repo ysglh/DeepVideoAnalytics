@@ -2,10 +2,11 @@ from __future__ import absolute_import
 import subprocess,sys,shutil,os,glob,time,logging
 from django.conf import settings
 from dva.celery import app
-from .models import Video, Frame, Detection, TEvent, Query, IndexEntries,QueryResults, Annotation
+from .models import Video, Frame, Detection, TEvent, Query, IndexEntries,QueryResults, Annotation, VLabel
 from dvalib import entity
 from dvalib import detector
 from dvalib import indexer
+from collections import defaultdict
 from PIL import Image
 from scipy import misc
 import json
@@ -231,6 +232,24 @@ def facenet_query_by_image(query_id):
     return results
 
 
+def set_directory_labels(frames,dv):
+    labels_to_frame = defaultdict(set)
+    for f in frames:
+        if f.name:
+            for l in f.subdir.split('/'):
+                if l.strip():
+                    labels_to_frame[l].add(f.primary_key)
+    for l in labels_to_frame:
+        label_object, created = VLabel.objects.get_or_create(label_name=l,source=VLabel.DIRECTORY)
+        for fpk in labels_to_frame[l]:
+            a = Annotation()
+            a.full_frame = True
+            a.video = dv
+            a.frame_id = fpk
+            a.label_parent = label_object
+            a.label = l
+            a.save()
+
 @app.task(name="extract_frames_by_id")
 def extract_frames(video_id,rescale=True):
     start = TEvent()
@@ -262,16 +281,8 @@ def extract_frames(video_id,rescale=True):
             df.name = f.name[:150]
             df.subdir = f.subdir.replace('/',' ')
         df.save()
-        if f.name:
-            for l in f.subdir.split('/'):
-                if l != dv.name and l.strip():
-                    fl = Annotation()
-                    fl.frame = df
-                    fl.label = l
-                    fl.video = dv
-                    fl.full_frame = True
-                    fl.source = "directory_name"
-                    fl.save()
+        f.primary_key = df.pk
+    set_directory_labels(frames,dv)
     process_video_next(video_id,start.operation)
     start.completed = True
     start.seconds = time.time() - start_time

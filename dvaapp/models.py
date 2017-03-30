@@ -98,7 +98,12 @@ class QueryResults(models.Model):
 
 
 class VLabel(models.Model):
-    label_name = models.CharField(max_length=200,unique=True)
+    UI = 'UI'
+    DIRECTORY = 'DR'
+    ALGO = 'AG'
+    SOURCE_CHOICES = ((UI, 'User Interface'),(DIRECTORY, 'Directory Name'),(ALGO, 'Algorithm'))
+    label_name = models.CharField(max_length=200)
+    source = models.CharField(max_length=2,choices=SOURCE_CHOICES,default=UI,)
     created = models.DateTimeField('date created', auto_now_add=True)
 
 
@@ -107,13 +112,9 @@ class Annotation(models.Model):
     user = models.ForeignKey(User,null=True)
     frame = models.ForeignKey(Frame,null=True)
     detection = models.ForeignKey(Detection,null=True)
-    multi_frame = models.BooleanField(default=False)
-    start_frame = models.ForeignKey(Frame,null=True,related_name='start_frame')
-    end_frame = models.ForeignKey(Frame,null=True,related_name='end_frame')
     metadata_text = models.TextField(default="")
     label_parent = models.ForeignKey(VLabel, null=True)
     label = models.TextField(default="empty")
-    source = models.TextField(default="user_interface")
     full_frame = models.BooleanField(default=True)
     x = models.IntegerField(default=0)
     y = models.IntegerField(default=0)

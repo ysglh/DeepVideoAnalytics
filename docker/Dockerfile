@@ -89,16 +89,17 @@ RUN pip install --upgrade matplotlib
 WORKDIR "/root/DVA"
 RUN git pull
 RUN cd dvalib/ssd/checkpoints && unzip ssd_300_vgg.ckpt.zip
-RUN apt-get update && apt-get install -y liblapack3 libopenblas-dev
-RUN git pull
-WORKDIR "/root/DVA/faiss"
-RUN make
-RUN make py
-WORKDIR "/root/DVA"
+#RUN apt-get update && apt-get install -y liblapack3 libopenblas-dev
+#RUN git pull
+#WORKDIR "/root/DVA/faiss"
+#RUN make
+#RUN make py
+# pip install --upgrade lopq
+#WORKDIR "/root/DVA"
 RUN git pull
 RUN cd dvalib/facenet/facenet_model && wget https://www.dropbox.com/s/2unad9skmc7msel/model-20170306-150500.ckpt-250000.data-00000-of-00001 && cd ../../..
 RUN cd dvalib/facenet/facenet_model && wget https://www.dropbox.com/s/j8ky6bl0jgpygp6/model-20170306-150500.ckpt-250000.index && cd ../../..
 RUN cd dvalib/facenet/facenet_model && wget https://www.dropbox.com/s/tnebmpku7xtzwnv/model-20170306-150500.meta && cd ../../..
 ENV PYTHONPATH $PYTHONPATH:/root/DVA/faiss
-RUN git pull && pip install --upgrade django-crispy-forms lopq
+RUN git pull && pip install --upgrade django-crispy-forms
 VOLUME ["/root/DVA/dva/media"]

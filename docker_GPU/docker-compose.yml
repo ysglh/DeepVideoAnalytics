@@ -25,6 +25,7 @@
        - RABBIT_HOST=rabbit
        - RABBIT_USER=dvauser
        - RABBIT_PASS=localpass
+       - GPU_AVAILABLE=1
        - DB_HOST=db
        - DB_NAME=postgres
        - DB_USER=pgdbuser

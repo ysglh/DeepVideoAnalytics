@@ -252,18 +252,22 @@ def startq(queue_name):
     Q_RETRIEVER = settings.Q_RETRIEVER
     Q_FACE = settings.Q_FACE_RETRIEVER
     Q_FACEDETECTOR = settings.Q_FACE_DETECTOR
+    if 'GPU_AVAILABLE' in os.environ:
+        solo_mode = '-P solo'
+    else:
+        solo_mode = ''
     if queue_name == 'indexer':
-        command = 'celery -A dva worker -l info -P solo -c {} -Q {} -n {}.%h -f logs/{}.log'.format(1, Q_INDEXER, Q_INDEXER,Q_INDEXER)
+        command = 'celery -A dva worker -l info {} -c {} -Q {} -n {}.%h -f logs/{}.log'.format(solo_mode, 1, Q_INDEXER, Q_INDEXER,Q_INDEXER)
     elif queue_name == 'extractor':
         command = 'celery -A dva worker -l info -c {} -Q {} -n {}.%h -f logs/{}.log'.format(1, Q_EXTRACTOR,Q_EXTRACTOR,Q_EXTRACTOR)
     elif queue_name == 'detector':
         command = 'celery -A dva worker -l info -c {} -Q {} -n {}.%h -f logs/{}.log'.format(1, Q_DETECTOR,Q_DETECTOR, Q_DETECTOR)
     elif queue_name == 'retriever':
-        command = 'celery -A dva worker -l info -P solo -c {} -Q {} -n {}.%h -f logs/{}.log'.format(1, Q_RETRIEVER,Q_RETRIEVER,Q_RETRIEVER)
+        command = 'celery -A dva worker -l info {} -c {} -Q {} -n {}.%h -f logs/{}.log'.format(solo_mode, 1, Q_RETRIEVER,Q_RETRIEVER,Q_RETRIEVER)
     elif queue_name == 'face':
-        command = 'celery -A dva worker -l info -P solo -c {} -Q {} -n {}.%h -f logs/{}.log'.format(1, Q_FACE,Q_FACE,Q_FACE)
+        command = 'celery -A dva worker -l info {} -c {} -Q {} -n {}.%h -f logs/{}.log'.format(solo_mode, 1, Q_FACE,Q_FACE,Q_FACE)
     elif queue_name == 'facedetector':
-        command = 'celery -A dva worker -l info -P solo -c {} -Q {} -n {}.%h -f logs/{}.log'.format(1, Q_FACEDETECTOR,Q_FACEDETECTOR,Q_FACEDETECTOR)
+        command = 'celery -A dva worker -l info {} -c {} -Q {} -n {}.%h -f logs/{}.log'.format(solo_mode, 1, Q_FACEDETECTOR,Q_FACEDETECTOR,Q_FACEDETECTOR)
     else:
         raise NotImplementedError
     logging.info(command)

@@ -37,7 +37,7 @@ RUN apt-get update && apt-get install -y libpq-dev && \
 	apt-get clean && \
 	apt-get autoremove && \
 	rm -rf /var/lib/apt/lists/*
-RUN wget https://s3.amazonaws.com/pytorch/whl/cu80/torch-0.1.7.post2-cp27-none-linux_x86_64.whl 
+RUN wget pip install http://download.pytorch.org/whl/cu75/torch-0.1.10.post2-cp27-none-linux_x86_64.whl
 RUN pip install torch-0.1.7.post2-cp27-none-linux_x86_64.whl
 RUN pip install scipy
 RUN pip install torchvision

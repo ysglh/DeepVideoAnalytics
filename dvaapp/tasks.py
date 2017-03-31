@@ -241,6 +241,7 @@ def set_directory_labels(frames,dv):
                     labels_to_frame[l].add(f.primary_key)
     for l in labels_to_frame:
         label_object, created = VLabel.objects.get_or_create(label_name=l,source=VLabel.DIRECTORY)
+        _, created = VLabel.objects.get_or_create(label_name=l, source=VLabel.UI)
         for fpk in labels_to_frame[l]:
             a = Annotation()
             a.full_frame = True

@@ -168,7 +168,7 @@ def index(request,query_pk=None,frame_pk=None,detection_pk=None):
 
 def annotate(request,query_pk=None,frame_pk=None,detection_pk=None):
     context = {'frame':None, 'detection':None ,'existing':[]}
-    label_dict = {tag.label_name:tag.pk for tag in VLabel.objects.all()}
+    label_dict = {tag.label_name:tag.pk for tag in VLabel.objects.filter(source=VLabel.UI).all()}
     context['available_tags'] = label_dict.keys()
     frame = None
     if query_pk:
@@ -395,13 +395,20 @@ def annotations(request):
             label = form.save(commit=False)
             label.save()
     form = VLabelForm()
-    context = {'form': form,
-               'vlabels':VLabel.objects.all(),
-               'label_name_stats':Annotation.objects.all().filter(label_parent_id__isnull=True).values('label').annotate(total=Count('label'),parents=Count('label_parent_id',distinct=True),frame_count=Count('frame',distinct=True),video_count=Count('video',distinct=True)).order_by('total'),
-               'label_parent_stats':Annotation.objects.all().filter(label_parent_id__isnull=False).values('label').annotate(total=Count('label'),parents=Count('label_parent_id',distinct=True),frame_count=Count('frame',distinct=True),video_count=Count('video',distinct=True)).order_by('total'),
-               'annotations_count':Annotation.objects.all().count(),
-               'labels_count':VLabel.objects.all().count(),
-               }
+    query = Annotation.objects.all().values('label_parent_id').annotate(
+        total=Count('pk'),
+        frame_count=Count('frame',distinct=True),
+        video_count=Count('video',distinct=True)).order_by('total')
+    query_result = []
+    for k in query:
+        label = VLabel.objects.get(pk=k['label_parent_id'])
+        query_result.append({'label_name':label.label_name,
+                             'source':label.get_source_display(),
+                             'total':k['total'],
+                             'frame_count': k['frame_count'],
+                             'video_count':k['video_count']})
+    context = {'form':form,'vlabels':VLabel.objects.all(),'label_stats':query_result,
+               'annotations_count':Annotation.objects.all().count(),'labels_count':VLabel.objects.all().count(),}
     return render(request, 'annotations.html', context)
 
 

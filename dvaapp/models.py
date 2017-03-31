@@ -105,6 +105,8 @@ class VLabel(models.Model):
     label_name = models.CharField(max_length=200)
     source = models.CharField(max_length=2,choices=SOURCE_CHOICES,default=UI,)
     created = models.DateTimeField('date created', auto_now_add=True)
+    class Meta:
+        unique_together = ('source', 'label_name',)
 
 
 class Annotation(models.Model):

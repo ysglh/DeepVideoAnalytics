@@ -15,6 +15,7 @@ from rest_framework import viewsets,mixins
 from django.contrib.auth.models import User
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from django.db.models import Count
+from celery.exceptions import TimeoutError
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -112,8 +113,13 @@ def search(request):
         query.save()
         results = []
         results_detections = []
+        time_out = False
         for visual_index_name,result in task_results.iteritems():
-            entries = result.get()
+            try:
+                entries = result.get(timeout=120)
+            except TimeoutError:
+                time_out = True
+                entries = {}
             if entries and settings.VISUAL_INDEXES[visual_index_name]['detection_specific']:
                 for algo,rlist in entries.iteritems():
                     for r in rlist:
@@ -132,7 +138,7 @@ def search(request):
                                            Detection.objects.filter(frame_id=r['frame_primary_key'])]
                         r['result_type'] = 'frame'
                         results.append(r)
-        return JsonResponse(data={'task_id':"",'primary_key':primary_key,'results':results,'results_detections':results_detections})
+        return JsonResponse(data={'task_id':"",'time_out':time_out,'primary_key':primary_key,'results':results,'results_detections':results_detections})
 
 
 def index(request,query_pk=None,frame_pk=None,detection_pk=None):

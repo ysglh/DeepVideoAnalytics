@@ -34,7 +34,7 @@
        - LAUNCH_SERVER=1
        - LAUNCH_Q_qindexer=1
        - LAUNCH_Q_qretriever=1
-       - LAUNCH_Q_qextractor=1
+       - LAUNCH_Q_qextract=1
        - LAUNCH_Q_qdetector=1
        - LAUNCH_Q_qfaceretriever=1
        - LAUNCH_Q_qfacedetector=1

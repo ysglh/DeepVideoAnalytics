@@ -31,6 +31,14 @@
        - DB_USER=pgdbuser
        - DB_PASS=pgdbpass
        - RESCALE_DISABLE=1
+       - LAUNCH_SERVER=1
+       - LAUNCH_Q_qindexer=1
+       - LAUNCH_Q_qretriever=1
+       - LAUNCH_Q_qextractor=1
+       - LAUNCH_Q_qdetector=1
+       - LAUNCH_Q_qfaceretriever=1
+       - LAUNCH_Q_qfacedetector=1
+       - TEST=1
      command: bash -c "youtube-dl -U && git pull && fab start_server_container_gpu:1"
      ports:
        - "8000:80"

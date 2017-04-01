@@ -43,24 +43,9 @@ def server():
     """
     local("python manage.py runserver")
 
-
-@task
-def start_server_container(perform_test=False):
-    """
-    Start sever container WITHOUT using nginx and uwsgi
-    :param test:
-    :return:
-    """
-    local('sleep 60')
-    migrate()
-    launch_queues(True)
-    if perform_test:
-        test()
-    local('python manage.py runserver 0.0.0.0:8000')
-
 @task
 def setup_container_gpu():
-    local('sleep 60')
+    local('sleep 20')
     migrate()
     local('chmod 0777 -R /tmp')
     try:
@@ -84,17 +69,29 @@ def setup_container_gpu():
 
 
 @task
-def start_server_container_gpu(perform_test=False):
+def start_server_container():
+    """
+    Start sever container WITHOUT using nginx and uwsgi
+    :param test:
+    :return:
+    """
+    local('sleep 20')
+    migrate()
+    launch_queues_env()
+    if 'LAUNCH_SERVER' in os.environ:
+        local('python manage.py runserver 0.0.0.0:8000')
+
+@task
+def start_server_container_gpu():
     """
     Start sever container using nginx and uwsgi
     :param test:
     :return:
     """
     setup_container_gpu()
-    launch_queues(True)
-    if perform_test:
-        test()
-    local('supervisord -n')
+    launch_queues_env()
+    if 'LAUNCH_SERVER' in os.environ:
+        local('supervisord -n')
 
 
 @task
@@ -134,13 +131,13 @@ def restart_queues(detection=False):
     :return:
     """
     kill_queues()
-    local('fab startq:extractor &')
-    local('fab startq:indexer &')
-    local('fab startq:retriever &')
-    local('fab startq:face &')
-    local('fab startq:facedetector &')
+    local('fab startq:qextractor &')
+    local('fab startq:qindexer &')
+    local('fab startq:qretriever &')
+    local('fab startq:qface &')
+    local('fab startq:qfacedetector &')
     if detection:
-        local('fab startq:detector &')
+        local('fab startq:qdetector &')
 
 @task
 def kill_queues():
@@ -224,13 +221,32 @@ def launch_queues(detection=False):
     :param detection: use fab launch_queues:1 to lauch detector queue in addition to all others
     :return:
     """
-    local('fab startq:extractor &')
-    local('fab startq:indexer &')
-    local('fab startq:retriever &')
-    local('fab startq:face &')
-    local('fab startq:facedetector &')
+    local('fab startq:qextractor &')
+    local('fab startq:qindexer &')
+    local('fab startq:qretriever &')
+    local('fab startq:qface &')
+    local('fab startq:qfacedetector &')
     if detection:
-        local('fab startq:detector &')
+        local('fab startq:qdetector &')
+
+@task
+def launch_queues_env():
+    """
+    Launch workers for each queue
+    :param detection: use fab launch_queues:1 to lauch detector queue in addition to all others
+    :return:
+    """
+    import django, os
+    sys.path.append(os.path.dirname(__file__))
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
+    django.setup()
+    from dvaapp.models import Video
+    for k in os.environ:
+        if k.startswith('LAUNCH_Q_'):
+            queue_name = k.split('_')[-1]
+            local('fab startq:{} &'.format(queue_name))
+    if 'TEST' in os.environ and Video.objects.count() == 0:
+        test()
 
 
 @task
@@ -246,32 +262,16 @@ def startq(queue_name):
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from django.conf import settings
-    Q_INDEXER = settings.Q_INDEXER
-    Q_EXTRACTOR = settings.Q_EXTRACTOR
-    Q_DETECTOR = settings.Q_DETECTOR
-    Q_RETRIEVER = settings.Q_RETRIEVER
-    Q_FACE = settings.Q_FACE_RETRIEVER
-    Q_FACEDETECTOR = settings.Q_FACE_DETECTOR
-    if 'GPU_AVAILABLE' in os.environ:
-        solo_mode = '-P solo'
+    if queue_name in settings.QUEUES:
+        if queue_name == settings.Q_EXTRACTOR:
+            command = 'celery -A dva worker -l info -c {} -Q {} -n {}.%h -f logs/{}.log'.format(1, queue_name,queue_name,queue_name)
+        else:
+            command = 'celery -A dva worker -l info -P solo -c {} -Q {} -n {}.%h -f logs/{}.log'.format(1, queue_name,queue_name,queue_name)
+        logging.info(command)
+        os.system(command)
     else:
-        solo_mode = ''
-    if queue_name == 'indexer':
-        command = 'celery -A dva worker -l info {} -c {} -Q {} -n {}.%h -f logs/{}.log'.format(solo_mode, 1, Q_INDEXER, Q_INDEXER,Q_INDEXER)
-    elif queue_name == 'extractor':
-        command = 'celery -A dva worker -l info -c {} -Q {} -n {}.%h -f logs/{}.log'.format(1, Q_EXTRACTOR,Q_EXTRACTOR,Q_EXTRACTOR)
-    elif queue_name == 'detector':
-        command = 'celery -A dva worker -l info -c {} -Q {} -n {}.%h -f logs/{}.log'.format(1, Q_DETECTOR,Q_DETECTOR, Q_DETECTOR)
-    elif queue_name == 'retriever':
-        command = 'celery -A dva worker -l info {} -c {} -Q {} -n {}.%h -f logs/{}.log'.format(solo_mode, 1, Q_RETRIEVER,Q_RETRIEVER,Q_RETRIEVER)
-    elif queue_name == 'face':
-        command = 'celery -A dva worker -l info {} -c {} -Q {} -n {}.%h -f logs/{}.log'.format(solo_mode, 1, Q_FACE,Q_FACE,Q_FACE)
-    elif queue_name == 'facedetector':
-        command = 'celery -A dva worker -l info {} -c {} -Q {} -n {}.%h -f logs/{}.log'.format(solo_mode, 1, Q_FACEDETECTOR,Q_FACEDETECTOR,Q_FACEDETECTOR)
-    else:
-        raise NotImplementedError
-    logging.info(command)
-    os.system(command)
+        raise ValueError, "Queue {} not found".format(queue_name)
+
 
 
 @task

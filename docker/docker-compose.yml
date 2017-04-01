@@ -29,6 +29,14 @@
        - DB_NAME=postgres
        - DB_USER=pgdbuser
        - DB_PASS=pgdbpass
+       - LAUNCH_SERVER=1
+       - LAUNCH_Q_qindexer=1
+       - LAUNCH_Q_qretriever=1
+       - LAUNCH_Q_qextractor=1
+       - TEST=1
+#       - LAUNCH_Q_qdetector=1
+#       - LAUNCH_Q_qfaceretriever=1
+#       - LAUNCH_Q_qfacedetector=1
      command: bash -c "youtube-dl -U && git pull && fab start_server_container:1"
      ports:
        - "8000:8000"

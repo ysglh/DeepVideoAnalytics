@@ -8,6 +8,8 @@ Q_RETRIEVER = 'qretriever'
 Q_FACE_RETRIEVER = 'qfaceretriever'
 Q_FACE_DETECTOR = 'qfacedetector'
 
+QUEUES = [Q_EXTRACTOR,Q_INDEXER,Q_DETECTOR,Q_RETRIEVER,Q_FACE_RETRIEVER,Q_FACE_DETECTOR]
+
 TASK_NAMES_TO_QUEUE = {
     "inception_index_by_id":Q_INDEXER,
     "inception_index_ssd_detection_by_id":Q_INDEXER,

@@ -1,0 +1,77 @@
+import os
+from dvalib import external_indexed
+
+Q_EXTRACTOR = 'qextract'
+Q_INDEXER = 'qindexer'
+Q_DETECTOR = 'qdetector'
+Q_RETRIEVER = 'qretriever'
+Q_FACE_RETRIEVER = 'qfaceretriever'
+Q_FACE_DETECTOR = 'qfacedetector'
+
+TASK_NAMES_TO_QUEUE = {
+    "inception_index_by_id":Q_INDEXER,
+    "inception_index_ssd_detection_by_id":Q_INDEXER,
+    "inception_query_by_image":Q_RETRIEVER,
+    "facenet_query_by_image":Q_FACE_RETRIEVER,
+    "extract_frames_by_id":Q_EXTRACTOR,
+    "perform_ssd_detection_by_id":Q_DETECTOR,
+    "perform_yolo_detection_by_id":Q_DETECTOR,
+    "perform_face_detection_indexing_by_id":Q_FACE_DETECTOR,
+    "alexnet_index_by_id":Q_INDEXER,
+    "alexnet_query_by_image":Q_RETRIEVER,
+}
+
+VIDEO_TASK = 'video'
+QUERY_TASK = 'query'
+
+TASK_NAMES_TO_TYPE = {
+    "inception_index_by_id":VIDEO_TASK,
+    "inception_index_ssd_detection_by_id":VIDEO_TASK,
+    "inception_query_by_image":QUERY_TASK,
+    "facenet_query_by_image":QUERY_TASK,
+    "extract_frames_by_id":VIDEO_TASK,
+    "perform_ssd_detection_by_id":VIDEO_TASK,
+    "perform_yolo_detection_by_id":VIDEO_TASK,
+    "perform_face_detection_indexing_by_id":VIDEO_TASK,
+    "alexnet_index_by_id":VIDEO_TASK,
+    "alexnet_query_by_image":QUERY_TASK,
+}
+
+
+POST_OPERATION_TASKS = {
+    "extract_frames_by_id":['perform_ssd_detection_by_id','inception_index_by_id','perform_face_detection_indexing_by_id'],
+    'perform_ssd_detection_by_id':['inception_index_ssd_detection_by_id',]
+}
+
+VISUAL_INDEXES = {
+    'inception':
+        {
+            'indexer_task':"inception_index_by_id",
+            'indexer_queue':Q_INDEXER,
+            'retriever_task':"inception_query_by_image",
+            'retriever_queue':Q_RETRIEVER,
+            'detection_specific':False
+        },
+    'facenet':
+        {
+            'indexer_task': "perform_face_detection_indexing_by_id",
+            'indexer_queue': Q_FACE_DETECTOR,
+            'retriever_task':"facenet_query_by_image",
+            'retriever_queue': Q_FACE_RETRIEVER,
+            'detection_specific': True
+        },
+    }
+
+
+if 'ALEX_ENABLE' in os.environ:
+    POST_OPERATION_TASKS['extract_frames_by_id'].append('alexnet_index_by_id')
+    VISUAL_INDEXES['alexnet'] = {
+         'indexer_task': "alexnet_index_by_id",
+         'indexer_queue': Q_INDEXER,
+         'retriever_queue': Q_RETRIEVER,
+         'detection_specific': False
+    }
+
+
+if 'YOLO_ENABLE' in os.environ:
+    POST_OPERATION_TASKS['extract_frames_by_id'].append('perform_yolo_detection_by_id')

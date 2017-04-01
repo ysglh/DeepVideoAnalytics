@@ -12,18 +12,6 @@ detected objects. The goal of Deep Video analytics is to become a quickly custom
 visual & video analytics applications, while benefiting from seamless integration with state or the art models & datasets
 released by the vision research community. 
 
-## Features
-- Visual Search using Nearest Neighbors algorithm as a primary interface
-- Upload videos, multiple images (zip file with folder names as labels)
-- Provide Youtube url to be automatically processed/downloaded by youtube-dl
-- Leverage pre-trained object recognition/detection, face recognition models for analysis and visual search.
-- Query against pre-indexed external datasets containing millions of images.
-- Metadata stored in Postgres, Operations performed asynchronously using celery tasks. 
-- Separate queues and workers for selection of machines with different specifications (GPU vs RAM).
-- Videos, frames, indexes, numpy vectors stored in media directory, served through nginx
-- Explore data, manually run code & tasks without UI via a jupyter notebook [explore.ipynb](experiments/Notebooks/explore.ipynb)
-
-## Models included out of the box
 **We take significant efforts to ensure that following models (code+weights included) work without having to write any code.**
 
 - [x] Indexing using Google inception V3 trained on Imagenet
@@ -31,8 +19,6 @@ released by the vision research community.
 - [x] Alexnet using Pytorch  (disabled by default; set ALEX_ENABLE=1 in environment variable to use)
 - [x] [YOLO 9000](http://pjreddie.com/darknet/yolo/) (disabled by default; set YOLO_ENABLE=1 in environment variable to use)
 - [x] [Face detection/alignment/recognition using MTCNN and Facenet](https://github.com/davidsandberg/facenet) 
-
-##### self-promotion: If you are interested in Healthcare & Machine Learning please take a look at my another Open Source project [Computational Healthcare](http://www.computationalhealthcare.com)
 
 ## Libraries & Code used
 
@@ -53,21 +39,7 @@ released by the vision research community.
 - FFMPEG
 - Tensorflow
 
-# References
-
-1. Schroff, Florian, Dmitry Kalenichenko, and James Philbin. "Facenet: A unified embedding for face recognition and clustering." Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition. 2015.
-2. Szegedy, Christian, et al. "Going deeper with convolutions." Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition. 2015.
-3. Zhang, Kaipeng, et al. "Joint Face Detection and Alignment Using Multitask Cascaded Convolutional Networks." IEEE Signal Processing Letters 23.10 (2016): 1499-1503.
-4. Liu, Wei, et al. "SSD: Single shot multibox detector." European Conference on Computer Vision. Springer International Publishing, 2016.
-5. Redmon, Joseph, et al. "You only look once: Unified, real-time object detection." Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition. 2016.
-6. Krizhevsky, Alex, Ilya Sutskever, and Geoffrey E. Hinton. "Imagenet classification with deep convolutional neural networks." Advances in neural information processing systems. 2012.	
-7. Johnson, Jeff, Matthijs Douze, and Hervé Jégou. "Billion-scale similarity search with GPUs." arXiv preprint arXiv:1702.08734 (2017).
-
-# Citation 
-
-**Citation for Deep Video Analytics coming soon.**
-
-# Copyright
+# License & Copyright
 
 **Copyright 2016-2017, Akshay Bhat, Cornell University, All rights reserved.**
 

@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os,dj_database_url,sys
-from dvalib import external_indexed
+from .worker_config import *
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -21,7 +21,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'changemeabblasdasbdbrp2$j&^' # change this in prod
+if 'SECRET_KEY' in os.environ:
+    SECRET_KEY = os.environ['SECRET_KEY']
+else:
+    SECRET_KEY = 'changemeabblasdasbdbrp2$j&^' # change this in prod
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -34,12 +37,6 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 
-Q_EXTRACTOR = 'qextract'
-Q_INDEXER = 'qindexer'
-Q_DETECTOR = 'qdetector'
-Q_RETRIEVER = 'qretriever'
-Q_FACE_RETRIEVER = 'qfaceretriever'
-Q_FACE_DETECTOR = 'qfacedetector'
 
 # Application definition
 
@@ -189,60 +186,6 @@ STATICFILES_FINDERS = (
 #'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
-TASK_NAMES_TO_QUEUE = {
-    "inception_index_by_id":Q_INDEXER,
-    "inception_index_ssd_detection_by_id":Q_INDEXER,
-    "inception_query_by_image":Q_RETRIEVER,
-    "facenet_query_by_image":Q_FACE_RETRIEVER,
-    "extract_frames_by_id":Q_EXTRACTOR,
-    "perform_ssd_detection_by_id":Q_DETECTOR,
-    "perform_yolo_detection_by_id":Q_DETECTOR,
-    "perform_face_detection_indexing_by_id":Q_FACE_DETECTOR,
-    "alexnet_index_by_id":Q_INDEXER,
-    "alexnet_query_by_image":Q_RETRIEVER,
-}
-
-VIDEO_TASK = 'video'
-QUERY_TASK = 'query'
-
-TASK_NAMES_TO_TYPE = {
-    "inception_index_by_id":VIDEO_TASK,
-    "inception_index_ssd_detection_by_id":VIDEO_TASK,
-    "inception_query_by_image":QUERY_TASK,
-    "facenet_query_by_image":QUERY_TASK,
-    "extract_frames_by_id":VIDEO_TASK,
-    "perform_ssd_detection_by_id":VIDEO_TASK,
-    "perform_yolo_detection_by_id":VIDEO_TASK,
-    "perform_face_detection_indexing_by_id":VIDEO_TASK,
-    "alexnet_index_by_id":VIDEO_TASK,
-    "alexnet_query_by_image":QUERY_TASK,
-}
-
-
-POST_OPERATION_TASKS = {
-    "extract_frames_by_id":['perform_ssd_detection_by_id','inception_index_by_id','perform_face_detection_indexing_by_id'],
-    'perform_ssd_detection_by_id':['inception_index_ssd_detection_by_id',]
-}
-
-VISUAL_INDEXES = {
-    'inception':
-        {
-            'indexer_task':"inception_index_by_id",
-            'indexer_queue':Q_INDEXER,
-            'retriever_task':"inception_query_by_image",
-            'retriever_queue':Q_RETRIEVER,
-            'detection_specific':False
-        },
-    'facenet':
-        {
-            'indexer_task': "perform_face_detection_indexing_by_id",
-            'indexer_queue': Q_FACE_DETECTOR,
-            'retriever_task':"facenet_query_by_image",
-            'retriever_queue': Q_FACE_RETRIEVER,
-            'detection_specific': True
-        },
-    }
-
 EXTERNAL_DATASETS = {
     'products':external_indexed.ProductsIndex(path="{}/external/{}".format(MEDIA_ROOT,'products')),
     'visual_genome':external_indexed.VisualGenomeIndex(path="{}/external/{}".format(MEDIA_ROOT,'products')),
@@ -254,16 +197,3 @@ for create_dirname in ['queries','external']:
             os.mkdir("{}/{}".format(MEDIA_ROOT,create_dirname))
         except:
             pass
-
-if 'ALEX_ENABLE' in os.environ:
-    POST_OPERATION_TASKS['extract_frames_by_id'].append('alexnet_index_by_id')
-    VISUAL_INDEXES['alexnet'] = {
-         'indexer_task': "alexnet_index_by_id",
-         'indexer_queue': Q_INDEXER,
-         'retriever_queue': Q_RETRIEVER,
-         'detection_specific': False
-    }
-
-
-if 'YOLO_ENABLE' in os.environ:
-    POST_OPERATION_TASKS['extract_frames_by_id'].append('perform_yolo_detection_by_id')

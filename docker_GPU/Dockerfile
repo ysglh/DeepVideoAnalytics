@@ -28,17 +28,13 @@ RUN apt-get update && apt-get install -y \
 		libboost-all-dev \
 		libgflags-dev \
 		libgoogle-glog-dev \
+		libpq-dev \
 		&& \
 	apt-get clean && \
 	apt-get autoremove && \
 	rm -rf /var/lib/apt/lists/*
-
-RUN apt-get update && apt-get install -y libpq-dev && \
-	apt-get clean && \
-	apt-get autoremove && \
-	rm -rf /var/lib/apt/lists/*
-RUN wget http://download.pytorch.org/whl/cu80/torch-0.1.11.post4-cp27-none-linux_x86_64.whl
-RUN pip install torch-0.1.11.post4-cp27-none-linux_x86_64.whl
+RUN wget https://s3.amazonaws.com/pytorch/whl/cu80/torch-0.1.7.post2-cp27-none-linux_x86_64.whl
+RUN pip install torch-0.1.7.post2-cp27-none-linux_x86_64.whl
 RUN pip install scipy
 RUN pip install torchvision
 RUN pip install --upgrade pip \
@@ -108,5 +104,5 @@ RUN cd dvalib/facenet/facenet_model && wget https://www.dropbox.com/s/2unad9skmc
 RUN cd dvalib/facenet/facenet_model && wget https://www.dropbox.com/s/j8ky6bl0jgpygp6/model-20170306-150500.ckpt-250000.index && cd ../../..
 RUN cd dvalib/facenet/facenet_model && wget https://www.dropbox.com/s/tnebmpku7xtzwnv/model-20170306-150500.meta && cd ../../..
 ENV PYTHONPATH $PYTHONPATH:/root/DVA/faiss
-RUN pip install --upgrade django-crispy-forms lopq
+RUN pip install --upgrade django-crispy-forms
 EXPOSE 80

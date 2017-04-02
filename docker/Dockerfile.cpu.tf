@@ -6,7 +6,7 @@ WORKDIR "/bin/"
 RUN wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-64bit-static.tar.xz
 RUN tar xvfJ ffmpeg-release-64bit-static.tar.xz
 RUN mv ffmpeg*/* .
-WORKDIR "/root/
+WORKDIR "/root/"
 RUN apt-get update && apt-get install -y \
 		bc \
 		build-essential \

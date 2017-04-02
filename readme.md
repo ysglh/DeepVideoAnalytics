@@ -4,13 +4,13 @@
 ![UI Screenshot](notes/face_recognition.png "face recognition")
 #### Author [Akshay Bhat, Cornell University.](http://www.akshaybhat.com)       
 
-### [Visit the website for demo video of the UI and installation instructions](https://deepvideoanalytics.com)
+### [Please visit the website for demo video and installation instructions](https://deepvideoanalytics.com)
 
-Deep Video Analytics provides a platform for indexing and extracting information from videos and images.
-Deep learning detection and recognition algorithms are used for indexing individual frames/images along with 
-detected objects. The goal of Deep Video analytics is to become a quickly customizable platform for developing 
+Deep Video Analytics is a platform for indexing and extracting information from videos and images.
+It uses Deep learning detection and recognition algorithms for indexing individual frames/images along with 
+detected objects. Deep Video analytics aims to become a quickly customizable platform for developing 
 visual & video analytics applications, while benefiting from seamless integration with state or the art models & datasets
-released by the vision research community. 
+released by the vision research community.
 
 **We take significant efforts to ensure that following models (code+weights included) work without having to write any code.**
 
@@ -42,7 +42,6 @@ released by the vision research community.
 # License & Copyright
 
 **Copyright 2016-2017, Akshay Bhat, Cornell University, All rights reserved.**
-
 
 Please contact me for more information, I plan on relaxing the license soon, once a beta version is reached 
 (To the extent allowed by the code/models included.e.g. FAISS disallows commercial use.). 

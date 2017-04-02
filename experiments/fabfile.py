@@ -1,7 +1,11 @@
 import os,logging,time,boto3, glob,subprocess,calendar,sys
 from fabric.api import task,local,run,put,get,lcd,cd,sudo,env,puts
 logging.basicConfig(level=logging.INFO,format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',datefmt='%m-%d %H:%M',filename='../logs/experiments.log',filemode='a')
-from config import IAM_ROLE,KEY_FILE,KeyName,SecurityGroupId,AMI
+AMI = 'ami-848f3d92'  # AMI
+KeyName = 'C:\\fakepath\\cs5356'  # REPLACE WITH YOUR OWN
+SecurityGroupId = 'sg-06a6b562'  # REPLACE WITH YOUR OWN
+IAM_ROLE = {'Arn': 'arn:aws:iam::248089713624:instance-profile/chdeploy',}   # REPLACE WITH YOUR OWN (Provide S3 access to allow backups)
+KEY_FILE = "~/.ssh/cs5356" # REPLACE WITH YOUR OWN
 
 
 env.user = "ubuntu" # DONT CHANGE
@@ -69,7 +73,7 @@ def launch_spot():
 
 
 @task
-def deploy_ec2():
+def deploy_ec2(compose_file="docker-compose-gpu.yml"):
     """
     deploys code on hostname
     :return:
@@ -82,30 +86,10 @@ def deploy_ec2():
         except:
             time.sleep(30)  # on error wait 30 seconds
             pass
-    run('cd deepvideoanalytics && git pull')
-    run('cd deepvideoanalytics && cd docker_GPU && ./rebuild.sh && nvidia-docker-compose up -d')
-    if sys.platform == 'darwin':
-        chrome_path = 'open -a /Applications/Google\ Chrome.app %s'
-        webbrowser.get(chrome_path).open('http://{}:8000'.format(env.hosts[0]))
-
-
-@task
-def deploy_experiment_ec2():
-    """
-    deploys code on hostname
-    :return:
-    """
-    import webbrowser
-    for attempt in range(3):
-        try:
-            run('ls')  # just run some command that has no effect to ensure you dont get timed out
-            break  # break if you succeed
-        except:
-            time.sleep(30)  # on error wait 30 seconds
-            pass
-    run('cd deepvideoanalytics && git pull')
-    put('aws-docker-compose.yml','deepvideoanalytics/docker_GPU/docker-compose.yml')
-    run('cd deepvideoanalytics && cd docker_GPU && ./rebuild.sh && nvidia-docker-compose up -d')
+    with cd('deepvideoanalytics'):
+        run('git pull')
+        with cd("docker"):
+            run('./rebuild_gpu.sh && nvidia-docker-compose -f {} up -d'.format(compose_file))
     if sys.platform == 'darwin':
         chrome_path = 'open -a /Applications/Google\ Chrome.app %s'
         webbrowser.get(chrome_path).open('http://{}:8000'.format(env.hosts[0]))

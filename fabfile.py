@@ -60,17 +60,17 @@ def start_container():
         migrate()
         local('chmod 0777 -R /tmp')
         try:
-            local("mv docker_GPU/configs/nginx.conf /etc/nginx/")
+            local("mv docker/configs/nginx.conf /etc/nginx/")
         except:
             print "warning assuming that the config was already moved"
             pass
         try:
-            local("mv docker_GPU/configs/nginx-app.conf /etc/nginx/sites-available/default")
+            local("mv docker/configs/nginx-app.conf /etc/nginx/sites-available/default")
         except:
             print "warning assuming that the config was already moved"
             pass
         try:
-            local("mv docker_GPU/configs/supervisor-app.conf /etc/supervisor/conf.d/")
+            local("mv docker/configs/supervisor-app.conf /etc/supervisor/conf.d/")
         except:
             print "warning assuming that the config was already moved"
             pass

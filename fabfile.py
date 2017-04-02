@@ -43,35 +43,11 @@ def server():
     """
     local("python manage.py runserver")
 
-@task
-def setup_container_gpu():
-    local('sleep 20')
-    migrate()
-    local('chmod 0777 -R /tmp')
-    try:
-        local("mv docker_GPU/configs/nginx.conf /etc/nginx/")
-    except:
-        print "warning assuming that the config was already moved"
-        pass
-    try:
-        local("mv docker_GPU/configs/nginx-app.conf /etc/nginx/sites-available/default")
-    except:
-        print "warning assuming that the config was already moved"
-        pass
-    try:
-        local("mv docker_GPU/configs/supervisor-app.conf /etc/supervisor/conf.d/")
-    except:
-        print "warning assuming that the config was already moved"
-        pass
-    local("python manage.py collectstatic --no-input")
-    local("chmod 0777 -R dva/staticfiles/")
-    local("chmod 0777 -R dva/media/")
-
 
 @task
-def start_server_container():
+def start_container():
     """
-    Start sever container WITHOUT using nginx and uwsgi
+    Start container
     :param test:
     :return:
     """
@@ -80,18 +56,30 @@ def start_server_container():
     launch_queues_env()
     if 'LAUNCH_SERVER' in os.environ:
         local('python manage.py runserver 0.0.0.0:8000')
-
-@task
-def start_server_container_gpu():
-    """
-    Start sever container using nginx and uwsgi
-    :param test:
-    :return:
-    """
-    setup_container_gpu()
-    launch_queues_env()
-    if 'LAUNCH_SERVER' in os.environ:
+    elif 'LAUNCH_SERVER_NGINX' in os.environ:
+        migrate()
+        local('chmod 0777 -R /tmp')
+        try:
+            local("mv docker_GPU/configs/nginx.conf /etc/nginx/")
+        except:
+            print "warning assuming that the config was already moved"
+            pass
+        try:
+            local("mv docker_GPU/configs/nginx-app.conf /etc/nginx/sites-available/default")
+        except:
+            print "warning assuming that the config was already moved"
+            pass
+        try:
+            local("mv docker_GPU/configs/supervisor-app.conf /etc/supervisor/conf.d/")
+        except:
+            print "warning assuming that the config was already moved"
+            pass
+        local("python manage.py collectstatic --no-input")
+        local("chmod 0777 -R dva/staticfiles/")
+        local("chmod 0777 -R dva/media/")
         local('supervisord -n')
+
+
 
 
 @task

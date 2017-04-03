@@ -251,8 +251,6 @@ class FaceDetector():
                         scaled = misc.imresize(cropped, (self.image_size, self.image_size), interp='bilinear')
                         nrof_successfully_aligned += 1
                         aligned_paths[image_path].append((scaled,bb))
-                else:
-                    logging.info('Unable to align "%s"' % image_path)
         logging.info('Total number of images: %d' % nrof_images_total)
         logging.info('Number of successfully aligned images: %d' % nrof_successfully_aligned)
         return aligned_paths

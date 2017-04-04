@@ -515,6 +515,23 @@ def import_video_by_id(video_id):
         di.detection_name = i['detection_name']
         transform_index_entries(di, detection_to_pk, frame_to_pk, video_id, video_root_dir)
         di.save()
+    for a in video_json['annotation_list']:
+        da = Annotation()
+        da.video = video_obj
+        da.x = a['x']
+        da.y = a['y']
+        da.h = a['h']
+        da.w = a['w']
+        if a['label'].strip():
+            da.label = a['label']
+            label_object, created = VLabel.objects.get_or_create(label_name=a['label'],source=VLabel.UI)
+            da.label_parent = label_object
+        da.frame_id = frame_to_pk[a['frame']]
+        if a['detection']:
+            da.detection_id = detection_to_pk[a['detection']]
+        da.full_frame = a['full_frame']
+        da.metadata_text = a['metadata_text']
+        da.save()
     os.remove("{}/{}/{}.zip".format(settings.MEDIA_ROOT, video_id, video_id))
     start.completed = True
     start.seconds = time.time() - start_time

@@ -463,6 +463,8 @@ def import_video_by_id(video_id):
         video_json = json.load(input_json)
     video_obj.name = 'Imported:'+ video_json['name']
     video_obj.frames = video_json['frames']
+    video_obj.height = video_json['height']
+    video_obj.width = video_json['width']
     video_obj.detections = video_json['detections']
     video_obj.youtube_video = video_json['youtube_video']
     video_obj.dataset = video_json['dataset']

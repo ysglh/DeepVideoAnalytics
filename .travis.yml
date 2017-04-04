@@ -19,7 +19,6 @@ virtualenv:
 
 env:
   global:
-    - ALEX_ENABLE=1
     - YOLO_ENABLE=1
 
 before_install:

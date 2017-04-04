@@ -8,7 +8,7 @@ from django.views.generic import ListView,DetailView
 from django.utils.decorators import method_decorator
 from .forms import UploadFileForm,YTVideoForm,AnnotationForm,VLabelForm
 from .models import Video,Frame,Detection,Query,QueryResults,TEvent,IndexEntries,ExternalDataset, Annotation, VLabel, Export
-from .tasks import extract_frames,facenet_query_by_image,inception_query_by_image
+from .tasks import extract_frames
 from dva.celery import app
 import serializers
 from rest_framework import viewsets,mixins
@@ -286,13 +286,14 @@ def export_video(request):
 
 
 
-def create_video_folders(video):
+def create_video_folders(video,create_subdirs=True):
     os.mkdir('{}/{}'.format(settings.MEDIA_ROOT, video.pk))
-    os.mkdir('{}/{}/video/'.format(settings.MEDIA_ROOT, video.pk))
-    os.mkdir('{}/{}/frames/'.format(settings.MEDIA_ROOT, video.pk))
-    os.mkdir('{}/{}/indexes/'.format(settings.MEDIA_ROOT, video.pk))
-    os.mkdir('{}/{}/detections/'.format(settings.MEDIA_ROOT, video.pk))
-    os.mkdir('{}/{}/audio/'.format(settings.MEDIA_ROOT, video.pk))
+    if create_subdirs:
+        os.mkdir('{}/{}/video/'.format(settings.MEDIA_ROOT, video.pk))
+        os.mkdir('{}/{}/frames/'.format(settings.MEDIA_ROOT, video.pk))
+        os.mkdir('{}/{}/indexes/'.format(settings.MEDIA_ROOT, video.pk))
+        os.mkdir('{}/{}/detections/'.format(settings.MEDIA_ROOT, video.pk))
+        os.mkdir('{}/{}/audio/'.format(settings.MEDIA_ROOT, video.pk))
 
 
 def handle_youtube_video(name,url,extract=True,user=None):
@@ -314,10 +315,19 @@ def handle_uploaded_file(f,name,extract=True,user=None):
         video.uploader = user
     video.name = name
     video.save()
-    create_video_folders(video)
     primary_key = video.pk
     filename = f.name
-    if filename.endswith('.mp4') or filename.endswith('.flv') or filename.endswith('.zip'):
+    if filename.endswith('.dva_export.zip'):
+        create_video_folders(video, create_subdirs=False)
+        with open('{}/{}/{}.{}'.format(settings.MEDIA_ROOT,video.pk,video.pk,filename.split('.')[-1]), 'wb+') as destination:
+            for chunk in f.chunks():
+                destination.write(chunk)
+        video.uploaded = True
+        video.save()
+        task_name = 'import_video_by_id'
+        app.send_task(name=task_name, args=[primary_key,], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+    elif filename.endswith('.mp4') or filename.endswith('.flv') or filename.endswith('.zip'):
+        create_video_folders(video,create_subdirs=True)
         with open('{}/{}/video/{}.{}'.format(settings.MEDIA_ROOT,video.pk,video.pk,filename.split('.')[-1]), 'wb+') as destination:
             for chunk in f.chunks():
                 destination.write(chunk)

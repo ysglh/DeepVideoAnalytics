@@ -410,7 +410,7 @@ def export_video_by_id(video_id):
     video_obj = Video.objects.get(pk=video_id)
     export = Export()
     export.video = video_obj
-    file_name = '{}_{}.zip'.format(video_id, int(calendar.timegm(time.gmtime())))
+    file_name = '{}_{}.dva_export.zip'.format(video_id, int(calendar.timegm(time.gmtime())))
     export.file_name = file_name
     export.save()
     try:
@@ -439,5 +439,17 @@ def export_video_by_id(video_id):
 
 @app.task(name="import_video_by_id")
 def import_video_by_id(video_id):
-    pass
+    start = TEvent()
+    start.video_id = video_id
+    start.started = True
+    start.operation = import_video_by_id.name
+    start.save()
+    start_time = time.time()
+    video_obj = Video.objects.get(pk=video_id)
+    zipf = zipfile.ZipFile("{}/{}/{}.dva_export.zip".format(settings.MEDIA_ROOT, video_id, video_id), 'r')
+    zipf.extractall("{}/{}/".format(settings.MEDIA_ROOT, video_id))
+    zipf.close()
+    start.completed = True
+    start.seconds = time.time() - start_time
+    start.save()
 

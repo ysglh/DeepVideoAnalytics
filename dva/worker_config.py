@@ -21,6 +21,8 @@ TASK_NAMES_TO_QUEUE = {
     "perform_face_detection_indexing_by_id":Q_FACE_DETECTOR,
     "alexnet_index_by_id":Q_INDEXER,
     "alexnet_query_by_image":Q_RETRIEVER,
+    "export_video_by_id":Q_EXTRACTOR,
+    "import_video_by_id":Q_EXTRACTOR,
 }
 
 VIDEO_TASK = 'video'
@@ -37,6 +39,8 @@ TASK_NAMES_TO_TYPE = {
     "perform_face_detection_indexing_by_id":VIDEO_TASK,
     "alexnet_index_by_id":VIDEO_TASK,
     "alexnet_query_by_image":QUERY_TASK,
+    "export_video_by_id": VIDEO_TASK,
+    "import_video_by_id": VIDEO_TASK,
 }
 
 

@@ -12,7 +12,7 @@ from scipy import misc
 import json
 import celery
 import zipfile
-
+from .serializers import VideoExportSerializer
 
 def process_video_next(video_id,current_task_name):
     if current_task_name in settings.POST_OPERATION_TASKS:
@@ -396,3 +396,37 @@ def perform_face_indexing(video_id):
     i.entries_file_name = entries_fname.split('/')[-1]
     i.features_file_name = feat_fname.split('/')[-1]
     i.save()
+
+
+@app.task(name="export_video_by_id")
+def export_video_by_id(video_id):
+    start = TEvent()
+    start.video_id = video_id
+    start.started = True
+    start.operation = export_video_by_id.name
+    start.save()
+    start_time = time.time()
+    video_obj = Video.objects.get(pk=video_id)
+    try:
+        os.mkdir("{}/{}".format(settings.MEDIA_ROOT,'exports'))
+    except:
+        pass
+    shutil.copytree('{}/{}'.format(settings.MEDIA_ROOT,video_id),"{}/exports/{}".format(settings.MEDIA_ROOT,video_id))
+    a = VideoExportSerializer(instance=video_obj)
+    with file("{}/exports/{}/table_data.json".format(settings.MEDIA_ROOT,video_id),'w') as output:
+        json.dump(a.data,output)
+    zipper = subprocess.Popen(['zip','{}.zip'.format(video_id),'-r','{}'.format(video_id)],cwd='{}/exports/'.format(settings.MEDIA_ROOT))
+    zipper.wait()
+    if zipper.returncode != 0:
+        raise ValueError,"Could not zip {}".format(zipper.returncode)
+    shutil.rmtree("{}/exports/{}".format(settings.MEDIA_ROOT,video_id))
+    start.completed = True
+    start.seconds = time.time() - start_time
+    start.save()
+    return zipper.returncode
+
+
+@app.task(name="import_video_by_id")
+def import_video_by_id(video_id):
+    pass
+

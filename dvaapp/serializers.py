@@ -69,7 +69,46 @@ class TEventSerializer(serializers.HyperlinkedModelSerializer):
         model = TEvent
         fields = '__all__'
 
+
 class IndexEntriesSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = IndexEntries
         fields = '__all__'
+
+
+class FrameExportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Frame
+        fields = '__all__'
+
+
+class AnnotationExportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Annotation
+        fields = '__all__'
+
+
+class DetectionExportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Detection
+        fields = '__all__'
+
+
+class IndexEntryExportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = IndexEntries
+        fields = '__all__'
+
+
+class VideoExportSerializer(serializers.ModelSerializer):
+    frame_list = FrameExportSerializer(source='frame_set',read_only=True,many=True)
+    annotation_list = AnnotationExportSerializer(source='annotation_set',read_only=True,many=True)
+    detection_list = DetectionExportSerializer(source='detection_set',read_only=True,many=True)
+    index_entries_list = IndexEntryExportSerializer(source='indexentries_set',read_only=True,many=True)
+
+    class Meta:
+        model = Video
+        fields = ('name','length_in_seconds','height','width','metadata',
+                  'frames','created','description','uploaded','dataset',
+                  'uploader','detections','url','youtube_video','annotation_list',
+                  'frame_list','detection_list','index_entries_list')

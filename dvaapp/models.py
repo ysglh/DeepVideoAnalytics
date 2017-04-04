@@ -124,3 +124,13 @@ class Annotation(models.Model):
     w = models.IntegerField(default=0)
     created = models.DateTimeField('date created', auto_now_add=True)
 
+
+class VDNServer(models.Model):
+    url = models.URLField()
+    name = models.CharField(max_length=200)
+
+
+class VDNDataset(models.Model):
+    server = models.ForeignKey(VDNServer)
+    child_video = models.ForeignKey(Video)
+

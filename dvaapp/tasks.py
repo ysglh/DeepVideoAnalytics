@@ -446,9 +446,27 @@ def import_video_by_id(video_id):
     start.save()
     start_time = time.time()
     video_obj = Video.objects.get(pk=video_id)
-    zipf = zipfile.ZipFile("{}/{}/{}.dva_export.zip".format(settings.MEDIA_ROOT, video_id, video_id), 'r')
+    zipf = zipfile.ZipFile("{}/{}/{}.zip".format(settings.MEDIA_ROOT, video_id, video_id), 'r')
     zipf.extractall("{}/{}/".format(settings.MEDIA_ROOT, video_id))
     zipf.close()
+    video_root_dir = "{}/{}/".format(settings.MEDIA_ROOT, video_id)
+    for k in os.listdir(video_root_dir):
+        unzipped_dir = "{}{}".format(video_root_dir, k)
+        if os.path.isdir(unzipped_dir):
+            for subdir in os.listdir(unzipped_dir):
+                shutil.move("{}/{}".format(unzipped_dir,subdir),"{}".format(video_root_dir))
+            shutil.rmtree(unzipped_dir)
+            break
+    with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, video_id)) as input_json:
+        video_json = json.load(input_json)
+    video_obj.name = video_json['name']
+    video_obj.frames = video_json['frames']
+    video_obj.detections = video_json['detections']
+    video_obj.youtube_video = video_json['youtube_video']
+    video_obj.dataset = video_json['dataset']
+    video_obj.metadata = video_json['metadata']
+    video_obj.length_in_seconds = video_json['length_in_seconds']
+    video_obj.save()
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()

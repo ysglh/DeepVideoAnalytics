@@ -501,6 +501,7 @@ def import_video_by_id(video_id):
     # this is done to avoid accidental overlap when renaming files.
     for v in detection_to_pk.itervalues():
         os.rename('{}/detections/d_{}.jpg'.format(video_root_dir,v),"{}/detections/{}.jpg".format(video_root_dir,v))
+    previous_transformed = set()
     for i in video_json['index_entries_list']:
         di = IndexEntries()
         di.video = video_obj
@@ -513,8 +514,13 @@ def import_video_by_id(video_id):
         di.features_file_name = i['features_file_name']
         di.entries_file_name = i['entries_file_name']
         di.detection_name = i['detection_name']
-        transform_index_entries(di, detection_to_pk, frame_to_pk, video_id, video_root_dir)
-        di.save()
+        signature = "{}".format(di.entries_file_name)
+        if signature in previous_transformed:
+            logging.warning("repeated index entries found, skipping {}".format(signature))
+        else:
+            previous_transformed.add(signature)
+            transform_index_entries(di, detection_to_pk, frame_to_pk, video_id, video_root_dir)
+            di.save()
     for a in video_json['annotation_list']:
         da = Annotation()
         da.video = video_obj

@@ -67,6 +67,8 @@ class IndexEntries(models.Model):
     contains_detections = models.BooleanField(default=False)
     created = models.DateTimeField('date created', auto_now_add=True)
 
+    class Meta:
+        unique_together = ('video', 'features_file_name',)
 
 class ExternalDataset(models.Model):
     algorithm = models.CharField(max_length=100)

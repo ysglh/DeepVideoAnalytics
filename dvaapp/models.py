@@ -134,3 +134,9 @@ class VDNDataset(models.Model):
     server = models.ForeignKey(VDNServer)
     child_video = models.ForeignKey(Video)
 
+
+class Export(models.Model):
+    video = models.ForeignKey(Video)
+    file_name = models.CharField(max_length=200)
+    started = models.DateTimeField('date created', auto_now_add=True)
+    completed = models.BooleanField(default=False)

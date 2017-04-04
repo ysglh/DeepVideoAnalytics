@@ -2,11 +2,12 @@ from __future__ import absolute_import
 import subprocess,sys,shutil,os,glob,time,logging
 from django.conf import settings
 from dva.celery import app
-from .models import Video, Frame, Detection, TEvent, Query, IndexEntries,QueryResults, Annotation, VLabel
+from .models import Video, Frame, Detection, TEvent, Query, IndexEntries,QueryResults, Annotation, VLabel, Export
 from dvalib import entity
 from dvalib import detector
 from dvalib import indexer
 from collections import defaultdict
+import calendar
 from PIL import Image
 from scipy import misc
 import json
@@ -407,19 +408,29 @@ def export_video_by_id(video_id):
     start.save()
     start_time = time.time()
     video_obj = Video.objects.get(pk=video_id)
+    export = Export()
+    export.video = video_obj
+    file_name = '{}_{}.zip'.format(video_id, int(calendar.timegm(time.gmtime())))
+    export.file_name = file_name
+    export.save()
     try:
         os.mkdir("{}/{}".format(settings.MEDIA_ROOT,'exports'))
     except:
         pass
+    outdirname = "{}/exports/{}".format(settings.MEDIA_ROOT,video_id)
+    if os.path.isdir(outdirname):
+        shutil.rmtree(outdirname)
     shutil.copytree('{}/{}'.format(settings.MEDIA_ROOT,video_id),"{}/exports/{}".format(settings.MEDIA_ROOT,video_id))
     a = VideoExportSerializer(instance=video_obj)
     with file("{}/exports/{}/table_data.json".format(settings.MEDIA_ROOT,video_id),'w') as output:
         json.dump(a.data,output)
-    zipper = subprocess.Popen(['zip','{}.zip'.format(video_id),'-r','{}'.format(video_id)],cwd='{}/exports/'.format(settings.MEDIA_ROOT))
+    zipper = subprocess.Popen(['zip',file_name,'-r','{}'.format(video_id)],cwd='{}/exports/'.format(settings.MEDIA_ROOT))
     zipper.wait()
     if zipper.returncode != 0:
         raise ValueError,"Could not zip {}".format(zipper.returncode)
     shutil.rmtree("{}/exports/{}".format(settings.MEDIA_ROOT,video_id))
+    export.completed = True
+    export.save()
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()

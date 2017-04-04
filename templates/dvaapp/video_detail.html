@@ -62,6 +62,38 @@
                 </table>
                 </div>
             </div>
+            <div class="box box-primary" >
+                <div class="box-header with-border">
+                    <h3>Exports</h3>
+                </div>
+                <div class="box-body">
+                    <table class="table dataTables-dict">
+                        <thead>
+                            <tr>
+                                <th class="text-center">Started</th>
+                                <th class="text-center">Completed</th>
+                                <th class="text-center">Download</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for e in exports %}
+                            <tr>
+                                <td>{{ e.started }}</td>
+                                <td>{{ e.completed }}</td>
+                                <td class="text-center">{% if e.completed %}<a href="/media/exports/{{ e.file_name }}">download</a>{% endif %}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="box-footer">
+                    <form action="/export_video" method="post">
+                        <input type="hidden" value="{{ object.pk }}" name="video_id">
+                        {% csrf_token %}
+                        <button type="submit" class="pull-right btn btn-primary">Export video</button>
+                    </form>
+                </div>
+            </div>
     </div>
 {% if video.dataset %}
         <div class="col-lg-6">

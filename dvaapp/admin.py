@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Video,Frame,Detection,TEvent,IndexEntries,QueryResults,Query,Annotation,VLabel
+from .models import Video,Frame,Detection,TEvent,IndexEntries,QueryResults,Query,Annotation,VLabel,VDNServer,VDNDataset,Export
 
 
 @admin.register(VLabel)
@@ -41,8 +41,23 @@ class DetectionAdmin(admin.ModelAdmin):
     pass
 
 
+@admin.register(VDNServer)
+class VDNServerAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(VDNDataset)
+class VDNDatasetAdmin(admin.ModelAdmin):
+    pass
+
+
 @admin.register(TEvent)
 class TEventAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Export)
+class ExportAdmin(admin.ModelAdmin):
     pass
 
 

@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView,DetailView
 from django.utils.decorators import method_decorator
 from .forms import UploadFileForm,YTVideoForm,AnnotationForm,VLabelForm
-from .models import Video,Frame,Detection,Query,QueryResults,TEvent,IndexEntries,ExternalDataset, Annotation, VLabel
+from .models import Video,Frame,Detection,Query,QueryResults,TEvent,IndexEntries,ExternalDataset, Annotation, VLabel, Export
 from .tasks import extract_frames,facenet_query_by_image,inception_query_by_image
 from dva.celery import app
 import serializers
@@ -273,6 +273,19 @@ def yt(request):
     return redirect('app')
 
 
+def export_video(request):
+    if request.method == 'POST':
+        pk = request.POST.get('video_id')
+        video = Video.objects.get(pk=pk)
+        task_name = 'export_video_by_id'
+        if video:
+            app.send_task(task_name, args=[pk,], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+        return redirect('video_list')
+    else:
+        raise NotImplementedError
+
+
+
 def create_video_folders(video):
     os.mkdir('{}/{}'.format(settings.MEDIA_ROOT, video.pk))
     os.mkdir('{}/{}/video/'.format(settings.MEDIA_ROOT, video.pk))
@@ -332,6 +345,7 @@ class VideoDetail(DetailView):
         context['detection_list'] = Detection.objects.all().filter(video=self.object)
         context['annotation_list'] = Annotation.objects.all().filter(video=self.object)
         context['label_list'] = Annotation.objects.all().filter(video=self.object)
+        context['exports'] = Export.objects.all().filter(video=self.object)
         context['url'] = '{}/{}/video/{}.mp4'.format(settings.MEDIA_URL,self.object.pk,self.object.pk)
         return context
 

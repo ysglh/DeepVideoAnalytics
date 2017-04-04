@@ -513,9 +513,23 @@ def import_video_by_id(video_id):
         di.features_file_name = i['features_file_name']
         di.entries_file_name = i['entries_file_name']
         di.detection_name = i['detection_name']
+        transform_index_entries(di, detection_to_pk, frame_to_pk, video_id, video_root_dir)
         di.save()
     os.remove("{}/{}/{}.zip".format(settings.MEDIA_ROOT, video_id, video_id))
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
 
+
+def transform_index_entries(di,detection_to_pk,frame_to_pk,video_id,video_root_dir):
+    entries = json.load(file('{}/indexes/{}'.format(video_root_dir, di.entries_file_name)))
+    transformed = []
+    for entry in entries:
+        entry['video_primary_key'] = video_id
+        if 'detection_primary_key' in entry:
+            entry['detection_primary_key'] = detection_to_pk[entry['detection_primary_key']]
+        if 'frame_primary_key' in entry:
+            entry['frame_primary_key'] = frame_to_pk[entry['frame_primary_key']]
+        transformed.append(entry)
+    with '{}/indexes/{}'.format(video_root_dir, di.entries_file_name) as output:
+        json.dump(output, transformed)

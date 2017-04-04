@@ -450,8 +450,10 @@ def import_video_by_id(video_id):
     zipf.extractall("{}/{}/".format(settings.MEDIA_ROOT, video_id))
     zipf.close()
     video_root_dir = "{}/{}/".format(settings.MEDIA_ROOT, video_id)
+    old_key = None
     for k in os.listdir(video_root_dir):
         unzipped_dir = "{}{}".format(video_root_dir, k)
+        old_key = k
         if os.path.isdir(unzipped_dir):
             for subdir in os.listdir(unzipped_dir):
                 shutil.move("{}/{}".format(unzipped_dir,subdir),"{}".format(video_root_dir))
@@ -459,14 +461,60 @@ def import_video_by_id(video_id):
             break
     with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, video_id)) as input_json:
         video_json = json.load(input_json)
-    video_obj.name = video_json['name']
+    video_obj.name = 'Imported:'+ video_json['name']
     video_obj.frames = video_json['frames']
     video_obj.detections = video_json['detections']
     video_obj.youtube_video = video_json['youtube_video']
     video_obj.dataset = video_json['dataset']
+    video_obj.url = video_json['url']
+    video_obj.description = video_json['description']
     video_obj.metadata = video_json['metadata']
     video_obj.length_in_seconds = video_json['length_in_seconds']
     video_obj.save()
+    if not video_obj.dataset:
+        os.rename("{}/video/{}.mp4".format(video_root_dir,old_key),"{}/video/{}.mp4".format(video_root_dir,video_id))
+    frame_to_pk = {}
+    detection_to_pk = {}
+    for f in video_json['frame_list']:
+        df = Frame()
+        df.video = video_obj
+        df.name = f['name']
+        df.frame_index = f['frame_index']
+        df.subdir = f['subdir']
+        df.save()
+        frame_to_pk[f['id']]=df.pk
+    for d in video_json['detection_list']:
+        dd = Detection()
+        dd.video = video_obj
+        dd.x = d['x']
+        dd.y = d['y']
+        dd.h = d['h']
+        dd.w = d['w']
+        dd.frame_id = frame_to_pk[d['frame']]
+        dd.confidence = d['confidence']
+        dd.object_name = d['object_name']
+        dd.metadata = d['metadata']
+        dd.save()
+        detection_to_pk[d['id']]=dd.pk
+    for k,v in detection_to_pk.iteritems():
+        os.rename('{}/detections/{}.jpg'.format(video_root_dir,k),"{}/detections/d_{}.jpg".format(video_root_dir,v))
+    # this is done to avoid accidental overlap when renaming files.
+    for v in detection_to_pk.itervalues():
+        os.rename('{}/detections/d_{}.jpg'.format(video_root_dir,v),"{}/detections/{}.jpg".format(video_root_dir,v))
+    for i in video_json['index_entries_list']:
+        di = IndexEntries()
+        di.video = video_obj
+        di.algorithm = i['algorithm']
+        di.count = i['count']
+        di.contains_detections = i['contains_detections']
+        di.contains_frames = i['contains_frames']
+        di.approximate = i['approximate']
+        di.created = i['created']
+        di.features_file_name = i['features_file_name']
+        di.entries_file_name = i['entries_file_name']
+        di.detection_name = i['detection_name']
+        di.save()
+    os.remove("{}/{}/{}.zip".format(settings.MEDIA_ROOT, video_id, video_id))
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()

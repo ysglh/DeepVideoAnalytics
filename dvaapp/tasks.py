@@ -531,5 +531,5 @@ def transform_index_entries(di,detection_to_pk,frame_to_pk,video_id,video_root_d
         if 'frame_primary_key' in entry:
             entry['frame_primary_key'] = frame_to_pk[entry['frame_primary_key']]
         transformed.append(entry)
-    with '{}/indexes/{}'.format(video_root_dir, di.entries_file_name) as output:
-        json.dump(output, transformed)
+    with open('{}/indexes/{}'.format(video_root_dir, di.entries_file_name),'w') as output:
+        json.dump(transformed,output)

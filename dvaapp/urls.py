@@ -25,6 +25,7 @@ urlpatterns = [
     url(r'^external', views.external, name='external'),
     url(r'^youtube$', views.yt, name='youtube'),
     url(r'^export_video', views.export_video, name='export_video'),
+    url(r'^import_dataset', views.import_dataset, name='import_dataset'),
     url(r'^videos/$', views.VideoList.as_view(),name="video_list"),
     url(r'^queries/$', views.QueryList.as_view()),
     url(r'^Search$', views.search),

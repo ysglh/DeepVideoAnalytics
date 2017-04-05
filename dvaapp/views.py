@@ -76,6 +76,7 @@ class IndexEntriesViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.IndexEntriesSerializer
     filter_fields = ('video','algorithm','detection_name')
 
+
 class VLabelViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = VLabel.objects.all()
@@ -469,6 +470,37 @@ def create_dataset(d,server,existing):
     dataset.organization_url = d['organization']['url']
     if not ("{}/{}".format(dataset.organization_url, dataset.name) in existing):
         dataset.save()
+
+
+def import_dataset(request):
+    if request.method == 'POST':
+        vdn_dataset_pk = request.POST.get('vdn_dataset_pk')
+        vdn_dataset = VDNDataset.objects.get(pk=vdn_dataset_pk)
+        video = Video()
+        user = request.user if request.user.is_authenticated() else None
+        if user:
+            video.uploader = user
+        video.name = vdn_dataset.name
+        video.save()
+        primary_key = video.pk
+        vdn_dataset.child_video = video
+        vdn_dataset.save()
+        create_video_folders(video, create_subdirs=False)
+        output_filename = "{}/{}/{}.zip".format(settings.MEDIA_ROOT,primary_key,primary_key)
+        if 'www.dropbox.com' in vdn_dataset.download_url and not vdn_dataset.download_url.endswith('?dl=1'):
+            r = requests.get(vdn_dataset.download_url+'?dl=1')
+        else:
+            r = requests.get(vdn_dataset.download_url)
+        with open(output_filename, 'wb') as f:
+            for chunk in r.iter_content(chunk_size=1024):
+                if chunk:
+                    f.write(chunk)
+        r.close()
+        video.uploaded = True
+        video.save()
+        task_name = 'import_video_by_id'
+        app.send_task(name=task_name, args=[primary_key, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+    return redirect('video_list')
 
 
 def external(request):

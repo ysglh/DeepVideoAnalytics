@@ -482,7 +482,6 @@ def import_detection(d,video_obj,frame_to_pk,video_root_dir):
     dd.y = d['y']
     dd.h = d['h']
     dd.w = d['w']
-    dd.parent_frame_index = d['parent_frame_index']
     dd.frame_id = frame_to_pk[d['frame']]
     dd.confidence = d['confidence']
     dd.object_name = d['object_name']

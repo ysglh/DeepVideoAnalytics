@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load staticfiles %}
-
+{% block page_css %}
+{% endblock %}
 {% block page_content %}
 <section class="content-header" style="padding-top:0px" xmlns="http://www.w3.org/1999/html">
 <div class="row">
@@ -16,19 +17,19 @@
         <div class="col-lg-offset-2 col-lg-8 col-md-12">
             <div class="box box-primary">
                     <div class="box-body">
-                    <table class="table table-bordered">
+                    <table class="table table-bordered" width="100%">
                         <thead>
                         <tr>
-                            <th><h4>Server Name</h4></th>
-                            <th><h4>Server URL</h4></th>
-                            <th><h4>Pull datasets list</h4></th>
+                            <th>Server Name</th>
+                            <th>Server URL</th>
+                            <th>Pull datasets list</th>
                         </tr>
                         </thead>
                         <tbody>
                             {% for server in servers %}
                                 <tr>
-                                    <td><h4>{{ server.name }}</h4></td>
-                                    <td><h4><a target="_blank" href="{{ server.url }}" >{{ server.url }}</a></h4></td>
+                                    <td>{{ server.name }}</td>
+                                    <td><a target="_blank" href="{{ server.url }}" >{{ server.url }}</a></td>
                                     <td class="text-center"><form action="." method="post">{% csrf_token %}<input type="hidden" name="server_pk" value="{{ server.pk }}"/><button type="submit" class="btn btn-primary"> Pull / Refresh </button></form></td>
                                 </tr>
                             {% endfor %}
@@ -45,14 +46,14 @@
                     <h4>Available datasets</h4>
                 </div>
             <div class="box-body">
-                <table class="table dataTables">
+                <table class="table dataTables" width="100%">
                     <thead>
                     <tr>
-                        <th><h4>Name</h4></th>
-                        <th><h4>Server</h4></th>
-                        <th><h4>AWS Region/Bucket/ Key</h4></th>
-                        <th><h4>Direct download</h4></th>
-                        <th><h4>Import</h4></th>
+                        <th>Name</th>
+                        <th>Server</th>
+                        <th>AWS Region/Bucket/ Key</th>
+                        <th>Direct download</th>
+                        <th>Import</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -83,11 +84,11 @@
                 <table class="table dataTables">
                     <thead>
                     <tr>
-                        <th><h4>Name</h4></th>
-                        <th><h4>Server</h4></th>
-                        <th><h4>AWS Region/Bucket/ Key</h4></th>
-                        <th><h4>Direct download</h4></th>
-                        <th><h4>View local</h4></th>
+                        <th>Name</th>
+                        <th>Server</th>
+                        <th>AWS Region/Bucket/ Key</th>
+                        <th>Direct download</th>
+                        <th>View local</th>
                     </tr>
                     </thead>
                     <tbody>

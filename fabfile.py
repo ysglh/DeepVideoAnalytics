@@ -112,7 +112,7 @@ def clean():
         except:
             pass
     server = VDNServer()
-    server.url = "https://www.visualdata.network/"
+    server.url = "http://www.visualdata.network/"
     server.name = "VisualData.Network"
     server.save()
 

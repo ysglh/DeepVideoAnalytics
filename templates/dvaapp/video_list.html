@@ -42,8 +42,10 @@
                     <th class="text-center">height</th>
                     <th class="text-center">width</th>
                     <th class="text-center">created</th>
+                    <th class="text-center">youtube</th>
                     <th class="text-center">view</th>
-                    <th class="text-center">youtube url</th>
+                    <th class="text-center">export</th>
+
                 </tr>
                 </thead>
                 <tbody>
@@ -58,16 +60,45 @@
                         <td class="text-right">{{ v.height }} </td>
                         <td class="text-right">{{ v.width }} </td>
                         <td class="text-center">{{ v.created }}</td>
-                        <td class="text-center"><a href="/videos/{{ v.pk }}">view</a></td>
-                        <td>{%  if v.youtube_video %}<a href="{{ v.url }}" target="_blank">{{ v.url }}</a>{% endif %}</td>
+                        <td>{{ v.youtube_video }}</td>
+                        <td class="text-center"><a class="btn btn-link" href="/videos/{{ v.pk }}">view</a></td>
+                        <td class="text-center"><form action="/export_video" method="post"><input type="hidden" value="{{ v.pk }}" name="video_id">{% csrf_token %}<button type="submit" class="btn btn-link">Export video</button></form></td>
                     </tr>
                     {% endif %}
                 {% endfor %}
                 </tbody>
                 </table>
             </div>
-
         </div>
+            <div class="box box-primary" >
+                <div class="box-header with-border">
+                    <h3>Exports</h3>
+                </div>
+                <div class="box-body">
+                    <table class="table dataTables-dict">
+                        <thead>
+                            <tr>
+                                <th class="text-center">Video</th>
+                                <th class="text-center">Started</th>
+                                <th class="text-center">Completed</th>
+                                <th class="text-center">Download</th>
+                                <th class="text-center">Push to VDN</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for e in exports %}
+                            <tr>
+                                <td>{{ e.video.name }}</td>
+                                <td>{{ e.started }}</td>
+                                <td>{{ e.completed }}</td>
+                                <td class="text-center">{% if e.completed %}<a href="/media/exports/{{ e.file_name }}">download</a>{% endif %}</td>
+                                <td class="text-center">{% if e.completed %}<a href="/push_to_vdn/{{ e.pk }}">publish to VDN</a>{% endif %}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
     </div>
 </div>
 </section>

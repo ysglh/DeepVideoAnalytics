@@ -214,10 +214,10 @@ def launch_queues(detection=False):
     :param detection: use fab launch_queues:1 to lauch detector queue in addition to all others
     :return:
     """
-    local('fab startq:qextractor &')
+    local('fab startq:qextract &')
     local('fab startq:qindexer &')
     local('fab startq:qretriever &')
-    local('fab startq:qface &')
+    local('fab startq:qfaceretriever &')
     local('fab startq:qfacedetector &')
     if detection:
         local('fab startq:qdetector &')

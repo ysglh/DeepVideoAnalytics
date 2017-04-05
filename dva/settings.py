@@ -189,10 +189,6 @@ STATICFILES_FINDERS = (
 #'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
-EXTERNAL_DATASETS = {
-    'products':external_indexed.ProductsIndex(path="{}/external/{}".format(MEDIA_ROOT,'products')),
-    'visual_genome':external_indexed.VisualGenomeIndex(path="{}/external/{}".format(MEDIA_ROOT,'products')),
-}
 
 for create_dirname in ['queries','external']:
     if not os.path.isdir("{}/{}".format(MEDIA_ROOT,create_dirname)):

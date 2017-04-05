@@ -228,11 +228,17 @@ def launch_queues_env():
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
-    from dvaapp.models import Video
+    from dvaapp.models import Video,VDNServer
     for k in os.environ:
         if k.startswith('LAUNCH_Q_'):
             queue_name = k.split('_')[-1]
             local('fab startq:{} &'.format(queue_name))
+    if not ('DISABLE_VDN' in os.environ):
+        if VDNServer.objects.count() == 0:
+            server = VDNServer()
+            server.url = "https://wwww.visualdata.network/"
+            server.name = "VisualData.Network"
+            server.save()
     if 'TEST' in os.environ and Video.objects.count() == 0:
         test()
 

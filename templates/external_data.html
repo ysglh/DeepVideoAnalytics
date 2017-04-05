@@ -6,12 +6,41 @@
 <div class="row">
     <div class="box box-info">
         <div class="box-header">
-            <h2>List of available & configured datasets on visual data network</h2>
+            <h2>List of configured visual data network servers & datasets</h2>
         </div>
     </div>
 </div>
 </section>
 <section class="content">
+    <div class="row">
+        <div class="col-lg-offset-2 col-lg-8 col-md-12">
+            <div class="box box-primary">
+                    <div class="box-header with-border">
+                        <h3>List of servers</h3>
+                    </div>
+                    <div class="box-body">
+                    <table class="table table-bordered">
+                        <thead>
+                        <tr>
+                            <th><h4>Server Name</h4></th>
+                            <th><h4>Server URL</h4></th>
+                            <th><h4>Pull datasets list</h4></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                            {% for server in servers %}
+                                <tr>
+                                    <td><h4>{{ server.name }}</h4></td>
+                                    <td><h4><a target="_blank" href="{{ server.url }}" >{{ server.url }}</a></h4></td>
+                                    <td class="text-center"><form action="." method="post">{% csrf_token %}<input type="hidden" name="server_pk" value="{{ server.pk }}"/><button type="submit" class="btn btn-primary"> Pull / Refresh </button></form></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    </div>
+            </div>
+        </div>
+    </div>
     <div class="row">
         <div class="col-lg-6">
             <div class="box box-primary">

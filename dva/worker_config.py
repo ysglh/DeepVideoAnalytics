@@ -1,5 +1,4 @@
 import os
-from dvalib import external_indexed
 
 Q_EXTRACTOR = 'qextract'
 Q_INDEXER = 'qindexer'

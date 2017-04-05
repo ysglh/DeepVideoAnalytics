@@ -70,14 +70,6 @@ class IndexEntries(models.Model):
     class Meta:
         unique_together = ('video', 'features_file_name',)
 
-class ExternalDataset(models.Model):
-    algorithm = models.CharField(max_length=100)
-    name = models.CharField(max_length=100)
-    count_images = models.IntegerField()
-    count_entries = models.IntegerField()
-    cached_image_count = models.IntegerField()
-    index_downloaded = models.BooleanField(default=False)
-    created = models.DateTimeField('date created', auto_now_add=True)
 
 
 class TEvent(models.Model):
@@ -134,7 +126,19 @@ class VDNServer(models.Model):
 
 class VDNDataset(models.Model):
     server = models.ForeignKey(VDNServer)
-    child_video = models.ForeignKey(Video)
+    child_video = models.ForeignKey(Video,null=True)
+    response = models.TextField(default="")
+    date_imported = models.DateTimeField('date created', auto_now_add=True)
+    name = models.CharField(max_length=100,default="")
+    created = models.DateTimeField('date created', auto_now_add=True)
+    description = models.TextField(default="")
+    url = models.TextField(default="")
+    youtube_video = models.BooleanField(default=False)
+    download_url = models.TextField(default="")
+    aws_requester_pays = models.BooleanField(default=False)
+    aws_region = models.TextField(default="")
+    aws_bucket = models.TextField(default="")
+    aws_key = models.TextField(default="")
 
 
 class Export(models.Model):

@@ -33,18 +33,18 @@
 }
 
 
-td {
-    white-space: -o-pre-wrap;
-    word-wrap: break-word;
-    white-space: pre-wrap;
-    white-space: -moz-pre-wrap;
-    white-space: -pre-wrap;
-}
+/*td {*/
+    /*white-space: -o-pre-wrap;*/
+    /*word-wrap: break-word;*/
+    /*white-space: pre-wrap;*/
+    /*white-space: -moz-pre-wrap;*/
+    /*white-space: -pre-wrap;*/
+/*}*/
 
-table {
-    table-layout: fixed;
-    width: 100%
-}
+/*table {*/
+    /*table-layout: fixed;*/
+    /*width: 100%*/
+/*}*/
 
 
 body{

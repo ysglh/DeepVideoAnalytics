@@ -35,7 +35,7 @@ class Video(models.Model):
 
 class Frame(models.Model):
     video = models.ForeignKey(Video,null=True)
-    frame_index = models.IntegerField()
+    frame_index = models.IntegerField(unique=True)
     name = models.CharField(max_length=200,null=True)
     subdir = models.TextField(default="") # Retains information if the source is a dataset for labeling
 
@@ -44,8 +44,9 @@ class Frame(models.Model):
 
 
 class Detection(models.Model):
-    video = models.ForeignKey(Video ,null=True)
+    video = models.ForeignKey(Video,null=True)
     frame = models.ForeignKey(Frame)
+    parent_frame_index = models.IntegerField(default=-1)
     object_name = models.CharField(max_length=100)
     confidence = models.FloatField(default=0.0)
     x = models.IntegerField(default=0)
@@ -53,6 +54,15 @@ class Detection(models.Model):
     h = models.IntegerField(default=0)
     w = models.IntegerField(default=0)
     metadata = models.TextField(default="")
+
+    def clean(self):
+        if self.parent_frame_index == -1 or self.parent_frame_index is None:
+            self.parent_frame_index = self.frame.frame_index
+
+    def save(self, *args, **kwargs):
+        if self.parent_frame_index == -1 or self.parent_frame_index is None:
+            self.parent_frame_index = self.frame.frame_index
+        super(Detection, self).save(*args, **kwargs)
 
 
 class IndexEntries(models.Model):
@@ -69,7 +79,6 @@ class IndexEntries(models.Model):
 
     class Meta:
         unique_together = ('video', 'features_file_name',)
-
 
 
 class TEvent(models.Model):
@@ -108,6 +117,7 @@ class Annotation(models.Model):
     user = models.ForeignKey(User,null=True)
     frame = models.ForeignKey(Frame,null=True)
     detection = models.ForeignKey(Detection,null=True)
+    parent_frame_index = models.IntegerField(default=-1)
     metadata_text = models.TextField(default="")
     label_parent = models.ForeignKey(VLabel, null=True)
     label = models.TextField(default="empty")
@@ -117,6 +127,15 @@ class Annotation(models.Model):
     h = models.IntegerField(default=0)
     w = models.IntegerField(default=0)
     created = models.DateTimeField('date created', auto_now_add=True)
+
+    def clean(self):
+        if self.parent_frame_index == -1 or self.parent_frame_index is None:
+            self.parent_frame_index = self.frame.frame_index
+
+    def save(self, *args, **kwargs):
+        if self.parent_frame_index == -1 or self.parent_frame_index is None:
+            self.parent_frame_index = self.frame.frame_index
+        super(Annotation, self).save(*args, **kwargs)
 
 
 class VDNServer(models.Model):

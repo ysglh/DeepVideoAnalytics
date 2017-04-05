@@ -58,7 +58,6 @@
                     </thead>
                     <tbody>
                         {% for dataset in datasets %}
-                            {% if not dataset.child_video %}
                             <tr>
                                 <td>{{ dataset.name }}</td>
                                 <td>{{ dataset.server.name }}</td>
@@ -66,7 +65,6 @@
                                 <td><a href="{{ dataset.download_url }}">{{ dataset.download_url }}</a></td>
                                 <td class="text-center"><form action="/import_dataset" method="post">{% csrf_token %}<input type="hidden" name="vdn_dataset_pk" value="{{ dataset.pk }}"/><button type="submit" class="btn btn-primary"> Import </button></form></td>
                             </tr>
-                            {% endif %}
                         {% endfor %}
                     </tbody>
                 </table>

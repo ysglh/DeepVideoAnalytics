@@ -12,14 +12,6 @@ detected objects. Deep Video analytics aims to become a quickly customizable pla
 visual & video analytics applications, while benefiting from seamless integration with state or the art models & datasets
 released by the vision research community.
 
-**We take significant efforts to ensure that following models (code+weights included) work without having to write any code.**
-
-- [x] Indexing using Google inception V3 trained on Imagenet
-- [x] [Single Shot Detector (SSD) Multibox 300 training using VOC](https://github.com/balancap/SSD-Tensorflow)  
-- [x] Alexnet using Pytorch  (disabled by default; set ALEX_ENABLE=1 in environment variable to use)
-- [x] [YOLO 9000](http://pjreddie.com/darknet/yolo/) (disabled by default; set YOLO_ENABLE=1 in environment variable to use)
-- [x] [Face detection/alignment/recognition using MTCNN and Facenet](https://github.com/davidsandberg/facenet) 
-
 ## Libraries & Code used
 
 - Pytorch [License](https://github.com/pytorch/pytorch/blob/master/LICENSE)
@@ -44,5 +36,5 @@ released by the vision research community.
 **Copyright 2016-2017, Akshay Bhat, Cornell University, All rights reserved.**
 
 Please contact me for more information, I plan on relaxing the license soon, once a beta version is reached 
-(To the extent allowed by the code/models included.e.g. FAISS disallows commercial use.). 
+(To the extent allowed by the code/models included. e.g. FAISS disallows commercial use.). 
  

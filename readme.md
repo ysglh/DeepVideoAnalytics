@@ -16,7 +16,7 @@ detected objects. Deep Video analytics aims to become a quickly customizable pla
 visual & video analytics applications, while benefiting from seamless integration with state or the art models & datasets
 released by the vision research community.
 
-## Libraries & Code used
+#### Libraries & Code used
 
 - Pytorch [License](https://github.com/pytorch/pytorch/blob/master/LICENSE)
 - Darknet [License](https://github.com/pjreddie/darknet/blob/master/LICENSE)

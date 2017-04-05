@@ -44,7 +44,7 @@ class Frame(models.Model):
 
 
 class Detection(models.Model):
-    video = models.ForeignKey(Video,null=True)
+    video = models.ForeignKey(Video ,null=True)
     frame = models.ForeignKey(Frame)
     object_name = models.CharField(max_length=100)
     confidence = models.FloatField(default=0.0)
@@ -132,14 +132,12 @@ class VDNDataset(models.Model):
     name = models.CharField(max_length=100,default="")
     created = models.DateTimeField('date created', auto_now_add=True)
     description = models.TextField(default="")
-    url = models.TextField(default="")
-    youtube_video = models.BooleanField(default=False)
     download_url = models.TextField(default="")
     aws_requester_pays = models.BooleanField(default=False)
     aws_region = models.TextField(default="")
     aws_bucket = models.TextField(default="")
     aws_key = models.TextField(default="")
-
+    organization_url = models.TextField()
 
 class Export(models.Model):
     video = models.ForeignKey(Video)

@@ -93,6 +93,7 @@ def clean():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from django.conf import settings
+    from dvaapp.models import VDNServer
     if sys.platform == 'darwin':
         for qname in set(settings.TASK_NAMES_TO_QUEUE.values()):
             try:
@@ -110,6 +111,10 @@ def clean():
             local("ps auxww | grep 'celery -A dva worker' | awk '{print $2}' | xargs kill -9")
         except:
             pass
+    server = VDNServer()
+    server.url = "https://www.visualdata.network/"
+    server.name = "VisualData.Network"
+    server.save()
 
 
 @task
@@ -236,7 +241,7 @@ def launch_queues_env():
     if not ('DISABLE_VDN' in os.environ):
         if VDNServer.objects.count() == 0:
             server = VDNServer()
-            server.url = "https://wwww.visualdata.network/"
+            server.url = "https://www.visualdata.network/"
             server.name = "VisualData.Network"
             server.save()
     if 'TEST' in os.environ and Video.objects.count() == 0:

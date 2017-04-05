@@ -456,7 +456,36 @@ def delete_object(request):
     return JsonResponse({'status':True})
 
 
+def create_dataset(d,server,existing):
+    dataset = VDNDataset()
+    dataset.server = server
+    dataset.name = d['name']
+    dataset.description = d['description']
+    dataset.download_url = d['download_url']
+    dataset.aws_bucket = d['aws_bucket']
+    dataset.aws_key = d['aws_key']
+    dataset.aws_region = d['aws_region']
+    dataset.aws_requester_pays = d['aws_requester_pays']
+    dataset.youtube_video = d['youtube_video']
+    dataset.organization_url = d['organization']['url']
+    if not ("{}/{}".format(dataset.organization_url, dataset.name) in existing):
+        dataset.save()
+
+
 def external(request):
+    if request.method == 'POST':
+        pk = request.POST.get('server_pk')
+        server = VDNServer.objects.get(pk=pk)
+        r = requests.get("{}api/datasets/".format(server.url))
+        existing = ["{}/{}".format(k.organization_url,k.name) for k in VDNDataset.objects.all().filter(server=server)]
+        response = r.json()
+        for d in response['results']:
+            create_dataset(d,server,existing)
+        while response['next']:
+            r = request.get("{}api/datasets/".format(server))
+            response = r.json()
+            for d in response['results']:
+                create_dataset(d,server,existing)
     context = {
         'servers':VDNServer.objects.all(),
         'datasets':VDNDataset.objects.all()

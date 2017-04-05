@@ -42,27 +42,84 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-lg-6">
+        <div class="col-lg-12">
             <div class="box box-primary">
                 <div class="box-header with-border">
                     <h4>Available datasets</h4>
                 </div>
-            </div>
             <div class="box-body">
-
+                <table class="table dataTables">
+                    <thead>
+                    <tr>
+                        <th><h4>Name</h4></th>
+                        <th><h4>Server</h4></th>
+                        <th><h4>AWS Requester Pays</h4></th>
+                        <th><h4>AWS Region</h4></th>
+                        <th><h4>AWS Bucket / Key</h4></th>
+                        <th><h4>Direct download</h4></th>
+                        <th><h4>Import</h4></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        {% for dataset in datasets %}
+                            {% if not dataset.child_video %}
+                            <tr>
+                                <td>{{ dataset.name }}</td>
+                                <td>{{ dataset.server.name }}</td>
+                                <td>{{ dataset.aws_requester_pays }}</td>
+                                <td>{{ dataset.aws_region }}</td>
+                                <td>{{ dataset.aws_bucket }} / {{ dataset.aws_key }}</td>
+                                <td><a href="{{ dataset.download_url }}">{{ dataset.download_url }}</a></td>
+                                <td class="text-center"><form action="/import_dataset" method="post">{% csrf_token %}<input type="hidden" name="vdn_dataset_pk" value="{{ dataset.pk }}"/><button type="submit" class="btn btn-primary"> Import </button></form></td>
+                            </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
-        </div>
-        <div class="col-lg-6">
-            <div class="box box-primary">
-                <div class="box-header with-border">
-                    <h4>Configured datasets</h4>
-                </div>
-            </div>
-            <div class="box-body">
-
             </div>
         </div>
     </div>
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h4>Configured  datasets</h4>
+                </div>
+            <div class="box-body">
+                <table class="table dataTables">
+                    <thead>
+                    <tr>
+                        <th><h4>Name</h4></th>
+                        <th><h4>Server</h4></th>
+                        <th><h4>AWS Requester Pays</h4></th>
+                        <th><h4>AWS Region</h4></th>
+                        <th><h4>AWS Bucket / Key</h4></th>
+                        <th><h4>Direct download</h4></th>
+                        <th><h4>View local</h4></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        {% for dataset in datasets %}
+                            {% if dataset.child_video %}
+                            <tr>
+                                <td>{{ dataset.name }}</td>
+                                <td>{{ dataset.server.name }}</td>
+                                <td>{{ dataset.aws_requester_pays }}</td>
+                                <td>{{ dataset.aws_region }}</td>
+                                <td>{{ dataset.aws_bucket }} / {{ dataset.aws_key }}</td>
+                                <td><a href="{{ dataset.download_url }}">{{ dataset.download_url }}</a></td>
+                                <td class="text-center"><a href="/videos/{{ dataset.child_video_id }}">view local</a></td>
+                            </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            </div>
+        </div>
+    </div>
+
 </section>
 {% endblock %}
 {% block page_js%}

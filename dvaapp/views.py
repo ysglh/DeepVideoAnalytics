@@ -466,7 +466,6 @@ def create_dataset(d,server,existing):
     dataset.aws_key = d['aws_key']
     dataset.aws_region = d['aws_region']
     dataset.aws_requester_pays = d['aws_requester_pays']
-    dataset.youtube_video = d['youtube_video']
     dataset.organization_url = d['organization']['url']
     if not ("{}/{}".format(dataset.organization_url, dataset.name) in existing):
         dataset.save()

@@ -53,9 +53,7 @@
                     <tr>
                         <th><h4>Name</h4></th>
                         <th><h4>Server</h4></th>
-                        <th><h4>AWS Requester Pays</h4></th>
-                        <th><h4>AWS Region</h4></th>
-                        <th><h4>AWS Bucket / Key</h4></th>
+                        <th><h4>AWS Region/Bucket/ Key</h4></th>
                         <th><h4>Direct download</h4></th>
                         <th><h4>Import</h4></th>
                     </tr>
@@ -66,9 +64,7 @@
                             <tr>
                                 <td>{{ dataset.name }}</td>
                                 <td>{{ dataset.server.name }}</td>
-                                <td>{{ dataset.aws_requester_pays }}</td>
-                                <td>{{ dataset.aws_region }}</td>
-                                <td>{{ dataset.aws_bucket }} / {{ dataset.aws_key }}</td>
+                                <td>{% if dataset.aws_requester_pays %} {{ dataset.aws_region }} /{{ dataset.aws_bucket }} / {{ dataset.aws_key }}{% endif %}</td>
                                 <td><a href="{{ dataset.download_url }}">{{ dataset.download_url }}</a></td>
                                 <td class="text-center"><form action="/import_dataset" method="post">{% csrf_token %}<input type="hidden" name="vdn_dataset_pk" value="{{ dataset.pk }}"/><button type="submit" class="btn btn-primary"> Import </button></form></td>
                             </tr>
@@ -92,9 +88,7 @@
                     <tr>
                         <th><h4>Name</h4></th>
                         <th><h4>Server</h4></th>
-                        <th><h4>AWS Requester Pays</h4></th>
-                        <th><h4>AWS Region</h4></th>
-                        <th><h4>AWS Bucket / Key</h4></th>
+                        <th><h4>AWS Region/Bucket/ Key</h4></th>
                         <th><h4>Direct download</h4></th>
                         <th><h4>View local</h4></th>
                     </tr>
@@ -105,9 +99,7 @@
                             <tr>
                                 <td>{{ dataset.name }}</td>
                                 <td>{{ dataset.server.name }}</td>
-                                <td>{{ dataset.aws_requester_pays }}</td>
-                                <td>{{ dataset.aws_region }}</td>
-                                <td>{{ dataset.aws_bucket }} / {{ dataset.aws_key }}</td>
+                                <td>{% if dataset.aws_requester_pays %} {{ dataset.aws_region }} /{{ dataset.aws_bucket }} / {{ dataset.aws_key }}{% endif %}</td>
                                 <td><a href="{{ dataset.download_url }}">{{ dataset.download_url }}</a></td>
                                 <td class="text-center"><a href="/videos/{{ dataset.child_video_id }}">view local</a></td>
                             </tr>

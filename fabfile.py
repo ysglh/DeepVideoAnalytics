@@ -241,7 +241,7 @@ def launch_queues_env():
     if not ('DISABLE_VDN' in os.environ):
         if VDNServer.objects.count() == 0:
             server = VDNServer()
-            server.url = "https://www.visualdata.network/"
+            server.url = "http://www.visualdata.network/"
             server.name = "VisualData.Network"
             server.save()
     if 'TEST' in os.environ and Video.objects.count() == 0:

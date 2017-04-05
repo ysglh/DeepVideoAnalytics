@@ -35,9 +35,12 @@ class Video(models.Model):
 
 class Frame(models.Model):
     video = models.ForeignKey(Video,null=True)
-    frame_index = models.IntegerField(unique=True)
+    frame_index = models.IntegerField()
     name = models.CharField(max_length=200,null=True)
     subdir = models.TextField(default="") # Retains information if the source is a dataset for labeling
+
+    class Meta:
+        unique_together = (("video", "frame_index"),)
 
     def __unicode__(self):
         return u'{}:{}'.format(self.video_id, self.frame_index)

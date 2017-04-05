@@ -56,7 +56,7 @@ class WVideo(object):
             raise ValueError,str(self.metadata)
 
     def extract_frames(self,rescale=True):
-        frames = {}
+        frames = []
         denominator = 30
         if not self.dvideo.dataset:
             output_dir = "{}/{}/{}/".format(self.media_dir,self.primary_key,'frames')
@@ -81,7 +81,7 @@ class WVideo(object):
             for fname in glob.glob(output_dir+'*.jpg'):
                 ind = int(fname.split('/')[-1].replace('.jpg', ''))
                 f = WFrame(frame_index=int(ind),video=self)
-                frames[f.frame_index]=f
+                frames.append(f)
         else:
             zipf = zipfile.ZipFile("{}/{}/video/{}.zip".format(self.media_dir, self.primary_key, self.primary_key), 'r')
             zipf.extractall("{}/{}/frames/".format(self.media_dir, self.primary_key))
@@ -98,7 +98,7 @@ class WVideo(object):
                             f = WFrame(frame_index=i, video=self,name=fname.split('/')[-1],
                                        subdir=subdir.replace("{}/{}/frames/".format(self.media_dir, self.primary_key),'')
                                        )
-                            frames[f.frame_index] = f
+                            frames.append(f)
                         else:
                             logging.warning("skipping {} not a jpeg file".format(fname))
                 else:

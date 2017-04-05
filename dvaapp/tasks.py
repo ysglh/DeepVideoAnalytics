@@ -275,7 +275,7 @@ def extract_frames(video_id,rescale=True):
     frames = v.extract_frames(rescale)
     dv.frames = len(frames)
     dv.save()
-    for f in frames.itervalues():
+    for f in frames:
         df = Frame()
         df.frame_index = f.frame_index
         df.video = dv

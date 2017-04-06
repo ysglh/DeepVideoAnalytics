@@ -123,7 +123,8 @@ def import_frame(f,video_obj):
     df.save()
     return df
 
-def import_detection(d,video_obj,frame_to_pk,video_root_dir):
+
+def import_detection(d,video_obj,frame_to_pk):
     dd = Detection()
     dd.video = video_obj
     dd.x = d['x']
@@ -135,11 +136,6 @@ def import_detection(d,video_obj,frame_to_pk,video_root_dir):
     dd.object_name = d['object_name']
     dd.metadata = d['metadata']
     dd.save()
-    orginal = '{}/detections/{}.jpg'.format(video_root_dir, d['id'])
-    temp_file = "{}/detections/d_{}.jpg".format(video_root_dir, dd.pk)
-    converted = "{}/detections/{}.jpg".format(video_root_dir, dd.pk)
-    os.rename(orginal, temp_file)
-    os.rename(temp_file, converted)
     return dd
 
 
@@ -220,8 +216,16 @@ def import_video_json(video_obj,video_json,video_root_dir,old_key):
         df = import_frame(f,video_obj)
         frame_to_pk[f['id']] = df.pk
     for d in video_json['detection_list']:
-        dd = import_detection(d,video_obj,frame_to_pk,video_root_dir)
+        dd = import_detection(d,video_obj,frame_to_pk)
         detection_to_pk[d['id']]=dd.pk
+    for k,v in detection_to_pk.iteritems():
+        original = '{}/detections/{}.jpg'.format(video_root_dir, k)
+        temp_file = "{}/detections/d_{}.jpg".format(video_root_dir,v)
+        os.rename(original, temp_file)
+    for k, v in detection_to_pk.iteritems():
+        temp_file = "{}/detections/d_{}.jpg".format(video_root_dir, v)
+        converted = "{}/detections/{}.jpg".format(video_root_dir, v)
+        os.rename(temp_file, converted)
     for a in video_json['annotation_list']:
         da = import_annotation(a,video_obj,frame_to_pk,detection_to_pk)
     previous_transformed = set()

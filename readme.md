@@ -7,8 +7,10 @@
 
   
 #### Demo, Documentation & Installation instructions
-       
-#### [https://deepvideoanalytics.com](https://deepvideoanalytics.com)
+**Don't let the complexity of the banner scare you, if you have latest version of docker installed correctly, you can run Deep Video Analytics locally by running a simple single line command.** 
+
+#### [For installation instructions go to https://deepvideoanalytics.com](https://deepvideoanalytics.com)
+
 
 Deep Video Analytics is a platform for indexing and extracting information from videos and images.
 It uses Deep learning detection and recognition algorithms for indexing individual frames/images along with 

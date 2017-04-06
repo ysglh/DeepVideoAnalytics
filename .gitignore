@@ -39,3 +39,7 @@ experiments/connect.sh
 /notes/deepvideoanalytics_march_mid.mov
 /tests/external/drive_test.mp4
 server
+/experiments/coco_sample/
+/experiments/coco/coco_sample/
+/experiments/coco/coco_sample_metadata.json
+/experiments/coco/coco_input.zip

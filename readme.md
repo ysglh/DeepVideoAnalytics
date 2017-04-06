@@ -1,14 +1,13 @@
 # Deep Video Analytics  •  [![Build Status](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics.svg?branch=master)](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics)
 
 ![Banner](notes/banner_small.png "banner")
+**Don't let the complexity of the banner scare you, if you have latest version of docker installed correctly, you can run Deep Video Analytics in minutes locally (even without a GPU) by running a simple single line command.** 
 ![UI Screenshot](notes/face_recognition.png "face recognition")
 #### Author 
 [Akshay Bhat, Cornell University.](http://www.akshaybhat.com)
 
   
 #### Demo, Documentation & Installation instructions
-**Don't let the complexity of the banner scare you, if you have latest version of docker installed correctly, you can run Deep Video Analytics locally by running a simple single line command.** 
-
 #### [For installation instructions go to https://deepvideoanalytics.com](https://deepvideoanalytics.com)
 
 

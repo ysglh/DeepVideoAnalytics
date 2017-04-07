@@ -351,6 +351,7 @@ class VideoList(ListView):
         context['exports'] = Export.objects.all()
         return context
 
+
 class VideoDetail(DetailView):
     model = Video
 

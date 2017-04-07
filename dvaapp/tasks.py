@@ -290,6 +290,8 @@ def extract_frames(video_id,rescale=True):
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
+    if dv.dataset:
+        os.remove("{}/{}/video/{}.zip".format(settings.MEDIA_ROOT, dv.pk, dv.pk))
     return 0
 
 

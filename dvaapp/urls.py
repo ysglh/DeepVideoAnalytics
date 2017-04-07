@@ -19,6 +19,7 @@ router.register(r'taskevents', views.TEventViewSet)
 urlpatterns = [
     url(r'^$', views.index, name='app'),
     url(r'^status$', views.status, name='status'),
+    url(r'^tasks', views.tasks, name='tasks'),
     url(r'^indexes', views.indexes, name='indexes'),
     url(r'^annotations', views.annotations, name='annotations'),
     url(r'^detections', views.detections, name='detections'),

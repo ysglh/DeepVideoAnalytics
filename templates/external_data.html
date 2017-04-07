@@ -30,7 +30,7 @@
                                 <tr>
                                     <td>{{ server.name }}</td>
                                     <td><a target="_blank" href="{{ server.url }}" >{{ server.url }}</a></td>
-                                    <td class="text-center"><form action="." method="post">{% csrf_token %}<input type="hidden" name="server_pk" value="{{ server.pk }}"/><button type="submit" class="btn btn-primary"> Pull / Refresh </button></form></td>
+                                    <td class="text-center"><form action="." method="post">{% csrf_token %}<input type="hidden" name="server_pk" value="{{ server.pk }}"/><button type="submit" class="btn btn-primary"> Load / Refresh </button></form></td>
                                 </tr>
                             {% endfor %}
                         </tbody>
@@ -57,14 +57,16 @@
                     </tr>
                     </thead>
                     <tbody>
-                        {% for dataset in datasets %}
+                        {% for server,datasets in available.iteritems %}
+                            {% for dataset in datasets %}
                             <tr>
                                 <td>{{ dataset.name }}</td>
-                                <td>{{ dataset.server.name }}</td>
+                                <td>{{ server.name }}</td>
                                 <td>{% if dataset.aws_requester_pays %} {{ dataset.aws_region }} /{{ dataset.aws_bucket }} / {{ dataset.aws_key }}{% endif %}</td>
                                 <td><a href="{{ dataset.download_url }}">{{ dataset.download_url }}</a></td>
-                                <td class="text-center"><form action="/import_dataset" method="post">{% csrf_token %}<input type="hidden" name="vdn_dataset_pk" value="{{ dataset.pk }}"/><button type="submit" class="btn btn-primary"> Import </button></form></td>
+                                <td class="text-center"><form action="/import_dataset" method="post">{% csrf_token %}<input type="hidden" name="dataset_url" value="{{ dataset.url }}"/><input type="hidden" name="server_pk" value="{{ server.pk }}"/><button type="submit" class="btn btn-primary"> Pull </button></form></td>
                             </tr>
+                            {% endfor %}
                         {% endfor %}
                     </tbody>
                 </table>

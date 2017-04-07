@@ -144,7 +144,7 @@ class Annotation(models.Model):
 class VDNServer(models.Model):
     url = models.URLField()
     name = models.CharField(max_length=200)
-
+    last_response_datasets = models.TextField(default='[]')
 
 class VDNDataset(models.Model):
     server = models.ForeignKey(VDNServer)
@@ -155,6 +155,7 @@ class VDNDataset(models.Model):
     created = models.DateTimeField('date created', auto_now_add=True)
     description = models.TextField(default="")
     download_url = models.TextField(default="")
+    url = models.TextField(default="")
     aws_requester_pays = models.BooleanField(default=False)
     aws_region = models.TextField(default="")
     aws_bucket = models.TextField(default="")

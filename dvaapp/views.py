@@ -462,25 +462,29 @@ def delete_object(request):
     return JsonResponse({'status':True})
 
 
-def create_dataset(d,server,existing):
+def create_dataset(d,server):
     dataset = VDNDataset()
     dataset.server = server
     dataset.name = d['name']
     dataset.description = d['description']
     dataset.download_url = d['download_url']
+    dataset.url = d['url']
     dataset.aws_bucket = d['aws_bucket']
     dataset.aws_key = d['aws_key']
     dataset.aws_region = d['aws_region']
     dataset.aws_requester_pays = d['aws_requester_pays']
     dataset.organization_url = d['organization']['url']
-    if not ("{}/{}".format(dataset.organization_url, dataset.name) in existing):
-        dataset.save()
+    dataset.save()
+    return dataset
 
 
 def import_dataset(request):
     if request.method == 'POST':
-        vdn_dataset_pk = request.POST.get('vdn_dataset_pk')
-        vdn_dataset = VDNDataset.objects.get(pk=vdn_dataset_pk)
+        url = request.POST.get('dataset_url')
+        r = requests.get(url)
+        response = r.json()
+        server = VDNServer.objects.get(pk=request.POST.get('server_pk'))
+        vdn_dataset = create_dataset(response,server)
         video = Video()
         user = request.user if request.user.is_authenticated() else None
         if user:
@@ -505,6 +509,8 @@ def import_dataset(request):
         video.save()
         task_name = 'import_video_by_id'
         app.send_task(name=task_name, args=[primary_key, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+    else:
+        raise NotImplementedError
     return redirect('video_list')
 
 
@@ -513,17 +519,21 @@ def external(request):
         pk = request.POST.get('server_pk')
         server = VDNServer.objects.get(pk=pk)
         r = requests.get("{}api/datasets/".format(server.url))
-        existing = ["{}/{}".format(k.organization_url,k.name) for k in VDNDataset.objects.all().filter(server=server)]
         response = r.json()
+        datasets = []
         for d in response['results']:
-            create_dataset(d,server,existing)
+            datasets.append(d)
+
         while response['next']:
             r = request.get("{}api/datasets/".format(server))
             response = r.json()
             for d in response['results']:
-                create_dataset(d,server,existing)
+                datasets.append(d)
+        server.last_response_datasets = json.dumps(datasets)
+        server.save()
     context = {
         'servers':VDNServer.objects.all(),
+        'available':{ server:json.loads(server.last_response_datasets) for server in VDNServer.objects.all()},
         'datasets':VDNDataset.objects.all()
     }
     return render(request, 'external_data.html', context)

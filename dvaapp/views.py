@@ -16,7 +16,8 @@ from django.contrib.auth.models import User
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from django.db.models import Count
 from celery.exceptions import TimeoutError
-
+import math
+from django.db.models import Max
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -357,12 +358,30 @@ class VideoDetail(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(VideoDetail, self).get_context_data(**kwargs)
-        context['frame_list'] = Frame.objects.all().filter(video=self.object)
-        context['detection_list'] = Detection.objects.all().filter(video=self.object)
-        context['annotation_list'] = Annotation.objects.all().filter(video=self.object)
-        context['label_list'] = Annotation.objects.all().filter(video=self.object)
+        max_frame_index = Frame.objects.all().filter(video=self.object).aggregate(Max('frame_index'))['frame_index__max']
         context['exports'] = Export.objects.all().filter(video=self.object)
         context['url'] = '{}/{}/video/{}.mp4'.format(settings.MEDIA_URL,self.object.pk,self.object.pk)
+        if max_frame_index <= 1000:
+            context['frame_list'] = Frame.objects.all().filter(video=self.object)
+            context['detection_list'] = Detection.objects.all().filter(video=self.object)
+            context['annotation_list'] = Annotation.objects.all().filter(video=self.object)
+            context['offset'] = 0
+            context['limit'] = max_frame_index
+        else:
+            if self.request.GET.get('frame_index_offset', None) is None:
+                offset = 0
+            else:
+                offset = int(self.request.GET.get('frame_index_offset'))
+            limit = offset + 1000
+            context['offset'] = offset
+            context['limit'] = limit
+            context['frame_list'] = Frame.objects.all().filter(video=self.object,frame_index__gte=offset,frame_index__lte=limit)
+            context['detection_list'] = Detection.objects.all().filter(video=self.object,parent_frame_index__gte=offset,parent_frame_index__lte=limit)
+            context['annotation_list'] = Annotation.objects.all().filter(video=self.object,parent_frame_index__gte=offset,parent_frame_index__lte=limit)
+            context['frame_index_offsets'] = [(k*1000,(k*1000)+1000) for k in range(int(math.ceil(max_frame_index / 1000.0)))]
+        if context['limit'] > max_frame_index:
+            context['limit'] = max_frame_index
+        context['max_frame_index'] = max_frame_index
         return context
 
 class QueryList(ListView):

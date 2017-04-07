@@ -6,15 +6,130 @@
 <div class="row">
     <div class="box box-info">
         <div class="box-header">
-            <h2>List of frames or images in {{ object.name }}</h2>
+            <h4>List of frames or images in <span style="font-weight:bold">{{ object.name }}</span>. Currently showing frames and associated annotations & detections for frame index <span style="font-weight:bold">{{ offset }}</span> to <span style="font-weight:bold">{{ limit }}</span>.</h4>
         </div>
     </div>
 </div>
 </section>
 <section class="content">
 <div class="row">
+    <div class="col-lg-12">
+            <div class="box">
+            <div class="box-body">
+                <table class="table table-bordered">
+                <thead>
+                <tr>
+                    <th class="text-center">type</th>
+                    <th class="text-center">name</th>
+                    <th class="text-center">duration</th>
+                    <th class="text-center">frames</th>
+                    <th class="text-center">detections</th>
+                    <th class="text-center">height</th>
+                    <th class="text-center">width</th>
+                    <th class="text-center">created</th>
+                    <th class="text-center">youtube</th>
+                    <th class="text-center">youtube url</th>
+
+                </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{%  if object.dataset and object.query %} Query {% elif object.dataset %} Dataset {% else %}Video {% endif %}</td>
+                        <td>{{ object.name }} </td>
+                        <td class="text-right">{{ object.length_in_seconds }} </td>
+                        <td class="text-right">{{ object.frames }} </td>
+                        <td class="text-right">{{ object.detections }} </td>
+                        <td class="text-right">{{ object.height }} </td>
+                        <td class="text-right">{{ object.width }} </td>
+                        <td class="text-center">{{ object.created }}</td>
+                        <td>{{ object.youtube_video }}</td>
+                        <td>{{ object.url }}</td>
+                    </tr>
+                </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    {% if not video.dataset %}
+        <div class="col-lg-6">
+            <div class="box">
+            <div class="box-header with-border" >
+                <h3>Video</h3>
+                {%  if object.youtube_video %}<a href="{{ object.url }}" target="_blank">{{ object.url }}</a>{% endif %}
+            </div>
+            <div class="box-body" style="text-align:center">
+                <video controls="" preload="metadata" name="media" style="width:90%;margin-left:auto;margin-right:auto">
+                <source src="{{url}}" type="video/mp4">
+                </video>
+            </div>
+            </div>
+        </div>
+    {% endif %}
     <div class="col-lg-6">
-        <div class="box">
+    {% if frame_index_offsets %}
+    <div class="box box-warning">
+    <div class="box-header with-border">
+    <h4>The video / dataset has max frame_index {{ max_frame_index }} > 1000 please select range </h4>
+    </div>
+    <div class="box-body">
+        <table class="table dataTables">
+        <thead>
+        <tr>
+                <th class="text-center">frame index range</th>
+                <th class="text-center">view</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for offset in frame_index_offsets %}
+            <tr>
+                <td class="text-center">{{ offset.0 }} to {{ offset.1 }}</td>
+                <td class="text-center"><a href=".?frame_index_offset={{ offset.0 }}">view range</a></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+        </table>
+    </div>
+    </div>
+    {%  endif %}
+    <div class="box box-primary" >
+        <div class="box-header with-border">
+            <h3>Exports</h3>
+        </div>
+        <div class="box-body">
+            <table class="table dataTables-dict">
+                <thead>
+                    <tr>
+                        <th class="text-center">Started</th>
+                        <th class="text-center">Completed</th>
+                        <th class="text-center">Download</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for e in exports %}
+                    <tr>
+                        <td>{{ e.started }}</td>
+                        <td>{{ e.completed }}</td>
+                        <td class="text-center">{% if e.completed %}<a href="/media/exports/{{ e.file_name }}">download</a>{% endif %}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="box-footer">
+            <form action="/export_video" method="post">
+                <input type="hidden" value="{{ object.pk }}" name="video_id">
+                {% csrf_token %}
+                <button type="submit" class="pull-right btn btn-primary">Export video / dataset</button>
+            </form>
+        </div>
+    </div>
+    </div>
+</div>
+<div class="row">
+<div class="col-lg-12">
+            <div class="box">
             <div class="box-header with-border">
             <h3>List of frames/images & detection</h3>
             </div>
@@ -22,9 +137,15 @@
                 <table class="table dataTables">
                 <thead>
                 <tr>
-                        <th class="text-center">frame or detected object name</th>
+                        <th class="text-center">type</th>
+                        <th class="text-center">file / annotation / object name</th>
+                        <th class="text-center">label</th>
                         <th class="text-center">confidence</th>
                         <th class="text-center">size in pixels</th>
+                        <th class="text-center">x</th>
+                        <th class="text-center">y</th>
+                        <th class="text-center">w</th>
+                        <th class="text-center">h</th>
                         <th class="text-center">frame index</th>
                         <th class="text-center">view</th>
                 </tr>
@@ -32,28 +153,45 @@
                 <tbody>
                 {% for f in frame_list %}
                     <tr>
-                        <td class="text-left">{% if object.dataset %}  filename: {{ f.name }} {% else %} entire frame {% endif %}</td>
+                        <td>{% if object.dataset %} image {% else %} video frame {% endif %}</td>
+                        <td class="text-left">{% if object.dataset %}  {{ f.name }} {% endif %}</td>
+                        <td></td>
                         <td class="text-right"> 100.0 %</td>
                         <td class="text-right">{% widthratio object.height 1 object.width %}</td>
+                        <td class="text-right">{{ 0 }}</td>
+                        <td class="text-right">{{ 0 }}</td>
+                        <td class="text-right">{{ 0 }}</td>
+                        <td class="text-right">{{ 0 }}</td>
                         <td class="text-right">{{ f.frame_index }} </td>
                         <td class="text-center"><a href="/frames/{{ f.pk }}">view</a></td>
                     </tr>
                 {% endfor %}
                 {% for d in detection_list %}
                     <tr>
-                        <td class="text-left">detected : {{ d.object_name }} </td>
+                        <td>detection</td>
+                        <td class="text-left">{{ d.object_name }} </td>
+                        <td></td>
                         <td class="text-right"> {{ d.confidence|floatformat }} %</td>
                         <td class="text-right">{% widthratio d.h 1 d.w %}</td>
-
+                        <td class="text-right">{{ d.x }}</td>
+                        <td class="text-right">{{ d.y }}</td>
+                        <td class="text-right">{{ d.w }}</td>
+                        <td class="text-right">{{ d.h }}</td>
                         <td class="text-right">{{ d.parent_frame_index }} </td>
                         <td class="text-center"><a href="/frames/{{ d.frame_id }}">view</a></td>
                     </tr>
                 {% endfor %}
                 {% for d in annotation_list %}
                     <tr>
-                        <td class="text-left">annotation : {{ d.name }}/{{ d.label }} </td>
+                        <td>annotation</td>
+                        <td class="text-left">{{ d.name }}</td>
+                        <td>{{ d.label }}</td>
                         <td class="text-right"> 100 %</td>
                         <td class="text-right">{% widthratio d.h 1 d.w %}</td>
+                        <td class="text-right">{{ d.x }}</td>
+                        <td class="text-right">{{ d.y }}</td>
+                        <td class="text-right">{{ d.w }}</td>
+                        <td class="text-right">{{ d.h }}</td>
                         <td class="text-right">{{ d.parent_frame_index }} </td>
                         <td class="text-center"><a href="/frames/{{ d.frame_id }}">view</a></td>
                     </tr>
@@ -62,97 +200,20 @@
                 </table>
                 </div>
             </div>
-            <div class="box box-primary" >
-                <div class="box-header with-border">
-                    <h3>Exports</h3>
-                </div>
-                <div class="box-body">
-                    <table class="table dataTables-dict">
-                        <thead>
-                            <tr>
-                                <th class="text-center">Started</th>
-                                <th class="text-center">Completed</th>
-                                <th class="text-center">Download</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        {% for e in exports %}
-                            <tr>
-                                <td>{{ e.started }}</td>
-                                <td>{{ e.completed }}</td>
-                                <td class="text-center">{% if e.completed %}<a href="/media/exports/{{ e.file_name }}">download</a>{% endif %}</td>
-                            </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                <div class="box-footer">
-                    <form action="/export_video" method="post">
-                        <input type="hidden" value="{{ object.pk }}" name="video_id">
-                        {% csrf_token %}
-                        <button type="submit" class="pull-right btn btn-primary">Export video</button>
-                    </form>
-                </div>
-            </div>
     </div>
-{% if video.dataset %}
-        <div class="col-lg-6">
-        <div class="box">
-            <div class="box-header with-border">
-            <h3>List of labels in the dataset</h3>
-            </div>
-            <div class="box-body">
-                <table class="table dataTables">
-                <thead>
-                <tr>
-                        <th class="text-center">frame index</th>
-                        <th class="text-center">frame name</th>
-                        <th class="text-center">label</th>
-                        <th class="text-center">source</th>
-                        <th class="text-center">view</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for l in label_list %}
-                    <tr>
-                        <td class="text-right">{{ l.frame.frame_index }} </td>
-                        <td class="text-right">{{ l.frame.name }} </td>
-                        <td class="text-right">{{ l.label }} </td>
-                        <td class="text-right">{{ l.source }} </td>
-                        <td class="text-center"><a href="/frames/{{ l.frame.pk }}">view</a></td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-                </table>
-                </div>
-            </div>
-    </div>
+</div>
 
-{% else %}
-    <div class="col-lg-6">
-        <div class="box">
-        <div class="box-header with-border" >
-            <h3>Video</h3>
-            {%  if object.youtube_video %}<a href="{{ object.url }}" target="_blank">{{ object.url }}</a>{% endif %}
-        </div>
-        <div class="box-body" style="text-align:center">
-            <video controls="" preload="metadata" name="media" style="width:90%;margin-left:auto;margin-right:auto">
-            <source src="{{url}}" type="video/mp4">
-            </video>
-        </div>
-        </div>
-        <div class="box">
-            <div class="box-header with-border">
-                <h3>Metadata from ffmpeg</h3>
-            </div>
+<div class="row">
+    <div class="col-lg-12">
+            <div class="box">
             <div class="box-body">
+                <h3>Metadata</h3>
                 <textarea style="width:100%;height:300px;">
                     {{ object.metadata }}
                 </textarea>
             </div>
         </div>
     </div>
-{% endif %}
 </div>
 </section>
 {% endblock %}

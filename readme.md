@@ -2,22 +2,16 @@
 
 ![Banner](notes/banner_small.png "banner")
 
-**Don't let the complexity of this banner scare you, if you have latest version of docker installed correctly, you can run Deep Video Analytics in minutes locally (even without a GPU) by running a simple single line command.** 
+**Don't be worried by complexity of this banner, with latest version of docker installed correctly, you can run Deep Video Analytics in minutes locally (even without a GPU) using a single command.** 
 
 ![UI Screenshot](notes/face_recognition.png "face recognition")
 #### Author 
 [Akshay Bhat, Cornell University.](http://www.akshaybhat.com)
 
-  
-#### Demo, Documentation & Installation instructions
-#### [For installation instructions go to https://deepvideoanalytics.com](https://deepvideoanalytics.com)
+##### Deep Video Analytics is a platform for indexing and extracting information from videos and images. For installation instructions & demo go to [https://deepvideoanalytics.com](https://deepvideoanalytics.com)
 
 
-Deep Video Analytics is a platform for indexing and extracting information from videos and images.
-It uses Deep learning detection and recognition algorithms for indexing individual frames/images along with 
-detected objects. Deep Video analytics aims to become a quickly customizable platform for developing 
-visual & video analytics applications, while benefiting from seamless integration with state or the art models & datasets
-released by the vision research community.
+
 
 #### Libraries & Code used
 

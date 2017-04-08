@@ -558,6 +558,7 @@ def create_dataset(d,server):
     dataset.aws_region = d['aws_region']
     dataset.aws_requester_pays = d['aws_requester_pays']
     dataset.organization_url = d['organization']['url']
+    dataset.response = json.dumps(d)
     dataset.save()
     return dataset
 

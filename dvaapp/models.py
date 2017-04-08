@@ -3,10 +3,12 @@ from __future__ import unicode_literals
 from django.db import models
 from django.contrib.auth.models import User
 
+
 class VDNServer(models.Model):
     url = models.URLField()
     name = models.CharField(max_length=200)
     last_response_datasets = models.TextField(default='[]')
+
 
 class VDNDataset(models.Model):
     server = models.ForeignKey(VDNServer)

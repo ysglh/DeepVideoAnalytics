@@ -32,6 +32,7 @@
        - DB_PASS=pgdbpass
        - LAUNCH_SERVER_NGINX=1
        - DISABLE_DEBUG=1
+       - RESCALE_DISABLE=1
        - SECRET_KEY=283y312bhv2b13v13
        - LAUNCH_Q_qindexer=1
        - LAUNCH_Q_qretriever=1

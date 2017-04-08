@@ -361,7 +361,10 @@ class VideoDetail(DetailView):
         max_frame_index = Frame.objects.all().filter(video=self.object).aggregate(Max('frame_index'))['frame_index__max']
         context['exports'] = Export.objects.all().filter(video=self.object)
         context['url'] = '{}/{}/video/{}.mp4'.format(settings.MEDIA_URL,self.object.pk,self.object.pk)
-        if max_frame_index <= 1000:
+        delta = 10000
+        if context['object'].dataset:
+            delta = 1000
+        if max_frame_index <= delta:
             context['frame_list'] = Frame.objects.all().filter(video=self.object)
             context['detection_list'] = Detection.objects.all().filter(video=self.object)
             context['annotation_list'] = Annotation.objects.all().filter(video=self.object)
@@ -372,13 +375,13 @@ class VideoDetail(DetailView):
                 offset = 0
             else:
                 offset = int(self.request.GET.get('frame_index_offset'))
-            limit = offset + 1000
+            limit = offset + delta
             context['offset'] = offset
             context['limit'] = limit
             context['frame_list'] = Frame.objects.all().filter(video=self.object,frame_index__gte=offset,frame_index__lte=limit)
             context['detection_list'] = Detection.objects.all().filter(video=self.object,parent_frame_index__gte=offset,parent_frame_index__lte=limit)
             context['annotation_list'] = Annotation.objects.all().filter(video=self.object,parent_frame_index__gte=offset,parent_frame_index__lte=limit)
-            context['frame_index_offsets'] = [(k*1000,(k*1000)+1000) for k in range(int(math.ceil(max_frame_index / 1000.0)))]
+            context['frame_index_offsets'] = [(k*delta,(k*delta)+delta) for k in range(int(math.ceil(max_frame_index / float(delta))))]
         if context['limit'] > max_frame_index:
             context['limit'] = max_frame_index
         context['max_frame_index'] = max_frame_index

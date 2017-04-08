@@ -4,6 +4,9 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
+class VDNObject(models.Model):
+    url = models.URLField()
+
 class Query(models.Model):
     created = models.DateTimeField('date created', auto_now_add=True)
     results = models.BooleanField(default=False)
@@ -56,6 +59,8 @@ class Detection(models.Model):
     y = models.IntegerField(default=0)
     h = models.IntegerField(default=0)
     w = models.IntegerField(default=0)
+    vdn_key = models.IntegerField(default=-1)
+    vdn_source = models.URLField(default="")
     metadata = models.TextField(default="")
 
     def clean(self):
@@ -79,6 +84,8 @@ class IndexEntries(models.Model):
     contains_frames = models.BooleanField(default=False)
     contains_detections = models.BooleanField(default=False)
     created = models.DateTimeField('date created', auto_now_add=True)
+    vdn_key = models.IntegerField(default=-1)
+    vdn_source = models.URLField(default="")
 
     class Meta:
         unique_together = ('video', 'features_file_name',)
@@ -129,6 +136,8 @@ class Annotation(models.Model):
     y = models.IntegerField(default=0)
     h = models.IntegerField(default=0)
     w = models.IntegerField(default=0)
+    vdn_key = models.IntegerField(default=-1)
+    vdn_source = models.URLField(default="")
     created = models.DateTimeField('date created', auto_now_add=True)
 
     def clean(self):

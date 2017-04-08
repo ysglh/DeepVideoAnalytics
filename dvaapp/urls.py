@@ -14,6 +14,8 @@ router.register(r'queries', views.QueryViewSet)
 router.register(r'queryresults', views.QueryResultsViewSet)
 router.register(r'indexentries', views.IndexEntriesViewSet)
 router.register(r'taskevents', views.TEventViewSet)
+router.register(r'vdnservers', views.VDNServerViewSet)
+router.register(r'vdndatasets', views.VDNDatasetViewSet)
 
 
 urlpatterns = [

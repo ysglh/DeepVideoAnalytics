@@ -1,6 +1,6 @@
 from rest_framework import serializers, viewsets
 from django.contrib.auth.models import User
-from models import Video, VLabel, Frame, Annotation, Detection, Query, QueryResults, TEvent, IndexEntries
+from models import Video, VLabel, Frame, Annotation, Detection, Query, QueryResults, TEvent, IndexEntries, VDNDataset, VDNServer
 import os,json,logging
 
 
@@ -56,6 +56,18 @@ class AnnotationSerializer(serializers.HyperlinkedModelSerializer):
 class QuerySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Query
+        fields = '__all__'
+
+
+class VDNDatasetSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = VDNDataset
+        fields = '__all__'
+
+
+class VDNServerSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = VDNServer
         fields = '__all__'
 
 
@@ -124,7 +136,7 @@ def import_frame(f,video_obj):
     return df
 
 
-def import_detection(d,video_obj,frame_to_pk):
+def import_detection(d,video_obj,frame_to_pk,vdn_dataset=None):
     dd = Detection()
     dd.video = video_obj
     dd.x = d['x']
@@ -135,17 +147,23 @@ def import_detection(d,video_obj,frame_to_pk):
     dd.confidence = d['confidence']
     dd.object_name = d['object_name']
     dd.metadata = d['metadata']
+    if vdn_dataset:
+        dd.vdn_dataset = vdn_dataset
+    dd.vdn_key = d['id']
     dd.save()
     return dd
 
 
-def import_annotation(a,video_obj,frame_to_pk,detection_to_pk):
+def import_annotation(a,video_obj,frame_to_pk,detection_to_pk,vdn_dataset=None):
     da = Annotation()
     da.video = video_obj
     da.x = a['x']
     da.y = a['y']
     da.h = a['h']
     da.w = a['w']
+    da.vdn_key = a['id']
+    if vdn_dataset:
+        da.vdn_dataset = vdn_dataset
     if a['label'].strip():
         da.label = a['label']
         label_object, created = VLabel.objects.get_or_create(label_name=a['label'], source=VLabel.UI)
@@ -179,6 +197,7 @@ def import_index_entries(i,video_obj,previous_transformed,detection_to_pk,frame_
         transform_index_entries(di, detection_to_pk, frame_to_pk, video_obj.pk, video_root_dir)
         di.save()
 
+
 def transform_index_entries(di,detection_to_pk,frame_to_pk,video_id,video_root_dir):
     entries = json.load(file('{}/indexes/{}'.format(video_root_dir, di.entries_file_name)))
     transformed = []
@@ -206,6 +225,7 @@ def import_video_json(video_obj,video_json,video_root_dir,old_key):
     video_obj.metadata = video_json['metadata']
     video_obj.length_in_seconds = video_json['length_in_seconds']
     video_obj.save()
+    vdn_dataset = video_obj.vdn_dataset
     if not video_obj.dataset:
         old_video_path = "{}/video/{}.mp4".format(video_root_dir,old_key)
         new_video_path = "{}/video/{}.mp4".format(video_root_dir,video_obj.pk)
@@ -216,7 +236,7 @@ def import_video_json(video_obj,video_json,video_root_dir,old_key):
         df = import_frame(f,video_obj)
         frame_to_pk[f['id']] = df.pk
     for d in video_json['detection_list']:
-        dd = import_detection(d,video_obj,frame_to_pk)
+        dd = import_detection(d,video_obj,frame_to_pk,vdn_dataset)
         detection_to_pk[d['id']]=dd.pk
     for k,v in detection_to_pk.iteritems():
         original = '{}/detections/{}.jpg'.format(video_root_dir, k)
@@ -227,7 +247,7 @@ def import_video_json(video_obj,video_json,video_root_dir,old_key):
         converted = "{}/detections/{}.jpg".format(video_root_dir, v)
         os.rename(temp_file, converted)
     for a in video_json['annotation_list']:
-        da = import_annotation(a,video_obj,frame_to_pk,detection_to_pk)
+        da = import_annotation(a,video_obj,frame_to_pk,detection_to_pk,vdn_dataset)
     previous_transformed = set()
     for i in video_json['index_entries_list']:
         import_index_entries(i, video_obj, previous_transformed, detection_to_pk, frame_to_pk, video_root_dir)

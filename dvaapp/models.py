@@ -3,9 +3,25 @@ from __future__ import unicode_literals
 from django.db import models
 from django.contrib.auth.models import User
 
-
-class VDNObject(models.Model):
+class VDNServer(models.Model):
     url = models.URLField()
+    name = models.CharField(max_length=200)
+    last_response_datasets = models.TextField(default='[]')
+
+class VDNDataset(models.Model):
+    server = models.ForeignKey(VDNServer)
+    response = models.TextField(default="")
+    date_imported = models.DateTimeField('date created', auto_now_add=True)
+    name = models.CharField(max_length=100,default="")
+    created = models.DateTimeField('date created', auto_now_add=True)
+    description = models.TextField(default="")
+    download_url = models.TextField(default="")
+    url = models.TextField(default="")
+    aws_requester_pays = models.BooleanField(default=False)
+    aws_region = models.TextField(default="")
+    aws_bucket = models.TextField(default="")
+    aws_key = models.TextField(default="")
+    organization_url = models.TextField()
 
 class Query(models.Model):
     created = models.DateTimeField('date created', auto_now_add=True)
@@ -31,6 +47,7 @@ class Video(models.Model):
     youtube_video = models.BooleanField(default=False)
     query = models.BooleanField(default=False)
     parent_query = models.ForeignKey(Query,null=True)
+    vdn_dataset = models.ForeignKey(VDNDataset, null=True)
 
     def __unicode__(self):
         return u'{}'.format(self.name)
@@ -60,7 +77,7 @@ class Detection(models.Model):
     h = models.IntegerField(default=0)
     w = models.IntegerField(default=0)
     metadata = models.TextField(default="")
-    vdn_parent = models.ForeignKey(VDNObject,null=True)
+    vdn_dataset = models.ForeignKey(VDNDataset, null=True)
     vdn_key = models.IntegerField(default=-1)
 
     def clean(self):
@@ -115,7 +132,7 @@ class VLabel(models.Model):
     VDN = "VD"
     SOURCE_CHOICES = ((UI, 'User Interface'),(DIRECTORY, 'Directory Name'),(ALGO, 'Algorithm'),(VDN,"Visual Data Network"))
     label_name = models.CharField(max_length=200)
-    vdn_parent = models.ForeignKey(VDNObject, null=True)
+    vdn_dataset = models.ForeignKey(VDNDataset, null=True)
     source = models.CharField(max_length=2,choices=SOURCE_CHOICES,default=UI,)
     created = models.DateTimeField('date created', auto_now_add=True)
 
@@ -138,7 +155,7 @@ class Annotation(models.Model):
     h = models.IntegerField(default=0)
     w = models.IntegerField(default=0)
     created = models.DateTimeField('date created', auto_now_add=True)
-    vdn_parent = models.ForeignKey(VDNObject,null=True)
+    vdn_dataset = models.ForeignKey(VDNDataset,null=True)
     vdn_key = models.IntegerField(default=-1)
 
 
@@ -152,26 +169,7 @@ class Annotation(models.Model):
         super(Annotation, self).save(*args, **kwargs)
 
 
-class VDNServer(models.Model):
-    url = models.URLField()
-    name = models.CharField(max_length=200)
-    last_response_datasets = models.TextField(default='[]')
 
-class VDNDataset(models.Model):
-    server = models.ForeignKey(VDNServer)
-    child_video = models.ForeignKey(Video,null=True)
-    response = models.TextField(default="")
-    date_imported = models.DateTimeField('date created', auto_now_add=True)
-    name = models.CharField(max_length=100,default="")
-    created = models.DateTimeField('date created', auto_now_add=True)
-    description = models.TextField(default="")
-    download_url = models.TextField(default="")
-    url = models.TextField(default="")
-    aws_requester_pays = models.BooleanField(default=False)
-    aws_region = models.TextField(default="")
-    aws_bucket = models.TextField(default="")
-    aws_key = models.TextField(default="")
-    organization_url = models.TextField()
 
 class Export(models.Model):
     video = models.ForeignKey(Video)

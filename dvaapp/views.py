@@ -84,6 +84,18 @@ class VLabelViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.VLabelSerializer
 
 
+class VDNServerViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    queryset = VDNServer.objects.all()
+    serializer_class = serializers.VDNServerSerializer
+
+
+class VDNDatasetViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    queryset = VDNDataset.objects.all()
+    serializer_class = serializers.VDNDatasetSerializer
+
+
 def search(request):
     if request.method == 'POST':
         query = Query()
@@ -557,15 +569,15 @@ def import_dataset(request):
         response = r.json()
         server = VDNServer.objects.get(pk=request.POST.get('server_pk'))
         vdn_dataset = create_dataset(response,server)
+        vdn_dataset.save()
         video = Video()
         user = request.user if request.user.is_authenticated() else None
         if user:
             video.uploader = user
         video.name = vdn_dataset.name
+        video.vdn_dataset = vdn_dataset
         video.save()
         primary_key = video.pk
-        vdn_dataset.child_video = video
-        vdn_dataset.save()
         create_video_folders(video, create_subdirs=False)
         output_filename = "{}/{}/{}.zip".format(settings.MEDIA_ROOT,primary_key,primary_key)
         if 'www.dropbox.com' in vdn_dataset.download_url and not vdn_dataset.download_url.endswith('?dl=1'):
@@ -606,7 +618,7 @@ def external(request):
     context = {
         'servers':VDNServer.objects.all(),
         'available':{ server:json.loads(server.last_response_datasets) for server in VDNServer.objects.all()},
-        'datasets':VDNDataset.objects.all()
+        'datasets': Video.objects.all().filter(vdn_dataset__isnull=False)
     }
     return render(request, 'external_data.html', context)
 

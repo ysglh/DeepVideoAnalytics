@@ -116,7 +116,6 @@ def clean():
     server.name = "VisualData.Network"
     server.save()
 
-
 @task
 def restart_queues(detection=False):
     """
@@ -182,7 +181,7 @@ def quick(detection=False):
     :return:
     """
     clean()
-    create_super()
+    superuser()
     test()
     launch_queues(detection)
 
@@ -199,7 +198,7 @@ def test_backup():
 
 
 @task
-def create_super():
+def superuser():
     """
     Create a superuser
     :return:

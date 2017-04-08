@@ -85,7 +85,7 @@
                     <thead>
                     <tr>
                         <th>Name</th>
-                        <th>Server</th>
+                        <th>Url</th>
                         <th>AWS Region/Bucket/ Key</th>
                         <th>Direct download</th>
                         <th>View local</th>
@@ -93,15 +93,13 @@
                     </thead>
                     <tbody>
                         {% for dataset in datasets %}
-                            {% if dataset.child_video %}
                             <tr>
-                                <td>{{ dataset.name }}</td>
-                                <td>{{ dataset.server.name }}</td>
-                                <td>{% if dataset.aws_requester_pays %} {{ dataset.aws_region }} /{{ dataset.aws_bucket }} / {{ dataset.aws_key }}{% endif %}</td>
-                                <td><a href="{{ dataset.download_url }}">{{ dataset.download_url }}</a></td>
-                                <td class="text-center"><a href="/videos/{{ dataset.child_video_id }}">view local</a></td>
+                                <td>{{ dataset.vdn_dataset.name }}</td>
+                                <td>{{ dataset.vdn_dataset.url }}</td>
+                                <td>{% if dataset.vdn_dataset.aws_requester_pays %} {{ dataset.vdn_dataset.aws_region }} /{{ dataset.vdn_dataset.aws_bucket }} / {{ dataset.vdn_dataset.aws_key }}{% endif %}</td>
+                                <td><a href="{{ dataset.vdn_dataset.download_url }}">{{ dataset.vdn_dataset.download_url }}</a></td>
+                                <td class="text-center"><a href="/videos/{{ dataset.pk }}">view local</a></td>
                             </tr>
-                            {% endif %}
                         {% endfor %}
                     </tbody>
                 </table>

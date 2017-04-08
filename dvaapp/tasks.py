@@ -8,6 +8,7 @@ from dvalib import detector
 from dvalib import indexer
 from collections import defaultdict
 import calendar
+import requests
 from PIL import Image
 from scipy import misc
 import json
@@ -449,6 +450,19 @@ def import_video_by_id(video_id):
     start.save()
     start_time = time.time()
     video_obj = Video.objects.get(pk=video_id)
+    if video_obj.vdn_dataset and not video_obj.uploaded:
+        output_filename = "{}/{}/{}.zip".format(settings.MEDIA_ROOT,video_obj.pk,video_obj.pk)
+        if 'www.dropbox.com' in video_obj.vdn_dataset.download_url and not video_obj.vdn_dataset.download_url.endswith('?dl=1'):
+            r = requests.get(video_obj.vdn_dataset.download_url+'?dl=1')
+        else:
+            r = requests.get(video_obj.vdn_dataset.download_url)
+        with open(output_filename, 'wb') as f:
+            for chunk in r.iter_content(chunk_size=1024):
+                if chunk:
+                    f.write(chunk)
+        r.close()
+        video_obj.uploaded = True
+        video_obj.save()
     zipf = zipfile.ZipFile("{}/{}/{}.zip".format(settings.MEDIA_ROOT, video_id, video_id), 'r')
     zipf.extractall("{}/{}/".format(settings.MEDIA_ROOT, video_id))
     zipf.close()

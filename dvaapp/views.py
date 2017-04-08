@@ -580,18 +580,6 @@ def import_dataset(request):
         video.save()
         primary_key = video.pk
         create_video_folders(video, create_subdirs=False)
-        output_filename = "{}/{}/{}.zip".format(settings.MEDIA_ROOT,primary_key,primary_key)
-        if 'www.dropbox.com' in vdn_dataset.download_url and not vdn_dataset.download_url.endswith('?dl=1'):
-            r = requests.get(vdn_dataset.download_url+'?dl=1')
-        else:
-            r = requests.get(vdn_dataset.download_url)
-        with open(output_filename, 'wb') as f:
-            for chunk in r.iter_content(chunk_size=1024):
-                if chunk:
-                    f.write(chunk)
-        r.close()
-        video.uploaded = True
-        video.save()
         task_name = 'import_video_by_id'
         app.send_task(name=task_name, args=[primary_key, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
     else:

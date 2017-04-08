@@ -18,7 +18,7 @@
        - dvarabbit:/var/lib/rabbitmq
    dva:
      build: .
-     image: aub3dva:gpu
+     image: akshayubhat/dva:gpu
      container_name: dva-server
      environment:
        - DOCKER_MODE=true

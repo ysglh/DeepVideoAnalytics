@@ -18,7 +18,7 @@
        - dvarabbit:/var/lib/rabbitmq
    dva:
      build: .
-     image: aub3dva:gpu
+     image: akshayubhat/dva:gpu
      container_name: dva-server
      environment:
        - DOCKER_MODE=true
@@ -42,7 +42,7 @@
   {% for i in range(3) %}
    dvae{{i}}:
      build: .
-     image: aub3dva:gpu
+     image: akshayubhat/dva:gpu
      container_name: dva-extractor-{{i}}
      environment:
        - DOCKER_MODE=true
@@ -67,7 +67,7 @@
  {% for i in range(4) %}
    dvawd{{i}}:
      build: .
-     image: aub3dva:gpu
+     image: akshayubhat/dva:gpu
      container_name: dva-detector-{{i}}
      environment:
        - DOCKER_MODE=true
@@ -90,7 +90,7 @@
  {% for i in range(3) %}
    dvai{{i}}:
      build: .
-     image: aub3dva:gpu
+     image: akshayubhat/dva:gpu
      container_name: dva-indexer-{{i}}
      environment:
        - DOCKER_MODE=true

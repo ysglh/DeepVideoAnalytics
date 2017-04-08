@@ -101,9 +101,9 @@ if sys.platform == 'darwin':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': 'dvadb',
-            'USER': 'dvauser',
-            'PASSWORD': 'localpass',
+            'NAME': 'postgres',
+            'USER': 'postgres',
+            'PASSWORD': '',
             'HOST': 'localhost',
             'PORT': '',
         }

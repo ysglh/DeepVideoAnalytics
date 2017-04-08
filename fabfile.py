@@ -100,7 +100,7 @@ def clean():
                 local('rabbitmqadmin purge queue name={}'.format(qname))
             except:
                 logging.warning("coudnt clear queue {}".format(qname))
-    local('python manage.py makemigrations')
+    migrate()
     local('python manage.py flush --no-input')
     migrate()
     local("rm -rf {}/*".format(settings.MEDIA_ROOT))
@@ -123,7 +123,7 @@ def restart_queues(detection=False):
     tries to kill all celery workers and restarts them
     :return:
     """
-    kill_queues()
+    kill()
     local('fab startq:qextractor &')
     local('fab startq:qindexer &')
     local('fab startq:qretriever &')
@@ -133,7 +133,7 @@ def restart_queues(detection=False):
         local('fab startq:qdetector &')
 
 @task
-def kill_queues():
+def kill():
     try:
         local("ps auxww | grep 'celery -A dva worker * ' | awk '{print $2}' | xargs kill -9")
     except:
@@ -175,7 +175,7 @@ def ci():
 
 
 @task
-def quick_test(detection=False):
+def quick(detection=False):
     """
     Used on my local Mac for quickly cleaning and testing
     :param detection:

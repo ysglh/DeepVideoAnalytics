@@ -60,6 +60,8 @@ class Detection(models.Model):
     h = models.IntegerField(default=0)
     w = models.IntegerField(default=0)
     metadata = models.TextField(default="")
+    vdn_parent = models.ForeignKey(VDNObject,null=True)
+    vdn_key = models.IntegerField(default=-1)
 
     def clean(self):
         if self.parent_frame_index == -1 or self.parent_frame_index is None:
@@ -110,10 +112,13 @@ class VLabel(models.Model):
     UI = 'UI'
     DIRECTORY = 'DR'
     ALGO = 'AG'
-    SOURCE_CHOICES = ((UI, 'User Interface'),(DIRECTORY, 'Directory Name'),(ALGO, 'Algorithm'))
+    VDN = "VD"
+    SOURCE_CHOICES = ((UI, 'User Interface'),(DIRECTORY, 'Directory Name'),(ALGO, 'Algorithm'),(VDN,"Visual Data Network"))
     label_name = models.CharField(max_length=200)
+    vdn_parent = models.ForeignKey(VDNObject, null=True)
     source = models.CharField(max_length=2,choices=SOURCE_CHOICES,default=UI,)
     created = models.DateTimeField('date created', auto_now_add=True)
+
     class Meta:
         unique_together = ('source', 'label_name',)
 
@@ -133,6 +138,9 @@ class Annotation(models.Model):
     h = models.IntegerField(default=0)
     w = models.IntegerField(default=0)
     created = models.DateTimeField('date created', auto_now_add=True)
+    vdn_parent = models.ForeignKey(VDNObject,null=True)
+    vdn_key = models.IntegerField(default=-1)
+
 
     def clean(self):
         if self.parent_frame_index == -1 or self.parent_frame_index is None:

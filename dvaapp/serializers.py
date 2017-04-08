@@ -166,7 +166,10 @@ def import_annotation(a,video_obj,frame_to_pk,detection_to_pk,vdn_dataset=None):
         da.vdn_dataset = vdn_dataset
     if a['label'].strip():
         da.label = a['label']
-        label_object, created = VLabel.objects.get_or_create(label_name=a['label'], source=VLabel.UI)
+        if vdn_dataset:
+            label_object, created = VLabel.objects.get_or_create(label_name=a['label'], source=VLabel.VDN, vdn_dataset=vdn_dataset)
+        else:
+            label_object, created = VLabel.objects.get_or_create(label_name=a['label'])
         da.label_parent = label_object
     da.frame_id = frame_to_pk[a['frame']]
     if a['detection']:

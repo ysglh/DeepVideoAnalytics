@@ -33,7 +33,7 @@ def get_status(ec2,spot_request_id):
 
 
 @task
-def launch_spot():
+def launch():
     """
     A helper script to launch a spot P2 instance running Deep Video Analytics
     To use this please change the keyname, security group and IAM roles at the top
@@ -69,11 +69,11 @@ def launch_spot():
     fh = open("connect.sh", 'w')
     fh.write("#!/bin/bash\n" + "ssh -i " + env.key_filename + " " + env.user + "@" + env.hosts[0] + "\n")
     fh.close()
-    local("fab deploy_ec2") # this forces fab to set new env.hosts correctly
+    local("fab deploy") # this forces fab to set new env.hosts correctly
 
 
 @task
-def deploy_ec2(compose_file="docker-compose-gpu.yml"):
+def deploy(compose_file="docker-compose-gpu.yml"):
     """
     deploys code on hostname
     :return:

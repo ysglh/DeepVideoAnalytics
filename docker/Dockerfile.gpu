@@ -33,10 +33,7 @@ RUN apt-get update && apt-get install -y \
 	apt-get clean && \
 	apt-get autoremove && \
 	rm -rf /var/lib/apt/lists/*
-RUN wget https://s3.amazonaws.com/pytorch/whl/cu80/torch-0.1.7.post2-cp27-none-linux_x86_64.whl
-RUN pip install torch-0.1.7.post2-cp27-none-linux_x86_64.whl
 RUN pip install scipy
-RUN pip install torchvision
 RUN pip install --upgrade pip \
                           fabric \
                           django \
@@ -77,7 +74,7 @@ RUN youtube-dl -U
 RUN git clone https://github.com/akshayubhat/DeepVideoAnalytics /root/DVA
 WORKDIR "/root/DVA/darknet"
 RUN mv Makefile.gpu Makefile
-RUN make
+RUN make -j8
 RUN wget https://www.dropbox.com/s/0zopjpswug5rjqy/yolo9000.weights
 VOLUME ["/root/DVA/dva/media"]
 RUN dpkg -L python-opencv
@@ -97,5 +94,5 @@ RUN git pull
 RUN cd dvalib/facenet/facenet_model && wget https://www.dropbox.com/s/2unad9skmc7msel/model-20170306-150500.ckpt-250000.data-00000-of-00001 && cd ../../..
 RUN cd dvalib/facenet/facenet_model && wget https://www.dropbox.com/s/j8ky6bl0jgpygp6/model-20170306-150500.ckpt-250000.index && cd ../../..
 RUN cd dvalib/facenet/facenet_model && wget https://www.dropbox.com/s/tnebmpku7xtzwnv/model-20170306-150500.meta && cd ../../..
-RUN pip install --upgrade django-crispy-forms
+RUN pip install --upgrade django-crispy-forms Pillow
 EXPOSE 80

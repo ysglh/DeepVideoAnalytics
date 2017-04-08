@@ -86,8 +86,9 @@ def deploy(compose_file="docker-compose-gpu.yml"):
         except:
             time.sleep(30)  # on error wait 30 seconds
             pass
+    run("rm -rf deepvideoanalytics")
+    run("git clone https://github.com/akshayubhat/deepvideoanalytics")
     with cd('deepvideoanalytics'):
-        run('git pull')
         with cd("docker"):
             run('./rebuild_gpu.sh && nvidia-docker-compose -f {} up -d'.format(compose_file))
     if sys.platform == 'darwin':

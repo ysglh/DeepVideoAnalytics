@@ -15,7 +15,7 @@ import json
 import celery
 import zipfile
 from . import serializers
-
+import boto3
 
 def process_video_next(video_id,current_task_name):
     if current_task_name in settings.POST_OPERATION_TASKS:
@@ -452,15 +452,22 @@ def import_video_by_id(video_id):
     video_obj = Video.objects.get(pk=video_id)
     if video_obj.vdn_dataset and not video_obj.uploaded:
         output_filename = "{}/{}/{}.zip".format(settings.MEDIA_ROOT,video_obj.pk,video_obj.pk)
-        if 'www.dropbox.com' in video_obj.vdn_dataset.download_url and not video_obj.vdn_dataset.download_url.endswith('?dl=1'):
-            r = requests.get(video_obj.vdn_dataset.download_url+'?dl=1')
+        if video_obj.vdn_dataset.aws_requester_pays:
+            s3 = boto3.client('s3')
+            s3.meta.client.download_file(video_obj.vdn_dataset.aws_bucket,
+                                         video_obj.vdn_dataset.aws_key,
+                                         output_filename,
+                                         RequestPayer ='requester')
         else:
-            r = requests.get(video_obj.vdn_dataset.download_url)
-        with open(output_filename, 'wb') as f:
-            for chunk in r.iter_content(chunk_size=1024):
-                if chunk:
-                    f.write(chunk)
-        r.close()
+            if 'www.dropbox.com' in video_obj.vdn_dataset.download_url and not video_obj.vdn_dataset.download_url.endswith('?dl=1'):
+                r = requests.get(video_obj.vdn_dataset.download_url+'?dl=1')
+            else:
+                r = requests.get(video_obj.vdn_dataset.download_url)
+            with open(output_filename, 'wb') as f:
+                for chunk in r.iter_content(chunk_size=1024):
+                    if chunk:
+                        f.write(chunk)
+            r.close()
         video_obj.uploaded = True
         video_obj.save()
     zipf = zipfile.ZipFile("{}/{}/{}.zip".format(settings.MEDIA_ROOT, video_id, video_id), 'r')

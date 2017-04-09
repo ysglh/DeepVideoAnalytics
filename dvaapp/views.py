@@ -188,7 +188,7 @@ def index(request,query_pk=None,frame_pk=None,detection_pk=None):
 
 def annotate(request,query_pk=None,frame_pk=None,detection_pk=None):
     context = {'frame':None, 'detection':None ,'existing':[]}
-    label_dict = {tag.label_name:tag.pk for tag in VLabel.objects.filter(source=VLabel.UI).all()}
+    label_dict = {tag.label_name:tag.pk for tag in VLabel.objects.filter(hidden=False).all()}
     context['available_tags'] = label_dict.keys()
     frame = None
     if query_pk:

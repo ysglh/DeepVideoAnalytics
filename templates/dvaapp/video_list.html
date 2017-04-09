@@ -82,7 +82,6 @@
                                 <th class="text-center">Started</th>
                                 <th class="text-center">Completed</th>
                                 <th class="text-center">Download</th>
-                                <th class="text-center">Push to VDN</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -92,7 +91,6 @@
                                 <td>{{ e.started }}</td>
                                 <td>{{ e.completed }}</td>
                                 <td class="text-center">{% if e.completed %}<a href="/media/exports/{{ e.file_name }}">download</a>{% endif %}</td>
-                                <td class="text-center">{% if e.completed %}<a href="/push_to_vdn/{{ e.pk }}">publish to VDN</a>{% endif %}</td>
                             </tr>
                         {% endfor %}
                         </tbody>

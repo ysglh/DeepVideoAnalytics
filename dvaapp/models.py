@@ -137,6 +137,7 @@ class VLabel(models.Model):
     vdn_dataset = models.ForeignKey(VDNDataset, null=True)
     source = models.CharField(max_length=2,choices=SOURCE_CHOICES,default=UI,)
     created = models.DateTimeField('date created', auto_now_add=True)
+    hidden = models.BooleanField(default=True)
 
     class Meta:
         unique_together = ('source', 'label_name',)

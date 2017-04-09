@@ -371,7 +371,17 @@ class VideoDetail(DetailView):
         context = super(VideoDetail, self).get_context_data(**kwargs)
         max_frame_index = Frame.objects.all().filter(video=self.object).aggregate(Max('frame_index'))['frame_index__max']
         context['exports'] = Export.objects.all().filter(video=self.object)
+        context['annotation_count'] = Annotation.objects.all().filter(video=self.object).count()
+        context['label_count'] = VLabel.objects.all().filter(video=self.object).count()
         context['url'] = '{}/{}/video/{}.mp4'.format(settings.MEDIA_URL,self.object.pk,self.object.pk)
+        label_list = []
+        show_all = self.request.GET.get('show_all_labels', False)
+        if context['label_count'] < 100 or show_all:
+            for k in VLabel.objects.all().filter(video=context['object']):
+                label_list.append({'label_name': k.label_name,'created': k.created,'pk': k.pk,'source': k.get_source_display(),'count':Annotation.objects.filter(label_parent=k).count()})
+        else:
+            context['label_count_warning'] = True
+        context['label_list'] = label_list
         delta = 10000
         if context['object'].dataset:
             delta = 1000
@@ -582,6 +592,36 @@ def import_dataset(request):
     else:
         raise NotImplementedError
     return redirect('video_list')
+
+
+def create_label(request):
+    if request.method == 'POST':
+        video_id = request.POST.get('video_pk')
+        name = request.POST.get('name')
+        multiple = request.POST.get('video_pk')
+        video = Video.objects.get(pk=video_id)
+        if multiple:
+            for k in name.strip().split(','):
+                label, created = VLabel.objects.get_or_create(label_name=k, source=VLabel.UI, video=video)
+        else:
+            label,created = VLabel.objects.get_or_create(label_name=name,source=VLabel.UI,video=video)
+    else:
+        raise NotImplementedError
+    return redirect('video_detail',pk=video_id)
+
+
+def delete_label(request):
+    if request.method == 'POST':
+        for key in request.POST:
+            if key.startswith('delete_label_pk_') and request.POST[key]:
+                label = VLabel.objects.get(pk=int(key.split('_')[-1]))
+                Annotation.objects.filter(label_parent=label).delete()
+                label.delete()
+        video_id = request.POST.get('video_pk')
+        video = Video.objects.get(pk=video_id)
+    else:
+        raise NotImplementedError
+    return redirect('video_detail',pk=video_id)
 
 
 def external(request):

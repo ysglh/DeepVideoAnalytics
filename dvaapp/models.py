@@ -136,6 +136,7 @@ class VLabel(models.Model):
     label_name = models.CharField(max_length=200)
     source = models.CharField(max_length=2,choices=SOURCE_CHOICES,default=UI,)
     created = models.DateTimeField('date created', auto_now_add=True)
+    vdn_dataset = models.ForeignKey(VDNDataset,null=True)
     video = models.ForeignKey(Video)
     class Meta:
         unique_together = ('source', 'label_name','video')
@@ -149,7 +150,7 @@ class Annotation(models.Model):
     parent_frame_index = models.IntegerField(default=-1)
     metadata_text = models.TextField(default="")
     label_parent = models.ForeignKey(VLabel, null=True)
-    label = models.TextField(default="empty")
+    label = models.TextField(default="")
     full_frame = models.BooleanField(default=True)
     x = models.IntegerField(default=0)
     y = models.IntegerField(default=0)

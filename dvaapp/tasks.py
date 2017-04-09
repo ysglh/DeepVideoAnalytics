@@ -239,7 +239,7 @@ def set_directory_labels(frames,dv):
     labels_to_frame = defaultdict(set)
     for f in frames:
         if f.name:
-            for l in f.subdir.split('/'):
+            for l in f.subdir.split('/')[1:]:
                 if l.strip():
                     labels_to_frame[l].add(f.primary_key)
     for l in labels_to_frame:

@@ -14,6 +14,7 @@
 <div class="row">
     <div class="col-lg-6">
         <div class="box box-primary">
+            <div class="box-header"><h3>Detections</h3></div>
             <div class="box-body">
                 <table class="table">
                 <thead>
@@ -41,18 +42,25 @@
                 {% endfor %}
                 </tbody>
                 </table>
+            </div>
+        </div>
+        <div class="box box-primary">
+            <div class="box-header"><h3>Annotations</h3></div>
+            <div class="box-body">
+
                 {% if annotation_list %}
                 <table class="table">
                 <thead>
                 <tr>
                         <th>Annotation</th>
-                        <th>Full frame</th>
+                        <th>full frame</th>
                         <th>detection_id</th>
                         <th>User</th>
                         <th>x</th>
                         <th>y</th>
                         <th>w</th>
                         <th>h</th>
+                        <th>metadata</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -66,6 +74,7 @@
                         <td>{{ d.y }} </td>
                         <td>{{ d.w }} </td>
                         <td>{{ d.h }} </td>
+                        <td class="text-center"><button type="button" class="btn btn-primary" data-toggle="modal" data-target="#{{ d.pk }}">view metadata</button></td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -119,4 +128,22 @@
     {% endfor %}
 </div>
 </section>
+{% for k in annotation_list %}
+ <div class="modal fade" id="{{ k.pk }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">Annotation {{ k.label }}</h4>
+      </div>
+      <div class="modal-body">
+        <textarea rows="10" style="width:80%;margin: 10px auto;">{{ k.metadata_text }}</textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
 {% endblock %}

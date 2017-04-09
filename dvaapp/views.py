@@ -352,6 +352,7 @@ def handle_uploaded_file(f,name,extract=True,user=None):
             extract_frames.apply_async(args=[primary_key],queue=settings.Q_EXTRACTOR)
     else:
         raise ValueError,"Extension {} not allowed".format(filename.split('.')[-1])
+    return video
 
 
 class VideoList(ListView):

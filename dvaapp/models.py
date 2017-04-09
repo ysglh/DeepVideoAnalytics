@@ -134,13 +134,11 @@ class VLabel(models.Model):
     VDN = "VD"
     SOURCE_CHOICES = ((UI, 'User Interface'),(DIRECTORY, 'Directory Name'),(ALGO, 'Algorithm'),(VDN,"Visual Data Network"))
     label_name = models.CharField(max_length=200)
-    vdn_dataset = models.ForeignKey(VDNDataset, null=True)
     source = models.CharField(max_length=2,choices=SOURCE_CHOICES,default=UI,)
     created = models.DateTimeField('date created', auto_now_add=True)
-    hidden = models.BooleanField(default=True)
-
+    video = models.ForeignKey(Video)
     class Meta:
-        unique_together = ('source', 'label_name',)
+        unique_together = ('source', 'label_name','video')
 
 
 class Annotation(models.Model):

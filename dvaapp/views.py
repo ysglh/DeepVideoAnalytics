@@ -6,7 +6,7 @@ import os,base64, json
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView,DetailView
 from django.utils.decorators import method_decorator
-from .forms import UploadFileForm,YTVideoForm,AnnotationForm,VLabelForm
+from .forms import UploadFileForm,YTVideoForm,AnnotationForm
 from .models import Video,Frame,Detection,Query,QueryResults,TEvent,IndexEntries,VDNDataset, Annotation, VLabel, Export, VDNServer
 from .tasks import extract_frames
 from dva.celery import app
@@ -188,14 +188,13 @@ def index(request,query_pk=None,frame_pk=None,detection_pk=None):
 
 def annotate(request,query_pk=None,frame_pk=None,detection_pk=None):
     context = {'frame':None, 'detection':None ,'existing':[]}
-    label_dict = {tag.label_name:tag.pk for tag in VLabel.objects.filter(hidden=False).all()}
-    context['available_tags'] = label_dict.keys()
     frame = None
     if query_pk:
-        previous_query = Query.objects.get(pk=query_pk)
-        context['initial_url'] = '/media/queries/{}.png'.format(query_pk)
+        raise NotImplementedError
     elif frame_pk:
         frame = Frame.objects.get(pk=frame_pk)
+        label_dict = {tag.label_name: tag.pk for tag in VLabel.objects.filter(video=frame.video).all()}
+        context['available_tags'] = label_dict.keys()
         context['frame'] = frame
         context['initial_url'] = '/media/{}/frames/{}.jpg'.format(frame.video.pk,frame.frame_index)
         context['previous_frame'] = Frame.objects.filter(video=frame.video,frame_index__lt=frame.frame_index).order_by('-frame_index')[0:1]
@@ -229,9 +228,9 @@ def annotate(request,query_pk=None,frame_pk=None,detection_pk=None):
             context['existing'].append(temp)
         context['existing'] = json.dumps(context['existing'])
     elif detection_pk:
-        detection = Detection.objects.get(pk=detection_pk)
-        context['detection'] = detection
-        context['initial_url'] = '/media/{}/detections/{}.jpg'.format(detection.video.pk, detection.pk)
+        raise NotImplementedError
+    else:
+        raise NotImplementedError
     if request.method == 'POST':
         form = AnnotationForm(request.POST)
         if form.is_valid():
@@ -509,12 +508,6 @@ def indexes(request):
 
 
 def annotations(request):
-    if request.method == 'POST':
-        form = VLabelForm(request.POST)
-        if form.is_valid():
-            label = form.save(commit=False)
-            label.save()
-    form = VLabelForm()
     query = Annotation.objects.all().values('label_parent_id').annotate(
         total=Count('pk'),
         frame_count=Count('frame',distinct=True),
@@ -531,7 +524,7 @@ def annotations(request):
                              'total':k['total'],
                              'frame_count': k['frame_count'],
                              'video_count':k['video_count']})
-    context = {'form':form,'vlabels':VLabel.objects.all(),'label_stats':query_result,
+    context = {'vlabels':VLabel.objects.all(),'label_stats':query_result,
                'annotations_count':Annotation.objects.all().count(),'labels_count':VLabel.objects.all().count(),}
     return render(request, 'annotations.html', context)
 

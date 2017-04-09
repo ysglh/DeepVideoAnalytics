@@ -64,11 +64,18 @@ def start_container():
         except:
             print "warning assuming that the config was already moved"
             pass
-        try:
-            local("mv docker/configs/nginx-app.conf /etc/nginx/sites-available/default")
-        except:
-            print "warning assuming that the config was already moved"
-            pass
+        if 'ENABLE_BASICAUTH' in os.environ:
+            try:
+                local("mv docker/configs/nginx-app_password.conf /etc/nginx/sites-available/default")
+            except:
+                print "warning assuming that the config was already moved"
+                pass
+        else:
+            try:
+                local("mv docker/configs/nginx-app.conf /etc/nginx/sites-available/default")
+            except:
+                print "warning assuming that the config was already moved"
+                pass
         try:
             local("mv docker/configs/supervisor-app.conf /etc/supervisor/conf.d/")
         except:

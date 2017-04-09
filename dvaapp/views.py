@@ -523,6 +523,10 @@ def annotations(request):
     for k in query:
         label = VLabel.objects.get(pk=k['label_parent_id'])
         query_result.append({'label_name':label.label_name,
+                             'created': label.created,
+                             'hidden': label.hidden,
+                             'pk': label.pk,
+                             'vdn_dataset': label.vdn_dataset,
                              'source':label.get_source_display(),
                              'total':k['total'],
                              'frame_count': k['frame_count'],

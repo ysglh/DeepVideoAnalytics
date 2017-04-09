@@ -27,5 +27,5 @@ class AnnotationForm(forms.Form):
 class VLabelForm(ModelForm):
     class Meta:
         model = VLabel
-        fields = ['label_name']
+        fields = ['label_name','hidden']
 

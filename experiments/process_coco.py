@@ -8,11 +8,15 @@ sys.path.append('../../')
 import django,os,glob
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
 django.setup()
-train_data = json.load(file("coco_sample/instances_train2014.json"))
-capitons_train_data = json.load(file("coco_sample/captions_train2014.json"))
-keypoints_train_data = json.load(file("coco_sample/person_keypoints_train2014.json"))
+os.system("wget http://msvocds.blob.core.windows.net/annotations-1-0-3/instances_train-val2014.zip")
+os.system("wget http://msvocds.blob.core.windows.net/annotations-1-0-3/person_keypoints_trainval2014.zip")
+os.system("wget http://msvocds.blob.core.windows.net/annotations-1-0-3/captions_train-val2014.zip")
+os.system("unzip *")
+train_data = json.load(file("annotations/instances_train2014.json"))
+capitons_train_data = json.load(file("annotations/captions_train2014.json"))
+keypoints_train_data = json.load(file("annotations/person_keypoints_train2014.json"))
 sample = random.sample(train_data['images'],500)
-dirname = '/Users/aub3/coco_input/'
+dirname = 'coco_input/'
 ids = set()
 try:
     shutil.rmtree(dirname)
@@ -112,10 +116,10 @@ for frame in models.Frame.objects.all().filter(video=video):
         annotation.save()
 from dvaapp.tasks import export_video_by_id
 from django.conf import settings
-inception_index_by_id(v.pk)
-perform_ssd_detection_by_id(v.pk)
+# inception_index_by_id(v.pk)
+# perform_ssd_detection_by_id(v.pk)
 # perform_yolo_detection_by_id(v.pk)
-perform_face_indexing(v.pk)
-inception_index_ssd_detection_by_id(v.pk)
+# perform_face_indexing(v.pk)
+# inception_index_ssd_detection_by_id(v.pk)
 export_video_by_id(v.pk)
 os.system('cp {}/exports/{}*.dva_export.zip .'.format(settings.MEDIA_ROOT,v.pk))

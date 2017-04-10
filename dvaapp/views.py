@@ -387,7 +387,7 @@ class VideoDetail(DetailView):
         if context['object'].dataset:
             delta = 1000
         if max_frame_index <= delta:
-            context['frame_list'] = Frame.objects.all().filter(video=self.object)
+            context['frame_list'] = Frame.objects.all().filter(video=self.object).order_by('frame_index')
             context['detection_list'] = Detection.objects.all().filter(video=self.object)
             context['annotation_list'] = Annotation.objects.all().filter(video=self.object)
             context['offset'] = 0
@@ -400,10 +400,12 @@ class VideoDetail(DetailView):
             limit = offset + delta
             context['offset'] = offset
             context['limit'] = limit
-            context['frame_list'] = Frame.objects.all().filter(video=self.object,frame_index__gte=offset,frame_index__lte=limit)
+            context['frame_list'] = Frame.objects.all().filter(video=self.object,frame_index__gte=offset,frame_index__lte=limit).order_by('frame_index')
             context['detection_list'] = Detection.objects.all().filter(video=self.object,parent_frame_index__gte=offset,parent_frame_index__lte=limit)
             context['annotation_list'] = Annotation.objects.all().filter(video=self.object,parent_frame_index__gte=offset,parent_frame_index__lte=limit)
             context['frame_index_offsets'] = [(k*delta,(k*delta)+delta) for k in range(int(math.ceil(max_frame_index / float(delta))))]
+        context['frame_first'] = context['frame_list'].first()
+        context['frame_last'] = context['frame_list'].last()
         if context['limit'] > max_frame_index:
             context['limit'] = max_frame_index
         context['max_frame_index'] = max_frame_index

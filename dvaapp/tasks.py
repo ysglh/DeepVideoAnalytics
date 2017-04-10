@@ -438,7 +438,7 @@ def export_video_by_id(video_id):
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
-    return zipper.returncode
+    return export.file_name
 
 
 @app.task(name="import_video_by_id")

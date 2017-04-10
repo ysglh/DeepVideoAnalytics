@@ -216,7 +216,7 @@ def transform_index_entries(di,detection_to_pk,frame_to_pk,video_id,video_root_d
 
 
 def import_video_json(video_obj,video_json,video_root_dir,old_key):
-    video_obj.name = 'Imported:'+ video_json['name']
+    video_obj.name = video_json['name']
     video_obj.frames = video_json['frames']
     video_obj.height = video_json['height']
     video_obj.width = video_json['width']

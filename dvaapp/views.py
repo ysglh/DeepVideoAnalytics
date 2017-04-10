@@ -373,6 +373,10 @@ class VideoDetail(DetailView):
         max_frame_index = Frame.objects.all().filter(video=self.object).aggregate(Max('frame_index'))['frame_index__max']
         context['exports'] = Export.objects.all().filter(video=self.object)
         context['annotation_count'] = Annotation.objects.all().filter(video=self.object).count()
+        if self.object.vdn_dataset:
+            context['exportable_annotation_count'] = Annotation.objects.all().filter(video=self.object,vdn_dataset__isnull=True).count()
+        else:
+            context['exportable_annotation_count'] = 0
         context['label_count'] = VLabel.objects.all().filter(video=self.object).count()
         context['url'] = '{}/{}/video/{}.mp4'.format(settings.MEDIA_URL,self.object.pk,self.object.pk)
         label_list = []
@@ -411,6 +415,7 @@ class VideoDetail(DetailView):
         context['max_frame_index'] = max_frame_index
         return context
 
+
 class QueryList(ListView):
     model = Query
 
@@ -439,6 +444,17 @@ class QueryDetail(DetailView):
 
 class FrameList(ListView):
     model = Frame
+
+
+def push(request,video_id):
+    video = Video.objects.get(pk=video_id)
+    servers = VDNServer.objects.all()
+    context = {'video':video, 'servers':servers}
+    if video.vdn_dataset:
+        context['annotations'] = Annotation.objects.all().filter(video=video, vdn_dataset__isnull=True)
+    else:
+        context['annotations'] = Annotation.objects.all().filter(video=video)
+    return render(request,'push.html',context)
 
 
 class FrameDetail(DetailView):

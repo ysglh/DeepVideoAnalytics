@@ -161,6 +161,7 @@ def index(request,query_pk=None,frame_pk=None,detection_pk=None):
         user = request.user if request.user.is_authenticated() else None
         if form.is_valid():
             handle_uploaded_file(request.FILES['file'],form.cleaned_data['name'],user=user)
+            return redirect('video_list')
         else:
             raise ValueError
     else:
@@ -180,6 +181,8 @@ def index(request,query_pk=None,frame_pk=None,detection_pk=None):
     context['query_count'] = Query.objects.count()
     context['index_entries_count'] = IndexEntries.objects.count()
     context['external_datasets_count'] = VDNDataset.objects.count()
+    context['external_servers_count'] = VDNServer.objects.count()
+    context['task_events_count'] = TEvent.objects.count()
     context['video_count'] = Video.objects.count() - context['query_count']
     context['detection_count'] = Detection.objects.count()
     context['annotation_count'] = Annotation.objects.count()
@@ -283,7 +286,8 @@ def yt(request):
             raise ValueError
     else:
         raise NotImplementedError
-    return redirect('app')
+    return redirect('video_list')
+
 
 
 def export_video(request):

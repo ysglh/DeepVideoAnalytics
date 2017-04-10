@@ -94,22 +94,21 @@
             <div class="col-lg-6">
                 <div class="box box-primary">
                     <div class="box-body with_border">
-                        <p>Upload a video or multiple images in a single zip file <a href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/tests/exampledataset.zip" target="_blank">(example of zip file with jpg images)</a> or an exported (".dva_export.zip") file.</p>
+                        <h4 class="text-center">Upload video / dataset</h4>
+                        <p>video or images in a single zip file <a href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/tests/exampledataset.zip" target="_blank">(example of zip file)</a> or an exported ".dva_export.zip".</p>
                         <form role="form"  method="post" enctype="multipart/form-data" action="#" >
                             <div class="form-group">
                             <input id="id_name" name="name" class="form-control" type="text" required="" placeholder="provide a name">
                             </div>
                             <div class="form-group">
-                            <label class="" for="id_file">File:</label><input id="id_file" name="file" class="btn btn-file" type="file" required="">
+                            <label class="" for="id_file">Video (.mp4) or zip file:</label><input id="id_file" name="file" class="btn btn-file" type="file" required="">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-primary btn-block">Upload</button>
                             </div>
                         </form>
-                      </div>
-                </div>
-                <div class="box box-primary">
-                    <div class="box-body">
-                        <p>Submit youtube video url. We use <a href="https://rg3.github.io/youtube-dl/">youtube-dl</a>.</p>
+                        <div class="m-t text-center m-b">Or</div>
+                        <h4 class="text-center">Submit youtube video url</h4>
+                        <p>We use <a href="https://rg3.github.io/youtube-dl/">youtube-dl</a>.</p>
                         <form role="form"  method="post" action="/youtube" >
                                 <div class="form-group">
                                     <input id="id_ytname" name="name" class="form-control" type="text" required="" placeholder="provide a name">
@@ -125,7 +124,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-6">
+            <div class="col-lg-6 hidden-md">
                 <div class="box box-primary">
                     <div class="box-body">
                         <table class="table">
@@ -168,8 +167,18 @@
                                     <td class="text-center"><a href="/indexes/">view</a></td>
                                 </tr>
                                 <tr>
-                                    <td>External datasets</td>
+                                    <td>Task events</td>
+                                    <td class="text-right">{{ task_events_count }}</td>
+                                    <td class="text-center"><a href="/tasks/">view</a></td>
+                                </tr>
+                                <tr>
+                                    <td>VDN datasets</td>
                                     <td class="text-right">{{ external_datasets_count }}</td>
+                                    <td class="text-center"><a href="/external/">view</a></td>
+                                </tr>
+                                <tr>
+                                    <td>VDN servers</td>
+                                    <td class="text-right">{{ external_servers_count }}</td>
                                     <td class="text-center"><a href="/external/">view</a></td>
                                 </tr>
                             </tbody>

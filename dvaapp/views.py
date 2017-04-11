@@ -450,12 +450,12 @@ class FrameList(ListView):
     model = Frame
 
 
-def create_child_vdn_dataset(parent_url,server,headers):
+def create_child_vdn_dataset(parent_video,server,headers):
     server_url = server.url
     if not server_url.endswith('/'):
         server_url += '/'
     new_dataset = {'root': False,
-                   'parent_url': parent_url ,
+                   'parent_url': parent_video.vdn_dataset.url ,
                    'description':'automatically created child'}
     r = requests.post("{}api/datasets/".format(server_url), data=new_dataset, headers=headers)
     if r.status_code == 201:
@@ -464,6 +464,7 @@ def create_child_vdn_dataset(parent_url,server,headers):
         vdn_dataset.root = False
         vdn_dataset.response = r.text
         vdn_dataset.server = server
+        vdn_dataset.parent_local = parent_video.vdn_dataset
         vdn_dataset.save()
         return vdn_dataset
     else:
@@ -482,7 +483,7 @@ def push(request,video_id):
         if not server_url.endswith('/'):
             server_url += '/'
         headers = {'Authorization': 'Token {}'.format(server.last_token)}
-        new_vdn_dataset = create_child_vdn_dataset(video.vdn_dataset.url, server, headers)
+        new_vdn_dataset = create_child_vdn_dataset(video, server, headers)
         for key in request.POST:
             if key.startswith('annotation_') and request.POST[key]:
                 annotation = Annotation.objects.get(pk=int(key.split('annotation_')[1]))
@@ -718,9 +719,17 @@ def external(request):
     context = {
         'servers':VDNServer.objects.all(),
         'available':{ server:json.loads(server.last_response_datasets) for server in VDNServer.objects.all()},
-        'datasets': Video.objects.all().filter(vdn_dataset__isnull=False)
+        'vdn_datasets': VDNDataset.objects.all(),
     }
     return render(request, 'external_data.html', context)
+
+
+class VDNDatasetDetail(DetailView):
+    model = VDNDataset
+
+    def get_context_data(self, **kwargs):
+        context = super(VDNDatasetDetail, self).get_context_data(**kwargs)
+        context['video'] = Video.objects.get(vdn_dataset=context['object'])
 
 
 def retry_task(request,pk):

@@ -10,6 +10,7 @@ class VDNServer(models.Model):
     last_response_datasets = models.TextField(default='[]')
     last_token = models.CharField(max_length=300, default="")
 
+
 class VDNDataset(models.Model):
     server = models.ForeignKey(VDNServer)
     response = models.TextField(default="")
@@ -24,7 +25,9 @@ class VDNDataset(models.Model):
     aws_bucket = models.TextField(default="")
     aws_key = models.TextField(default="")
     root = models.BooleanField(default=True)
+    parent_local = models.ForeignKey('self',null=True)
     organization_url = models.TextField()
+
 
 class Query(models.Model):
     created = models.DateTimeField('date created', auto_now_add=True)

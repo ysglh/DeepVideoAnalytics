@@ -35,6 +35,7 @@ urlpatterns = [
     url(r'^queries/$', views.QueryList.as_view()),
     url(r'^Search$', views.search),
     url(r'^videos/(?P<pk>\d+)/$', views.VideoDetail.as_view(), name='video_detail'),
+    url(r'^vdn_datasets/(?P<pk>\d+)/$', views.VDNDatasetDetail.as_view(), name='vdn_dataset_detail'),
     url(r'^frames/$', views.FrameList.as_view()),
     url(r'^frames/(?P<pk>\d+)/$', views.FrameDetail.as_view(), name='frames_detail'),
     url(r'^queries/(?P<pk>\d+)/$', views.QueryDetail.as_view(), name='query_detail'),

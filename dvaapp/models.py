@@ -23,6 +23,7 @@ class VDNDataset(models.Model):
     aws_region = models.TextField(default="")
     aws_bucket = models.TextField(default="")
     aws_key = models.TextField(default="")
+    root = models.BooleanField(default=True)
     organization_url = models.TextField()
 
 class Query(models.Model):

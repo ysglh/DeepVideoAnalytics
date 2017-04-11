@@ -78,7 +78,7 @@
                     <div class="col-lg-3 col-md-3 col-sm-3 m-t text-center">
                         <div class="form-group">
                             <label for="submitbtn">Submit</label>
-                            <button class="btn btn-primary form-control" name="submitbtn" type="submit">Push annotations</button>
+                            <button class="btn btn-primary form-control" name="submitbtn" type="submit" onclick="push_annotations()">Push annotations</button>
                         </div>
                     </div>
                 </div>
@@ -96,6 +96,17 @@
 <script>
     $(document).ready(function() {
         InitializeTables();
+        var push_annotations = function() {
+        $.ajax({
+                type: "POST",
+                url: "https://www.visualdata.network/api/annotations/",
+                dataType: 'json',
+                async: true,
+                data: {x:9,y:9,metadata_text:"sadjnasdnaksdnkalnsi2h31nkin2elk12le",w:9,h:9},
+                beforeSend: function (xhr) {xhr.setRequestHeader ("Authorization", "Token "+$('#token').val())},
+                success: function (){alert('Thanks for your comment!');},
+                });
+        }
     })
 </script>
 {% endblock %}

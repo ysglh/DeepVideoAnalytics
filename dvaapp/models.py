@@ -8,7 +8,7 @@ class VDNServer(models.Model):
     url = models.URLField()
     name = models.CharField(max_length=200)
     last_response_datasets = models.TextField(default='[]')
-
+    last_token = models.CharField(max_length=300, default="")
 
 class VDNDataset(models.Model):
     server = models.ForeignKey(VDNServer)

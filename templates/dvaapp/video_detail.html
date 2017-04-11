@@ -47,7 +47,7 @@
                 <div class="text-center">
                     <h4>You have <span style="font-weight:bold">{{ exportable_annotation_count }}</span> local annotations associated with this video which you can push to a remote VDN server.
                     </h4>
-                    <form action="/push/{{ video.id }}">{% csrf_token %}<button type="submit" class="btn btn-primary"> <i class="fa fa-upload"></i>  Push annotations (you will get a chance to review / confirm)</button></form>
+                    <a  href="/push/{{ video.id }}" class="btn btn-primary"> <i class="fa fa-upload"></i>  Push annotations (you will get a chance to review / confirm)</a>
                 </div>
             {% endif %}
             {% if not video.vdn_dataset %}

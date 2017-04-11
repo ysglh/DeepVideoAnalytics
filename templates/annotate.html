@@ -59,7 +59,7 @@
                                 <label for="top">Text metadata</label>
                                 <textarea name="metadata" id="{[ box.id ]}_metadata" class="form-control" rows="2" required="" placeholder="metadata" ></textarea>
                             </div>
-                            <label style="font-weight:bold">Assign tags/labels (Define new tags <a href="/annotations/">here</a>) :</label>
+                            <label style="font-weight:bold">Assign tags/labels (Define new tags <a href="/videos/{{ frame.video.pk }}">here</a>) :</label>
                             <select class="js-example-basic-multiple" multiple="multiple" id="{[ box.id ]}_tags" style="width:100%">
                             {% for tag in available_tags %}
                                 <option value="{{ tag }}">{{ tag }}</option>

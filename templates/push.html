@@ -6,12 +6,13 @@
 <div class="row">
     <div class="box box-info">
         <div class="box-header">
-            <h2>{% if video.vdn_dataset %}
-                Push new annotations to remote VDN server
+            <h4>
+                {% if video.vdn_dataset %}
+                    Push new annotations in <span style="font-weight:bold">{{ video.name }}</span> to remote VDN server
                 {% else %}
-                Push video / dataset with frames, annotations, and other information to remote VDN server
+                    Export & Push <span style="font-weight:bold">{{ video.name }}</span> with frames, annotations, and other information to remote VDN server
                 {% endif %}
-            </h2>
+            </h4>
         </div>
     </div>
 </div>
@@ -25,7 +26,10 @@
                     <h4>Pending Annotations</h4>
                 </div>
                 <div class="box-body">
-                <form method="post" id="push_form">
+                <form method="post" id="push_form" action=".">
+                <div class="text-center">
+                    <h4>Select / Deselect all annotations <input style="display:inline-block" name="selectall" class="checkbox" type="checkbox" id="select_all"></h4>
+                </div>
                 <table class="table dataTables">
                 <thead>
                 <tr>
@@ -55,33 +59,34 @@
                         <td class="text-right">{{ d.parent_frame_index }} </td>
                         <td class="text-center"> <a href="#" onclick="view_metadata({{ d.pk }})">view metadata</a></td>
                         <td class="text-center"><a href="/annotate_frame/{{ d.frame_id }}">view / delete</a></td>
-                        <td class="text-center"><input type="checkbox" name="annotation_{{ d.pk }}" checked="checked" class="checkbox" /></td>
+                        <td class="text-center"><input type="checkbox"  name="annotation_{{ d.pk }}" checked="checked" class="checkbox select_annotation" /></td>
                     </tr>
                 {% endfor %}
                 </tbody>
                 </table>
-                <div class="row">
-                    <div class="col-lg-3 col-md-3 col-sm-3 m-t text-center">
-                    <div class="form-group">
-                        <label for="vdn_server">VDN Server</label>
-                        <input type="text" class="form-control" name="vdn_server" />
-                    </div>
-                    </div>
-                    <div class="col-lg-3 col-md-3 col-sm-3 m-t text-center"><div class="form-group">
-                        <label for="username">VDN Username</label>
-                        <input type="text" class="form-control" name="username" placeholder="username" ></div>
-                    </div>
-                    <div class="col-lg-3 col-md-3 col-sm-3 m-t text-center"><div class="form-group">
-                        <label for="password">VDN Password</label>
-                        <input type="password" class="form-control" name="password" placeholder="password"></div>
-                    </div>
-                    <div class="col-lg-3 col-md-3 col-sm-3 m-t text-center">
+                    {% for server in servers %}
+                    <div class="row">
+                        <div class="col-lg-4 col-md-4 col-sm-4 m-t text-center">
                         <div class="form-group">
-                            <label for="submitbtn">Submit</label>
-                            <button class="btn btn-primary form-control" name="submitbtn" type="submit" onclick="push_annotations()">Push annotations</button>
+                                <label for="vdn_server">VDN Server</label>
+                                <input type="text" class="form-control" name="vdn_server" value="{{ server.url }}" />
+                        </div>
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-4 m-t text-center">
+                            <div class="form-group">
+                                <label for="password">Token <a target="_blank" href="{{ server.url }}/get_token/">(generate token here)</a></label>
+                                <input type="text" class="form-control" name="token_{{ server.pk }}"  value="{{ server.last_token }}">
+                            </div>
+                        </div>
+                        {% csrf_token %}
+                        <div class="col-lg-4 col-md-4 col-sm-4">
+                            <div class="form-group text-center">
+                                <label for="submitbtn">Submit</label>
+                                <button  class="btn btn-primary form-control" name="server" value="{{ server.pk }}"  type="submit">Push to {{ server.url }}</button>
+                            </div>
                         </div>
                     </div>
-                </div>
+                    {% endfor %}
                 </form>
                 </div>
             </div>
@@ -96,17 +101,11 @@
 <script>
     $(document).ready(function() {
         InitializeTables();
-        var push_annotations = function() {
-        $.ajax({
-                type: "POST",
-                url: "https://www.visualdata.network/api/annotations/",
-                dataType: 'json',
-                async: true,
-                data: {x:9,y:9,metadata_text:"sadjnasdnaksdnkalnsi2h31nkin2elk12le",w:9,h:9},
-                beforeSend: function (xhr) {xhr.setRequestHeader ("Authorization", "Token "+$('#token').val())},
-                success: function (){alert('Thanks for your comment!');},
-                });
-        }
+        $('#select_all').change(function () {$('.select_annotation').prop('checked', $('#select_all').prop('checked'));});
+
+
+
+
     })
 </script>
 {% endblock %}

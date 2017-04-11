@@ -451,6 +451,35 @@ class FrameList(ListView):
 
 
 def push(request,video_id):
+    if request.method == 'POST':
+        server = VDNServer.objects.get(request.POST.get('server_pk'))
+        token = request.POST.get('{}_token'.format(server.pk))
+        server.last_token = token
+        server.save()
+        server_url = server.url
+        if not server_url.endswith('/'):
+            server_url += '/'
+        if server_url.starts('http:'):
+            server_url = server_url.replace('http:', 'https:')
+
+        headers = {'Authorization': 'Token {}'.format(server.last_token)}
+        r = requests.post("{}/api/datasets/".format(server_url),data={},headers=headers)
+        if r.status_code == 200:
+            for key in request.POST:
+                if key.startswith('annotation_') and request.POST[key]:
+                    annotation = Annotation.objects.get(pk=int(key.split('annotation_')[1]))
+                    data = {
+                        'x':annotation.x,
+                        'y':annotation.y,
+                        'w':annotation.w,
+                        'h':annotation.h,
+                        'full_frame':annotation.full_frame,
+                        'parent_frame_index':annotation.parent_frame_index,
+                        'vdn_dataset':annotation.vdn_dataset.url,
+                    }
+                    r = requests.post("{}/api/annotations/".format(server_url),data=data,headers=headers)
+                    if r.status_code == 200:
+                        pass
     video = Video.objects.get(pk=video_id)
     servers = VDNServer.objects.all()
     context = {'video':video, 'servers':servers}

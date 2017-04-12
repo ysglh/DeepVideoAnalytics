@@ -54,10 +54,6 @@ class Video(models.Model):
     query = models.BooleanField(default=False)
     parent_query = models.ForeignKey(Query,null=True)
     vdn_dataset = models.ForeignKey(VDNDataset, null=True)
-    remote = models.BooleanField(default=False)
-    aws_key = models.TextField(max_length=300,default="")
-    aws_bucket = models.TextField(max_length=300,default="")
-    aws_region = models.CharField(max_length=50,default="")
 
     def __unicode__(self):
         return u'{}'.format(self.name)
@@ -179,10 +175,17 @@ class Annotation(models.Model):
         super(Annotation, self).save(*args, **kwargs)
 
 
-
-
 class Export(models.Model):
     video = models.ForeignKey(Video)
     file_name = models.CharField(max_length=200)
+    started = models.DateTimeField('date created', auto_now_add=True)
+    completed = models.BooleanField(default=False)
+
+
+class S3Export(models.Model):
+    video = models.ForeignKey(Video)
+    key = models.CharField(max_length=300)
+    bucket = models.CharField(max_length=300)
+    region = models.CharField(max_length=300)
     started = models.DateTimeField('date created', auto_now_add=True)
     completed = models.BooleanField(default=False)

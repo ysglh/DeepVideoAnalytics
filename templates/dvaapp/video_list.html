@@ -45,8 +45,6 @@
                     <th class="text-center">youtube</th>
                     <th class="text-center">VDN Source</th>
                     <th class="text-center">view</th>
-                    <th class="text-center">export</th>
-
                 </tr>
                 </thead>
                 <tbody>
@@ -64,7 +62,6 @@
                         <td class="text-center">{% if v.youtube_video %}<a href="{{ v.url }}" target="_blank">youtube link</a>{% endif %}</td>
                         <td class="text-center">{% if v.vdn_dataset %}<a href="{{ v.vdn_dataset.url }}" target="_blank">source</a>{% endif %}</td>
                         <td class="text-center"><a  href="/videos/{{ v.pk }}">view</a></td>
-                        <td class="text-center"><form action="/export_video" method="post"><input type="hidden" value="{{ v.pk }}" name="video_id">{% csrf_token %}<button type="submit" class="btn btn-info"><i class="fa fa-download"></i> export</button></form></td>
                     </tr>
                     {% endif %}
                 {% endfor %}

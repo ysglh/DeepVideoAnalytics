@@ -491,13 +491,18 @@ def import_video_by_id(video_id):
     start.save()
 
 
-def backup_video_to_s3(video_id):
-    video = Video.objects.get(pk=video_id)
+def backup_video_to_s3(s3_export):
     s3 = boto3.resource('s3')
-    s3.create_bucket(Bucket=video.aws_bucket,CreateBucketConfiguration={'LocationConstraint': video.aws_region})
-    time.sleep(30)  # wait for it to create the bucket
-    path = "{}/{}/".format(settings.MEDIA_ROOT,video.pk)
-    upload = subprocess.Popen(args=["aws", "s3", "cp", ".", "s3://{}/{}/".format(video.bucket_name,video.aws_key), '--recursive'],cwd=path)
+    if s3_export.region == 'us-east-1':
+        s3.create_bucket(Bucket=s3_export.bucket)
+    else:
+        s3.create_bucket(Bucket=s3_export.bucket, CreateBucketConfiguration={'LocationConstraint': s3_export.region})
+    time.sleep(20)  # wait for it to create the bucket
+    path = "{}/{}/".format(settings.MEDIA_ROOT,s3_export.video.pk)
+    a = serializers.VideoExportSerializer(instance=s3_export.video)
+    with file("{}/{}/table_data.json".format(settings.MEDIA_ROOT,s3_export.video.pk),'w') as output:
+        json.dump(a.data,output)
+    upload = subprocess.Popen(args=["aws", "s3", "cp", ".", "s3://{}/{}/".format(s3_export.bucket,s3_export.key), '--recursive'],cwd=path)
     upload.communicate()
     upload.wait()
 

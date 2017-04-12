@@ -7,8 +7,8 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView,DetailView
 from django.utils.decorators import method_decorator
 from .forms import UploadFileForm,YTVideoForm,AnnotationForm
-from .models import Video,Frame,Detection,Query,QueryResults,TEvent,IndexEntries,VDNDataset, Annotation, VLabel, Export, VDNServer
-from .tasks import extract_frames
+from .models import Video,Frame,Detection,Query,QueryResults,TEvent,IndexEntries,VDNDataset, Annotation, VLabel, Export, VDNServer, S3Export
+from .tasks import extract_frames, backup_video_to_s3
 from dva.celery import app
 import serializers
 from rest_framework import viewsets,mixins
@@ -294,9 +294,24 @@ def export_video(request):
     if request.method == 'POST':
         pk = request.POST.get('video_id')
         video = Video.objects.get(pk=pk)
-        task_name = 'export_video_by_id'
+        export_method = request.POST.get('export_method')
         if video:
-            app.send_task(task_name, args=[pk,], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+            if export_method == 's3':
+                key = request.POST.get('key')
+                region = request.POST.get('region')
+                bucket = request.POST.get('bucket')
+                s3export = S3Export()
+                s3export.video = video
+                s3export.key = key
+                s3export.region = region
+                s3export.bucket = bucket
+                s3export.save()
+                backup_video_to_s3(s3export)
+                s3export.completed = True
+                s3export.save()
+            else:
+                task_name = 'export_video_by_id'
+                app.send_task(task_name, args=[pk,], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
         return redirect('video_list')
     else:
         raise NotImplementedError

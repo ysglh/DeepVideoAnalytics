@@ -90,9 +90,55 @@
         </div>
         {%  endif %}
     </div>
-    <div class="col-lg-6">
+
+<div class="col-lg-6">
+    <div class="box box-primary" >
+        <div class="box-body">
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <form action="/export_video" method="post"><input type="hidden" value="{{ object.pk }}" name="video_id"><input type="hidden" value="file" name="export_method">{% csrf_token %}
+                        <button type="submit" class="btn btn-primary"><i class="fa fa-download"></i> Export video / dataset as a file</button>
+                    </form>
+                </div>
+            </div>
+            <form action="/export_video" method="post">
+            <div class="row m-t" style="margin-top:25px">
+                <div class="col-sm-3"><label for="bucket">S3 Bucket <input name="bucket" type="text" placeholder="bucket" required="required" class="form-control" /></label></div>
+                <div class="col-sm-3"><label for="key">S3 Key <input name="key" type="text" placeholder="key_prefix" required="required" class="form-control" /></label></div>
+                <div class="col-sm-3"><label for="region">Region <input name="region" type="text" placeholder="region" required="required" value="us-east-1" class="form-control" /></label></div>
+                <div class="col-sm-3">{% csrf_token %}
+                    <input type="hidden" value="{{ object.pk }}" name="video_id">
+                    <input type="hidden" value="s3" name="export_method">
+                    <button type="submit" class="btn btn-block btn-primary" style="margin-top:20px"> <i class="fa fa-cloud-upload"></i> Backup to S3</button>
+                </div>
+            </div>
+            <h5 class="text-center">Provide AWS credential via environment variables or by running aws configure inside container or via IAM roles on EC2</h5>
+            </form>
+            {% if exports %}
+            <h4 class="text-center">Available backups</h4>
+            <table class="table dataTables-nofilter">
+                <thead>
+                    <tr>
+                        <th class="text-center">Created</th>
+                        <th class="text-center">Completed</th>
+                        <th class="text-center">Download</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for e in exports %}
+                    <tr>
+                        <td>{{ e.created }}</td>
+                        <td>{{ e.completed }}</td>
+                        <td class="text-center">{% if e.file_name %}<a href="/media/exports/{{ e.file_name }}">download</a>{% endif %}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+        </div>
+    </div>
     <div class="box box-primary">
-        <div class="box box-header"><h3>Visual Data Network</h3></div>
+        <div class="box box-header"><h4>Visual Data Network</h4></div>
         <div class="box-body">
             <div class="row">
             {% if not video.vdn_dataset %}
@@ -107,65 +153,14 @@
                     <a  href="/push/{{ video.id }}" class="btn btn-primary"> <i class="fa fa-upload"></i>  Push annotations (you will get a chance to review / confirm)</a>
                 </div>
             {% else %}
-                <div class="col-lg-12"><h4>No pending changes</h4></div>
+                <div class="col-lg-12 text-center"><h4>No pending changes</h4></div>
             {% endif %}
 
             {% endif %}
             </div>
         </div>
     </div>
-    <div class="box box-primary" >
-        <div class="box-header with-border">
-            <h3>Exports</h3>
-        </div>
-        <div class="box-body">
-            <table class="table dataTables-dict">
-                <thead>
-                    <tr>
-                        <th class="text-center">Started</th>
-                        <th class="text-center">Completed</th>
-                        <th class="text-center">Download</th>
-                    </tr>
-                </thead>
-                <tbody>
-                {% for e in exports %}
-                    <tr>
-                        <td>{{ e.started }}</td>
-                        <td>{{ e.completed }}</td>
-                        <td class="text-center">{% if e.completed %}<a href="/media/exports/{{ e.file_name }}">download</a>{% endif %}</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <div class="box-footer">
-            <form action="/export_video" method="post">
-                <input type="hidden" value="{{ object.pk }}" name="video_id">
-                {% csrf_token %}
-                <button type="submit" class="pull-right btn btn-primary">Export video / dataset</button>
-            </form>
-        </div>
-    </div>
-    <div class="box box-primary">
-    <div class="box-header with-border">
-        <h3>Create new annotation labels</h3>
-    </div>
-    <div class="box-body">
-        <form role="form"  method="post" action="/create_labels" >
-                <div class="form-group">
-                    <input id="label_name" style="margin:10px auto" name="name" class="form-control" type="text-area" rows="3" width="80%" required="" placeholder="provide a single label name, or a comma separated list of multiple labels and check box below">
-                </div>
-                    <label for="multiple">Multiple labels:</label>
-                    <input id="multiple" name="multiple" type="checkbox">
-                    <input id="label_name" name="video_pk" class="form-control" type="hidden" value="{{ object.pk }}">
-                <div class="form-group">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-primary pull-right">submit</button>
-                </div>
-        </form>
-    </div>
 </div>
-    </div>
 </div>
 <div class="row">
 <div class="col-lg-12">
@@ -251,6 +246,23 @@
 
 <div class="row">
     <div class="col-lg-6">
+        <div class="box box-primary">
+        <div class="box-body with-border">
+            <h4>Create new annotation labels</h4>
+            <form role="form"  method="post" action="/create_labels" >
+                    <div class="form-group">
+                        <input id="label_name" style="margin:10px auto" name="name" class="form-control" type="text-area" rows="3" width="80%" required="" placeholder="provide a single label name, or a comma separated list of multiple labels and check box below">
+                    </div>
+                        <label for="multiple">Multiple labels:</label>
+                        <input id="multiple" name="multiple" type="checkbox">
+                        <input id="label_name" name="video_pk" class="form-control" type="hidden" value="{{ object.pk }}">
+                    <div class="form-group">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary pull-right">submit</button>
+                    </div>
+            </form>
+        </div>
+        </div>
         {% if label_count_warning %}
             <div class="box">
             <div class="box-body">

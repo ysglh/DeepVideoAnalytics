@@ -6,4 +6,9 @@ function InitializeTables(){
         responsive: true,
         "bPaginate": false
     });
+    $('.dataTables-nofilter').dataTable({
+        responsive: true,
+        "bPaginate": false,
+        "bFilter": false
+    });
 }

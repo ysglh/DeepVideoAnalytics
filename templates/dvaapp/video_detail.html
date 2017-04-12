@@ -127,16 +127,16 @@
                 <tbody>
                 {% for e in exports %}
                     <tr>
-                        <td>{{ e.created }}</td>
+                        <td>{{ e.started }}</td>
                         <td class="text-center">{{ e.completed }}</td>
-                        <td class="text-center">{% if e.file_name %}<a href="/media/exports/{{ e.file_name }}">download</a>{% endif %}</td>
+                        <td class="text-center">{% if e.file_name %}<a href="/media/exports/{{ e.file_name }}">click to download</a>{% endif %}</td>
                     </tr>
                 {% endfor %}
                 {% for e in s3_exports %}
                     <tr>
-                        <td>{{ e.created }}</td>
+                        <td>{{ e.started }}</td>
                         <td class="text-center">{{ e.completed }}</td>
-                        <td class="text-center">{{ e.region }} / {{ e.key }} / {{ e.bucket }}</td>
+                        <td class="text-center">{{ e.region }} / {{ e.bucket }} / {{ e.key }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>

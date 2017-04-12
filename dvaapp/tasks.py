@@ -491,3 +491,27 @@ def import_video_by_id(video_id):
     start.save()
 
 
+def backup_video_to_s3(video_id):
+    video = Video.objects.get(pk=video_id)
+    s3 = boto3.resource('s3')
+    s3.create_bucket(Bucket=video.aws_bucket,CreateBucketConfiguration={'LocationConstraint': video.aws_region})
+    time.sleep(30)  # wait for it to create the bucket
+    path = "{}/{}/".format(settings.MEDIA_ROOT,video.pk)
+    upload = subprocess.Popen(args=["aws", "s3", "cp", ".", "s3://{}/{}/".format(video.bucket_name,video.aws_key), '--recursive'],cwd=path)
+    upload.communicate()
+    upload.wait()
+
+
+def make_bucket_public_requester_pays(bucket_name):
+    """
+    Convert AWS S3 bucket into requester pays bucket
+    :param bucket_name:
+    :return:
+    """
+    s3 = boto3.resource('s3')
+    bucket_request_payment = s3.BucketRequestPayment(bucket_name)
+    response = bucket_request_payment.put(RequestPaymentConfiguration={'Payer': 'Requester'})
+    bucket_policy = s3.BucketPolicy(bucket_name)
+    response = bucket_policy.put(Policy=json.dumps({"Version": "2012-10-17", "Statement": [
+        {"Sid": "AddPerm", "Effect": "Allow", "Principal": "*", "Action": "s3:GetObject",
+         "Resource": "arn:aws:s3:::{}/*".format(bucket_name)}]}))

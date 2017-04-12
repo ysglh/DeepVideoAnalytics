@@ -80,7 +80,7 @@
                                 <th class="text-center">Video</th>
                                 <th class="text-center">Started</th>
                                 <th class="text-center">Completed</th>
-                                <th class="text-center">Download</th>
+                                <th class="text-center">Download URL or S3 region/bucket/key</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -88,8 +88,16 @@
                             <tr>
                                 <td>{{ e.video.name }}</td>
                                 <td>{{ e.started }}</td>
-                                <td>{{ e.completed }}</td>
+                                <td class="text-center">{{ e.completed }}</td>
                                 <td class="text-center">{% if e.completed %}<a href="/media/exports/{{ e.file_name }}">download</a>{% endif %}</td>
+                            </tr>
+                        {% endfor %}
+                        {% for e in s3_exports %}
+                            <tr>
+                                <td>{{ e.video.name }}</td>
+                                <td>{{ e.started }}</td>
+                                <td class="text-center">{{ e.completed }}</td>
+                                <td class="text-center">{% if e.completed %}{{ e.region }} / {{ e.key }} / {{ e.bucket }}{% endif %}</td>
                             </tr>
                         {% endfor %}
                         </tbody>

@@ -8,7 +8,7 @@ from django.views.generic import ListView,DetailView
 from django.utils.decorators import method_decorator
 from .forms import UploadFileForm,YTVideoForm,AnnotationForm
 from .models import Video,Frame,Detection,Query,QueryResults,TEvent,IndexEntries,VDNDataset, Annotation, VLabel, Export, VDNServer, S3Export
-from .tasks import extract_frames, backup_video_to_s3
+from .tasks import extract_frames
 from dva.celery import app
 import serializers
 from rest_framework import viewsets,mixins
@@ -306,9 +306,8 @@ def export_video(request):
                 s3export.region = region
                 s3export.bucket = bucket
                 s3export.save()
-                backup_video_to_s3(s3export)
-                s3export.completed = True
-                s3export.save()
+                task_name = 'backup_video_to_s3'
+                app.send_task(task_name, args=[s3export.pk,], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
             else:
                 task_name = 'export_video_by_id'
                 app.send_task(task_name, args=[pk,], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
@@ -381,6 +380,7 @@ class VideoList(ListView):
     def get_context_data(self, **kwargs):
         context = super(VideoList, self).get_context_data(**kwargs)
         context['exports'] = Export.objects.all()
+        context['s3_exports'] = S3Export.objects.all()
         return context
 
 
@@ -391,6 +391,7 @@ class VideoDetail(DetailView):
         context = super(VideoDetail, self).get_context_data(**kwargs)
         max_frame_index = Frame.objects.all().filter(video=self.object).aggregate(Max('frame_index'))['frame_index__max']
         context['exports'] = Export.objects.all().filter(video=self.object)
+        context['s3_exports'] = S3Export.objects.all().filter(video=self.object)
         context['annotation_count'] = Annotation.objects.all().filter(video=self.object).count()
         if self.object.vdn_dataset:
             context['exportable_annotation_count'] = Annotation.objects.all().filter(video=self.object,vdn_dataset__isnull=True).count()
@@ -754,8 +755,10 @@ def retry_task(request,pk):
         result = app.send_task(name=event.operation, args=[event.video_id],queue=settings.TASK_NAMES_TO_QUEUE[event.operation])
         context['alert'] = "Operation {} on {} submitted".format(event.operation,event.video.name,queue=settings.TASK_NAMES_TO_QUEUE[event.operation])
         return render_tasks(request, context)
-    else:
+    elif settings.TASK_NAMES_TO_TYPE[event.operation] == settings.QUERY_TASK:
         return redirect("/requery/{}/".format(event.video.parent_query_id))
+    else:
+        raise NotImplementedError
 
 
 def render_status(request,context):

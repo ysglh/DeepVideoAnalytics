@@ -13,6 +13,10 @@ from tensorflow.python.platform import gfile
 from facenet import facenet
 import tensorflow as tf
 import time
+from collections import namedtuple
+
+
+IndexRange = namedtuple('IndexRange',['start','end'])
 
 
 class BaseIndexer(object):
@@ -20,7 +24,7 @@ class BaseIndexer(object):
     def __init__(self):
         self.name = "base"
         self.net = None
-        self.loaded_entries = set()
+        self.loaded_entries = {}
         self.index, self.files, self.findex = None, {}, 0
 
     def load_index(self,numpy_matrix,entries):

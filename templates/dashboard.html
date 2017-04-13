@@ -80,12 +80,12 @@
         </div>
         <div class="m-t row">
             <div class="col-xs-4 text-right">
-                <h5 style="font-weight:bold">Exclude videos: </h5>
+                <h5 style="font-weight:bold">Exclude index entries: </h5>
             </div>
             <div class="col-xs-8">
-            <select class="js-example-basic-multiple" multiple="multiple" id="excluded_videos" style="width:100%">
-            {% for v in videos %}
-                <option value="{{ v.pk }}">{{ v.name }}</option>
+            <select class="js-example-basic-multiple" multiple="multiple" id="excluded_index_entries" style="width:100%">
+            {% for v in index_entries %}
+                <option value="{{ v.pk }}">{{ v.detection_name }} in {{ v.video.name }} by {{ v.algorithm }}</option>
             {% endfor %}
             </select>
             </div>
@@ -276,8 +276,8 @@
         {% endif %}
     var indexer_selector = $("#indexer_list");
     indexer_selector.select2({theme: "bootstrap"});
-    var excluded_videos = $("#excluded_videos");
-    excluded_videos.select2({theme: "bootstrap"});
+    var excluded_index_entries = $("#excluded_index_entries");
+    excluded_index_entries.select2({theme: "bootstrap"});
     </script>
     <script src="/static/plugins/jquery.mousewheel.min.js"></script>
     <script src="/static/plugins/underscore-min.js"></script>

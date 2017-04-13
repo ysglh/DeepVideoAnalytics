@@ -34,7 +34,7 @@ class Query(models.Model):
     created = models.DateTimeField('date created', auto_now_add=True)
     count = models.IntegerField(default=20) # retrieve 20 results per algorithm
     selected_indexers = ArrayField(models.CharField(max_length=30),default=[])
-    excluded_videos_pk = ArrayField(models.IntegerField(), default=[])
+    excluded_index_entries_pk = ArrayField(models.IntegerField(), default=[])
     results = models.BooleanField(default=False)
     results_metadata = models.TextField(default="")
     user = models.ForeignKey(User, null=True)
@@ -115,10 +115,14 @@ class IndexEntries(models.Model):
     class Meta:
         unique_together = ('video', 'features_file_name',)
 
+    def __unicode__(self):
+        return "{} in {} index by {}".format(self.detection_name,self.algorithm,self.video.name)
 
 class TEvent(models.Model):
     started = models.BooleanField(default=False)
     completed = models.BooleanField(default=False)
+    errored = models.BooleanField(default=False)
+    error_message = models.TextField(default="")
     video = models.ForeignKey(Video,null=True)
     operation = models.CharField(max_length=100,default="")
     created = models.DateTimeField('date created', auto_now_add=True)

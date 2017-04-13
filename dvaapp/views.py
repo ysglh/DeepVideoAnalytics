@@ -101,7 +101,9 @@ def search(request):
         query = Query()
         count = request.POST.get('count')
         query.count = count
-        query.excluded_videos_pk = [int(k) for k in json.loads(request.POST.get('excluded_videos'))]
+        excluded_index_entries_pk = json.loads(request.POST.get('excluded_index_entries'))
+        if excluded_index_entries_pk:
+            query.excluded_index_entries_pk = [int(k) for k in excluded_index_entries_pk]
         selected_indexers = json.loads(request.POST.get('selected_indexers'))
         query.selected_indexers = selected_indexers
         query.save()
@@ -188,7 +190,7 @@ def index(request,query_pk=None,frame_pk=None,detection_pk=None):
     context['external_servers_count'] = VDNServer.objects.count()
     context['task_events_count'] = TEvent.objects.count()
     context['video_count'] = Video.objects.count() - context['query_count']
-    context['videos'] = Video.objects.filter(parent_query__count__isnull=True)
+    context['index_entries'] = IndexEntries.objects.all()
     context['detection_count'] = Detection.objects.count()
     context['annotation_count'] = Annotation.objects.count()
     return render(request, 'dashboard.html', context)

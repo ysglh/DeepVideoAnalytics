@@ -43,12 +43,18 @@ class IndexerTask(celery.Task):
                 vectors = indexer.np.load(fname)
                 vector_entries = json.load(file("{}/{}/indexes/{}".format(settings.MEDIA_ROOT, index_entry.video_id, index_entry.entries_file_name)))
                 logging.info("Starting {} in {}".format(index_entry.video_id, visual_index.name))
+                start_index = visual_index.findex
                 try:
                     visual_index.load_index(vectors, vector_entries)
                 except:
                     logging.info("ERROR Failed to load {} ".format(index_entry.video_id))
-                visual_index.loaded_entries.add(index_entry.pk)
-                logging.info("finished {} in {}, current shape {}".format(index_entry.video_id, visual_index.name,visual_index.index.shape))
+                visual_index.loaded_entries[index_entry.pk] = indexer.IndexRange(start=start_index,end=visual_index.findex-1)
+                logging.info("finished {} in {}, current shape {}, range".format(index_entry.video_id,
+                                                                                 visual_index.name,
+                                                                                 visual_index.index.shape,
+                                                                                 visual_index.loaded_entries[index_entry.pk].start,
+                                                                                 visual_index.loaded_entries[index_entry.pk].end,
+                                                                                 ))
 
 
 @app.task(name="inception_index_by_id",base=IndexerTask)
@@ -307,7 +313,11 @@ def perform_yolo_detection_by_id(video_id):
     detector = subprocess.Popen(['fab','yolo_detect:{}'.format(video_id)],cwd=os.path.join(os.path.abspath(__file__).split('tasks.py')[0],'../'))
     detector.wait()
     if detector.returncode != 0:
-        raise ValueError,"Task failed with returncode {}".format(detector.returncode)
+        start.errored = True
+        start.error_message = "fab yolo_detect failed with return code {}".format(detector.returncode)
+        start.seconds = time.time() - start_time
+        start.save()
+        raise ValueError,start.error_message
     process_video_next(video_id,start.operation)
     start.completed = True
     start.seconds = time.time() - start_time
@@ -326,7 +336,11 @@ def perform_ssd_detection_by_id(video_id):
     detector = subprocess.Popen(['fab','ssd_detect:{}'.format(video_id)],cwd=os.path.join(os.path.abspath(__file__).split('tasks.py')[0],'../'))
     detector.wait()
     if detector.returncode != 0:
-        raise ValueError,"Task failed with returncode {}".format(detector.returncode)
+        start.errored = True
+        start.error_message = "fab ssd_detect failed with return code {}".format(detector.returncode)
+        start.seconds = time.time() - start_time
+        start.save()
+        raise ValueError, start.error_message
     process_video_next(video_id,start.operation)
     start.completed = True
     start.seconds = time.time() - start_time
@@ -345,7 +359,11 @@ def perform_face_detection_indexing_by_id(video_id):
     face_detector = subprocess.Popen(['fab','perform_face_detection:{}'.format(video_id)],cwd=os.path.join(os.path.abspath(__file__).split('tasks.py')[0],'../'))
     face_detector.wait()
     if face_detector.returncode != 0:
-        raise ValueError,"Task failed with returncode {}".format(face_detector.returncode)
+        start.errored = True
+        start.error_message = "fab perform_face_detection failed with return code {}".format(face_detector.returncode)
+        start.seconds = time.time() - start_time
+        start.save()
+        raise ValueError, start.error_message
     process_video_next(video_id,start.operation)
     start.completed = True
     start.seconds = time.time() - start_time
@@ -431,7 +449,11 @@ def export_video_by_id(video_id):
     zipper = subprocess.Popen(['zip',file_name,'-r','{}'.format(video_id)],cwd='{}/exports/'.format(settings.MEDIA_ROOT))
     zipper.wait()
     if zipper.returncode != 0:
-        raise ValueError,"Could not zip {}".format(zipper.returncode)
+        start.errored = True
+        start.error_message = "Could not zip {}".format(zipper.returncode)
+        start.seconds = time.time() - start_time
+        start.save()
+        raise ValueError, start.error_message
     shutil.rmtree("{}/exports/{}".format(settings.MEDIA_ROOT,video_id))
     export.completed = True
     export.save()

@@ -533,7 +533,7 @@ def backup_video_to_s3(s3_export_id):
     a = serializers.VideoExportSerializer(instance=s3_export.video)
     with file("{}/{}/table_data.json".format(settings.MEDIA_ROOT,s3_export.video.pk),'w') as output:
         json.dump(a.data,output)
-    upload = subprocess.Popen(args=["aws", "s3", "sync", ".", "s3://{}/{}/".format(s3_export.bucket,s3_export.key), '--recursive'],cwd=path)
+    upload = subprocess.Popen(args=["aws", "s3", ".", "s3://{}/{}/".format(s3_export.bucket,s3_export.key), '--recursive'],cwd=path)
     upload.communicate()
     upload.wait()
     s3_export.completed = True

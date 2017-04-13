@@ -443,6 +443,7 @@ $scope.search = function () {
     $scope.$$phase || $scope.$digest();
     $scope.refreshData();
     var selected_indexers = JSON.stringify($("#indexer_list").val());
+    var excluded_videos = JSON.stringify($("#excluded_videos").val());
     $.ajax({
         type: "POST",
         url: '/Search',
@@ -452,6 +453,7 @@ $scope.search = function () {
             'image_url': image_data,
             'count': $('#result_count').val(),
             'selected_indexers':selected_indexers,
+            'excluded_videos':excluded_videos,
             'csrfmiddlewaretoken':$(csrf_token).val()
         },
         success: function (response) {

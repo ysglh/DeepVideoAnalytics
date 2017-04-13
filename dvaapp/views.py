@@ -99,6 +99,11 @@ class VDNDatasetViewSet(viewsets.ModelViewSet):
 def search(request):
     if request.method == 'POST':
         query = Query()
+        count = request.POST.get('count')
+        query.count = count
+        query.excluded_videos_pk = [int(k) for k in json.loads(request.POST.get('excluded_videos'))]
+        selected_indexers = json.loads(request.POST.get('selected_indexers'))
+        query.selected_indexers = selected_indexers
         query.save()
         primary_key = query.pk
         dv = Video()
@@ -109,7 +114,6 @@ def search(request):
         dv.save()
         create_video_folders(dv)
         image_url = request.POST.get('image_url')
-        selected_indexers = json.loads(request.POST.get('selected_indexers'))
         image_data = base64.decodestring(image_url[22:])
         query_path = "{}/queries/{}.png".format(settings.MEDIA_ROOT,primary_key)
         query_frame_path = "{}/{}/frames/0.png".format(settings.MEDIA_ROOT,dv.pk)
@@ -184,6 +188,7 @@ def index(request,query_pk=None,frame_pk=None,detection_pk=None):
     context['external_servers_count'] = VDNServer.objects.count()
     context['task_events_count'] = TEvent.objects.count()
     context['video_count'] = Video.objects.count() - context['query_count']
+    context['videos'] = Video.objects.filter(parent_query__count__isnull=True)
     context['detection_count'] = Detection.objects.count()
     context['annotation_count'] = Annotation.objects.count()
     return render(request, 'dashboard.html', context)

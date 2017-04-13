@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.contrib.postgres.fields import ArrayField
 
 
 class VDNServer(models.Model):
@@ -31,6 +32,9 @@ class VDNDataset(models.Model):
 
 class Query(models.Model):
     created = models.DateTimeField('date created', auto_now_add=True)
+    count = models.IntegerField(default=20) # retrieve 20 results per algorithm
+    selected_indexers = ArrayField(models.CharField(max_length=30),default=[])
+    excluded_videos_pk = ArrayField(models.IntegerField(), default=[])
     results = models.BooleanField(default=False)
     results_metadata = models.TextField(default="")
     user = models.ForeignKey(User, null=True)

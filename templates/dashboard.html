@@ -78,6 +78,18 @@
             </select>
             </div>
         </div>
+        <div class="m-t row">
+            <div class="col-xs-4 text-right">
+                <h5 style="font-weight:bold">Exclude videos: </h5>
+            </div>
+            <div class="col-xs-8">
+            <select class="js-example-basic-multiple" multiple="multiple" id="excluded_videos" style="width:100%">
+            {% for v in videos %}
+                <option value="{{ v.pk }}">{{ v.name }}</option>
+            {% endfor %}
+            </select>
+            </div>
+        </div>
         <div>
             <label for="result_count">Result count</label>
             <input style="display:inline-block; margin-right:10px;width:50px;" type="number" name="result_count"  id="result_count" value="20" class="checkbox text-right index_name">
@@ -106,9 +118,8 @@
                             <button type="submit" class="btn btn-primary btn-block">Upload</button>
                             </div>
                         </form>
-                        <div class="m-t text-center m-b">Or</div>
-                        <h4 class="text-center">Submit youtube video url</h4>
-                        <p>We use <a target="_blank" href="https://rg3.github.io/youtube-dl/">youtube-dl</a>.</p>
+                        <h4 class="text-center">Or Submit youtube video url</h4>
+                        <p>We use <a target="_blank" href="https://rg3.github.io/youtube-dl/">youtube-dl</a>. Its your responsibility to abide by laws governing <a target="_blank" href="https://www.youtube.com/static?template=terms">Youtube TOS</a> in your jurisdiction.</p>
                         <form role="form"  method="post" action="/youtube" >
                                 <div class="form-group">
                                     <input id="id_ytname" name="name" class="form-control" type="text" required="" placeholder="provide a name">
@@ -119,6 +130,22 @@
                                 <div class="form-group">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-primary btn-block">submit</button>
+                                </div>
+                        </form>
+                        <h4 class="text-center">Or Import from AWS S3</h4>
+                        <form role="form"  method="post" action="/s3_import" >
+                                <div class="form-group">
+                                    <div class="row">
+                                        <div class="col-sm-6"><input id="id_s3_region" name="region" class="form-control" type="text" required="" placeholder="S3 region" value="us-east-1"></div>
+                                        <div class="col-sm-6"><input id="id_s3_bucket" name="bucket" class="form-control" type="text" required="" placeholder="S3 bucket"></div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <input id="id_s3_key" name="key" class="form-control" type="text" required="" placeholder="S3 key">
+                                </div>
+                                <div class="form-group">
+                                    {% csrf_token %}
+                                <button type="submit" class="btn btn-primary btn-block">Import</button>
                                 </div>
                         </form>
                     </div>
@@ -249,6 +276,8 @@
         {% endif %}
     var indexer_selector = $("#indexer_list");
     indexer_selector.select2({theme: "bootstrap"});
+    var excluded_videos = $("#excluded_videos");
+    excluded_videos.select2({theme: "bootstrap"});
     </script>
     <script src="/static/plugins/jquery.mousewheel.min.js"></script>
     <script src="/static/plugins/underscore-min.js"></script>

@@ -29,6 +29,7 @@ urlpatterns = [
     url(r'^youtube$', views.yt, name='youtube'),
     url(r'^export_video', views.export_video, name='export_video'),
     url(r'^import_dataset', views.import_dataset, name='import_dataset'),
+    url(r'^import_s3', views.import_s3, name='import_s3'),
     url(r'^create_labels', views.create_label, name='create_labels'),
     url(r'^delete_labels', views.delete_label, name='delete_labels'),
     url(r'^videos/$', views.VideoList.as_view(),name="video_list"),

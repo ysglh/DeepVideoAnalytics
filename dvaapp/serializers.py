@@ -215,7 +215,7 @@ def transform_index_entries(di,detection_to_pk,frame_to_pk,video_id,video_root_d
         json.dump(transformed,output)
 
 
-def import_video_json(video_obj,video_json,video_root_dir,old_key):
+def import_video_json(video_obj,video_json,video_root_dir):
     video_obj.name = video_json['name']
     video_obj.frames = video_json['frames']
     video_obj.height = video_json['height']
@@ -227,6 +227,7 @@ def import_video_json(video_obj,video_json,video_root_dir,old_key):
     video_obj.description = video_json['description']
     video_obj.metadata = video_json['metadata']
     video_obj.length_in_seconds = video_json['length_in_seconds']
+    old_key = video_obj['id']
     video_obj.save()
     vdn_dataset = video_obj.vdn_dataset
     if not video_obj.dataset:

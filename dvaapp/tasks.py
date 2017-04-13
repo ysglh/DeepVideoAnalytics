@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import subprocess,sys,shutil,os,glob,time,logging
 from django.conf import settings
 from dva.celery import app
-from .models import Video, Frame, Detection, TEvent, Query, IndexEntries,QueryResults, Annotation, VLabel, Export, VDNDataset, S3Export
+from .models import Video, Frame, Detection, TEvent, Query, IndexEntries,QueryResults, Annotation, VLabel, Export, VDNDataset, S3Export, S3Import
 from dvalib import entity
 from dvalib import detector
 from dvalib import indexer
@@ -475,11 +475,13 @@ def import_video_by_id(video_id):
     if video_obj.vdn_dataset and not video_obj.uploaded:
         output_filename = "{}/{}/{}.zip".format(settings.MEDIA_ROOT,video_obj.pk,video_obj.pk)
         if video_obj.vdn_dataset.aws_requester_pays:
-            s3 = boto3.client('s3')
-            s3.meta.client.download_file(video_obj.vdn_dataset.aws_bucket,
-                                         video_obj.vdn_dataset.aws_key,
-                                         output_filename,
-                                         RequestPayer ='requester')
+            s3import = S3Import()
+            s3import.bucket = video_obj.vdn_dataset.aws_bucket
+            s3import.key = video_obj.vdn_dataset.aws_bucket
+            s3import.region = video_obj.vdn_dataset.aws_bucket
+            s3import.bucket = video_obj.vdn_dataset.aws_bucket
+            s3import.requester_pays = True
+            s3import.save()
         else:
             if 'www.dropbox.com' in video_obj.vdn_dataset.download_url and not video_obj.vdn_dataset.download_url.endswith('?dl=1'):
                 r = requests.get(video_obj.vdn_dataset.download_url+'?dl=1')
@@ -499,7 +501,6 @@ def import_video_by_id(video_id):
     old_key = None
     for k in os.listdir(video_root_dir):
         unzipped_dir = "{}{}".format(video_root_dir, k)
-        old_key = k
         if os.path.isdir(unzipped_dir):
             for subdir in os.listdir(unzipped_dir):
                 shutil.move("{}/{}".format(unzipped_dir,subdir),"{}".format(video_root_dir))
@@ -507,7 +508,7 @@ def import_video_by_id(video_id):
             break
     with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, video_id)) as input_json:
         video_json = json.load(input_json)
-    serializers.import_video_json(video_obj,video_json,video_root_dir,old_key)
+    serializers.import_video_json(video_obj,video_json,video_root_dir)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
@@ -532,7 +533,7 @@ def backup_video_to_s3(s3_export_id):
     a = serializers.VideoExportSerializer(instance=s3_export.video)
     with file("{}/{}/table_data.json".format(settings.MEDIA_ROOT,s3_export.video.pk),'w') as output:
         json.dump(a.data,output)
-    upload = subprocess.Popen(args=["aws", "s3", "cp", ".", "s3://{}/{}/".format(s3_export.bucket,s3_export.key), '--recursive'],cwd=path)
+    upload = subprocess.Popen(args=["aws", "s3", "sync", ".", "s3://{}/{}/".format(s3_export.bucket,s3_export.key), '--recursive'],cwd=path)
     upload.communicate()
     upload.wait()
     s3_export.completed = True
@@ -540,6 +541,38 @@ def backup_video_to_s3(s3_export_id):
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
+
+
+@app.task(name="import_video_from_s3")
+def import_video_from_s3(s3_import_id):
+    s3_import= S3Import.objects.get(pk=s3_import_id)
+    start = TEvent()
+    start.video_id = s3_import.video_id
+    start.started = True
+    start.operation = import_video_from_s3.name
+    start.save()
+    start_time = time.time()
+    path = "{}/{}/".format(settings.MEDIA_ROOT,s3_import.video.pk)
+    command = ["aws", "s3", "cp", "s3://{}/{}/".format(s3_import.bucket,s3_import.key),'.','--recursive']
+    command_exec = " ".join(command)
+    download = subprocess.Popen(args=command,cwd=path)
+    download.communicate()
+    download.wait()
+    if download.returncode != 0:
+        start.errored = True
+        start.error_message = "return code for '{}' was {}".format(command_exec,download.returncode)
+        start.seconds = time.time() - start_time
+        start.save()
+        raise ValueError,start.error_message
+    with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, s3_import.video.pk)) as input_json:
+        video_json = json.load(input_json)
+    serializers.import_video_json(s3_import.video,video_json,path)
+    s3_import.completed = True
+    s3_import.save()
+    start.completed = True
+    start.seconds = time.time() - start_time
+    start.save()
+
 
 
 def make_bucket_public_requester_pays(bucket_name):

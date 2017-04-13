@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Video,Frame,Detection,TEvent,IndexEntries,QueryResults,Query,Annotation,VLabel,VDNServer,VDNDataset,Export, S3Export
+from .models import Video,Frame,Detection,TEvent,IndexEntries,QueryResults,Query,Annotation,VLabel,VDNServer,VDNDataset,Export, S3Export, S3Import
 
 
 @admin.register(VLabel)
@@ -60,8 +60,14 @@ class TEventAdmin(admin.ModelAdmin):
 class ExportAdmin(admin.ModelAdmin):
     pass
 
+
 @admin.register(S3Export)
 class S3ExportAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(S3Import)
+class S3ImportAdmin(admin.ModelAdmin):
     pass
 
 

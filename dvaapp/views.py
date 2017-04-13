@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView,DetailView
 from django.utils.decorators import method_decorator
 from .forms import UploadFileForm,YTVideoForm,AnnotationForm
-from .models import Video,Frame,Detection,Query,QueryResults,TEvent,IndexEntries,VDNDataset, Annotation, VLabel, Export, VDNServer, S3Export
+from .models import Video,Frame,Detection,Query,QueryResults,TEvent,IndexEntries,VDNDataset, Annotation, VLabel, Export, VDNServer, S3Export, S3Import
 from .tasks import extract_frames
 from dva.celery import app
 import serializers
@@ -686,6 +686,32 @@ def import_dataset(request):
         primary_key = video.pk
         create_video_folders(video, create_subdirs=False)
         task_name = 'import_video_by_id'
+        app.send_task(name=task_name, args=[primary_key, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+    else:
+        raise NotImplementedError
+    return redirect('video_list')
+
+
+def import_s3(request):
+    if request.method == 'POST':
+        key = request.POST.get('key')
+        region = request.POST.get('key')
+        bucket = request.POST.get('key')
+        s3import = S3Import()
+        s3import.key = key
+        s3import.region = region
+        s3import.bucket = bucket
+        video = Video()
+        user = request.user if request.user.is_authenticated() else None
+        if user:
+            video.uploader = user
+        video.name = "pending S3 import {} s3://{}/{}".format(region,key,bucket)
+        video.save()
+        s3import.video = video
+        s3import.save()
+        primary_key = video.pk
+        create_video_folders(video, create_subdirs=False)
+        task_name = 'import_video_from_s3'
         app.send_task(name=task_name, args=[primary_key, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
     else:
         raise NotImplementedError

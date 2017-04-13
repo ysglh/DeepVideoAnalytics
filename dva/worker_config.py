@@ -23,11 +23,12 @@ TASK_NAMES_TO_QUEUE = {
     "export_video_by_id":Q_EXTRACTOR,
     "backup_video_to_s3":Q_EXTRACTOR,
     "import_video_by_id":Q_EXTRACTOR,
+    "import_video_from_s3":Q_EXTRACTOR,
 }
 
 VIDEO_TASK = 'video'
 QUERY_TASK = 'query'
-S3EXPORT_TASK = 's3export'
+S3_TASK = 's3task'
 
 TASK_NAMES_TO_TYPE = {
     "inception_index_by_id":VIDEO_TASK,
@@ -42,7 +43,8 @@ TASK_NAMES_TO_TYPE = {
     "alexnet_query_by_image":QUERY_TASK,
     "export_video_by_id": VIDEO_TASK,
     "import_video_by_id": VIDEO_TASK,
-    "backup_video_to_s3": S3EXPORT_TASK,
+    "backup_video_to_s3": S3_TASK,
+    "import_video_from_s3": S3_TASK,
 }
 
 

@@ -197,3 +197,14 @@ class S3Export(models.Model):
     region = models.CharField(max_length=300)
     started = models.DateTimeField('date created', auto_now_add=True)
     completed = models.BooleanField(default=False)
+
+
+class S3Import(models.Model):
+    video = models.ForeignKey(Video)
+    requester_pays = models.BooleanField(default=False)
+    key = models.CharField(max_length=300)
+    bucket = models.CharField(max_length=300)
+    region = models.CharField(max_length=300)
+    started = models.DateTimeField('date created', auto_now_add=True)
+    completed = models.BooleanField(default=False)
+

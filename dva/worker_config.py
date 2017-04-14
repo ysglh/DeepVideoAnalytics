@@ -26,6 +26,8 @@ TASK_NAMES_TO_QUEUE = {
     "import_video_from_s3":Q_EXTRACTOR,
 }
 
+
+
 VIDEO_TASK = 'video'
 QUERY_TASK = 'query'
 S3_TASK = 's3task'
@@ -46,6 +48,15 @@ TASK_NAMES_TO_TYPE = {
     "backup_video_to_s3": S3_TASK,
     "import_video_from_s3": S3_TASK,
 }
+
+# List of tasks which can be called manually
+MANUAL_VIDEO_TASKS = ['inception_index_by_id',
+                      'inception_index_ssd_detection_by_id',
+                      'perform_ssd_detection_by_id',
+                      'perform_face_detection_indexing_by_id',
+                      'perform_yolo_detection_by_id'
+                      ]
+
 
 
 POST_OPERATION_TASKS = {

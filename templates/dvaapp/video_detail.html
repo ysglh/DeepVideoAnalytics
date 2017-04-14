@@ -95,9 +95,10 @@
     <div class="box box-primary" >
         <div class="box-body">
             <div class="row">
-                <div class="col-lg-12 text-center">
+                <div class="col-sm-9"><h4>Export video / dataset as a file</h4></div>
+                <div class="col-sm-3">
                     <form action="/export_video" method="post"><input type="hidden" value="{{ object.pk }}" name="video_id"><input type="hidden" value="file" name="export_method">{% csrf_token %}
-                        <button type="submit" class="btn btn-primary"><i class="fa fa-download"></i> Export video / dataset as a file</button>
+                        <button type="submit" class="btn btn-primary"><i class="fa fa-download"></i> Export</button>
                     </form>
                 </div>
             </div>
@@ -142,25 +143,36 @@
                 </tbody>
             </table>
             {% endif %}
-        </div>
-    </div>
-    <div class="box box-primary">
-        <div class="box box-header"><h4>Visual Data Network</h4></div>
-        <div class="box-body">
-            <div class="row">
+            <div class="row m-t" style="margin-top:20px">
+            <form action="/video_send_task" method="POST" >
+                <div class="col-sm-3"><h4>Submit task</h4></div>
+                <div class="col-sm-6"><div class="form-group">
+                        <select class="js-example-basic" id="task_name" name="task_name" style="width:100%">
+                        {% for v in manual_tasks %}
+                            <option value="{{ v }}">{{ v }}</option>
+                        {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <input type="hidden" name="video_id" value="{{ object.pk }}" />
+                <div class="col-sm-3"><button class="form-actions btn btn-primary"  type="submit"><i class="fa fa-send"></i> Submit</button></div>
+            {% csrf_token %}
+            </form>
+            </div>
+        <div class="row">
             {% if not video.vdn_dataset %}
-                <div class="col-md-12 text-center">
-                    <a href="/push/{{ video.id }}" class="btn btn-primary"> <i class="fa fa-upload"></i>  Push video/dataset to remote VDN server (you will get a chance to review / confirm)</a>
+                <div class="col-sm-12 text-center">
+                    <a href="/push/{{ video.id }}" class="btn btn-primary"> <i class="fa fa-upload"></i>  Push video/dataset to remote VDN server</a>
                 </div>
             {% else %}
                 {% if exportable_annotation_count %}
-                <div class="col-md-12 text-center">
-                    <p>You have <span style="font-weight:bold">{{ exportable_annotation_count }}</span> local annotations associated with this video which you can push to a remote VDN server.
+                <div class="col-sm-12 text-center">
+                    <p>You have <span style="font-weight:bold">{{ exportable_annotation_count }}</span> local annotations to push to a remote VDN server.
                     </p>
-                    <a  href="/push/{{ video.id }}" class="btn btn-primary"> <i class="fa fa-upload"></i>  Push annotations (you will get a chance to review / confirm)</a>
+                    <a  href="/push/{{ video.id }}" class="btn btn-primary"> <i class="fa fa-upload"></i>  Push annotations</a>
                 </div>
             {% else %}
-                <div class="col-lg-12 text-center"><h4>No pending changes</h4></div>
+                <div class="col-sm-12 text-center"><h4>No pending changes</h4></div>
             {% endif %}
 
             {% endif %}
@@ -332,6 +344,8 @@
 <script>
     $(document).ready(function() {
         InitializeTables();
+        var task_name = $("#task_name");
+        task_name.select2({theme: "bootstrap"});
     })
 </script>
 {% endblock %}

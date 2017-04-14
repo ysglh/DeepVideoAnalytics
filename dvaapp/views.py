@@ -266,6 +266,7 @@ def create_annotation(form,label_name,label_dict,frame_pk,frame):
         annotation.h = 0
         annotation.w = 0
     else:
+        annotation.full_frame = False
         annotation.x = form.cleaned_data['x']
         annotation.y = form.cleaned_data['y']
         annotation.h = form.cleaned_data['h']

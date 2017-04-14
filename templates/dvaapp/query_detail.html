@@ -12,7 +12,7 @@
 </section>
 <section class="content">
 <div class="row">
-    <div class="col-lg-4">
+    <div class="col-lg-6">
     <div class="box">
     <div class="box-body text-center">
         <img class="img-responsive img-bordered"  src="{{ url }}" style="width:80%;margin-left:auto;margin-right:auto" />
@@ -22,7 +22,19 @@
     </div>
     </div>
     </div>
-    <div class="col-lg-8">
+    <div class="col-md-3">
+        <div class="box box-primary">
+            <div class="box-body">
+                <h3>Query plan</h3>
+                <h4>Results per algorithm</h4>
+                <h4>Selected indexing algorithms</h4>
+                <h4>Excluded index entries</h4>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-6">
         <h3>Inception results</h3>
         {% for d in inception %}
             {% if forloop.first %} <div class="row"> {% endif %}
@@ -46,13 +58,11 @@
             {% if forloop.last %} </div> {% endif %}
         {% endfor %}
     </div>
-</div>
-<div class="row">
-    <div class="col-lg-12">
+    <div class="col-lg-6">
             <h3>Facenet results</h3>
             {% for d in facenet %}
             {% if forloop.first %} <div class="row"> {% endif %}
-            <div class="col-sm-2 col-xs-4">
+            <div class="col-sm-3 col-xs-6">
                 <div class="box box-primary">
                 <div class="box-header with-border">
                     <h4>Face {{ d.rank }}</h4>
@@ -68,7 +78,7 @@
                 </div>
                 </div>
             </div>
-            {% if forloop.counter|divisibleby:"6" or forloop.last %}</div><div class="row">{% endif %}
+            {% if forloop.counter|divisibleby:"4" or forloop.last %}</div><div class="row">{% endif %}
             {% if forloop.last %} </div> {% endif %}
             {% endfor %}
     </div>

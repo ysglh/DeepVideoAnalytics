@@ -5,7 +5,7 @@
 <div class="row">
     <div class="box box-info">
         <div class="box-header">
-            <h4>List of Detections in <a href="/videos/{{ object.video.pk }}">{{ object.video.name }}</a>  {% if object.video.dataset %} file named: {{ object.name }} {% else %} at {{ object.frame_index }}  {% endif %}</h4>
+            <h4>Details for <a href="/videos/{{ object.video.pk }}">{{ object.video.name }}</a>  {% if object.video.dataset %} file named: {{ object.name }} {% else %} at {{ object.frame_index }}  {% endif %}</h4>
         </div>
     </div>
 </div>
@@ -14,7 +14,86 @@
 <div class="row">
     <div class="col-lg-6">
         <div class="box box-primary">
-            <div class="box-header"><h3>Detections</h3></div>
+        <div class="box-header with-borders text-center">
+            {% if previous_frame %}<a href="/frames/{{ previous_frame.0.pk }}" class="btn btn-success pull-left"><i class="fa fa-backward "></i> Previous</a> {% endif %}
+            <a href="/annotate_frame/{{ object.pk }}/" class="btn btn-warning"><i class="fa fa-edit"></i> View, add & edit annotations for this frame</a>
+            <a href="/query_frame/{{ object.pk }}/" class="btn btn-info"><i class="fa fa-search"></i> Query using this frame</a>
+            {% if next_frame %}<a href="/frames/{{ next_frame.0.pk }}" class="btn btn-success pull-right"><i class="fa fa-forward"></i> Next</a>{% endif %}
+        </div>
+        <div class="box-body">
+            <img src="{{ url }}" style="width:100%" />
+        </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="box box-primary">
+            <div class="box-header"><h4>Add, view & edit annotations for entire frame / image</h4></div>
+            <div class="box-body">
+                {% if annotation_list %}
+                <table class="table">
+                <thead>
+                <tr>
+                        <th>Annotation</th>
+                        <th>metadata</th>
+                        <th>delete</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for d in annotation_list %}
+                    {% if d.full_frame %}
+                    <tr>
+                        <td>{{ d.label }} </td>
+                        <td class="text-center"><button type="button" class="btn btn-primary" data-toggle="modal" data-target="#{{ d.pk }}">view metadata</button></td>
+                        <td class="text-center"><button type="button" class="btn btn-primary" onclick="delete_annotation({{ d.pk }})" >delete</button></td>
+                    </tr>
+                    {% endif %}
+                {% endfor %}
+                </tbody>
+                </table>
+                {% endif %}
+            </div>
+            <div class="box-footer">
+            </div>
+        </div>
+        <div class="box box-primary">
+            <div class="box-header"><h4>Annotations for bounding boxes</h4></div>
+            <div class="box-body">
+                {% if annotation_list %}
+                <table class="table">
+                <thead>
+                <tr>
+                        <th>Annotation</th>
+                        <th>detection_id</th>
+                        <th>User</th>
+                        <th>x</th>
+                        <th>y</th>
+                        <th>w</th>
+                        <th>h</th>
+                        <th>metadata</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for d in annotation_list %}
+                    {% if not d.full_frame %}
+                    <tr>
+                        <td>{{ d.label }} </td>
+                        <td>{{ d.detection_id }}</td>
+                        <td>{{ d.user }} </td>
+                        <td>{{ d.x }} </td>
+                        <td>{{ d.y }} </td>
+                        <td>{{ d.w }} </td>
+                        <td>{{ d.h }} </td>
+                        <td class="text-center"><button type="button" class="btn btn-primary" data-toggle="modal" data-target="#{{ d.pk }}">view metadata</button></td>
+                    </tr>
+                    {% endif %}
+                {% endfor %}
+                </tbody>
+                </table>
+                {% endif %}
+                </div>
+            </div>
+            <div class="box box-primary">
+            <div class="box-header"><h4>Detections</h4></div>
             <div class="box-body">
                 <table class="table">
                 <thead>
@@ -43,57 +122,6 @@
                 </tbody>
                 </table>
             </div>
-        </div>
-        <div class="box box-primary">
-            <div class="box-header"><h3>Annotations</h3></div>
-            <div class="box-body">
-
-                {% if annotation_list %}
-                <table class="table">
-                <thead>
-                <tr>
-                        <th>Annotation</th>
-                        <th>full frame</th>
-                        <th>detection_id</th>
-                        <th>User</th>
-                        <th>x</th>
-                        <th>y</th>
-                        <th>w</th>
-                        <th>h</th>
-                        <th>metadata</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for d in annotation_list %}
-                    <tr>
-                        <td>{{ d.label }} </td>
-                        <td>{{ d.full_frame }}</td>
-                        <td>{{ d.detection_id }}</td>
-                        <td>{{ d.user }} </td>
-                        <td>{{ d.x }} </td>
-                        <td>{{ d.y }} </td>
-                        <td>{{ d.w }} </td>
-                        <td>{{ d.h }} </td>
-                        <td class="text-center"><button type="button" class="btn btn-primary" data-toggle="modal" data-target="#{{ d.pk }}">view metadata</button></td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-                </table>
-                {% endif %}
-                </div>
-            </div>
-    </div>
-    <div class="col-lg-6">
-        <div class="box box-primary">
-        <div class="box-header with-borders text-center">
-            {% if previous_frame %}<a href="/frames/{{ previous_frame.0.pk }}" class="btn btn-success pull-left"><i class="fa fa-backward "></i> Previous</a> {% endif %}
-            <a href="/annotate_frame/{{ object.pk }}/" class="btn btn-warning"><i class="fa fa-edit"></i> View, add & edit annotations for this frame</a>
-            <a href="/query_frame/{{ object.pk }}/" class="btn btn-info"><i class="fa fa-search"></i> Query using this frame</a>
-            {% if next_frame %}<a href="/frames/{{ next_frame.0.pk }}" class="btn btn-success pull-right"><i class="fa fa-forward"></i> Next</a>{% endif %}
-        </div>
-        <div class="box-body">
-            <img src="{{ url }}" style="width:100%" />
-        </div>
         </div>
     </div>
 </div>
@@ -138,6 +166,12 @@
       </div>
       <div class="modal-body">
         <textarea rows="10" style="width:80%;margin: 10px auto;">{{ k.metadata_text }}</textarea>
+        {% if not k.full_frame %}
+        <h4 class="text-center" style="margin-bottom:15px;margin-top:20px">Bounding box</h4>
+        <div style="width: {{ k.w }}px; height: {{ k.h }}px; position: relative;overflow:hidden;margin: auto;">
+          <img src="{{ url }}" id="image" style="position: absolute; top: -{{ k.y }}px; left: -{{ k.x }}px" />
+        </div>
+        {% endif %}
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -146,4 +180,32 @@
   </div>
 </div>
 {% endfor %}
+{% endblock %}
+{% block page_js%}
+<script>
+{#    var csrf_token = "{% csrf_token %}";#}
+{#    var delete_annotation = function(pk)#}
+{#    {#}
+{#        if (confirm("delete annotation for entire frame"))#}
+{#        {#}
+{#            $.ajax({#}
+{#                url: '/delete/',#}
+{#                data:{#}
+{#                  'csrfmiddlewaretoken':$(csrf_token).val()#}
+{#                    #}
+{#                },#}
+{#                #}
+{#                type: 'POST',#}
+{#                success: function(result) {#}
+{#                    alert("deleted annotation!")#}
+{#                }#}
+{#            });#}
+{#        }#}
+{#    };#}
+    $(document).ready(function() {
+        InitializeTables();
+        var task_name = $("#task_name");
+        task_name.select2({theme: "bootstrap"});
+    })
+</script>
 {% endblock %}

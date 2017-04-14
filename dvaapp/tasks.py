@@ -509,6 +509,8 @@ def import_video_by_id(video_id):
     with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, video_id)) as input_json:
         video_json = json.load(input_json)
     serializers.import_video_json(video_obj,video_json,video_root_dir)
+    source_zip = "{}/{}.zip".format(video_root_dir, video_obj.pk)
+    os.remove(source_zip)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()

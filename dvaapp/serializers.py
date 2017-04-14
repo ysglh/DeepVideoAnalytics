@@ -254,4 +254,3 @@ def import_video_json(video_obj,video_json,video_root_dir):
     previous_transformed = set()
     for i in video_json['index_entries_list']:
         import_index_entries(i, video_obj, previous_transformed, detection_to_pk, frame_to_pk, video_root_dir)
-    os.remove("{}/{}.zip".format(video_root_dir, video_obj.pk))

@@ -2,7 +2,8 @@
 {% load staticfiles %}
 {% block ng_control %}ng-controller="CanvasControls"{% endblock %}
 {% block status_bar %}
-    <div id="status" ng-model="status" ng-show="checkStatus()" class="alert alert-dismissable" ng-class="alert_status ? 'alert-warning' : 'alert-info'"><h4 class="h4status">{[ status ]}</h4>
+    <div id="status" ng-model="status" ng-show="checkStatus()" class="alert alert-dismissable"
+         ng-class="alert_status ? 'alert-warning' : 'alert-info'" xmlns="http://www.w3.org/1999/html"><h4 class="h4status">{[ status ]}</h4>
     <button type="button" class="close" ng-click="disableStatus()" aria-hidden="true">x</button>
     </div>
 {% endblock %}
@@ -107,7 +108,17 @@
                 <div class="box box-primary">
                     <div class="box-body with_border">
                         <h4 class="text-center">Upload video / dataset</h4>
-                        <p>video or images in a single zip file <a href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/tests/exampledataset.zip" target="_blank">(example of zip file)</a> or an exported ".dva_export.zip".</p>
+                        <p class="text-center"><a data-toggle="modal" data-target="#allowed" href="#" >Compatible files</a></p>
+                        <div class="modal fade" tabindex="-1" role="dialog" id="allowed">
+                        <div class="modal-dialog" role="document"><div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span></button><h4 class="modal-title">Compatible files & templates</h4></div>
+                            <div class="modal-body">
+                                <p>A .mp4 video file or multiple images in a single zip file <a href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/tests/exampledataset.zip" target="_blank">(example of zip file)</a> or an exported ".dva_export.zip".</p>
+                            </div></div>
+                        </div>
+                        </div>
                         <form role="form"  method="post" enctype="multipart/form-data" action="#" >
                             <div class="form-group">
                             <input id="id_name" name="name" class="form-control" type="text" required="" placeholder="provide a name">
@@ -119,7 +130,14 @@
                             </div>
                         </form>
                         <h4 class="text-center">Or Submit youtube video url</h4>
-                        <p>We use <a target="_blank" href="https://rg3.github.io/youtube-dl/">youtube-dl</a>. Its your responsibility to abide by laws governing <a target="_blank" href="https://www.youtube.com/static?template=terms">Youtube TOS</a> in your jurisdiction.</p>
+                        <p class="text-center"><a data-toggle="modal" data-target="#ytdisclaimer" href="#" >legal disclaimer</a></p>
+                        <div class="modal fade" tabindex="-1" role="dialog" id="ytdisclaimer">
+                        <div class="modal-dialog" role="document"><div class="modal-content">
+                            <div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><h4 class="modal-title">Youtube legal disclaimer</h4></div>
+                            <div class="modal-body"><p>We use <a target="_blank" href="https://rg3.github.io/youtube-dl/">youtube-dl</a>. Its your responsibility to abide by laws governing <a target="_blank" href="https://www.youtube.com/static?template=terms">Youtube TOS</a> in your jurisdiction.</p></div></div>
+                        </div>
+                        </div>
+
                         <form role="form"  method="post" action="/youtube" >
                                 <div class="form-group">
                                     <input id="id_ytname" name="name" class="form-control" type="text" required="" placeholder="provide a name">
@@ -133,6 +151,24 @@
                                 </div>
                         </form>
                         <h4 class="text-center">Or Import from AWS S3</h4>
+                        <p class="text-center"><a data-toggle="modal" data-target="#awscreds" href="#" >Providing AWS credentials</a></p>
+                        <div class="modal fade" tabindex="-1" role="dialog" id="awscreds">
+                        <div class="modal-dialog" role="document"><div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span></button><h4 class="modal-title">AWS credentials</h4></div>
+                            <div class="modal-body" style="text-align:left">
+                                <p>We suggest setting AWS authentication credentials</p>
+                                    <ul>
+                                        <li>In an aws config file.</li>
+                                        <li>Via Environment variables inside your docker-compose .yml</li>
+                                        <li>Using IAM Roles (instance metadata discovery service) when running DVA on AWS.</li>
+                                    </ul>
+                                <p>We do not provide a method to enter credentials via web interface.</p>
+                            </div></div>
+                        </div>
+                        </div>
+
                         <form role="form"  method="post" action="/import_s3" >
                                 <div class="form-group">
                                     <div class="row">

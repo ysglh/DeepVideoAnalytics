@@ -28,6 +28,38 @@
 <div class="row">
     <div class="col-lg-12">
         <div class="box box-primary">
+            <div class="box-header with-border"><h4>Submit task manually</h4></div>
+            <div class="box-body">
+            <div class="row m-t" style="margin-top:20px">
+            <form action="/video_send_task" method="POST" >
+                <div class="col-sm-5"><div class="form-group">
+                        <label for="task_name">Task</label>
+                        <select class="js-example-basic" id="task_name" name="task_name" style="width:100%">
+                        {% for v in manual_tasks %}
+                            <option value="{{ v }}">{{ v }}</option>
+                        {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-sm-5"><div class="form-group">
+                        <label for="video_name">Video</label>
+                        <select class="js-example-basic" id="video_name" name="video_id" style="width:100%">
+                        {% for v in videos %}
+                            <option value="{{ v.pk }}">{{ v.name }}</option>
+                        {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-sm-2"><button class="form-actions btn btn-primary" style="margin-top:25px"  type="submit"><i class="fa fa-send"></i> Submit</button></div>
+            {% csrf_token %}
+            </form>
+            </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12">
+        <div class="box box-primary">
             <div class="box-body">
             <div class="row">
                 <div class="col-md-3 col-lg-2 col-sm-6">
@@ -191,6 +223,10 @@
 {% block page_js%}
 <script>
     $(document).ready(function() {
+        var task_name = $("#task_name");
+        task_name.select2({theme: "bootstrap"});
+        var video_name = $("#video_name");
+        video_name.select2({theme: "bootstrap"});
         InitializeTables();
         var nodes = JSON.parse('{{ nodes|safe }}');
         var edges = JSON.parse('{{ edges|safe }}');

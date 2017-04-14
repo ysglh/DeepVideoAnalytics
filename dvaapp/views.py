@@ -441,7 +441,6 @@ class VideoDetail(DetailView):
         if context['limit'] > max_frame_index:
             context['limit'] = max_frame_index
         context['max_frame_index'] = max_frame_index
-        context['manual_tasks'] = settings.MANUAL_VIDEO_TASKS
         return context
 
 
@@ -594,6 +593,8 @@ def render_tasks(request,context):
             edges.append({"from":taskid[initial],'to':taskid[v],'label':settings.TASK_NAMES_TO_QUEUE[v],'arrows':'to'})
     context["nodes"] = json.dumps(nodes)
     context["edges"] = json.dumps(edges)
+    context["videos"] = Video.objects.all().filter(parent_query__count__isnull=True)
+    context['manual_tasks'] = settings.MANUAL_VIDEO_TASKS
     return render(request, 'tasks.html', context)
 
 

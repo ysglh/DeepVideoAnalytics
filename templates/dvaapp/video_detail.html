@@ -143,22 +143,6 @@
                 </tbody>
             </table>
             {% endif %}
-            <div class="row m-t" style="margin-top:20px">
-            <form action="/video_send_task" method="POST" >
-                <div class="col-sm-3"><h4>Submit task</h4></div>
-                <div class="col-sm-6"><div class="form-group">
-                        <select class="js-example-basic" id="task_name" name="task_name" style="width:100%">
-                        {% for v in manual_tasks %}
-                            <option value="{{ v }}">{{ v }}</option>
-                        {% endfor %}
-                        </select>
-                    </div>
-                </div>
-                <input type="hidden" name="video_id" value="{{ object.pk }}" />
-                <div class="col-sm-3"><button class="form-actions btn btn-primary"  type="submit"><i class="fa fa-send"></i> Submit</button></div>
-            {% csrf_token %}
-            </form>
-            </div>
         <div class="row">
             {% if not video.vdn_dataset %}
                 <div class="col-sm-12 text-center">
@@ -344,8 +328,6 @@
 <script>
     $(document).ready(function() {
         InitializeTables();
-        var task_name = $("#task_name");
-        task_name.select2({theme: "bootstrap"});
     })
 </script>
 {% endblock %}

@@ -16,7 +16,7 @@
         <div class="box box-primary">
         <div class="box-header with-borders text-center">
             {% if previous_frame %}<a href="/frames/{{ previous_frame.0.pk }}" class="btn btn-success pull-left"><i class="fa fa-backward "></i> Previous</a> {% endif %}
-            <a href="/annotate_frame/{{ object.pk }}/" class="btn btn-warning"><i class="fa fa-edit"></i> View, add & edit annotations for this frame</a>
+            <a href="/annotate_frame/{{ object.pk }}/" class="btn btn-warning"><i class="fa fa-edit"></i> Add & edit annotations</a>
             <a href="/query_frame/{{ object.pk }}/" class="btn btn-info"><i class="fa fa-search"></i> Query using this frame</a>
             {% if next_frame %}<a href="/frames/{{ next_frame.0.pk }}" class="btn btn-success pull-right"><i class="fa fa-forward"></i> Next</a>{% endif %}
         </div>

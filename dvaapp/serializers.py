@@ -1,7 +1,7 @@
 from rest_framework import serializers, viewsets
 from django.contrib.auth.models import User
 from models import Video, VLabel, Frame, Annotation, Detection, Query, QueryResults, TEvent, IndexEntries, VDNDataset, VDNServer
-import os,json,logging
+import os, json, logging, glob
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
@@ -227,11 +227,10 @@ def import_video_json(video_obj,video_json,video_root_dir):
     video_obj.description = video_json['description']
     video_obj.metadata = video_json['metadata']
     video_obj.length_in_seconds = video_json['length_in_seconds']
-    old_key = video_obj['id']
     video_obj.save()
     vdn_dataset = video_obj.vdn_dataset
     if not video_obj.dataset:
-        old_video_path = "{}/video/{}.mp4".format(video_root_dir,old_key)
+        old_video_path = [fname for fname in glob.glob("{}/video/*.mp4".format(video_root_dir))][0]
         new_video_path = "{}/video/{}.mp4".format(video_root_dir,video_obj.pk)
         os.rename(old_video_path,new_video_path)
     frame_to_pk = {}

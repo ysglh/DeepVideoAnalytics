@@ -694,10 +694,10 @@ def import_dataset(request):
 
 def import_s3(request):
     if request.method == 'POST':
-        key = request.POST.get('key')
-        region = request.POST.get('key')
-        bucket = request.POST.get('key')
         s3import = S3Import()
+        key = request.POST.get('key')
+        region = request.POST.get('region')
+        bucket = request.POST.get('bucket')
         s3import.key = key
         s3import.region = region
         s3import.bucket = bucket

@@ -712,10 +712,9 @@ def import_s3(request):
         video.save()
         s3import.video = video
         s3import.save()
-        primary_key = video.pk
         create_video_folders(video, create_subdirs=False)
         task_name = 'import_video_from_s3'
-        app.send_task(name=task_name, args=[primary_key, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+        app.send_task(name=task_name, args=[s3import.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
     else:
         raise NotImplementedError
     return redirect('video_list')

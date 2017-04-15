@@ -110,13 +110,15 @@
                         <h4 class="text-center">Upload video / dataset</h4>
                         <p class="text-center"><a data-toggle="modal" data-target="#allowed" href="#" >Compatible files</a></p>
                         <div class="modal fade" tabindex="-1" role="dialog" id="allowed">
-                        <div class="modal-dialog" role="document"><div class="modal-content">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
                             <div class="modal-header">
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span></button><h4 class="modal-title">Compatible files & templates</h4></div>
+                                    <span aria-hidden="true">&times;</span></button><h4 class="modal-title">Compatible files</h4></div>
                             <div class="modal-body">
-                                <p>A .mp4 video file or multiple images in a single zip file <a href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/tests/exampledataset.zip" target="_blank">(example of zip file)</a> or an exported ".dva_export.zip".</p>
-                            </div></div>
+                                <p>An .mp4 video file or multiple images in a single zip file <a href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/tests/exampledataset.zip" target="_blank">(example of a zip file)</a> or an exported ".dva_export.zip".</p>
+                            </div>
+                            </div>
                         </div>
                         </div>
                         <form role="form"  method="post" enctype="multipart/form-data" action="#" >
@@ -158,13 +160,13 @@
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                     <span aria-hidden="true">&times;</span></button><h4 class="modal-title">AWS credentials</h4></div>
                             <div class="modal-body" style="text-align:left">
-                                <p>We suggest setting AWS authentication credentials</p>
+                                <p>We suggest setting AWS authentication credentials using one of following methods.</p>
                                     <ul>
                                         <li>In an aws config file.</li>
                                         <li>Via Environment variables inside your docker-compose .yml</li>
                                         <li>Using IAM Roles (instance metadata discovery service) when running DVA on AWS.</li>
                                     </ul>
-                                <p>We do not provide a method to enter credentials via web interface.</p>
+                                <p>We do not provide a method to enter AWS credentials via web interface.</p>
                             </div></div>
                         </div>
                         </div>

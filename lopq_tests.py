@@ -14,6 +14,9 @@ except:
 
 
 def load_oxford_data():
+    from lopq.utils import load_xvecs
+
+    data = load_xvecs('repos/lopq/data/oxford/oxford_features.fvecs')
     return data
 
 

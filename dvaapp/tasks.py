@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import subprocess,sys,shutil,os,glob,time,logging
 from django.conf import settings
 from dva.celery import app
-from .models import Video, Frame, Detection, TEvent, Query, IndexEntries,QueryResults, Annotation, VLabel, Export, VDNDataset, S3Export, S3Import
+from .models import Video, Frame, Detection, TEvent, Query, IndexEntries,QueryResults, Annotation, VLabel, Export, VDNDataset, S3Export, S3Import, Clusters
 from dvalib import entity
 from dvalib import detector
 from dvalib import indexer
@@ -17,6 +17,7 @@ import zipfile
 from . import serializers
 import boto3
 from dvalib import clustering
+
 
 def process_video_next(video_id,current_task_name):
     if current_task_name in settings.POST_OPERATION_TASKS:
@@ -593,8 +594,10 @@ def make_bucket_public_requester_pays(bucket_name):
 
 
 @app.task(name="cluster_task")
-def perform_clustering(cluster_task_id,data):
-    c = clustering.Clustering(data,64)
+def perform_clustering(cluster_task_id):
+    dc = Clusters.objects.get(pk=cluster_task_id)
+    fname = "{}/{}/indexes/{}".format(settings.MEDIA_ROOT,dc.video.pk,dc.index_entries.features_file_name)
+    c = clustering.Clustering(fname,64)
     c.cluster()
 
 

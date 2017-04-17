@@ -546,7 +546,16 @@ def push_external_products_index(path='/Users/aub3/temptest/products/'):
 @task
 def cluster():
     from lopq.utils import load_xvecs
-    #
-    data = load_xvecs('repos/lopq/data/oxford/oxford_features.fvecs')
-    # c = clustering.Clustering(data,64)
-    # c.cluster()
+    import django
+    sys.path.append(os.path.dirname(__file__))
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
+    django.setup()
+    from dvaapp.tasks import perform_clustering
+    from dvaapp.models import Video,Clusters,IndexEntries
+    c = Clusters()
+    c.video = Video.objects.get(pk=3)
+    c.index_entries = IndexEntries.objects.get(video=c.video,algorithm='facenet')
+    c.components = 128
+    c.cluster_count=32
+    c.save()
+    perform_clustering(c.pk)

@@ -8,8 +8,8 @@ from lopq.model import eigenvalue_allocation
 
 class Clustering(object):
 
-    def __init__(self,data,n_components):
-        self.data = data
+    def __init__(self,fname,n_components):
+        self.data = np.load(fname)
         self.n_components = n_components
 
     def pca(self):
@@ -33,12 +33,12 @@ class Clustering(object):
         print self.data.shape
         pca_reduction = PCA(n_components=32)
         pca_reduction.fit(self.data)
-        data = pca_reduction.transform(self.data)
-        print data.shape
+        self.data = pca_reduction.transform(self.data)
+        print self.data.shape
         P, mu = self.pca()
-        data = data - mu
+        self.data = self.data - mu
         data = np.dot(self.data,P)
-        train, test = train_test_split(data, test_size=0.2)
+        train, test = train_test_split(self.data, test_size=0.2)
         print train.shape,test.shape
         nns = compute_all_neighbors(test, train)
         m = LOPQModel(V=16, M=8)

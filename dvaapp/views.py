@@ -356,6 +356,7 @@ def handle_uploaded_file(f,name,extract=True,user=None):
     video.save()
     primary_key = video.pk
     filename = f.name
+    filename = filename.lower()
     if filename.endswith('.dva_export.zip'):
         create_video_folders(video, create_subdirs=False)
         with open('{}/{}/{}.{}'.format(settings.MEDIA_ROOT,video.pk,video.pk,filename.split('.')[-1]), 'wb+') as destination:

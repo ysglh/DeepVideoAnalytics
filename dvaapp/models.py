@@ -208,3 +208,12 @@ class S3Import(models.Model):
     started = models.DateTimeField('date created', auto_now_add=True)
     completed = models.BooleanField(default=False)
 
+
+class Clusters(models.Model):
+    video = models.ForeignKey(Video)
+    algorithm = models.CharField(max_length=50,default='LOPQ')
+    index_entries = models.ForeignKey(IndexEntries)
+    cluster_count = models.IntegerField()
+    components = models.IntegerField()
+    started = models.DateTimeField('date created', auto_now_add=True)
+    completed = models.BooleanField(default=False)

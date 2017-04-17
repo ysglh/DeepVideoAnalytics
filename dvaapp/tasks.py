@@ -16,6 +16,7 @@ import celery
 import zipfile
 from . import serializers
 import boto3
+from dvalib import clustering
 
 def process_video_next(video_id,current_task_name):
     if current_task_name in settings.POST_OPERATION_TASKS:
@@ -576,7 +577,6 @@ def import_video_from_s3(s3_import_id):
     start.save()
 
 
-
 def make_bucket_public_requester_pays(bucket_name):
     """
     Convert AWS S3 bucket into requester pays bucket
@@ -590,3 +590,11 @@ def make_bucket_public_requester_pays(bucket_name):
     response = bucket_policy.put(Policy=json.dumps({"Version": "2012-10-17", "Statement": [
         {"Sid": "AddPerm", "Effect": "Allow", "Principal": "*", "Action": "s3:GetObject",
          "Resource": "arn:aws:s3:::{}/*".format(bucket_name)}]}))
+
+
+@app.task(name="cluster_task")
+def perform_clustering(cluster_task_id,data):
+    c = clustering.Clustering(data,64)
+    c.cluster()
+
+

@@ -541,3 +541,12 @@ def push_external_products_index(path='/Users/aub3/temptest/products/'):
     from dvalib import external_indexed
     products = external_indexed.ProductsIndex(path=path)
     products.push_to_s3()
+
+
+@task
+def cluster():
+    from lopq.utils import load_xvecs
+    #
+    data = load_xvecs('repos/lopq/data/oxford/oxford_features.fvecs')
+    # c = clustering.Clustering(data,64)
+    # c.cluster()

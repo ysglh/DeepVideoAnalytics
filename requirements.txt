@@ -21,3 +21,4 @@ enum34
 scikit-learn
 awscli
 django-crispy-forms
+lopq

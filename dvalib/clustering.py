@@ -1,10 +1,12 @@
 import numpy as np
-from sklearn.cross_validation import train_test_split
-from sklearn.decomposition import PCA
-from lopq import LOPQModel, LOPQSearcher
-from lopq.eval import compute_all_neighbors, get_recall
-from lopq.model import eigenvalue_allocation
-
+try:
+    from sklearn.cross_validation import train_test_split
+    from sklearn.decomposition import PCA
+    from lopq import LOPQModel, LOPQSearcher
+    from lopq.eval import compute_all_neighbors, get_recall
+    from lopq.model import eigenvalue_allocation
+except:
+    pass
 
 class Clustering(object):
 

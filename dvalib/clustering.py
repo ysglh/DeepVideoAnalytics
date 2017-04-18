@@ -75,13 +75,17 @@ class Clustering(object):
         else:
             self.searcher.add_data(self.data)
         self.find()
-        return compute_codes_parallel(self.data,self.model)
+        for i,e in enumerate(self.entries):
+            e['coarse'] = self.model.predict(self.data[i]).coarse
+            e['fine'] = self.model.predict(self.data[i]).fine
+            print e
 
     def find(self):
-        i,selected = random.choice(enumerate(self.entries))
+        i,selected = random.choice([k for k in enumerate(self.entries)])
         print selected
         for k in self.searcher.get_result_quota(self.data[i],10):
-            print self.entries[k]
+            print k
+
 
     def save(self):
         self.model.export_proto(self.model_proto_filename)

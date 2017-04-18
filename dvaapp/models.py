@@ -221,3 +221,12 @@ class Clusters(models.Model):
     components = models.IntegerField(default=64) # computer 64 principal components
     started = models.DateTimeField('date created', auto_now_add=True)
     completed = models.BooleanField(default=False)
+
+
+class ClusterCodes(models.Model):
+    clusters = models.ForeignKey(Clusters)
+    video = models.ForeignKey(Video)
+    frame = models.ForeignKey(Frame)
+    detection = models.ForeignKey(Detection,null=True)
+    fine = ArrayField(models.IntegerField(), default=[])
+    coarse = ArrayField(models.IntegerField(), default=[])

@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import subprocess,sys,shutil,os,glob,time,logging
 from django.conf import settings
 from dva.celery import app
-from .models import Video, Frame, Detection, TEvent, Query, IndexEntries,QueryResults, Annotation, VLabel, Export, VDNDataset, S3Export, S3Import, Clusters
+from .models import Video, Frame, Detection, TEvent, Query, IndexEntries,QueryResults, Annotation, VLabel, Export, VDNDataset, S3Export, S3Import, Clusters, ClusterCodes
 from dvalib import entity
 from dvalib import detector
 from dvalib import indexer
@@ -605,5 +605,15 @@ def perform_clustering(cluster_task_id,test=False):
         fnames.append("{}/{}/indexes/{}".format(settings.MEDIA_ROOT, k.video.pk, k.features_file_name))
     cluster_proto_filename = "{}{}.proto".format(clusters_dir,dc.pk)
     c = clustering.Clustering(fnames, 64,cluster_proto_filename,test)
-    codes = c.cluster()
+    c.cluster()
+    for e in c.entries:
+        cc = ClusterCodes()
+        cc.frame_id = e['frame_primary_key']
+        cc.video_id = e['video_primary_key']
+        if 'detection_primary_key' in e:
+            cc.detection_id = e['detection_primary_key']
+        cc.clusters = dc
+        cc.coarse = e['coarse']
+        cc.fine = e['fine']
+        cc.save()
     c.save()

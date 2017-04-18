@@ -221,6 +221,9 @@ class Clusters(models.Model):
     components = models.IntegerField(default=64) # computer 64 principal components
     started = models.DateTimeField('date created', auto_now_add=True)
     completed = models.BooleanField(default=False)
+    m = models.IntegerField(default=16)
+    v = models.IntegerField(default=16)
+    sub = models.IntegerField(default=256)
 
 
 class ClusterCodes(models.Model):

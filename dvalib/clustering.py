@@ -15,7 +15,7 @@ except:
 
 class Clustering(object):
 
-    def __init__(self,fnames,n_components,model_proto_filename,test_mode=False):
+    def __init__(self,fnames,n_components,model_proto_filename,m,v,sub,test_mode=False):
         data = []
         self.fnames = fnames
         self.entries = []
@@ -26,6 +26,9 @@ class Clustering(object):
         self.data = np.concatenate(data)
         self.test_mode = test_mode
         self.n_components = n_components
+        self.m = m
+        self.v = v
+        self.sub = sub
         self.model = None
         self.search = None
         self.pca_reduction = None
@@ -63,7 +66,7 @@ class Clustering(object):
         self.data = self.data - self.mu
         self.data = np.dot(self.data,self.P)
         train, test = train_test_split(self.data, test_size=0.2)
-        self.model = LOPQModel(V=16, M=16, subquantizer_clusters=512)
+        self.model = LOPQModel(V=self.v, M=self.m, subquantizer_clusters=self.sub)
         self.model.fit(train, n_init=1)
         self.searcher = LOPQSearcher(self.model)
         if self.test_mode:

@@ -230,6 +230,7 @@ def launch_queues(detection=False):
     local('fab startq:qretriever &')
     local('fab startq:qfaceretriever &')
     local('fab startq:qfacedetector &')
+    local('fab startq:qclusterer &')
     if detection:
         local('fab startq:qdetector &')
 

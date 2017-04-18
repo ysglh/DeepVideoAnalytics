@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView,DetailView
 from django.utils.decorators import method_decorator
 from .forms import UploadFileForm,YTVideoForm,AnnotationForm
-from .models import Video,Frame,Detection,Query,QueryResults,TEvent,IndexEntries,VDNDataset, Annotation, VLabel, Export, VDNServer, S3Export, S3Import
+from .models import Video,Frame,Detection,Query,QueryResults,TEvent,IndexEntries,VDNDataset, Annotation, VLabel, Export, VDNServer, S3Export, S3Import, ClusterCodes, Clusters
 from .tasks import extract_frames
 from dva.celery import app
 import serializers
@@ -648,6 +648,26 @@ def detections(request):
 
 def clustering(request):
     context = {}
+    context['clusters'] = Clusters.objects.all()
+    context['algorithms'] = {k.algorithm for k in IndexEntries.objects.all()}
+    context['index_entries'] = IndexEntries.objects.all()
+    if request.method == 'POST':
+        algorithm = request.POST.get('algorithm')
+        v = request.POST.get('v')
+        m = request.POST.get('m')
+        components = request.POST.get('components')
+        sub = request.POST.get('sub')
+        excluded = request.POST.get('excluded_index_entries')
+        c = Clusters()
+        c.indexer_algorithm = algorithm
+        c.included_index_entries_pk = [k.pk for k in IndexEntries.objects.all() if k.algorithm == c.indexer_algorithm]
+        c.components = components
+        c.sub = sub
+        c.m = m
+        c.v = v
+        c.save()
+        task_name = "perform_clustering"
+        app.send_task(name=task_name, args=[c.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
     return render(request, 'clustering.html', context)
 
 

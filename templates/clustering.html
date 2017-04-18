@@ -37,19 +37,19 @@
                                 {% endfor %}
                                 </select>
                             </div>
-                            <div class="col-lg-1 col-md-2">
+                            <div class="col-lg-1 col-md-2 col-sm-3">
                                 <label for="components">PCA components</label>
                                 <input name="components" class="form-control" value="128" required="required" type="number" >
                             </div>
-                            <div class="col-lg-1 col-md-2">
+                            <div class="col-lg-1 col-md-2 col-sm-3">
                                 <label for="m">M</label>
                                 <input name="m" class="form-control" value="16" required="required" type="number" >
                             </div>
-                            <div class="col-lg-1 col-md-2">
+                            <div class="col-lg-1 col-md-2 col-sm-3">
                                 <label for="v">V</label>
                                 <input name="v" class="form-control" value="16" required="required" type="number" >
                             </div>
-                            <div class="col-lg-1 col-md-2">
+                            <div class="col-lg-1 col-md-2 col-sm-3">
                                 <label for="sub">Subq</label>
                                 <input name="sub" class="form-control" value="16" required="required" type="number" >
                             </div>
@@ -67,6 +67,36 @@
                     <h4>Clustering results & associated </h4>
                 </div>
                 <div class="box-body">
+                    <table class="table dataTables">
+                        <thead>
+                        <tr>
+                            <th>Algorithm</th>
+                            <th>Source indexer</th>
+                            <th>Components</th>
+                            <th>M</th>
+                            <th>V</th>
+                            <th>Subquantizers</th>
+                            <th>Completed</th>
+                            <th>Created</th>
+                            <th>details</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for k in clusters %}
+                        <tr>
+                            <td>{{ k.algorithm }}</td>
+                            <td>{{ k.indexer_algorithm }}</td>
+                            <td class="text-center">{{ k.components }}</td>
+                            <td class="text-center">{{ k.m }}</td>
+                            <td class="text-center">{{ k.v }}</td>
+                            <td class="text-center">{{ k.sub }}</td>
+                            <td class="text-center">{{ k.completed }}</td>
+                            <td class="text-center">{{ k.started }}</td>
+                            <td class="text-center"><a href="#">details</a></td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

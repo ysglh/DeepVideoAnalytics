@@ -558,4 +558,4 @@ def cluster():
     c.components = 128
     c.cluster_count=32
     c.save()
-    perform_clustering(c.pk)
+    perform_clustering(c.pk,True)

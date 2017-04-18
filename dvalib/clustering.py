@@ -10,8 +10,12 @@ except:
 
 class Clustering(object):
 
-    def __init__(self,fname,n_components):
-        self.data = np.load(fname)
+    def __init__(self,fnames,n_components):
+        data = []
+        self.fnames = fnames
+        for fname in fnames:
+            data.append(np.load(fname))
+        self.data = np.concatenate(data)
         self.n_components = n_components
 
     def pca(self):

@@ -210,10 +210,14 @@ class S3Import(models.Model):
 
 
 class Clusters(models.Model):
-    video = models.ForeignKey(Video)
-    algorithm = models.CharField(max_length=50,default='LOPQ')
-    index_entries = models.ForeignKey(IndexEntries)
-    cluster_count = models.IntegerField()
-    components = models.IntegerField()
+    excluded_index_entries_pk = ArrayField(models.IntegerField(), default=[])
+    included_index_entries_pk = ArrayField(models.IntegerField(), default=[])
+    train_fraction = models.FloatField(default=0.8) # by default use 80% of data for training
+    algorithm = models.CharField(max_length=50,default='LOPQ')    # LOPQ
+    indexer_algorithm = models.CharField(max_length=50)
+    cluster_count = models.IntegerField(default=0)
+    pca_file_name = models.CharField(max_length=200,default="")
+    model_file_name = models.CharField(max_length=200, default="")
+    components = models.IntegerField(default=64) # computer 64 principal components
     started = models.DateTimeField('date created', auto_now_add=True)
     completed = models.BooleanField(default=False)

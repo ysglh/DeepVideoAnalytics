@@ -30,11 +30,13 @@ before_install:
   - sudo wget https://yt-dl.org/downloads/latest/youtube-dl -O /bin/youtube-dl
   - sudo chmod a+rx /bin/youtube-dl
   - youtube-dl -U
+  - pip install --only-binary=numpy,scipy numpy
 
 install: "pip install -r requirements.txt > /dev/null"
 
 
 before_script:
+  - cd repos/lopq/python && python setup.py install
   - cd darknet && wget https://www.dropbox.com/s/0zopjpswug5rjqy/yolo9000.weights && make && cd ..
   - python manage.py migrate
   - python manage.py runserver 8000 &

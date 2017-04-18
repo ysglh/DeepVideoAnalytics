@@ -553,8 +553,8 @@ def cluster():
     from dvaapp.tasks import perform_clustering
     from dvaapp.models import Video,Clusters,IndexEntries
     c = Clusters()
-    c.video = Video.objects.get(pk=3)
-    c.index_entries = IndexEntries.objects.get(video=c.video,algorithm='facenet')
+    c.indexer_algorithm = 'facenet'
+    c.included_index_entries_pk = [k.pk for k in IndexEntries.objects.all() if k.algorithm == c.indexer_algorithm]
     c.components = 128
     c.cluster_count=32
     c.save()

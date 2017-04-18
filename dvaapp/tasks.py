@@ -596,8 +596,11 @@ def make_bucket_public_requester_pays(bucket_name):
 @app.task(name="cluster_task")
 def perform_clustering(cluster_task_id):
     dc = Clusters.objects.get(pk=cluster_task_id)
-    fname = "{}/{}/indexes/{}".format(settings.MEDIA_ROOT,dc.video.pk,dc.index_entries.features_file_name)
-    c = clustering.Clustering(fname,64)
+    fnames = []
+    for ipk in dc.included_index_entries_pk:
+        k = IndexEntries.objects.get(pk=ipk)
+        fnames.append("{}/{}/indexes/{}".format(settings.MEDIA_ROOT, k.video.pk, k.features_file_name))
+    c = clustering.Clustering(fnames, 64)
     c.cluster()
 
 

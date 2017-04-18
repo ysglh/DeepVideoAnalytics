@@ -595,12 +595,16 @@ def make_bucket_public_requester_pays(bucket_name):
 
 @app.task(name="cluster_task")
 def perform_clustering(cluster_task_id):
+    clusters_dir = "{}/clusters/".format(settings.MEDIA_ROOT)
+    if not os.path.isdir(clusters_dir):
+        os.mkdir(clusters_dir)
     dc = Clusters.objects.get(pk=cluster_task_id)
     fnames = []
     for ipk in dc.included_index_entries_pk:
         k = IndexEntries.objects.get(pk=ipk)
         fnames.append("{}/{}/indexes/{}".format(settings.MEDIA_ROOT, k.video.pk, k.features_file_name))
-    c = clustering.Clustering(fnames, 64)
+    cluster_proto_filename = "{}{}.modelproto".format(clusters_dir,dc.pk)
+    c = clustering.Clustering(fnames, 64,cluster_proto_filename)
     c.cluster()
-
+    c.save()
 

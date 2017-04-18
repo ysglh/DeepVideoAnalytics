@@ -10,13 +10,20 @@ except:
 
 class Clustering(object):
 
-    def __init__(self,fnames,n_components):
+    def __init__(self,fnames,n_components,model_proto_filename):
         data = []
         self.fnames = fnames
         for fname in fnames:
             data.append(np.load(fname))
         self.data = np.concatenate(data)
         self.n_components = n_components
+        self.model = None
+        self.search = None
+        self.pca_reduction = None
+        self.P = None
+        self.mu = None
+        self.model_proto_filename = model_proto_filename
+
 
     def pca(self):
         """
@@ -37,33 +44,39 @@ class Clustering(object):
 
     def cluster(self):
         print self.data.shape
-        pca_reduction = PCA(n_components=32)
-        pca_reduction.fit(self.data)
-        self.data = pca_reduction.transform(self.data)
+        self.pca_reduction = PCA(n_components=self.n_components)
+        self.pca_reduction.fit(self.data)
+        self.data = self.pca_reduction.transform(self.data)
         print self.data.shape
-        P, mu = self.pca()
-        self.data = self.data - mu
-        data = np.dot(self.data,P)
+        self.P, self.mu = self.pca()
+        self.data = self.data - self.mu
+        self.data = np.dot(self.data,self.P)
         train, test = train_test_split(self.data, test_size=0.2)
         print train.shape,test.shape
         nns = compute_all_neighbors(test, train)
-        m = LOPQModel(V=16, M=8)
-        m.fit(train, n_init=1)
+        self.model = LOPQModel(V=16, M=8)
+        self.model.fit(train, n_init=1)
         print "fitted"
-        searcher = LOPQSearcher(m)
+        self.searcher = LOPQSearcher(self.model)
         print "adding data"
-        searcher.add_data(train)
-        recall, _ = get_recall(searcher, test, nns)
-        print 'Recall (V=%d, M=%d, subquants=%d): %s' % (m.V, m.M, m.subquantizer_clusters, str(recall))
-        m2 = LOPQModel(V=16, M=16, parameters=(m.Cs, None, None, None))
-        m2.fit(train, n_init=1)
-        searcher = LOPQSearcher(m2)
-        searcher.add_data(train)
-        recall, _ = get_recall(searcher, test, nns)
-        print 'Recall (V=%d, M=%d, subquants=%d): %s' % (m2.V, m2.M, m2.subquantizer_clusters, str(recall))
-        m3 = LOPQModel(V=16, M=8, subquantizer_clusters=512, parameters=(m.Cs, m.Rs, m.mus, None))
-        m3.fit(train, n_init=1)
-        searcher = LOPQSearcher(m3)
-        searcher.add_data(train)
-        recall, _ = get_recall(searcher, test, nns)
-        print 'Recall (V=%d, M=%d, subquants=%d): %s' % (m3.V, m3.M, m3.subquantizer_clusters, str(recall))
+        self.searcher.add_data(train)
+        recall, _ = get_recall(self.searcher, test, nns)
+        print 'Recall (V=%d, M=%d, subquants=%d): %s' % (self.model.V, self.model.M, self.model.subquantizer_clusters, str(recall))
+        self.model = LOPQModel(V=16, M=16, parameters=(self.model.Cs, None, None, None))
+        self.model.fit(train, n_init=1)
+        self.searcher = LOPQSearcher(self.model)
+        self.searcher.add_data(train)
+        recall, _ = get_recall(self.searcher, test, nns)
+        print 'Recall (V=%d, M=%d, subquants=%d): %s' % (self.model.V, self.model.M, self.model.subquantizer_clusters, str(recall))
+        self.model = LOPQModel(V=16, M=8, subquantizer_clusters=512, parameters=(self.model.Cs, self.model.Rs, self.model.mus, None))
+        self.model.fit(train, n_init=1)
+        self.searcher = LOPQSearcher(self.model)
+        self.searcher.add_data(train)
+        recall, _ = get_recall(self.searcher, test, nns)
+        print 'Recall (V=%d, M=%d, subquants=%d): %s' % (self.model.V, self.model.M, self.model.subquantizer_clusters, str(recall))
+
+    def save(self):
+        self.model.export_proto(self.model_proto_filename)
+
+    def load(self):
+        self.mode = LOPQModel.load_proto(self.model_proto_filename)

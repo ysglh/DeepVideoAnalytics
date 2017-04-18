@@ -605,6 +605,8 @@ def perform_clustering(cluster_task_id,test=False):
         fnames.append("{}/{}/indexes/{}".format(settings.MEDIA_ROOT, k.video.pk, k.features_file_name))
     cluster_proto_filename = "{}{}.proto".format(clusters_dir,dc.pk)
     c = clustering.Clustering(fnames, 64,cluster_proto_filename,test)
-    c.cluster()
+    codes = c.cluster()
+    for i,k in enumerate(codes):
+        e =c.entries[i]
+        print e['path']+'\t'+'\t'.join(map(str,sorted(list(k.coarse))))+'\t'+'\t'.join(map(str,sorted(list(k.fine))))
     c.save()
-

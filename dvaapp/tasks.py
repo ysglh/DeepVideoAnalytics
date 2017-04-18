@@ -593,7 +593,7 @@ def make_bucket_public_requester_pays(bucket_name):
          "Resource": "arn:aws:s3:::{}/*".format(bucket_name)}]}))
 
 
-@app.task(name="cluster_task")
+@app.task(name="perform_clustering")
 def perform_clustering(cluster_task_id,test=False):
     clusters_dir = "{}/clusters/".format(settings.MEDIA_ROOT)
     if not os.path.isdir(clusters_dir):
@@ -617,7 +617,7 @@ def perform_clustering(cluster_task_id,test=False):
         cc.clusters = dc
         cc.coarse = e['coarse']
         cc.fine = e['fine']
-        cc.coarse_text = " ".join(e['coarse'])
-        cc.fine_text = " ".join(e['fine'])
+        cc.coarse_text = " ".join(map(str,e['coarse']))
+        cc.fine_text = " ".join(map(str,e['fine']))
         cc.save()
     c.save()

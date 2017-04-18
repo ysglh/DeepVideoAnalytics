@@ -71,7 +71,6 @@ class Clustering(object):
             nns = compute_all_neighbors(test, train)
             recall, _ = get_recall(self.searcher, test, nns)
             print 'Recall (V=%d, M=%d, subquants=%d): %s' % (self.model.V, self.model.M, self.model.subquantizer_clusters, str(recall))
-        self.find()
         for i,e in enumerate(self.entries):
             e['coarse'] = self.model.predict(self.data[i]).coarse
             e['fine'] = self.model.predict(self.data[i]).fine

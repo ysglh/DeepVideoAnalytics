@@ -6,8 +6,9 @@ Q_DETECTOR = 'qdetector'
 Q_RETRIEVER = 'qretriever'
 Q_FACE_RETRIEVER = 'qfaceretriever'
 Q_FACE_DETECTOR = 'qfacedetector'
+Q_CLUSTER = 'qclusterer'
 
-QUEUES = [Q_EXTRACTOR,Q_INDEXER,Q_DETECTOR,Q_RETRIEVER,Q_FACE_RETRIEVER,Q_FACE_DETECTOR]
+QUEUES = [Q_EXTRACTOR,Q_INDEXER,Q_DETECTOR,Q_RETRIEVER,Q_FACE_RETRIEVER,Q_FACE_DETECTOR,Q_CLUSTER]
 
 TASK_NAMES_TO_QUEUE = {
     "inception_index_by_id":Q_INDEXER,
@@ -24,6 +25,7 @@ TASK_NAMES_TO_QUEUE = {
     "backup_video_to_s3":Q_EXTRACTOR,
     "import_video_by_id":Q_EXTRACTOR,
     "import_video_from_s3":Q_EXTRACTOR,
+    "perform_clustering": Q_CLUSTER,
 }
 
 
@@ -31,6 +33,7 @@ TASK_NAMES_TO_QUEUE = {
 VIDEO_TASK = 'video'
 QUERY_TASK = 'query'
 S3_TASK = 's3task'
+CLUSTER_TASK = 'cluster'
 
 TASK_NAMES_TO_TYPE = {
     "inception_index_by_id":VIDEO_TASK,
@@ -47,6 +50,7 @@ TASK_NAMES_TO_TYPE = {
     "import_video_by_id": VIDEO_TASK,
     "backup_video_to_s3": S3_TASK,
     "import_video_from_s3": S3_TASK,
+    "perform_clustering": CLUSTER_TASK,
 }
 
 # List of tasks which can be called manually

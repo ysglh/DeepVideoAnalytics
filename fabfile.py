@@ -556,6 +556,6 @@ def cluster():
     c.indexer_algorithm = 'facenet'
     c.included_index_entries_pk = [k.pk for k in IndexEntries.objects.all() if k.algorithm == c.indexer_algorithm]
     c.components = 128
-    c.cluster_count=32
+    c.cluster_count = 32
     c.save()
     perform_clustering(c.pk,True)

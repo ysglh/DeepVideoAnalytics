@@ -25,6 +25,7 @@ urlpatterns = [
     url(r'^indexes', views.indexes, name='indexes'),
     url(r'^annotations', views.annotations, name='annotations'),
     url(r'^detections', views.detections, name='detections'),
+    url(r'^clustering', views.clustering, name='clustering'),
     url(r'^external', views.external, name='external'),
     url(r'^youtube$', views.yt, name='youtube'),
     url(r'^export_video', views.export_video, name='export_video'),

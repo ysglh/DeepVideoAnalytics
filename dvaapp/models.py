@@ -230,3 +230,5 @@ class ClusterCodes(models.Model):
     detection = models.ForeignKey(Detection,null=True)
     fine = ArrayField(models.IntegerField(), default=[])
     coarse = ArrayField(models.IntegerField(), default=[])
+    coarse_text = models.TextField(default="") # check if postgres built in text search
+    fine_text = models.TextField(default="") # check if postgres built in text search can be used

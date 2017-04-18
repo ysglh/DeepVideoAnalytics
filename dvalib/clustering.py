@@ -38,7 +38,6 @@ class Clustering(object):
         self.permuted_inds_filename = model_proto_filename.replace('.proto', '.permuted_inds.pkl')
         self.permuted_inds = None
 
-
     def pca(self):
         """
         A simple PCA implementation that demonstrates how eigenvalue allocation
@@ -72,13 +71,10 @@ class Clustering(object):
             nns = compute_all_neighbors(test, train)
             recall, _ = get_recall(self.searcher, test, nns)
             print 'Recall (V=%d, M=%d, subquants=%d): %s' % (self.model.V, self.model.M, self.model.subquantizer_clusters, str(recall))
-        else:
-            self.searcher.add_data(self.data)
         self.find()
         for i,e in enumerate(self.entries):
             e['coarse'] = self.model.predict(self.data[i]).coarse
             e['fine'] = self.model.predict(self.data[i]).fine
-            print e
 
     def find(self):
         i,selected = random.choice([k for k in enumerate(self.entries)])

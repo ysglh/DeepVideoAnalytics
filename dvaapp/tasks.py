@@ -617,5 +617,7 @@ def perform_clustering(cluster_task_id,test=False):
         cc.clusters = dc
         cc.coarse = e['coarse']
         cc.fine = e['fine']
+        cc.coarse_text = " ".join(e['coarse'])
+        cc.fine_text = " ".join(e['fine'])
         cc.save()
     c.save()

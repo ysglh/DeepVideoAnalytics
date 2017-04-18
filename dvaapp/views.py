@@ -646,6 +646,11 @@ def detections(request):
     return render(request, 'detections.html', context)
 
 
+def clustering(request):
+    context = {}
+    return render(request, 'clustering.html', context)
+
+
 def delete_object(request):
     if request.method == 'POST':
         pk = request.POST.get('pk')

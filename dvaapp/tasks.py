@@ -608,10 +608,12 @@ def perform_clustering(cluster_task_id,test=False):
     c.cluster()
     for e in c.entries:
         cc = ClusterCodes()
-        cc.frame_id = e['frame_primary_key']
         cc.video_id = e['video_primary_key']
         if 'detection_primary_key' in e:
             cc.detection_id = e['detection_primary_key']
+            cc.frame_id = Detection.objects.get(pk=cc.detection_id).frame_id
+        else:
+            cc.frame_id = e['frame_primary_key']
         cc.clusters = dc
         cc.coarse = e['coarse']
         cc.fine = e['fine']

@@ -42,5 +42,9 @@ RUN cd dvalib/facenet/facenet_model && wget https://www.dropbox.com/s/tnebmpku7x
 RUN git pull && pip install --upgrade django-crispy-forms
 RUN apt-get update && apt-get install -y nginx supervisor
 RUN pip install --upgrade uwsgi
+WORKDIR "/root/DVA/repos/lopq/python"
+RUN pip install --upgrade lmdb
+RUN python setup.py install
+WORKDIR "/root/DVA"
 VOLUME ["/root/DVA/dva/media"]
 EXPOSE 80

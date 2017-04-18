@@ -2,6 +2,7 @@ import numpy as np
 import pickle
 import json
 import random
+import logging
 try:
     from sklearn.cross_validation import train_test_split
     from sklearn.decomposition import PCA
@@ -13,6 +14,7 @@ try:
 except:
     pass
 
+
 class Clustering(object):
 
     def __init__(self,fnames,n_components,model_proto_filename,m,v,sub,test_mode=False):
@@ -20,10 +22,17 @@ class Clustering(object):
         self.fnames = fnames
         self.entries = []
         for fname in fnames:
-            data.append(np.load(fname))
+            nmat = np.load(fname)
+            if nmat.ndim > 2:
+                nmat = nmat.squeeze()
+            data.append(nmat)
             for e in json.load(file(fname.replace('npy','json'))):
                 self.entries.append(e)
-        self.data = np.concatenate(data)
+        if len(data) > 1:
+            self.data = np.concatenate(data)
+        else:
+            self.data = data[0]
+        logging.info(self.data.shape)
         self.test_mode = test_mode
         self.n_components = n_components
         self.m = m

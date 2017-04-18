@@ -193,9 +193,9 @@ def quick(detection=False):
     :return:
     """
     clean()
-    superuser()
+    superu()
     test()
-    launch_queues(detection)
+    launch(detection)
 
 
 @task
@@ -210,7 +210,7 @@ def test_backup():
 
 
 @task
-def superuser():
+def superu():
     """
     Create a superuser
     :return:
@@ -219,7 +219,7 @@ def superuser():
 
 
 @task
-def launch_queues(detection=False):
+def launch(detection=False):
     """
     Launch workers for each queue
     :param detection: use fab launch_queues:1 to lauch detector queue in addition to all others

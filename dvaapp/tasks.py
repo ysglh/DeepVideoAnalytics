@@ -606,7 +606,4 @@ def perform_clustering(cluster_task_id,test=False):
     cluster_proto_filename = "{}{}.proto".format(clusters_dir,dc.pk)
     c = clustering.Clustering(fnames, 64,cluster_proto_filename,test)
     codes = c.cluster()
-    for i,k in enumerate(codes):
-        e =c.entries[i]
-        print e['path']+'\t'+'\t'.join(map(str,sorted(list(k.coarse))))+'\t'+'\t'.join(map(str,sorted(list(k.fine))))
     c.save()

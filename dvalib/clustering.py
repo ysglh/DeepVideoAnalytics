@@ -1,6 +1,7 @@
 import numpy as np
 import pickle
 import json
+import random
 try:
     from sklearn.cross_validation import train_test_split
     from sklearn.decomposition import PCA
@@ -31,7 +32,6 @@ class Clustering(object):
         self.P = None
         self.mu = None
         self.model_proto_filename = model_proto_filename
-        self.searcher_lmdb_filename = model_proto_filename.replace('.proto','.lmdb')
         self.P_filename = model_proto_filename.replace('.proto','.P.npy')
         self.mu_filename = model_proto_filename.replace('.proto','.mu.npy')
         self.pca_filename = model_proto_filename.replace('.proto', '.pca.pkl')
@@ -64,10 +64,9 @@ class Clustering(object):
         self.data = self.data - self.mu
         self.data = np.dot(self.data,self.P)
         train, test = train_test_split(self.data, test_size=0.2)
-        self.model = LOPQModel(V=16, M=16)
+        self.model = LOPQModel(V=16, M=16, subquantizer_clusters=512)
         self.model.fit(train, n_init=1)
-        self.searcher = LOPQSearcherLMDB(self.model,self.searcher_lmdb_filename)
-
+        self.searcher = LOPQSearcher(self.model)
         if self.test_mode:
             self.searcher.add_data(train)
             nns = compute_all_neighbors(test, train)
@@ -75,11 +74,17 @@ class Clustering(object):
             print 'Recall (V=%d, M=%d, subquants=%d): %s' % (self.model.V, self.model.M, self.model.subquantizer_clusters, str(recall))
         else:
             self.searcher.add_data(self.data)
+        self.find()
         return compute_codes_parallel(self.data,self.model)
+
+    def find(self):
+        i,selected = random.choice(enumerate(self.entries))
+        print selected
+        for k in self.searcher.get_result_quota(self.data[i],10):
+            print self.entries[k]
 
     def save(self):
         self.model.export_proto(self.model_proto_filename)
-        self.searcher.env.close()
         with open(self.pca_filename,'w') as out:
             pickle.dump(self.pca_reduction,out)
         with open(self.P_filename, 'w') as out:

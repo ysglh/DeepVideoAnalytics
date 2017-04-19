@@ -445,6 +445,15 @@ class VideoDetail(DetailView):
         return context
 
 
+class ClustersDetails(DetailView):
+
+    model = Clusters
+
+    def get_context_data(self, **kwargs):
+        context = super(ClustersDetails, self).get_context_data(**kwargs)
+        # context['coarse'] = ClusterCodes.objects.all().filter(clusters=context['object'])
+        return context
+
 class QueryList(ListView):
     model = Query
 

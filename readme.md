@@ -17,6 +17,7 @@
 - FabricJS [License](https://github.com/kangax/fabric.js/blob/master/LICENSE)
 - Modified PySceneDetect [License](https://github.com/Breakthrough/PySceneDetect)
 - Modified SSD-Tensorflow [Individual files are marked as Apache](https://github.com/balancap/SSD-Tensorflow)
+- Yahoo LOPQ [Apache License 2.0](https://github.com/yahoo/lopq)
 - FAISS [License (Non Commercial)](https://github.com/facebookresearch/faiss)
 - Facenet [License](https://github.com/davidsandberg/facenet)
 - MTCNN [TensorFlow port of MTCNN for face detection/alignment](https://github.com/kpzhang93/MTCNN_face_detection_alignment)

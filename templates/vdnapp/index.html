@@ -1,0 +1,166 @@
+{% extends "vdnapp/base.html" %}
+{% load staticfiles %}
+{% block page_css %}
+        <style>
+        .landing-page section p {
+            color: #171111 !important;
+            font-size: 14px !important;
+        }
+        .video-container {
+        position: relative;
+        padding-bottom: 56.25%;
+        padding-top: 30px; height: 0; overflow: hidden;
+        }
+
+        .video-container iframe,
+        .video-container object,
+        .video-container embed {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        }
+    </style>
+{% endblock %}
+{% block page_content %}
+<section class="content-header" style="padding-top:0px" xmlns="http://www.w3.org/1999/html">
+<div class="row">
+    <div class="box box-info">
+
+    </div>
+</div>
+</section>
+<section class="content bg-white">
+    <div class="row">
+        <div class="col-lg-10 col-lg-offset-1">
+            <div class="box box-primary">
+                <div class="box-header with-border text-center">
+                    <h2>Visual Data Network (Git / GitHub for Visual Data)</h2>
+                    <h2>publish & import data into <a target="_blank" href="https://deepvideoanalytics.com">Deep Video Analytics</a></h2>
+                </div>
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-lg-6 col-md-6">
+                            <div style="margin:15px 15px 15px 15px">
+                            </div>
+                            <div class="text-center" style="margin-bottom:10px;margin-top:15px">
+                                <img class="img-responsive" style="margin: 0 auto;" src="/static/dist/img/VDN.png">
+                                <a class="btn btn-primary" style="margin-top:10px" target="_blank" href="https://github.com/akshayubhat/VisualDataNetwork"><i class="fa fa-github"></i> VDN server is Open Source</a>
+                            </div>
+
+                        </div>
+                        <div class="col-lg-6 col-md-6">
+                            <div class="video-container">
+                                <iframe width="853" height="480" src="https://www.youtube.com/embed/Vt5qsNQoUB4?rel=0&amp;controls=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-10 col-lg-offset-1">
+
+                <div class="box box-primary m-t" style="margin-top:25px">
+                <div class="box-header with-border text-center">
+                    <h1>Available datasets</h1>
+                </div>
+                <div class="box-body text-center">
+                <table class="table table-bordered dataTables-dict">
+                <thead>
+                <tr>
+                    <th class="text-center">Name</th>
+                    <th class="text-center">Root</th>
+                    <th class="text-center">Parent</th>
+                    <th class="text-center">User / Organization</th>
+                    <th class="text-center">AWS Requester pays region/bucket/key or Direct Download url</th>
+                    <th class="text-center">View details</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for v in dataset_list %}
+
+                    <tr>
+                        <td>{{ v.name }} </td>
+                        <td>{{ v.root }} </td>
+                        <td>{% if not v.root %}<a href="{{ v.parent_url }}" target="_blank">parent</a>{% endif %}</td>
+                        <td>{{ v.organization.user.username }} at {{ v.organization.name }} </td>
+                        <td>{% if v.aws_requester_pays %}{{ v.aws_region }} / {{ v.aws_bucket }} / {{ v.aws_key }}{% else %}<a href="{{ v.download_url }}">Direct download</a>{% endif %}</td>
+                        <td class="text-center"><a href="/api/datasets/{{ v.pk }}">View details</a></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+                </table>
+                </div>
+                <div class="box-footer text-center">
+                    <h4>Submit your own datasets. (Coming soon)</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-10 col-lg-offset-1">
+                <div class="box box-primary m-t" style="margin-top:25px">
+                    <div class="box-header with-border text-center">
+                        <h1>Latest Annotations</h1>
+                    </div>
+                    <div class="box-body text-center">
+                        <table class="table dataTables">
+                        <thead>
+                        <tr>
+                                <th class="text-center">label</th>
+                                <th class="text-center">size in pixels</th>
+                                <th class="text-center">x</th>
+                                <th class="text-center">y</th>
+                                <th class="text-center">w</th>
+                                <th class="text-center">h</th>
+                                <th class="text-center">frame index</th>
+                                <th class="text-center">view</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for d in annotations %}
+                            <tr>
+                                <td>{{ d.label }}</td>
+                                <td class="text-right">{% widthratio d.h 1 d.w %}</td>
+                                <td class="text-right">{{ d.x }}</td>
+                                <td class="text-right">{{ d.y }}</td>
+                                <td class="text-right">{{ d.w }}</td>
+                                <td class="text-right">{{ d.h }}</td>
+                                <td class="text-right">{{ d.parent_frame_index }} </td>
+                                <td class="text-center"><a href="/api/datasets/{{ d.dataset.pk }}/">view dataset</a></td>
+                                <td class="text-center"><a href="{{ d.url }}">view / delete</a></td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                        </table>
+                    </div>
+                </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-10 col-lg-offset-1">
+                <div class="box box-primary m-t" style="margin-top:25px">
+                    <div class="box-header with-border text-center">
+                        <h1>Documentation & Presentation</h1>
+                    </div>
+                    <div class="box-body text-center">
+                        <h4>For a quick overview of design choices and vision behind this project we strongly recommend going through following presentation.</h4>
+                        <div class="hidden-sm hidden-xs"><iframe style="margin-top:25px" src="https://docs.google.com/presentation/d/1nweK60ywx1h-MMg75oo0E5jwBQtrFIVK6hPgMuB985U/embed?start=false&amp;loop=false&amp;delayms=3000" frameborder="0" width="960" height="569" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe></div>
+                        <div class="visible-sm"><iframe style="margin-top:20px" src="https://docs.google.com/presentation/d/1nweK60ywx1h-MMg75oo0E5jwBQtrFIVK6hPgMuB985U/embed?start=false&amp;loop=false&amp;delayms=3000" frameborder="0" width="480" height="299" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe></div>
+                        <div class="visible-xs"><iframe style="margin-top:20px" src="https://docs.google.com/presentation/d/1nweK60ywx1h-MMg75oo0E5jwBQtrFIVK6hPgMuB985U/embed?start=false&amp;loop=false&amp;delayms=3000" frameborder="0" width="320" height="209" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe></div>
+                    </div>
+                </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+{% block page_js%}
+<script>
+    $(document).ready(function() {
+        InitializeTables();
+    })
+</script>
+{% endblock %}

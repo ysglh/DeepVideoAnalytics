@@ -1,0 +1,45 @@
+{% extends "vdnapp/base.html" %}
+
+{% block page_content %}
+<section class="content-header">
+<div class="row  border-bottom white-bg dashboard-header">
+</div>
+</section>
+<section class="content">
+<div class="middle-box text-center loginscreen">
+        <div>
+        {% if form.errors %}
+        <p>Your username and password didn't match. Please try again.</p>
+        {% endif %}
+
+        {% if next %}
+            {% if user.is_authenticated %}
+            <p>Your account doesn't have access to this page. To proceed,
+            please login with an account that has access.</p>
+            {% else %}
+            <h3>Please login to see this page.</h3>
+            {% endif %}
+        {% endif %}
+
+        <form method="post" class="m-t" role="form" action="{% url 'login' %}">
+        {% csrf_token %}
+
+        <div>
+            <span style="width:80px;display: inline-block">{{ form.username.label_tag }} </span>
+            <span style="display: inline-block">{{ form.username }}</span>
+        </div>
+        <div style="margin-top:10px">
+            <span style="width:80px;display: inline-block">{{ form.password.label_tag }} </span>
+            <span style="display: inline-block">{{ form.password }}</span>
+        </div>
+
+        <div><button type="submit" class="btn btn-primary block full-width" style="margin-top: 10px;margin-bottom: 15px; width:250px;">Login</button></div>
+        <input type="hidden" class="" name="next" value="{{ next }}" />
+        <div><a style="margin-top:15px" href="{% url 'password_reset' %}">Forgot password?</a></div>
+        </form>
+        <p></p>
+
+        </div>
+</div>
+</section>
+{% endblock %}

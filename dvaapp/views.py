@@ -456,8 +456,8 @@ class ClustersDetails(DetailView):
         for k in ClusterCodes.objects.values('coarse_text').annotate(count=Count('coarse_text')):
             context['coarse'].append({'coarse_text':k['coarse_text'],
                                       'count':k['count'],
-                                      'frame':ClusterCodes.objects.all().filter(coarse_text=k['coarse_text']).first().frame,
-                                      'last':ClusterCodes.objects.all().filter(coarse_text=k['coarse_text']).last().frame
+                                      'first':ClusterCodes.objects.all().filter(coarse_text=k['coarse_text']).first(),
+                                      'last':ClusterCodes.objects.all().filter(coarse_text=k['coarse_text']).last()
                                       })
 
 

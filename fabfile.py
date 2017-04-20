@@ -563,7 +563,7 @@ def cluster():
 
 @task
 def heroku_migrate():
-    local('heroku run python manage.py migrate')
+    local('heroku run python vdn_manage.py migrate')
 
 
 @task
@@ -573,7 +573,7 @@ def heroku_update_env():
 
 @task
 def heroku_shell():
-    local('heroku run python manage.py shell')
+    local('heroku run python vdn_manage.py shell')
 
 
 @task
@@ -593,20 +593,20 @@ def heroku_psql():
 
 @task
 def heroku_make_migrate():
-    local('python manage.py makemigrations')
+    local('python vdn_manage.py makemigrations')
 
 
 @task
 def heroku_dbflush():
     local('heroku pg:reset DATABASE_URL')
     heroku_migrate()
-    local('heroku run python manage.py createsuperuser')
+    local('heroku run python vdn_manage.py createsuperuser')
 
 @task
 def heroku_local_static():
-    local('python manage.py collectstatic')
+    local('python vdn_manage.py collectstatic')
 
 
 @task
 def heroku_migrate():
-    local('heroku run python manage.py migrate')
+    local('heroku run python vdn_manage.py migrate')

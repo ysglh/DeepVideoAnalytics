@@ -17,7 +17,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from django.db.models import Count
 from celery.exceptions import TimeoutError
 import math
-from django.db.models import Max
+from django.db.models import Max,Avg,Sum
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -451,7 +451,16 @@ class ClustersDetails(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(ClustersDetails, self).get_context_data(**kwargs)
-        # context['coarse'] = ClusterCodes.objects.all().filter(clusters=context['object'])
+        context['coarse'] = []
+
+        for k in ClusterCodes.objects.values('coarse_text').annotate(count=Count('coarse_text')):
+            context['coarse'].append({'coarse_text':k['coarse_text'],
+                                      'count':k['count'],
+                                      'frame':ClusterCodes.objects.all().filter(coarse_text=k['coarse_text']).first().frame,
+                                      'last':ClusterCodes.objects.all().filter(coarse_text=k['coarse_text']).last().frame
+                                      })
+
+
         return context
 
 class QueryList(ListView):

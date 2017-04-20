@@ -13,8 +13,20 @@
 </section>
 <section class="content">
     <div class="row">
-        <div class="col-lg-12">
-        </div>
+        {% for k in coarse %}
+        <div class="col-lg-3">
+                <div class="box box-primary">
+                <div class="box box-header">
+                    <h4>{{ k.coarse_text }}</h4>
+                    <h4 class="pull-right">{{ k.count }}</h4>
+                </div>
+                <div class="box-body">
+                    <img style="height:100px" src="/media/{{ k.frame.video.pk }}/frames/{{ k.frame.frame_index }}.jpg" class="img-responsive"/>
+                    <img style="height:100px" src="/media/{{ k.last.video.pk }}/frames/{{ k.last.frame_index }}.jpg" class="img-responsive"/>
+                </div>
+                </div>
+            </div>
+        {% endfor %}
     </div>
 </section>
 {% endblock %}

@@ -161,6 +161,7 @@ class Annotation(models.Model):
     detection = models.ForeignKey(Detection,null=True)
     parent_frame_index = models.IntegerField(default=-1)
     metadata_text = models.TextField(default="")
+    metadata_json = models.TextField(default="")
     label_parent = models.ForeignKey(VLabel, null=True)
     label = models.TextField(default="")
     full_frame = models.BooleanField(default=True)

@@ -13,20 +13,35 @@
 </section>
 <section class="content">
     <div class="row">
-        {% for k in coarse %}
-        <div class="col-lg-3">
-                <div class="box box-primary">
-                <div class="box box-header">
-                    <h4>{{ k.coarse_text }}</h4>
-                    <h4 class="pull-right">{{ k.count }}</h4>
-                </div>
+        <div class="col-lg-12">
+            <div class="box">
                 <div class="box-body">
-                    <img style="height:100px" src="/media/{{ k.frame.video.pk }}/frames/{{ k.frame.frame_index }}.jpg" class="img-responsive"/>
-                    <img style="height:100px" src="/media/{{ k.last.video.pk }}/frames/{{ k.last.frame_index }}.jpg" class="img-responsive"/>
-                </div>
+                        <table class="table dataTables">
+                        <thead>
+                        <tr>
+                            <th>Codes</th>
+                            <th>Counts</th>
+                            <th>Frame 1</th>
+                            <th>Frame 2</th>
+                            <th>Details</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for k in coarse %}
+                        <tr>
+                            <td class="text-center">{{ k.coarse_text }}</td>
+                            <td class="text-right">{{ k.count }}</td>
+                            <td class="text-center"><img style="height:100px;margin: auto" src="/media/{{ k.frame.video.pk }}/frames/{{ k.frame.frame_index }}.jpg" class="img-responsive"/></td>
+                            <td class="text-center"><img style="height:100px;margin: auto" src="/media/{{ k.last.video.pk }}/frames/{{ k.last.frame_index }}.jpg" class="img-responsive"/></td>
+                            <td class="text-center"><a href="#">Details</a></td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+
                 </div>
             </div>
-        {% endfor %}
+        </div>
     </div>
 </section>
 {% endblock %}

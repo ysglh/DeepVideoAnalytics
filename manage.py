@@ -3,7 +3,10 @@ import os
 import sys
 
 if __name__ == "__main__":
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
+    if 'HEROKU_VDN' in os.environ:
+        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "vdn.settings")
+    else:
+        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     try:
         from django.core.management import execute_from_command_line
     except ImportError:

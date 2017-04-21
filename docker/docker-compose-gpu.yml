@@ -38,6 +38,7 @@
        - LAUNCH_Q_qdetector=1
        - LAUNCH_Q_qfaceretriever=1
        - LAUNCH_Q_qfacedetector=1
+       - LAUNCH_Q_qclusterer=1
        - TEST=1
      command: bash -c "youtube-dl -U && git pull && fab start_container"
      ports:

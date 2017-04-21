@@ -41,7 +41,7 @@
                             {% else %}
                                 <td class="text-center">Frame<img style="height:100px;margin: auto" src="/media/{{ k.last.video.pk }}/frames/{{ k.last.frame.frame_index }}.jpg" class="img-responsive"/></td>
                             {% endif %}
-                            <td class="text-center"><a href="#">Details</a></td>
+                            <td class="text-center"><a href="/coarse_code/{{ k.coarse_text }}">Details</a></td>
                         </tr>
                         {% endfor %}
                         </tbody>

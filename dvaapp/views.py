@@ -454,7 +454,7 @@ class ClustersDetails(DetailView):
         context['coarse'] = []
 
         for k in ClusterCodes.objects.values('coarse_text').annotate(count=Count('coarse_text')):
-            context['coarse'].append({'coarse_text':k['coarse_text'],
+            context['coarse'].append({'coarse_text':k['coarse_text'].replace(' ','_'),
                                       'count':k['count'],
                                       'first':ClusterCodes.objects.all().filter(coarse_text=k['coarse_text']).first(),
                                       'last':ClusterCodes.objects.all().filter(coarse_text=k['coarse_text']).last()
@@ -462,6 +462,15 @@ class ClustersDetails(DetailView):
 
 
         return context
+
+
+def coarse_code_detail(request,coarse_code):
+    coarse_code = coarse_code.replace('_',' ')
+    context = {
+               'code':coarse_code,
+               'objects': ClusterCodes.objects.all().filter(coarse_text=coarse_code)
+               }
+    return render(request,'coarse_code_details.html',context)
 
 class QueryList(ListView):
     model = Query

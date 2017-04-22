@@ -676,6 +676,7 @@ def download_coco(size=500):
 
 @task
 def generate_vdn(fast=False):
+    kill()
     import django
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
@@ -757,6 +758,7 @@ def generate_vdn(fast=False):
         inception_index_ssd_detection_by_id(v.pk)
     export_video_by_id(v.pk)
     v = handle_youtube_video("Zelda","https://www.youtube.com/watch?v=vHiTxNrbB4M")
+    extract_frames(v.pk)
     if not fast:
         inception_index_by_id(v.pk)
         perform_ssd_detection_by_id(v.pk)
@@ -765,6 +767,7 @@ def generate_vdn(fast=False):
         inception_index_ssd_detection_by_id(v.pk)
     export_video_by_id(v.pk)
     v = handle_youtube_video("Paris","https://www.youtube.com/watch?v=zEAqJmS6ajk")
+    extract_frames(v.pk)
     if not fast:
         inception_index_by_id(v.pk)
         perform_ssd_detection_by_id(v.pk)

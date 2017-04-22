@@ -232,7 +232,6 @@ def annotate(request,query_pk=None,frame_pk=None,detection_pk=None):
                 'pk': d.pk,
                 'box_type':"annotation",
                 'label':d.label,
-                'detection_pk': d.detection_id,
                 'full_frame':d.full_frame
             }
             context['existing'].append(temp)

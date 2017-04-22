@@ -49,4 +49,4 @@ server
 /temp.txt
 vdn_repo
 mydatabase
-shared
+shared/*.zip

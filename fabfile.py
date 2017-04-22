@@ -632,7 +632,7 @@ def download_coco_annotations():
     except:
         pass
     train_data = json.load(file("{}/annotations/instances_train2014.json".format(dirname)))
-    capitons_train_data = json.load(file("{}/annotations/captions_train2014.json".format(dirname)))
+    captions_train_data = json.load(file("{}/annotations/captions_train2014.json".format(dirname)))
     keypoints_train_data = json.load(file("{}/annotations/person_keypoints_train2014.json".format(dirname)))
     sample = random.sample(train_data['images'], 500)
     ids = set()
@@ -655,15 +655,16 @@ def download_coco_annotations():
         if annotation['image_id'] in ids:
             annotation['category'] = id_to_category[annotation['category_id']]
             data[annotation['image_id']]['annotations'].append(annotation)
-    for annotation in capitons_train_data['annotations']:
+    del train_data
+    for annotation in captions_train_data['annotations']:
         if annotation['image_id'] in ids:
             data[annotation['image_id']]['captions'].append(annotation)
+    del captions_train_data
     for annotation in keypoints_train_data['annotations']:
         if annotation['image_id'] in ids:
             annotation['category'] = kp_id_to_category[annotation['category_id']]
             data[annotation['image_id']]['keypoints'].append(annotation)
-    with open('{}/coco_sample_metadata.json'.format(dirname), 'w') as output:
-        json.dump(data, output)
+    del keypoints_train_data
     with lcd(dirname):
         local("zip coco_input.zip -r *.jpg")
     return ids,data,dirname
@@ -677,16 +678,16 @@ def generate_coco():
     django.setup()
     from django.core.files.uploadedfile import SimpleUploadedFile
     from dvaapp.views import handle_uploaded_file, handle_youtube_video
-    from dvaapp.models import Video
     from dvaapp import models
-    from dvaapp.tasks import extract_frames, perform_face_indexing, inception_index_by_id, perform_ssd_detection_by_id, \
-        perform_yolo_detection_by_id, inception_index_ssd_detection_by_id
+    from django.conf import settings
+    from dvaapp.tasks import extract_frames, perform_face_indexing, inception_index_by_id, \
+        perform_ssd_detection_by_id, perform_yolo_detection_by_id, inception_index_ssd_detection_by_id, \
+        export_video_by_id
     ids,data,dirname = download_coco_annotations()
     fname = '{}/coco_input.zip'.format(dirname)
     f = SimpleUploadedFile("coco_input.zip", file(fname).read(), content_type="application/zip")
     v = handle_uploaded_file(f, 'mscoco_sample_500')
     extract_frames(v.pk)
-    data = json.load(file('coco_sample_metadata.json'))
     video = v
     models.Annotation.objects.all().filter(video=video).delete()
     for frame in models.Frame.objects.all().filter(video=video):
@@ -740,27 +741,54 @@ def generate_coco():
             annotation.label = label.label_name
             annotation.label_parent = label
             annotation.save()
-    from dvaapp.tasks import export_video_by_id
-    from django.conf import settings
     inception_index_by_id(v.pk)
     perform_ssd_detection_by_id(v.pk)
     perform_yolo_detection_by_id(v.pk)
     perform_face_indexing(v.pk)
     inception_index_ssd_detection_by_id(v.pk)
     export_video_by_id(v.pk)
-    # os.system('cp {}/exports/{}*.dva_export.zip .'.format(settings.MEDIA_ROOT, v.pk))
 
-
-@task
-def generate_zelda():
-    pass
 
 
 @task
-def generate_paris():
-    pass
+def generate_paris_zelda():
+    import django
+    sys.path.append(os.path.dirname(__file__))
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
+    django.setup()
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    from dvaapp.views import handle_uploaded_file, handle_youtube_video
+    from dvaapp import models
+    from django.conf import settings
+    from dvaapp.tasks import extract_frames, perform_face_indexing, inception_index_by_id, \
+        perform_ssd_detection_by_id, perform_yolo_detection_by_id, inception_index_ssd_detection_by_id, \
+        export_video_by_id
+    v = handle_youtube_video("Zelda","https://www.youtube.com/watch?v=vHiTxNrbB4M")
+    inception_index_by_id(v.pk)
+    perform_ssd_detection_by_id(v.pk)
+    perform_yolo_detection_by_id(v.pk)
+    perform_face_indexing(v.pk)
+    inception_index_ssd_detection_by_id(v.pk)
+    export_video_by_id(v.pk)
+    v = handle_youtube_video("Paris","https://www.youtube.com/watch?v=zEAqJmS6ajk")
+    inception_index_by_id(v.pk)
+    perform_ssd_detection_by_id(v.pk)
+    perform_yolo_detection_by_id(v.pk)
+    perform_face_indexing(v.pk)
+    inception_index_ssd_detection_by_id(v.pk)
+    export_video_by_id(v.pk)
 
 
 @task
 def generate_lfw():
-    pass
+    import django
+    sys.path.append(os.path.dirname(__file__))
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
+    django.setup()
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    from dvaapp.views import handle_uploaded_file, handle_youtube_video
+    from dvaapp import models
+    from django.conf import settings
+    from dvaapp.tasks import extract_frames, perform_face_indexing, inception_index_by_id, \
+        perform_ssd_detection_by_id, perform_yolo_detection_by_id, inception_index_ssd_detection_by_id, \
+        export_video_by_id

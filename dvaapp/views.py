@@ -346,6 +346,7 @@ def handle_youtube_video(name,url,extract=True,user=None):
     create_video_folders(video)
     if extract:
         extract_frames.apply_async(args=[video.pk], queue=settings.Q_EXTRACTOR)
+    return video
 
 
 def handle_uploaded_file(f,name,extract=True,user=None):

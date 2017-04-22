@@ -775,3 +775,11 @@ def generate_vdn(fast=False):
         perform_face_indexing(v.pk)
         inception_index_ssd_detection_by_id(v.pk)
     export_video_by_id(v.pk)
+    local('wget https://www.dropbox.com/s/g8dv5yeh9bmflec/lfw_funneled.zip?dl=1 -O lfw.zip')
+    f = SimpleUploadedFile("lfw.zip", file("lfw.zip").read(), content_type="application/zip")
+    v = handle_uploaded_file(f, 'LFW subset')
+    extract_frames(v.pk)
+    if not fast:
+        inception_index_by_id(v.pk)
+        perform_face_indexing(v.pk)
+    export_video_by_id(v.pk)

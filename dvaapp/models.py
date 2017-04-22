@@ -158,7 +158,6 @@ class Annotation(models.Model):
     video = models.ForeignKey(Video)
     user = models.ForeignKey(User,null=True)
     frame = models.ForeignKey(Frame,null=True)
-    detection = models.ForeignKey(Detection,null=True)
     parent_frame_index = models.IntegerField(default=-1)
     metadata_text = models.TextField(default="")
     metadata_json = models.TextField(default="")

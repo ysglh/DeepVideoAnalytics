@@ -616,12 +616,17 @@ def heroku_local_static():
 def heroku_migrate():
     local('heroku run python vdn_manage.py migrate')
 
-
-def download_coco_annotations():
+def get_coco_dirname():
     if sys.platform == 'darwin':
         dirname = '/Users/aub3/coco_input/'
     else:
         dirname = 'coco'
+    return dirname
+
+
+@task
+def download_coco(size=500):
+    dirname = get_coco_dirname()
     try:
         os.mkdir(dirname)
         with lcd(dirname):
@@ -634,7 +639,7 @@ def download_coco_annotations():
     train_data = json.load(file("{}/annotations/instances_train2014.json".format(dirname)))
     captions_train_data = json.load(file("{}/annotations/captions_train2014.json".format(dirname)))
     keypoints_train_data = json.load(file("{}/annotations/person_keypoints_train2014.json".format(dirname)))
-    sample = random.sample(train_data['images'], 500)
+    sample = random.sample(train_data['images'], int(size))
     ids = set()
     for count, img in enumerate(sample):
         if (count + 1) % 100 == 0:
@@ -665,13 +670,12 @@ def download_coco_annotations():
             annotation['category'] = kp_id_to_category[annotation['category_id']]
             data[annotation['image_id']]['keypoints'].append(annotation)
     del keypoints_train_data
-    with lcd(dirname):
-        local("zip coco_input.zip -r *.jpg")
-    return ids,data,dirname
+    with open('{}/coco_sample_metadata.json'.format(dirname), 'w') as output:
+        json.dump(data, output)
 
 
 @task
-def generate_coco():
+def generate_vdn(fast=False):
     import django
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
@@ -679,12 +683,17 @@ def generate_coco():
     from django.core.files.uploadedfile import SimpleUploadedFile
     from dvaapp.views import handle_uploaded_file, handle_youtube_video
     from dvaapp import models
-    from django.conf import settings
     from dvaapp.tasks import extract_frames, perform_face_indexing, inception_index_by_id, \
         perform_ssd_detection_by_id, perform_yolo_detection_by_id, inception_index_ssd_detection_by_id, \
         export_video_by_id
-    ids,data,dirname = download_coco_annotations()
+    dirname = get_coco_dirname()
+    if not os.path.isdir(dirname):
+        local('fab download_coco')
+    with lcd(dirname):
+        local("zip coco_input.zip -r *.jpg")
     fname = '{}/coco_input.zip'.format(dirname)
+    with open('{}/coco_sample_metadata.json'.format(dirname)) as datafile:
+        data = json.load(datafile)
     f = SimpleUploadedFile("coco_input.zip", file(fname).read(), content_type="application/zip")
     v = handle_uploaded_file(f, 'mscoco_sample_500')
     extract_frames(v.pk)
@@ -720,8 +729,7 @@ def generate_coco():
             annotation = models.Annotation()
             annotation.video = v
             annotation.frame = frame
-            annotation.metadata_text = json.dumps(a)
-            annotation.metadata_json = False
+            annotation.metadata_json = json.dumps(a)
             annotation.x = a['bbox'][0]
             annotation.y = a['bbox'][1]
             annotation.w = a['bbox'][2]
@@ -741,54 +749,26 @@ def generate_coco():
             annotation.label = label.label_name
             annotation.label_parent = label
             annotation.save()
-    inception_index_by_id(v.pk)
-    perform_ssd_detection_by_id(v.pk)
-    perform_yolo_detection_by_id(v.pk)
-    perform_face_indexing(v.pk)
-    inception_index_ssd_detection_by_id(v.pk)
+    if not fast:
+        inception_index_by_id(v.pk)
+        perform_ssd_detection_by_id(v.pk)
+        perform_yolo_detection_by_id(v.pk)
+        perform_face_indexing(v.pk)
+        inception_index_ssd_detection_by_id(v.pk)
     export_video_by_id(v.pk)
-
-
-
-@task
-def generate_paris_zelda():
-    import django
-    sys.path.append(os.path.dirname(__file__))
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
-    django.setup()
-    from django.core.files.uploadedfile import SimpleUploadedFile
-    from dvaapp.views import handle_uploaded_file, handle_youtube_video
-    from dvaapp import models
-    from django.conf import settings
-    from dvaapp.tasks import extract_frames, perform_face_indexing, inception_index_by_id, \
-        perform_ssd_detection_by_id, perform_yolo_detection_by_id, inception_index_ssd_detection_by_id, \
-        export_video_by_id
     v = handle_youtube_video("Zelda","https://www.youtube.com/watch?v=vHiTxNrbB4M")
-    inception_index_by_id(v.pk)
-    perform_ssd_detection_by_id(v.pk)
-    perform_yolo_detection_by_id(v.pk)
-    perform_face_indexing(v.pk)
-    inception_index_ssd_detection_by_id(v.pk)
+    if not fast:
+        inception_index_by_id(v.pk)
+        perform_ssd_detection_by_id(v.pk)
+        perform_yolo_detection_by_id(v.pk)
+        perform_face_indexing(v.pk)
+        inception_index_ssd_detection_by_id(v.pk)
     export_video_by_id(v.pk)
     v = handle_youtube_video("Paris","https://www.youtube.com/watch?v=zEAqJmS6ajk")
-    inception_index_by_id(v.pk)
-    perform_ssd_detection_by_id(v.pk)
-    perform_yolo_detection_by_id(v.pk)
-    perform_face_indexing(v.pk)
-    inception_index_ssd_detection_by_id(v.pk)
+    if not fast:
+        inception_index_by_id(v.pk)
+        perform_ssd_detection_by_id(v.pk)
+        perform_yolo_detection_by_id(v.pk)
+        perform_face_indexing(v.pk)
+        inception_index_ssd_detection_by_id(v.pk)
     export_video_by_id(v.pk)
-
-
-@task
-def generate_lfw():
-    import django
-    sys.path.append(os.path.dirname(__file__))
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
-    django.setup()
-    from django.core.files.uploadedfile import SimpleUploadedFile
-    from dvaapp.views import handle_uploaded_file, handle_youtube_video
-    from dvaapp import models
-    from django.conf import settings
-    from dvaapp.tasks import extract_frames, perform_face_indexing, inception_index_by_id, \
-        perform_ssd_detection_by_id, perform_yolo_detection_by_id, inception_index_ssd_detection_by_id, \
-        export_video_by_id

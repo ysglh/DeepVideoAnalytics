@@ -743,7 +743,7 @@ def generate_vdn(fast=False):
             annotation = models.Annotation()
             annotation.video = v
             annotation.frame = frame
-            annotation.metadata_text = json.dumps(caption)
+            annotation.metadata_text = caption['caption']
             annotation.full_frame = True
             label, _ = models.VLabel.objects.get_or_create(video=video, label_name='coco_caption')
             annotation.label = label.label_name

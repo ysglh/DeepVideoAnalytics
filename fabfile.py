@@ -684,7 +684,7 @@ def generate_vdn(fast=False):
     from django.core.files.uploadedfile import SimpleUploadedFile
     from dvaapp.views import handle_uploaded_file, handle_youtube_video
     from dvaapp import models
-    from dvaapp.tasks import extract_frames, perform_face_indexing, inception_index_by_id, \
+    from dvaapp.tasks import extract_frames, perform_face_detection_indexing_by_id, inception_index_by_id, \
         perform_ssd_detection_by_id, perform_yolo_detection_by_id, inception_index_ssd_detection_by_id, \
         export_video_by_id
     dirname = get_coco_dirname()
@@ -753,7 +753,7 @@ def generate_vdn(fast=False):
     if not fast:
         inception_index_by_id(v.pk)
         perform_ssd_detection_by_id(v.pk)
-        perform_face_indexing(v.pk)
+        perform_face_detection_indexing_by_id(v.pk)
         inception_index_ssd_detection_by_id(v.pk)
     export_video_by_id(v.pk)
     v = handle_youtube_video("Zelda","https://www.youtube.com/watch?v=vHiTxNrbB4M")
@@ -761,7 +761,7 @@ def generate_vdn(fast=False):
     if not fast:
         inception_index_by_id(v.pk)
         perform_ssd_detection_by_id(v.pk)
-        perform_face_indexing(v.pk)
+        perform_face_detection_indexing_by_id(v.pk)
         inception_index_ssd_detection_by_id(v.pk)
     export_video_by_id(v.pk)
     v = handle_youtube_video("Paris","https://www.youtube.com/watch?v=zEAqJmS6ajk")
@@ -769,7 +769,7 @@ def generate_vdn(fast=False):
     if not fast:
         inception_index_by_id(v.pk)
         perform_ssd_detection_by_id(v.pk)
-        perform_face_indexing(v.pk)
+        perform_face_detection_indexing_by_id(v.pk)
         inception_index_ssd_detection_by_id(v.pk)
     export_video_by_id(v.pk)
     local('wget https://www.dropbox.com/s/g8dv5yeh9bmflec/lfw_funneled.zip?dl=1 -O lfw.zip')
@@ -778,5 +778,5 @@ def generate_vdn(fast=False):
     extract_frames(v.pk)
     if not fast:
         inception_index_by_id(v.pk)
-        perform_face_indexing(v.pk)
+        perform_face_detection_indexing_by_id(v.pk)
     export_video_by_id(v.pk)

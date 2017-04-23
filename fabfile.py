@@ -780,3 +780,13 @@ def generate_vdn(fast=False):
         inception_index_by_id(v.pk)
         perform_face_detection_indexing_by_id(v.pk)
     export_video_by_id(v.pk)
+
+
+@task
+def benchmark():
+    """
+    TODO :Just like Continuous integration, perform continuous benchmarking of the performance
+    of various algorithms.
+    :return:
+    """
+    pass

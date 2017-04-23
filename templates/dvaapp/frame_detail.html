@@ -34,8 +34,9 @@
                 <thead>
                 <tr>
                         <th>Annotation</th>
-                        <th>metadata</th>
-                        <th>delete</th>
+                        <th>User</th>
+                        <th>Metadata</th>
+                        <th>Delete</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -43,6 +44,7 @@
                     {% if d.full_frame %}
                     <tr>
                         <td>{{ d.label }} </td>
+                        <td>{{ d.user }} </td>
                         <td class="text-center"><button type="button" class="btn btn-primary" data-toggle="modal" data-target="#{{ d.pk }}">view metadata</button></td>
                         <td class="text-center"><button type="button" class="btn btn-primary" onclick="delete_annotation({{ d.pk }})" >delete</button></td>
                     </tr>
@@ -63,7 +65,6 @@
                 <thead>
                 <tr>
                         <th>Annotation</th>
-                        <th>detection_id</th>
                         <th>User</th>
                         <th>x</th>
                         <th>y</th>
@@ -77,7 +78,6 @@
                     {% if not d.full_frame %}
                     <tr>
                         <td>{{ d.label }} </td>
-                        <td>{{ d.detection_id }}</td>
                         <td>{{ d.user }} </td>
                         <td>{{ d.x }} </td>
                         <td>{{ d.y }} </td>
@@ -165,7 +165,10 @@
         <h4 class="modal-title" id="myModalLabel">Annotation {{ k.label }}</h4>
       </div>
       <div class="modal-body">
-        <textarea rows="10" style="width:80%;margin: 10px auto;">{{ k.metadata_text }}</textarea>
+        <h4 class="text-center">Text metadata</h4>
+        <textarea rows="10" style="width:100%;">{{ k.metadata_text }}</textarea>
+        <h4 class="text-center">JSON metadata</h4>
+        <textarea rows="10" style="width:100%;">{{ k.metadata_json }}</textarea>
         {% if not k.full_frame %}
         <h4 class="text-center" style="margin-bottom:15px;margin-top:20px">Bounding box</h4>
         <div style="width: {{ k.w }}px; height: {{ k.h }}px; position: relative;overflow:hidden;margin: auto;">

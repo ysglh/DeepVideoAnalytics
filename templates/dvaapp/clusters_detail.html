@@ -14,16 +14,20 @@
 <section class="content">
     <div class="row">
         <div class="col-sm-6">
+            <div class="box box-primary">
+            <div class="box-body">
             <table class="table dataTables">
             <thead>
-            <tr><th>Index algorithm</th><th>Video</th></tr>
+            <tr><th>Index algorithm</th><th>object</th><th>Video</th></tr>
             </thead>
             <tbody>
             {% for k in index_entries %}
-            <tr><td>{{ k.algorithm }}</td><td>{{ k.video.name }}</td></tr>
+            <tr><td>{{ k.algorithm }}</td><td>{{ k.detection_name }}</td><td>{{ k.video.name }}</td></tr>
             {% endfor %}
             </tbody>
             </table>
+            </div>
+            </div>
         </div>
     </div>
     <div class="row">

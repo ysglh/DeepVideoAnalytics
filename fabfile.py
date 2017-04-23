@@ -620,7 +620,7 @@ def get_coco_dirname():
     if sys.platform == 'darwin':
         dirname = '/Users/aub3/coco_input/'
     else:
-        dirname = 'coco'
+        dirname = 'coco_input'
     return dirname
 
 
@@ -688,8 +688,8 @@ def generate_vdn(fast=False):
         perform_ssd_detection_by_id, perform_yolo_detection_by_id, inception_index_ssd_detection_by_id, \
         export_video_by_id
     dirname = get_coco_dirname()
-    if not os.path.isdir(dirname):
-        local('fab download_coco')
+    local('wget https://www.dropbox.com/s/2dq085iu34y0hdv/coco_input.zip?dl=1 -O coco.zip')
+    local('unzip coco.zip')
     with lcd(dirname):
         local("zip coco_input.zip -r *.jpg")
     fname = '{}/coco_input.zip'.format(dirname)

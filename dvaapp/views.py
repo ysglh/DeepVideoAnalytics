@@ -464,23 +464,23 @@ class ClustersDetails(DetailView):
     def get_context_data(self, **kwargs):
         context = super(ClustersDetails, self).get_context_data(**kwargs)
         context['coarse'] = []
-
-        for k in ClusterCodes.objects.values('coarse_text').annotate(count=Count('coarse_text')):
+        context['index_entries'] = [IndexEntries.objects.get(pk=k) for k in self.object.included_index_entries_pk]
+        for k in ClusterCodes.objects.filter(clusters_id=self.object.pk).values('coarse_text').annotate(count=Count('coarse_text')):
             context['coarse'].append({'coarse_text':k['coarse_text'].replace(' ','_'),
                                       'count':k['count'],
-                                      'first':ClusterCodes.objects.all().filter(coarse_text=k['coarse_text']).first(),
-                                      'last':ClusterCodes.objects.all().filter(coarse_text=k['coarse_text']).last()
+                                      'first':ClusterCodes.objects.all().filter(clusters_id=self.object.pk,coarse_text=k['coarse_text']).first(),
+                                      'last':ClusterCodes.objects.all().filter(clusters_id=self.object.pk,coarse_text=k['coarse_text']).last()
                                       })
 
 
         return context
 
 
-def coarse_code_detail(request,coarse_code):
+def coarse_code_detail(request,pk,coarse_code):
     coarse_code = coarse_code.replace('_',' ')
     context = {
                'code':coarse_code,
-               'objects': ClusterCodes.objects.all().filter(coarse_text=coarse_code)
+               'objects': ClusterCodes.objects.all().filter(coarse_text=coarse_code,clusters_id=pk)
                }
     return render(request,'coarse_code_details.html',context)
 

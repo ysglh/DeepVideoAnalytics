@@ -41,7 +41,7 @@ urlpatterns = [
     url(r'^clustering/(?P<pk>\d+)/$', views.ClustersDetails.as_view(), name='clusters_detail'),
     url(r'^vdn_datasets/(?P<pk>\d+)/$', views.VDNDatasetDetail.as_view(), name='vdn_dataset_detail'),
     url(r'^frames/$', views.FrameList.as_view()),
-    url(r'^frames/(?P<pk>\d+)/$', views.FrameDetail.as_view(), name='frames_detail'),
+    url(r'^frames/(?P<pk>\d+)/$', views.FrameDetail.as_view(), name='frame_detail'),
     url(r'^queries/(?P<pk>\d+)/$', views.QueryDetail.as_view(), name='query_detail'),
     url(r'^retry/(?P<pk>\d+)/$', views.retry_task, name='restart_task'),
     url(r'^push/(?P<video_id>\d+)/$', views.push, name='push'),
@@ -50,6 +50,7 @@ urlpatterns = [
     url(r'^query_frame/(?P<frame_pk>\d+)/$', views.index, name='query_frame'),
     url(r'^query_detection/(?P<detection_pk>\d+)/$', views.index, name='query_detection'),
     url(r'^annotate_frame/(?P<frame_pk>\d+)/$', views.annotate, name='annotate_frame'),
+    url(r'^annotate_entire_frame/(?P<frame_pk>\d+)/$', views.annotate_entire_frame, name='annotate_entire_frame'),
     url(r'^delete', views.delete_object, name='delete_object'),
     url(r'^api/', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework'))

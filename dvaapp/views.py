@@ -238,15 +238,37 @@ def annotate(request,frame_pk):
         if form.is_valid():
             if form.cleaned_data['tags']:
                 applied_tags = json.loads(form.cleaned_data['tags'])
-                if applied_tags:
-                    for label_name in applied_tags:
-                        create_annotation(form, label_name, label_dict, frame)
-                else:
-                    create_annotation(form, "metadata", label_dict, frame)
+                applied_tags = applied_tags if applied_tags else ['metadata',]
+                for label_name in applied_tags:
+                    create_annotation(form, label_name, label_dict, frame)
             return JsonResponse({'status': True})
         else:
             raise ValueError,form.errors
     return render(request, 'annotate.html', context)
+
+
+def annotate_entire_frame(request,frame_pk):
+    frame = Frame.objects.get(pk=frame_pk)
+    label_dict = {tag.label_name: tag.pk for tag in VLabel.objects.filter(video=frame.video).all()}
+    if request.method == 'POST':
+        applied_tags = request.POST.getlist('tags')
+        applied_tags = applied_tags if applied_tags else ['metadata', ]
+        for label_name in applied_tags:
+            annotation = Annotation()
+            annotation.x = 0
+            annotation.y = 0
+            annotation.h = 0
+            annotation.w = 0
+            annotation.full_frame = True
+            annotation.metadata_text = request.POST.get('metadata_text')
+            annotation.metadata_json = request.POST.get('metadata_json')
+            annotation.label = label_name
+            if label_name in label_dict:
+                annotation.label_parent_id = label_dict[label_name]
+            annotation.frame = frame
+            annotation.video = frame.video
+            annotation.save()
+    return redirect("frame_detail",pk=frame.pk)
 
 
 def create_annotation(form,label_name,label_dict,frame):
@@ -566,7 +588,8 @@ class FrameDetail(DetailView):
         context['url'] = '{}/{}/frames/{}.jpg'.format(settings.MEDIA_URL,self.object.video.pk,self.object.frame_index)
         context['previous_frame'] = Frame.objects.filter(video=self.object.video,frame_index__lt=self.object.frame_index).order_by('-frame_index')[0:1]
         context['next_frame'] = Frame.objects.filter(video=self.object.video,frame_index__gt=self.object.frame_index).order_by('frame_index')[0:1]
-
+        label_dict = {tag.label_name: tag.pk for tag in VLabel.objects.filter(video=self.object.video).all()}
+        context['available_tags'] = label_dict.keys()
         return context
 
 

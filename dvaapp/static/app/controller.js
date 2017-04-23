@@ -308,7 +308,6 @@ $scope.add_bounding_box = function (){
     canvas.add(rect);
     $scope.$apply();
     $('#'+current_id+'_tags').select2({theme: "bootstrap"});
-    $('#'+current_id+'_detection').select2({theme: "bootstrap"});
 };
 
 
@@ -412,6 +411,23 @@ $scope.toggle_visibility = function(box_index){
     canvas.deactivateAll().renderAll();
 };
 
+$scope.toggle_all = function(){
+    for(box_index in $scope.existing_boxes)
+    {
+        box = $scope.existing_boxes[box_index];
+        if(box.visible){
+            box.opacity = 0.0;
+            box.visible = false;
+        }
+        else{
+            box.opacity = 0.5;
+            box.visible = true;
+        }
+    }
+    $scope.visible_all = !$scope.visible_all;
+    canvas.deactivateAll().renderAll();
+};
+
 $scope.search = function () {
     debugger;
     var image_data = null;
@@ -496,7 +512,6 @@ $scope.submit_annotation = function(box_id){
     console.log(box_id);
     box = $scope.boxes[box_id];
     var high_level = $('#'+box.id+'_frame_level');
-    var detection = $('#' + box.id + '_detection');
     $.ajax({
         type: "POST",
         url: '.',
@@ -506,10 +521,10 @@ $scope.submit_annotation = function(box_id){
             'y': box.top,
             'w': box.width * box.scaleX,
             'x': box.left,
-            'high_level':high_level.prop('checked'),
-            'detection':detection.val(),
+            'high_level':false,
             'tags': JSON.stringify($('#' + box.id + '_tags').val()),
-            'metadata': $('#' + box.id + '_metadata').val()
+            'metadata_text': $('#' + box.id + '_metadata_text').val(),
+            'metadata_json': $('#' + box.id + '_metadata_json').val()
         },
         dataType: 'json',
         async: true,
@@ -586,6 +601,7 @@ cveditor.controller('CanvasControls', function($scope) {
     $scope.results_detections = [];
     $scope.high_level_alert = "Add frame level annotation";
     $scope.send_entire_image = false;
+    $scope.visible_all = true;
     $scope.selected_detection = -1;
     if(annotation_mode)
     {

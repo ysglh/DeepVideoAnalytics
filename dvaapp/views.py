@@ -196,67 +196,60 @@ def index(request,query_pk=None,frame_pk=None,detection_pk=None):
     return render(request, 'dashboard.html', context)
 
 
-def annotate(request,query_pk=None,frame_pk=None,detection_pk=None):
+def annotate(request,frame_pk):
     context = {'frame':None, 'detection':None ,'existing':[]}
     frame = None
-    if query_pk:
-        raise NotImplementedError
-    elif frame_pk:
-        frame = Frame.objects.get(pk=frame_pk)
-        label_dict = {tag.label_name: tag.pk for tag in VLabel.objects.filter(video=frame.video).all()}
-        context['available_tags'] = label_dict.keys()
-        context['frame'] = frame
-        context['initial_url'] = '/media/{}/frames/{}.jpg'.format(frame.video.pk,frame.frame_index)
-        context['previous_frame'] = Frame.objects.filter(video=frame.video,frame_index__lt=frame.frame_index).order_by('-frame_index')[0:1]
-        context['next_frame'] = Frame.objects.filter(video=frame.video,frame_index__gt=frame.frame_index).order_by('frame_index')[0:1]
-        context['detections'] = Detection.objects.filter(frame=frame)
-        for d in Detection.objects.filter(frame=frame):
-            temp = {
-                'x':d.x,
-                'y':d.y,
-                'h':d.h,
-                'w':d.w,
-                'pk':d.pk,
-                'box_type':"detection",
-                'label':d.object_name,
-                'full_frame': False,
-                'detection_pk':None
-            }
-            context['existing'].append(temp)
-        for d in Annotation.objects.filter(frame=frame):
-            temp = {
-                'x':d.x,
-                'y':d.y,
-                'h':d.h,
-                'w':d.w,
-                'pk': d.pk,
-                'box_type':"annotation",
-                'label':d.label,
-                'full_frame':d.full_frame
-            }
-            context['existing'].append(temp)
-        context['existing'] = json.dumps(context['existing'])
-    elif detection_pk:
-        raise NotImplementedError
-    else:
-        raise NotImplementedError
+    frame = Frame.objects.get(pk=frame_pk)
+    label_dict = {tag.label_name: tag.pk for tag in VLabel.objects.filter(video=frame.video).all()}
+    context['available_tags'] = label_dict.keys()
+    context['frame'] = frame
+    context['initial_url'] = '/media/{}/frames/{}.jpg'.format(frame.video.pk,frame.frame_index)
+    context['previous_frame'] = Frame.objects.filter(video=frame.video,frame_index__lt=frame.frame_index).order_by('-frame_index')[0:1]
+    context['next_frame'] = Frame.objects.filter(video=frame.video,frame_index__gt=frame.frame_index).order_by('frame_index')[0:1]
+    context['detections'] = Detection.objects.filter(frame=frame)
+    for d in Detection.objects.filter(frame=frame):
+        temp = {
+            'x':d.x,
+            'y':d.y,
+            'h':d.h,
+            'w':d.w,
+            'pk':d.pk,
+            'box_type':"detection",
+            'label':d.object_name,
+            'full_frame': False,
+            'detection_pk':None
+        }
+        context['existing'].append(temp)
+    for d in Annotation.objects.filter(frame=frame):
+        temp = {
+            'x':d.x,
+            'y':d.y,
+            'h':d.h,
+            'w':d.w,
+            'pk': d.pk,
+            'box_type':"annotation",
+            'label':d.label,
+            'full_frame':d.full_frame
+        }
+        context['existing'].append(temp)
+    context['existing'] = json.dumps(context['existing'])
     if request.method == 'POST':
         form = AnnotationForm(request.POST)
         if form.is_valid():
             if form.cleaned_data['tags']:
                 applied_tags = json.loads(form.cleaned_data['tags'])
-                if form.cleaned_data['metadata'].strip():
-                    create_annotation(form, "metadata", label_dict, frame_pk, frame)
                 if applied_tags:
                     for label_name in applied_tags:
-                        create_annotation(form, label_name, label_dict, frame_pk, frame)
+                        create_annotation(form, label_name, label_dict, frame)
+                else:
+                    create_annotation(form, "metadata", label_dict, frame)
             return JsonResponse({'status': True})
         else:
             raise ValueError,form.errors
     return render(request, 'annotate.html', context)
 
 
-def create_annotation(form,label_name,label_dict,frame_pk,frame):
+def create_annotation(form,label_name,label_dict,frame):
     annotation = Annotation()
     if form.cleaned_data['high_level']:
         annotation.full_frame = True
@@ -270,16 +263,13 @@ def create_annotation(form,label_name,label_dict,frame_pk,frame):
         annotation.y = form.cleaned_data['y']
         annotation.h = form.cleaned_data['h']
         annotation.w = form.cleaned_data['w']
-    if form.cleaned_data['detection'] >= 0:
-        detection = Detection.objects.get(pk=int(form.cleaned_data['detection']))
-        annotation.detection=detection
-    annotation.metadata_text = form.cleaned_data['metadata']
+    annotation.metadata_text = form.cleaned_data['metadata_text']
+    annotation.metadata_json = form.cleaned_data['metadata_json']
     annotation.label = label_name
     if label_name in label_dict:
         annotation.label_parent_id = label_dict[label_name]
-    if frame_pk:
-        annotation.frame = frame
-        annotation.video = frame.video
+    annotation.frame = frame
+    annotation.video = frame.video
     annotation.save()
 
 

@@ -23,6 +23,7 @@
                         <thead>
                         <tr>
                             <th class="text-center">Type</th>
+                            <th class="text-center">Video</th>
                             <th class="text-center">Fine</th>
                             <th class="text-center">Detection</th>
                             <th class="text-center">Frame</th>
@@ -33,17 +34,19 @@
                         {% if k.detection %}
                         <tr>
                             <th>Detection</th>
+                            <th><a href="/videos/{{ k.video_id }}/">{{ k.video.name }}</a></th>
                             <th>{{ k.fine_text }}</th>
-                            <th><img style="height:100px;margin: auto" class="img-responsive" src="/media/{{ k.video.pk }}/detections/{{ k.detection_id }}.jpg"></th>
-                            <th><img style="height:100px;margin: auto" class="img-responsive" src="/media/{{ k.video.pk }}/frames/{{ k.frame.frame_index }}.jpg"></th>
+                            <th><a href="/frames/{{ k.frame_id }}/"><img style="height:100px;margin: auto" class="img-responsive" src="/media/{{ k.video.pk }}/detections/{{ k.detection_id }}.jpg"></a></th>
+                            <th><a href="/frames/{{ k.frame_id }}/"><img style="height:100px;margin: auto" class="img-responsive" src="/media/{{ k.video.pk }}/frames/{{ k.frame.frame_index }}.jpg"></a></th>
 
                         </tr>
                         {% else %}
                         <tr>
                             <th>Frame</th>
+                            <th><a href="/videos/{{ k.video_id }}/">{{ k.video.name }}</a></th>
                             <th>{{ k.fine_text }}</th>
                             <th></th>
-                            <th><img style="height:100px;margin: auto" class="img-responsive" src="/media/{{ k.video.pk }}/frames/{{ k.frame.frame_index }}.jpg"></th>
+                            <th><a href="/frames/{{ k.frame_id }}/"><img style="height:100px;margin: auto" class="img-responsive" src="/media/{{ k.video.pk }}/frames/{{ k.frame.frame_index }}.jpg"></a></th>
                         </tr>
                         {% endif %}
                         {% endfor %}

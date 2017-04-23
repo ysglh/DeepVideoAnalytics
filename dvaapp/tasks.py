@@ -595,6 +595,11 @@ def make_bucket_public_requester_pays(bucket_name):
 
 @app.task(name="perform_clustering")
 def perform_clustering(cluster_task_id,test=False):
+    start = TEvent()
+    start.started = True
+    start.operation = perform_clustering.name
+    start.save()
+    start_time = time.time()
     clusters_dir = "{}/clusters/".format(settings.MEDIA_ROOT)
     if not os.path.isdir(clusters_dir):
         os.mkdir(clusters_dir)
@@ -621,3 +626,8 @@ def perform_clustering(cluster_task_id,test=False):
         cc.fine_text = " ".join(map(str,e['fine']))
         cc.save()
     c.save()
+    dc.completed = True
+    dc.save()
+    start.completed = True
+    start.seconds = time.time() - start_time
+    start.save()

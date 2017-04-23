@@ -18,11 +18,11 @@
             <div class="box-body">
             <table class="table dataTables">
             <thead>
-            <tr><th>Index algorithm</th><th>object</th><th>Video</th></tr>
+            <tr><th>Index algorithm</th><th>object</th><th>Video</th><th class="text-center">count</th></tr>
             </thead>
             <tbody>
             {% for k in index_entries %}
-            <tr><td>{{ k.algorithm }}</td><td>{{ k.detection_name }}</td><td>{{ k.video.name }}</td></tr>
+            <tr><td>{{ k.algorithm }}</td><td>{{ k.detection_name }}</td><td>{{ k.video.name }}</td><td class="text-right">{{ k.count }}</td></tr>
             {% endfor %}
             </tbody>
             </table>

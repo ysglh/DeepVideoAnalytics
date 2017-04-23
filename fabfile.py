@@ -753,7 +753,6 @@ def generate_vdn(fast=False):
     if not fast:
         inception_index_by_id(v.pk)
         perform_ssd_detection_by_id(v.pk)
-        perform_yolo_detection_by_id(v.pk)
         perform_face_indexing(v.pk)
         inception_index_ssd_detection_by_id(v.pk)
     export_video_by_id(v.pk)
@@ -762,7 +761,6 @@ def generate_vdn(fast=False):
     if not fast:
         inception_index_by_id(v.pk)
         perform_ssd_detection_by_id(v.pk)
-        perform_yolo_detection_by_id(v.pk)
         perform_face_indexing(v.pk)
         inception_index_ssd_detection_by_id(v.pk)
     export_video_by_id(v.pk)
@@ -771,7 +769,6 @@ def generate_vdn(fast=False):
     if not fast:
         inception_index_by_id(v.pk)
         perform_ssd_detection_by_id(v.pk)
-        perform_yolo_detection_by_id(v.pk)
         perform_face_indexing(v.pk)
         inception_index_ssd_detection_by_id(v.pk)
     export_video_by_id(v.pk)

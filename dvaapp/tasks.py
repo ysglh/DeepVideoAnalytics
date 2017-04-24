@@ -599,7 +599,7 @@ def download_dir(client, resource, dist, local, bucket):
                 if not os.path.exists(os.path.dirname(local + os.sep + ffile.get('Key'))):
                      os.makedirs(os.path.dirname(local + os.sep + ffile.get('Key')))
                 resource.meta.client.download_file(bucket, ffile.get('Key'), local + os.sep + ffile.get('Key'),
-                                                   extra_args={'RequestPayer':'requester'})
+                                                   ExtraArgs={'RequestPayer':'requester'})
 
 
 @app.task(name="import_video_from_s3")

@@ -130,7 +130,7 @@
                     <tr>
                         <td>{{ e.started }}</td>
                         <td class="text-center">{{ e.completed }}</td>
-                        <td class="text-center">{% if e.file_name %}<a href="/media/exports/{{ e.file_name }}">click to download</a>{% endif %}</td>
+                        <td class="text-center">{% if e.file_name %}<a href="{{ MEDIA_URL }}exports/{{ e.file_name }}">click to download</a>{% endif %}</td>
                     </tr>
                 {% endfor %}
                 {% for e in s3_exports %}
@@ -174,8 +174,8 @@
             <div class="box-body">
                 {% if frame_first and frame_last %}
                 <div class="row">
-                    <div class="col-lg-6 col-md-6 col-sm-6 text-center" style="height:200px"><a href="/frames/{{ frame_first.pk }}"><img style="height:70%"  src="/media/{{ object.pk }}/frames/{{ frame_first.frame_index }}.jpg"><h4>Frame {{ frame_first.frame_index }}</h4></a></div>
-                    <div class="col-lg-6 col-md-6 col-sm-6 text-center" style="height:200px"><a href="/frames/{{ frame_last.pk }}"><img style="height:70%" src="/media/{{ object.pk }}/frames/{{ frame_last.frame_index }}.jpg"><h4>Frame {{ frame_last.frame_index }}</h4></a></div>
+                    <div class="col-lg-6 col-md-6 col-sm-6 text-center" style="height:200px"><a href="/frames/{{ frame_first.pk }}"><img style="height:70%"  src="{{ MEDIA_URL }}{{ object.pk }}/frames/{{ frame_first.frame_index }}.jpg"><h4>Frame {{ frame_first.frame_index }}</h4></a></div>
+                    <div class="col-lg-6 col-md-6 col-sm-6 text-center" style="height:200px"><a href="/frames/{{ frame_last.pk }}"><img style="height:70%" src="{{ MEDIA_URL }}{{ object.pk }}/frames/{{ frame_last.frame_index }}.jpg"><h4>Frame {{ frame_last.frame_index }}</h4></a></div>
                 </div>
                 {% endif %}
                 <table class="table dataTables">

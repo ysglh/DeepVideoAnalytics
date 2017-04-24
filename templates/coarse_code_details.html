@@ -36,8 +36,8 @@
                             <th>Detection</th>
                             <th><a href="/videos/{{ k.video_id }}/">{{ k.video.name }}</a></th>
                             <th>{{ k.fine_text }}</th>
-                            <th><a href="/frames/{{ k.frame_id }}/"><img style="height:100px;margin: auto" class="img-responsive" src="/media/{{ k.video.pk }}/detections/{{ k.detection_id }}.jpg"></a></th>
-                            <th><a href="/frames/{{ k.frame_id }}/"><img style="height:100px;margin: auto" class="img-responsive" src="/media/{{ k.video.pk }}/frames/{{ k.frame.frame_index }}.jpg"></a></th>
+                            <th><a href="/frames/{{ k.frame_id }}/"><img style="height:100px;margin: auto" class="img-responsive" src="{{ MEDIA_URL }}{{ k.video.pk }}/detections/{{ k.detection_id }}.jpg"></a></th>
+                            <th><a href="/frames/{{ k.frame_id }}/"><img style="height:100px;margin: auto" class="img-responsive" src="{{ MEDIA_URL }}{{ k.video.pk }}/frames/{{ k.frame.frame_index }}.jpg"></a></th>
 
                         </tr>
                         {% else %}
@@ -46,7 +46,7 @@
                             <th><a href="/videos/{{ k.video_id }}/">{{ k.video.name }}</a></th>
                             <th>{{ k.fine_text }}</th>
                             <th></th>
-                            <th><a href="/frames/{{ k.frame_id }}/"><img style="height:100px;margin: auto" class="img-responsive" src="/media/{{ k.video.pk }}/frames/{{ k.frame.frame_index }}.jpg"></a></th>
+                            <th><a href="/frames/{{ k.frame_id }}/"><img style="height:100px;margin: auto" class="img-responsive" src="{{ MEDIA_URL }}{{ k.video.pk }}/frames/{{ k.frame.frame_index }}.jpg"></a></th>
                         </tr>
                         {% endif %}
                         {% endfor %}

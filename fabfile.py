@@ -802,7 +802,7 @@ def make_requester_pays(bucket_name):
     s3 = boto3.resource('s3')
     bucket_request_payment = s3.BucketRequestPayment(bucket_name)
     response = bucket_request_payment.put(RequestPaymentConfiguration={'Payer': 'Requester'})
-    # bucket_policy = s3.BucketPolicy(bucket_name)
-    # response = bucket_policy.put(Policy=json.dumps({"Version": "2012-10-17", "Statement": [
-    #     {"Sid": "AddPerm", "Effect": "Allow", "Principal": "*", "Action": "s3:GetObject",
-    #      "Resource": "arn:aws:s3:::{}/*".format(bucket_name)}]}))
+    bucket_policy = s3.BucketPolicy(bucket_name)
+    response = bucket_policy.put(Policy=json.dumps({"Version": "2012-10-17", "Statement": [
+        {"Sid": "AddPerm", "Effect": "Allow", "Principal": "*", "Action": "s3:GetObject",
+         "Resource": "arn:aws:s3:::{}/*".format(bucket_name)}]}))

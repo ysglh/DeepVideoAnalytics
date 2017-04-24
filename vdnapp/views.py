@@ -141,7 +141,7 @@ def marketing(request):
     context = {}
     context['dataset_list'] = Dataset.objects.all()
     context['annotations'] = Annotation.objects.all()
-    return render(request, 'vdnapp/index.html', context=context)
+    return render(request, 'vdnapp/vdn_index.html', context=context)
 
 
 @login_required
@@ -149,5 +149,5 @@ def get_token(request):
     context = {}
     context['username'] = request.user.username
     context['token'], created = Token.objects.get_or_create(user=request.user)
-    return render(request, 'vdnapp/token.html', context=context)
+    return render(request, 'vdnapp/vdn_token.html', context=context)
 

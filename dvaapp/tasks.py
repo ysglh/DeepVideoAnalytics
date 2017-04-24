@@ -518,15 +518,7 @@ def import_video_by_id(video_id):
     start.save()
 
 
-@app.task(name="backup_video_to_s3")
-def backup_video_to_s3(s3_export_id):
-    s3_export = S3Export.objects.get(pk=s3_export_id)
-    start = TEvent()
-    start.video_id = s3_export.video_id
-    start.started = True
-    start.operation = backup_video_to_s3.name
-    start.save()
-    start_time = time.time()
+def perform_export(s3_export):
     s3 = boto3.resource('s3')
     if s3_export.region == 'us-east-1':
         s3.create_bucket(Bucket=s3_export.bucket)
@@ -542,7 +534,41 @@ def backup_video_to_s3(s3_export_id):
     upload.wait()
     s3_export.completed = True
     s3_export.save()
-    start.completed = True
+    return upload.returncode
+
+
+@app.task(name="backup_video_to_s3")
+def backup_video_to_s3(s3_export_id):
+    s3_export = S3Export.objects.get(pk=s3_export_id)
+    start = TEvent()
+    start.video_id = s3_export.video_id
+    start.started = True
+    start.operation = backup_video_to_s3.name
+    start.save()
+    start_time = time.time()
+    returncode = perform_export(s3_export)
+    if returncode == 0:
+        start.completed = True
+    else:
+        start.errored = True
+    start.seconds = time.time() - start_time
+    start.save()
+
+
+@app.task(name="push_video_to_vdn_s3")
+def push_video_to_vdn_s3(s3_export_id):
+    s3_export = S3Export.objects.get(pk=s3_export_id)
+    start = TEvent()
+    start.video_id = s3_export.video_id
+    start.started = True
+    start.operation = push_video_to_vdn_s3.name
+    start.save()
+    start_time = time.time()
+    returncode = perform_export(s3_export)
+    if returncode == 0:
+        start.completed = True
+    else:
+        start.errored = True
     start.seconds = time.time() - start_time
     start.save()
 

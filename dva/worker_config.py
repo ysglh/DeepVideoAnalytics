@@ -23,6 +23,7 @@ TASK_NAMES_TO_QUEUE = {
     "alexnet_query_by_image":Q_RETRIEVER,
     "export_video_by_id":Q_EXTRACTOR,
     "backup_video_to_s3":Q_EXTRACTOR,
+    "push_video_to_vdn_s3":Q_EXTRACTOR,
     "import_video_by_id":Q_EXTRACTOR,
     "import_video_from_s3":Q_EXTRACTOR,
     "perform_clustering": Q_CLUSTER,
@@ -49,6 +50,7 @@ TASK_NAMES_TO_TYPE = {
     "export_video_by_id": VIDEO_TASK,
     "import_video_by_id": VIDEO_TASK,
     "backup_video_to_s3": S3_TASK,
+    "push_video_to_vdn_s3": S3_TASK,
     "import_video_from_s3": S3_TASK,
     "perform_clustering": CLUSTER_TASK,
 }

@@ -19,7 +19,51 @@
 </section>
 <section class="content">
     <div class="row">
-        {% if video.vdn_dataset %}
+        {% if not video.vdn_dataset %}
+            <div class="col-lg-12">
+            <div class="box box-primary">
+            <div class="box box-header text-center">
+                 <h3>Push dataset to VDN using an AWS S3 key / bucket</h3>
+                 <p>If you intened to make it public, make sure that requester pay is enabled AND access policies are set correctly for the entire bucket. Provide AWS credential via environment variables or by running aws configure inside container or via IAM roles on EC2.</p>
+            </div>
+            <div class="box-body">
+            <form method="post" id="push_form" action=".">
+            <div class="row">
+                <div class="col-sm-2"><div class="form-group"><label for="name">Name </label><input type="text" name="name" class="form-control" placeholder="Name" value="{{ video.name }}" /></div></div>
+                <div class="col-sm-4"><div class="form-group"><label for="description">Description </label><textarea name="description" class="form-control" rows="1" placeholder="description of the dataset"></textarea></div></div>
+                <div class="col-sm-2"><div class="form-group"><label for="bucket">S3 bucket </label><input name="bucket" type="text" placeholder="bucket" required="required" class="form-control" /></div></div>
+                <div class="col-sm-2"><div class="form-group"><label for="key">S3 key </label><input name="key" type="text" placeholder="key_prefix" required="required" class="form-control" /></div></div>
+                <div class="col-sm-2"><div class="form-group"><label for="region">S3 region </label><input name="region" type="text" placeholder="region" required="required" value="us-east-1" class="form-control" /></div></div>
+            </div>
+            {% for server in servers %}
+            <div class="row">
+                <div class="col-lg-4 col-md-4 col-sm-4 m-t text-center">
+                <div class="form-group">
+                        <label for="vdn_server">VDN Server</label>
+                        <input type="text" class="form-control" name="vdn_server" value="{{ server.url }}" />
+                </div>
+                </div>
+                <div class="col-lg-4 col-md-4 col-sm-4 m-t text-center">
+                    <div class="form-group">
+                        <label for="password">Token <a target="_blank" href="{{ server.url }}/get_token/">(generate token here)</a></label>
+                        <input type="text" class="form-control" name="token_{{ server.pk }}"  value="{{ server.last_token }}">
+                        <input type="hidden" name="push_type" value="dataset">
+                    </div>
+                </div>
+                {% csrf_token %}
+                <div class="col-lg-4 col-md-4 col-sm-4">
+                    <div class="form-group text-center">
+                        <label for="submitbtn">Submit</label>
+                        <button  class="btn btn-primary form-control" name="server_pk" value="{{ server.pk }}"  type="submit">Push to {{ server.url }}</button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            </form>
+            </div>
+            </div>
+            </div>
+        {% else %}
         <div class="col-lg-12">
             <div class="box box-primary">
                 <div class="box-header with-border">
@@ -76,6 +120,7 @@
                             <div class="form-group">
                                 <label for="password">Token <a target="_blank" href="{{ server.url }}/get_token/">(generate token here)</a></label>
                                 <input type="text" class="form-control" name="token_{{ server.pk }}"  value="{{ server.last_token }}">
+                                <input type="hidden" name="push_type" value="annotation">
                             </div>
                         </div>
                         {% csrf_token %}

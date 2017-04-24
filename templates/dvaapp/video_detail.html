@@ -95,18 +95,17 @@
     <div class="box box-primary" >
         <div class="box-body">
             <div class="row">
-                <div class="col-sm-9"><h4>Export video / dataset as a file</h4></div>
-                <div class="col-sm-3">
+                <div class="col-sm-12 text-center">
                     <form action="/export_video" method="post"><input type="hidden" value="{{ object.pk }}" name="video_id"><input type="hidden" value="file" name="export_method">{% csrf_token %}
-                        <button type="submit" class="btn btn-primary"><i class="fa fa-download"></i> Export</button>
+                        <button type="submit" class="btn btn-info"><i class="fa fa-download"></i> Export video / dataset as a file</button>
                     </form>
                 </div>
             </div>
             <form action="/export_video" method="post">
             <div class="row m-t" style="margin-top:25px">
-                <div class="col-sm-3"><label for="bucket">S3 Bucket <input name="bucket" type="text" placeholder="bucket" required="required" class="form-control" /></label></div>
-                <div class="col-sm-3"><label for="key">S3 Key <input name="key" type="text" placeholder="key_prefix" required="required" class="form-control" /></label></div>
-                <div class="col-sm-3"><label for="region">Region <input name="region" type="text" placeholder="region" required="required" value="us-east-1" class="form-control" /></label></div>
+                <div class="col-sm-3"><div class="form-group"><label for="bucket">S3 Bucket <input name="bucket" type="text" placeholder="bucket" required="required" class="form-control" /></label></div></div>
+                <div class="col-sm-3"><div class="form-group"><label for="key">S3 Key <input name="key" type="text" placeholder="key_prefix" required="required" class="form-control" /></label></div></div>
+                <div class="col-sm-3"><div class="form-group"><label for="region">Region <input name="region" type="text" placeholder="region" required="required" value="us-east-1" class="form-control" /></label></div></div>
                 <div class="col-sm-3">{% csrf_token %}
                     <input type="hidden" value="{{ object.pk }}" name="video_id">
                     <input type="hidden" value="s3" name="export_method">
@@ -143,6 +142,9 @@
                 </tbody>
             </table>
             {% endif %}
+        </div></div>
+        <div class="box box-primary" >
+        <div class="box-body">
         <div class="row">
             {% if not video.vdn_dataset %}
                 <div class="col-sm-12 text-center">

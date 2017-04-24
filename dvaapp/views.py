@@ -308,7 +308,6 @@ def yt(request):
     return redirect('video_list')
 
 
-
 def export_video(request):
     if request.method == 'POST':
         pk = request.POST.get('video_id')
@@ -333,7 +332,6 @@ def export_video(request):
         return redirect('video_list')
     else:
         raise NotImplementedError
-
 
 
 def create_video_folders(video,create_subdirs=True):
@@ -535,10 +533,36 @@ def create_child_vdn_dataset(parent_video,server,headers):
         raise ValueError,"{} {} {} {}".format("{}api/datasets/".format(server_url),headers,r.status_code,new_dataset)
 
 
+def create_root_vdn_dataset(s3export,server,headers,name,description):
+    new_dataset = {'root': True,
+                   'aws_requester_pays':True,
+                   'aws_region':s3export.region,
+                   'aws_bucket':s3export.bucket,
+                   'aws_key':s3export.key,
+                   'name': name,
+                   'description': description
+                   }
+    server_url = server.url
+    if not server_url.endswith('/'):
+        server_url += '/'
+    r = requests.post("{}api/datasets/".format(server_url), data=new_dataset, headers=headers)
+    if r.status_code == 201:
+        vdn_dataset = VDNDataset()
+        vdn_dataset.url = r.json()['url']
+        vdn_dataset.root = True
+        vdn_dataset.response = r.text
+        vdn_dataset.server = server
+        vdn_dataset.save()
+        s3export.video.vdn_dataset = vdn_dataset
+        return vdn_dataset
+    else:
+        raise ValueError,"Could not crated dataset"
+
 
 def push(request,video_id):
     video = Video.objects.get(pk=video_id)
     if request.method == 'POST':
+        push_type = request.POST.get('push_type')
         server = VDNServer.objects.get(pk=request.POST.get('server_pk'))
         token = request.POST.get('token_{}'.format(server.pk))
         server.last_token = token
@@ -547,27 +571,46 @@ def push(request,video_id):
         if not server_url.endswith('/'):
             server_url += '/'
         headers = {'Authorization': 'Token {}'.format(server.last_token)}
-        new_vdn_dataset = create_child_vdn_dataset(video, server, headers)
-        for key in request.POST:
-            if key.startswith('annotation_') and request.POST[key]:
-                annotation = Annotation.objects.get(pk=int(key.split('annotation_')[1]))
-                data = {
-                    'label':annotation.label,
-                    'metadata_text':annotation.metadata_text,
-                    'x':annotation.x,
-                    'y':annotation.y,
-                    'w':annotation.w,
-                    'h':annotation.h,
-                    'full_frame':annotation.full_frame,
-                    'parent_frame_index':annotation.parent_frame_index,
-                    'dataset_id':int(new_vdn_dataset.url.split('/')[-2]),
-                }
-                r = requests.post("{}/api/annotations/".format(server_url),data=data,headers=headers)
-                if r.status_code == 201:
-                    annotation.vdn_dataset = new_vdn_dataset
-                    annotation.save()
-                else:
-                    raise ValueError
+        if push_type == 'annotation':
+            new_vdn_dataset = create_child_vdn_dataset(video, server, headers)
+            for key in request.POST:
+                if key.startswith('annotation_') and request.POST[key]:
+                    annotation = Annotation.objects.get(pk=int(key.split('annotation_')[1]))
+                    data = {
+                        'label':annotation.label,
+                        'metadata_text':annotation.metadata_text,
+                        'x':annotation.x,
+                        'y':annotation.y,
+                        'w':annotation.w,
+                        'h':annotation.h,
+                        'full_frame':annotation.full_frame,
+                        'parent_frame_index':annotation.parent_frame_index,
+                        'dataset_id':int(new_vdn_dataset.url.split('/')[-2]),
+                    }
+                    r = requests.post("{}/api/annotations/".format(server_url),data=data,headers=headers)
+                    if r.status_code == 201:
+                        annotation.vdn_dataset = new_vdn_dataset
+                        annotation.save()
+                    else:
+                        raise ValueError
+        elif push_type == 'dataset':
+            key = request.POST.get('key')
+            region = request.POST.get('region')
+            bucket = request.POST.get('bucket')
+            name = request.POST.get('name')
+            description = request.POST.get('description')
+            s3export = S3Export()
+            s3export.video = video
+            s3export.key = key
+            s3export.region = region
+            s3export.bucket = bucket
+            s3export.save()
+            create_root_vdn_dataset(s3export,server,headers,name,description)
+            task_name = 'push_video_to_vdn_s3'
+            app.send_task(task_name, args=[s3export.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+        else:
+            raise NotImplementedError
+
     servers = VDNServer.objects.all()
     context = {'video':video, 'servers':servers}
     if video.vdn_dataset:

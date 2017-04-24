@@ -64,7 +64,15 @@
                                 <td>{{ server.name }}</td>
                                 <td>{% if dataset.aws_requester_pays %} {{ dataset.aws_region }} /{{ dataset.aws_bucket }} / {{ dataset.aws_key }}{% endif %}</td>
                                 <td><a href="{{ dataset.download_url }}">{{ dataset.download_url }}</a></td>
+                                {% if dataset.aws_requester_pays %}
+                                <td class="text-center"><form action="/import_dataset" method="post">{% csrf_token %}<input type="hidden" name="dataset_url" value="{{ dataset.url }}"/>
+                                    <p class="text-danger">AWS account will be charged for bandwidth.</p>
+                                    <input type="hidden" name="server_pk" value="{{ server.pk }}"/><button type="submit" class="btn btn-danger"> Pull </button></form>
+                                </td>
+
+                                {% else %}
                                 <td class="text-center"><form action="/import_dataset" method="post">{% csrf_token %}<input type="hidden" name="dataset_url" value="{{ dataset.url }}"/><input type="hidden" name="server_pk" value="{{ server.pk }}"/><button type="submit" class="btn btn-primary"> Pull </button></form></td>
+                                {% endif %}
                             </tr>
                             {% endfor %}
                         {% endfor %}

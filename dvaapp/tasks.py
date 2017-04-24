@@ -616,9 +616,9 @@ def import_video_from_s3(s3_import_id):
         client = boto3.client('s3')
         resource = boto3.resource('s3')
         download_dir(client, resource,s3_import.key,path,s3_import.bucket)
-        shutil.move('{}{}'.format(path, s3_import.key),"{}tempmove".format(path))
-        shutil.move('{}tempmove'.format(path),path)
-        os.remove("{}tempmove".format(path))
+        for filename in os.listdir(os.path.join(path,s3_import.key)):
+            shutil.move(os.path.join(path,s3_import.key, filename), os.path.join(path, filename))
+        os.rmdir(os.path.join(path,s3_import.key))
     else:
         command = ["aws", "s3", "cp", "s3://{}/{}/".format(s3_import.bucket,s3_import.key),'.','--recursive']
         command_exec = " ".join(command)

@@ -478,12 +478,17 @@ def import_video_by_id(video_id):
         output_filename = "{}/{}/{}.zip".format(settings.MEDIA_ROOT,video_obj.pk,video_obj.pk)
         if video_obj.vdn_dataset.aws_requester_pays:
             s3import = S3Import()
-            s3import.bucket = video_obj.vdn_dataset.aws_bucket
-            s3import.key = video_obj.vdn_dataset.aws_bucket
-            s3import.region = video_obj.vdn_dataset.aws_bucket
+            s3import.key = video_obj.vdn_dataset.aws_key
+            s3import.region = video_obj.vdn_dataset.aws_region
             s3import.bucket = video_obj.vdn_dataset.aws_bucket
             s3import.requester_pays = True
             s3import.save()
+            task_name = "import_video_from_s3"
+            app.send_task(task_name, args=[s3import.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+            start.completed = True
+            start.seconds = time.time() - start_time
+            start.save()
+            return 0
         else:
             if 'www.dropbox.com' in video_obj.vdn_dataset.download_url and not video_obj.vdn_dataset.download_url.endswith('?dl=1'):
                 r = requests.get(video_obj.vdn_dataset.download_url+'?dl=1')
@@ -573,6 +578,29 @@ def push_video_to_vdn_s3(s3_export_id):
     start.save()
 
 
+def download_dir(client, resource, dist, local, bucket):
+    """
+    Taken from http://stackoverflow.com/questions/31918960/boto3-to-download-all-files-from-a-s3-bucket
+    :param client:
+    :param resource:
+    :param dist:
+    :param local:
+    :param bucket:
+    :return:
+    """
+    paginator = client.get_paginator('list_objects')
+    for result in paginator.paginate(Bucket=bucket, Delimiter='/', Prefix=dist):
+        if result.get('CommonPrefixes') is not None:
+            for subdir in result.get('CommonPrefixes'):
+                download_dir(client, resource, subdir.get('Prefix'), local, bucket)
+        if result.get('Contents') is not None:
+            for ffile in result.get('Contents'):
+                if not os.path.exists(os.path.dirname(local + os.sep + ffile.get('Key'))):
+                     os.makedirs(os.path.dirname(local + os.sep + ffile.get('Key')))
+                resource.meta.client.download_file(bucket, ffile.get('Key'), local + os.sep + ffile.get('Key'),
+                                                   extra_args={'RequestPayer':'requester'})
+
+
 @app.task(name="import_video_from_s3")
 def import_video_from_s3(s3_import_id):
     s3_import= S3Import.objects.get(pk=s3_import_id)
@@ -583,17 +611,22 @@ def import_video_from_s3(s3_import_id):
     start.save()
     start_time = time.time()
     path = "{}/{}/".format(settings.MEDIA_ROOT,s3_import.video.pk)
-    command = ["aws", "s3", "cp", "s3://{}/{}/".format(s3_import.bucket,s3_import.key),'.','--recursive']
-    command_exec = " ".join(command)
-    download = subprocess.Popen(args=command,cwd=path)
-    download.communicate()
-    download.wait()
-    if download.returncode != 0:
-        start.errored = True
-        start.error_message = "return code for '{}' was {}".format(command_exec,download.returncode)
-        start.seconds = time.time() - start_time
-        start.save()
-        raise ValueError,start.error_message
+    if s3_import.requester_pays:
+        client = boto3.client('s3')
+        resource = boto3.resource('s3')
+        download_dir(client, resource,s3_import.key,path,s3_import.bucket)
+    else:
+        command = ["aws", "s3", "cp", "s3://{}/{}/".format(s3_import.bucket,s3_import.key),'.','--recursive']
+        command_exec = " ".join(command)
+        download = subprocess.Popen(args=command,cwd=path)
+        download.communicate()
+        download.wait()
+        if download.returncode != 0:
+            start.errored = True
+            start.error_message = "return code for '{}' was {}".format(command_exec,download.returncode)
+            start.seconds = time.time() - start_time
+            start.save()
+            raise ValueError,start.error_message
     with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, s3_import.video.pk)) as input_json:
         video_json = json.load(input_json)
     serializers.import_video_json(s3_import.video,video_json,path)
@@ -602,21 +635,6 @@ def import_video_from_s3(s3_import_id):
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
-
-
-def make_bucket_public_requester_pays(bucket_name):
-    """
-    Convert AWS S3 bucket into requester pays bucket
-    :param bucket_name:
-    :return:
-    """
-    s3 = boto3.resource('s3')
-    bucket_request_payment = s3.BucketRequestPayment(bucket_name)
-    response = bucket_request_payment.put(RequestPaymentConfiguration={'Payer': 'Requester'})
-    bucket_policy = s3.BucketPolicy(bucket_name)
-    response = bucket_policy.put(Policy=json.dumps({"Version": "2012-10-17", "Statement": [
-        {"Sid": "AddPerm", "Effect": "Allow", "Principal": "*", "Action": "s3:GetObject",
-         "Resource": "arn:aws:s3:::{}/*".format(bucket_name)}]}))
 
 
 @app.task(name="perform_clustering")

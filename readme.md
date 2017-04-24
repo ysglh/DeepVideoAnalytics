@@ -23,6 +23,8 @@
 - MTCNN [TensorFlow port of MTCNN for face detection/alignment](https://github.com/kpzhang93/MTCNN_face_detection_alignment)
 - Locally Optimized Product Quantization [License](https://github.com/yahoo/lopq/blob/master/LICENSE)
 - Docker 
+- JSFeat [not used but included](https://inspirit.github.io/jsfeat/)
+- Segment annotator [Not used but inclued](https://github.com/kyamagu/js-segment-annotator/blob/master/LICENSE)
 - Nvidia-docker
 - OpenCV
 - Numpy

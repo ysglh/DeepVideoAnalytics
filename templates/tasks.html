@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% load staticfiles %}
+{% load static from staticfiles %}
 {% block page_css %}
-  <script type="text/javascript" src="/static//vis.js"></script>
-  <link href="/static/vis-network.min.css" rel="stylesheet" type="text/css" />
+  <script type="text/javascript" src={% static 'vis.js' %}></script>
+  <link href={% static 'vis-network.min.css' %} rel="stylesheet" type="text/css" />
 
   <style type="text/css">
     #mynetwork {

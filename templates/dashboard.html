@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load staticfiles %}
+{% load static from staticfiles %}
 {% block ng_control %}ng-controller="CanvasControls"{% endblock %}
 {% block status_bar %}
     <div id="status" ng-model="status" ng-show="checkStatus()" class="alert alert-dismissable"
@@ -317,21 +317,21 @@
     var excluded_index_entries = $("#excluded_index_entries");
     excluded_index_entries.select2({theme: "bootstrap"});
     </script>
-    <script src="/static/plugins/jquery.mousewheel.min.js"></script>
-    <script src="/static/plugins/underscore-min.js"></script>
-    <script src="/static/fabric/fabric.js"></script>
-    <script type="text/javascript" src="/static/vision/jsfeat-min.js"></script>
-    <script type="text/javascript" src="/static/vision/slic-segmentation.js"></script>
-    <script type="text/javascript" src="/static/vision/pf-segmentation.js"></script>
-    <script type="text/javascript" src="/static/vision/compatibility.js"></script>
-    <script type="text/javascript" src="/static/vision/dat.gui.min.js"></script>
+    <script src={% static 'plugins/jquery.mousewheel.min.js' %}></script>
+    <script src={% static 'plugins/underscore-min.js' %}></script>
+    <script src={% static 'fabric/fabric.js' %}></script>
+    <script type="text/javascript" src={% static 'vision/jsfeat-min.js' %}></script>
+    <script type="text/javascript" src={% static 'vision/slic-segmentation.js' %}></script>
+    <script type="text/javascript" src={% static 'vision/pf-segmentation.js' %}></script>
+    <script type="text/javascript" src={% static 'vision/compatibility.js' %}></script>
+    <script type="text/javascript" src={% static 'vision/dat.gui.min.js' %}></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.5/angular.min.js"></script>
-    <script src="/static/app/utils.js"></script>
-    <script src="/static/app/app_config.js"></script>
-    <script src="/static/app/controller.js"></script>
-    <script src="/static/app/app.js"></script>
+    <script src={% static 'app/utils.js' %}></script>
+    <script src={% static 'app/app_config.js' %}></script>
+    <script src={% static 'app/controller.js' %}></script>
+    <script src={% static 'app/app.js' %}></script>
 {% endblock %}
 {% block ngblock %}ng-app="cveditor"{% endblock %}
 {% block page_css %}
-    <link rel="stylesheet" href="/static/app/app.css">
+    <link rel="stylesheet" href={% static 'app/app.css' %}>
 {% endblock %}

@@ -122,7 +122,7 @@ if sys.platform == 'darwin':
     DEBUG = True
     SECRET_KEY='3425814321531335'
 else:
-    DEBUG = True
+    DEBUG = False
 
 
 

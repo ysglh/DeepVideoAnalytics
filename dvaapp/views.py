@@ -143,7 +143,7 @@ def search(request):
             if entries and settings.VISUAL_INDEXES[visual_index_name]['detection_specific']:
                 for algo,rlist in entries.iteritems():
                     for r in rlist:
-                        r['url'] = '/media/{}/detections/{}.jpg'.format(r['video_primary_key'],r['detection_primary_key'])
+                        r['url'] = '{}{}/detections/{}.jpg'.format(settings.MEDIA_URL,r['video_primary_key'],r['detection_primary_key'])
                         d = Detection.objects.get(pk=r['detection_primary_key'])
                         r['result_detect'] = True
                         r['frame_primary_key'] = d.frame_id
@@ -153,7 +153,7 @@ def search(request):
             elif entries:
                 for algo, rlist in entries.iteritems():
                     for r in rlist:
-                        r['url'] = '/media/{}/frames/{}.jpg'.format(r['video_primary_key'], r['frame_index'])
+                        r['url'] = '{}{}/frames/{}.jpg'.format(settings.MEDIA_URL,r['video_primary_key'], r['frame_index'])
                         r['detections'] = [{'pk': d.pk, 'name': d.object_name, 'confidence': d.confidence} for d in
                                            Detection.objects.filter(frame_id=r['frame_primary_key'])]
                         r['result_type'] = 'frame'
@@ -176,13 +176,13 @@ def index(request,query_pk=None,frame_pk=None,detection_pk=None):
     context['indexes'] = settings.VISUAL_INDEXES
     if query_pk:
         previous_query = Query.objects.get(pk=query_pk)
-        context['initial_url'] = '/media/queries/{}.png'.format(query_pk)
+        context['initial_url'] = '{}queries/{}.png'.format(settings.MEDIA_URL,query_pk)
     elif frame_pk:
         frame = Frame.objects.get(pk=frame_pk)
-        context['initial_url'] = '/media/{}/frames/{}.jpg'.format(frame.video.pk,frame.frame_index)
+        context['initial_url'] = '{}{}/frames/{}.jpg'.format(settings.MEDIA_URL,frame.video.pk,frame.frame_index)
     elif detection_pk:
         detection = Detection.objects.get(pk=detection_pk)
-        context['initial_url'] = '/media/{}/detections/{}.jpg'.format(detection.video.pk, detection.pk)
+        context['initial_url'] = '{}{}/detections/{}.jpg'.format(settings.MEDIA_URL,detection.video.pk, detection.pk)
     context['frame_count'] = Frame.objects.count()
     context['query_count'] = Query.objects.count()
     context['index_entries_count'] = IndexEntries.objects.count()
@@ -203,7 +203,7 @@ def annotate(request,frame_pk):
     label_dict = {tag.label_name: tag.pk for tag in VLabel.objects.filter(video=frame.video).all()}
     context['available_tags'] = label_dict.keys()
     context['frame'] = frame
-    context['initial_url'] = '/media/{}/frames/{}.jpg'.format(frame.video.pk,frame.frame_index)
+    context['initial_url'] = '{}{}/frames/{}.jpg'.format(settings.MEDIA_URL,frame.video.pk,frame.frame_index)
     context['previous_frame'] = Frame.objects.filter(video=frame.video,frame_index__lt=frame.frame_index).order_by('-frame_index')[0:1]
     context['next_frame'] = Frame.objects.filter(video=frame.video,frame_index__gt=frame.frame_index).order_by('frame_index')[0:1]
     context['detections'] = Detection.objects.filter(frame=frame)

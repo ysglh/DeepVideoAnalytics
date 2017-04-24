@@ -791,6 +791,7 @@ def benchmark():
     """
     pass
 
+
 @task
 def make_requester_pays(bucket_name):
     """
@@ -803,6 +804,31 @@ def make_requester_pays(bucket_name):
     bucket_request_payment = s3.BucketRequestPayment(bucket_name)
     response = bucket_request_payment.put(RequestPaymentConfiguration={'Payer': 'Requester'})
     bucket_policy = s3.BucketPolicy(bucket_name)
-    response = bucket_policy.put(Policy=json.dumps({"Version": "2012-10-17", "Statement": [
-        {"Sid": "AddPerm", "Effect": "Allow", "Principal": "*", "Action": "s3:GetObject",
-         "Resource": "arn:aws:s3:::{}/*".format(bucket_name)}]}))
+    policy = {
+          "Id": "Policy1493037034955",
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "Stmt1493036947566",
+              "Action": [
+                "s3:ListBucket"
+              ],
+              "Effect": "Allow",
+              "Resource": "arn:aws:s3:::{}".format(bucket_name),
+              "Principal": "*"
+            },
+            {
+              "Sid": "Stmt1493037029723",
+              "Action": [
+                "s3:GetObject"
+              ],
+              "Effect": "Allow",
+              "Resource": "arn:aws:s3:::{}/*".format(bucket_name),
+              "Principal": {
+                "AWS": [
+                  "*"
+                ]
+              }
+            }
+          ]}
+    response = bucket_policy.put(Policy=json.dumps(policy))

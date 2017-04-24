@@ -478,6 +478,7 @@ def import_video_by_id(video_id):
         output_filename = "{}/{}/{}.zip".format(settings.MEDIA_ROOT,video_obj.pk,video_obj.pk)
         if video_obj.vdn_dataset.aws_requester_pays:
             s3import = S3Import()
+            s3import.video = video_obj
             s3import.key = video_obj.vdn_dataset.aws_key
             s3import.region = video_obj.vdn_dataset.aws_region
             s3import.bucket = video_obj.vdn_dataset.aws_bucket

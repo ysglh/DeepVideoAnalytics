@@ -90,7 +90,7 @@ def deploy(compose_file="docker-compose-gpu.yml"):
     run("git clone https://github.com/akshayubhat/deepvideoanalytics")
     with cd('deepvideoanalytics'):
         with cd("docker"):
-            run('./rebuild_gpu.sh && nvidia-docker-compose -f {} up -d'.format(compose_file))
+            run('docker pull akshayubhat/dva:gpu && nvidia-docker-compose -f {} up -d'.format(compose_file))
     if sys.platform == 'darwin':
         chrome_path = 'open -a /Applications/Google\ Chrome.app %s'
         webbrowser.get(chrome_path).open('http://{}:8000'.format(env.hosts[0]))

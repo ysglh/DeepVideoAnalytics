@@ -590,7 +590,7 @@ def download_dir(client, resource, dist, local, bucket):
     :return:
     """
     paginator = client.get_paginator('list_objects')
-    for result in paginator.paginate(Bucket=bucket, Delimiter='/', Prefix=dist):
+    for result in paginator.paginate(Bucket=bucket, Delimiter='/', Prefix=dist, RequestPayer='requester'):
         if result.get('CommonPrefixes') is not None:
             for subdir in result.get('CommonPrefixes'):
                 download_dir(client, resource, subdir.get('Prefix'), local, bucket)

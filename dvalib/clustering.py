@@ -127,7 +127,7 @@ class Clustering(object):
         vector = np.dot((self.pca_reduction.transform(vector) - self.mu), self.P).transpose().squeeze()
         codes = self.model.predict(vector)
         if count:
-            results = self.searcher.find(vector,quota=count)
+            results = self.searcher.search(vector,quota=count)
         else:
             results = None
         return codes.coarse,codes.fine,results

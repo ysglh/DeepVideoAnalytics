@@ -66,11 +66,17 @@ class IndexerTask(celery.Task):
                                                                                      ))
 
     def load_clusterer(self,algorithm):
-        dc = Clusters.objects.all().filter(algorithm=algorithm).last()
-        IndexerTask._clusterer[algorithm] = clustering.Clustering(fnames=[],m=None,v=None,sub=None,n_components=None,
-                                                                                model_proto_filename=dc.model_file_name,dc=dc)
-        IndexerTask._clusterer[algorithm].load()
-        logging.warning("Loaded clusterer {}".format(dc.pk))
+        dc = Clusters.objects.all().filter(completed=True,indexer_algorithm=algorithm).last()
+        if dc:
+            model_file_name = "{}/clusters/{}.proto".format(settings.MEDIA_ROOT,dc.pk)
+            IndexerTask._clusterer[algorithm] = clustering.Clustering(fnames=[],m=None,v=None,sub=None,
+                                                                      n_components=None,
+                                                                      model_proto_filename=model_file_name,dc=dc)
+            logging.warning("loading clusterer {}".format(model_file_name))
+            IndexerTask._clusterer[algorithm].load()
+
+        else:
+            raise ValueError,"No clusterer found"
 
 @app.task(name="inception_index_by_id",base=IndexerTask)
 def inception_index_by_id(video_id):
@@ -168,17 +174,20 @@ def query_approximate(q,n,visual_index,clusterer):
                 'rank':i,
                 'dist':i,
                 'detection_primary_key':e.detection_id,
-                'frame_primary_key':e.frame_id,
+                'frame_index':e.frame.frame_index,
+                'frame_primary_key': e.frame_id,
                 'video_primary_key':e.video_id,
-
+                'type': 'detection',
             })
         else:
             results[visual_index.name].append({
                 'rank':i,
                 'dist':i,
                 'detection_primary_key':e.detection_id,
-                'frame_primary_key':e.frame_id,
+                'frame_index':e.frame.frame_index,
+                'frame_primary_key': e.frame_id,
                 'video_primary_key':e.video_id,
+                'type': 'frame',
             })
     return results
 
@@ -194,9 +203,9 @@ def inception_query_by_image(query_id):
     inception_query_by_image.refresh_index('inception')
     inception = inception_query_by_image.visual_indexer['inception']
     Q = entity.WQuery(dquery=dq, media_dir=settings.MEDIA_ROOT,visual_index=inception)
-    if True:
+    if dq.approximate:
         if inception_query_by_image.clusterer['inception'] is None:
-            inception_query_by_image.clusterer['inception'].load_clusterer()
+            inception_query_by_image.load_clusterer('inception')
         clusterer = inception_query_by_image.clusterer['inception']
         results = query_approximate(Q,10,inception,clusterer)
     else:

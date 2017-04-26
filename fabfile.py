@@ -163,9 +163,11 @@ def ci():
     django.setup()
     from django.core.files.uploadedfile import SimpleUploadedFile
     from dvaapp.views import handle_uploaded_file, handle_youtube_video
-    from dvaapp.models import Video
+    from dvaapp.models import Video, Clusters,IndexEntries
     from django.conf import settings
-    from dvaapp.tasks import extract_frames, perform_face_indexing, inception_index_by_id, perform_ssd_detection_by_id, perform_yolo_detection_by_id, inception_index_ssd_detection_by_id, export_video_by_id, import_video_by_id
+    from dvaapp.tasks import extract_frames, perform_face_indexing, inception_index_by_id, perform_ssd_detection_by_id,\
+        perform_yolo_detection_by_id, inception_index_ssd_detection_by_id, export_video_by_id, import_video_by_id,\
+        perform_clustering
     for fname in glob.glob('tests/ci/*.mp4'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")
@@ -187,6 +189,12 @@ def ci():
         f = SimpleUploadedFile(fname, file("{}/exports/{}".format(settings.MEDIA_ROOT,fname)).read(), content_type="application/zip")
         vimported = handle_uploaded_file(f, fname)
         import_video_by_id(vimported.pk)
+    dc = Clusters()
+    dc.indexer_algorithm = 'inception'
+    dc.included_index_entries_pk = [k.pk for k in IndexEntries.objects.all().filter(algorithm=dc.indexer_algorithm)]
+    dc.components = 32
+    dc.save()
+    perform_clustering(dc.pk)
     test_backup()
 
 

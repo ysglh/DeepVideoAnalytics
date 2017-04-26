@@ -40,7 +40,7 @@ class Clustering(object):
         self.v = v
         self.sub = sub
         self.model = None
-        self.search = None
+        self.searcher = None
         self.pca_reduction = None
         self.P = None
         self.mu = None
@@ -48,6 +48,7 @@ class Clustering(object):
         self.P_filename = model_proto_filename.replace('.proto','.P.npy')
         self.mu_filename = model_proto_filename.replace('.proto','.mu.npy')
         self.pca_filename = model_proto_filename.replace('.proto', '.pca.pkl')
+        self.model_lmdb_filename = model_proto_filename.replace('.proto', '_lmdb')
         self.permuted_inds_filename = model_proto_filename.replace('.proto', '.permuted_inds.pkl')
         self.permuted_inds = None
 
@@ -78,16 +79,18 @@ class Clustering(object):
         train, test = train_test_split(self.data, test_size=0.2)
         self.model = LOPQModel(V=self.v, M=self.m, subquantizer_clusters=self.sub)
         self.model.fit(train, n_init=1)
-        self.searcher = LOPQSearcher(self.model)
+        for i,e in enumerate(self.entries):
+            r = self.model.predict(self.data[i])
+            e['coarse'] = r.coarse
+            e['fine'] = r.fine
+        self.searcher = LOPQSearcherLMDB(self.model,self.model_lmdb_filename)
         if self.test_mode:
             self.searcher.add_data(train)
             nns = compute_all_neighbors(test, train)
             recall, _ = get_recall(self.searcher, test, nns)
             print 'Recall (V=%d, M=%d, subquants=%d): %s' % (self.model.V, self.model.M, self.model.subquantizer_clusters, str(recall))
-        for i,e in enumerate(self.entries):
-            r = self.model.predict(self.data[i])
-            e['coarse'] = r.coarse
-            e['fine'] = r.fine
+        else:
+            self.searcher.add_data(self.data)
 
     def find(self):
         i,selected = random.choice([k for k in enumerate(self.entries)])
@@ -105,6 +108,7 @@ class Clustering(object):
             np.save(out,self.mu)
         with open(self.permuted_inds_filename, 'w') as out:
             pickle.dump(self.permuted_inds,out)
+        self.searcher.env.close()
 
     def load(self):
         self.model = LOPQModel.load_proto(self.model_proto_filename)
@@ -112,9 +116,13 @@ class Clustering(object):
         self.P = np.load(file(self.P_filename))
         self.mu = np.load(file(self.mu_filename))
         self.permuted_inds = np.load(file(self.permuted_inds_filename))
+        self.searcher = LOPQSearcherLMDB(model=self.model,lmdb_path=self.model_lmdb_filename)
 
-    def apply(self,vector):
+    def apply(self,vector,count=None):
         vector = np.dot((self.pca_reduction.transform(vector) - self.mu), self.P).transpose().squeeze()
-        # print vector.shape
-        results = self.model.predict(vector)
-        return results.coarse,results.fine
+        codes = self.model.predict(vector)
+        if count:
+            results = self.searcher.find(vector,quota=count)
+        else:
+            results = None
+        return codes.coarse,codes.fine,results

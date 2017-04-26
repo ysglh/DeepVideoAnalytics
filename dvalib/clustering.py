@@ -79,10 +79,11 @@ class Clustering(object):
         train, test = train_test_split(self.data, test_size=0.2)
         self.model = LOPQModel(V=self.v, M=self.m, subquantizer_clusters=self.sub)
         self.model.fit(train, n_init=1)
-        for i,e in enumerate(self.entries):
+        for i,e in enumerate(self.entries): # avoid doing this twice again in searcher
             r = self.model.predict(self.data[i])
             e['coarse'] = r.coarse
             e['fine'] = r.fine
+            e['index'] = i
         self.searcher = LOPQSearcherLMDB(self.model,self.model_lmdb_filename)
         if self.test_mode:
             self.searcher.add_data(train)

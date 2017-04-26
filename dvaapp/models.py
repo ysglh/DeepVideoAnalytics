@@ -235,7 +235,10 @@ class ClusterCodes(models.Model):
     coarse = ArrayField(models.IntegerField(), default=[])
     coarse_text = models.TextField(default="") # check if postgres built in text search
     fine_text = models.TextField(default="") # check if postgres built in text search can be used
+    searcher_index = models.IntegerField()
 
+    class Meta:
+        unique_together = ('searcher_index', 'clusters')
 
 # class CustomIndexer(models.Model):
 #     algorithm = models.CharField(max_length=100)

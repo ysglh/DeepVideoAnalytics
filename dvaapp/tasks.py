@@ -672,6 +672,7 @@ def perform_clustering(cluster_task_id,test=False):
         cc.fine = e['fine']
         cc.coarse_text = " ".join(map(str,e['coarse']))
         cc.fine_text = " ".join(map(str,e['fine']))
+        cc.searcher_index = e['index']
         cc.save()
     c.save()
     dc.completed = True

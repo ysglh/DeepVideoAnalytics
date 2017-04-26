@@ -114,12 +114,7 @@ class Clustering(object):
         self.permuted_inds = np.load(file(self.permuted_inds_filename))
 
     def apply(self,vector):
-        print vector.shape
-        vector = self.pca_reduction.transform(vector)
-        print vector.shape
-        vector = vector - self.mu
-        print vector.shape
-        vector = np.dot(vector, self.P)
-        print vector.shape
+        vector = np.dot((self.pca_reduction.transform(vector) - self.mu), self.P).transpose().squeeze()
+        # print vector.shape
         results = self.model.predict(vector)
         return results.coarse,results.fine

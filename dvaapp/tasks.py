@@ -27,6 +27,7 @@ def process_video_next(video_id,current_task_name):
 
 class IndexerTask(celery.Task):
     _visual_indexer = None
+    _clusterer = None
 
     @property
     def visual_indexer(self):
@@ -35,6 +36,12 @@ class IndexerTask(celery.Task):
                                            'facenet': indexer.FacenetIndexer(),
                                            'alexnet': indexer.AlexnetIndexer()}
         return IndexerTask._visual_indexer
+
+    @property
+    def clusterer(self):
+        if IndexerTask._clusterer is None:
+            IndexerTask._clusterer = {'inception': None,'facenet': None,'alexnet': None}
+        return IndexerTask._clusterer
 
     def refresh_index(self,index_name):
         index_entries = IndexEntries.objects.all()
@@ -56,8 +63,14 @@ class IndexerTask(celery.Task):
                                                                                  visual_index.index.shape,
                                                                                  visual_index.loaded_entries[index_entry.pk].start,
                                                                                  visual_index.loaded_entries[index_entry.pk].end,
-                                                                                 ))
+                                                                                     ))
 
+    def load_clusterer(self,algorithm):
+        dc = Clusters.objects.all().filter(algorithm=algorithm).last()
+        IndexerTask._clusterer[algorithm] = clustering.Clustering(fnames=[],m=None,v=None,sub=None,n_components=None,
+                                                                                model_proto_filename=dc.model_file_name,dc=dc)
+        IndexerTask._clusterer[algorithm].load()
+        logging.warning("Loaded clusterer {}".format(dc.pk))
 
 @app.task(name="inception_index_by_id",base=IndexerTask)
 def inception_index_by_id(video_id):
@@ -143,6 +156,31 @@ def alexnet_index_by_id(video_id):
     start.seconds = time.time() - start_time
     start.save()
 
+def query_approximate(q,n,visual_index,clusterer):
+    vector = visual_index.apply(q.local_path)
+    results = {}
+    results[visual_index.name] = []
+    coarse, fine, results_indexes = clusterer.apply(vector, n)
+    for i,k in enumerate(results_indexes[0]):
+        e = ClusterCodes.objects.get(searcher_index=k.id,clusters=clusterer.dc)
+        if e.detection_id:
+            results[visual_index.name].append({
+                'rank':i,
+                'dist':i,
+                'detection_primary_key':e.detection_id,
+                'frame_primary_key':e.frame_id,
+                'video_primary_key':e.video_id,
+
+            })
+        else:
+            results[visual_index.name].append({
+                'rank':i,
+                'dist':i,
+                'detection_primary_key':e.detection_id,
+                'frame_primary_key':e.frame_id,
+                'video_primary_key':e.video_id,
+            })
+    return results
 
 @app.task(name="inception_query_by_image",base=IndexerTask)
 def inception_query_by_image(query_id):
@@ -156,7 +194,13 @@ def inception_query_by_image(query_id):
     inception_query_by_image.refresh_index('inception')
     inception = inception_query_by_image.visual_indexer['inception']
     Q = entity.WQuery(dquery=dq, media_dir=settings.MEDIA_ROOT,visual_index=inception)
-    results = Q.find(10)
+    if True:
+        if inception_query_by_image.clusterer['inception'] is None:
+            inception_query_by_image.clusterer['inception'].load_clusterer()
+        clusterer = inception_query_by_image.clusterer['inception']
+        results = query_approximate(Q,10,inception,clusterer)
+    else:
+        results = Q.find(10)
     dq.results = True
     dq.results_metadata = json.dumps(results)
     for algo,rlist in results.iteritems():

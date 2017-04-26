@@ -17,8 +17,12 @@ except:
 
 class Clustering(object):
 
-    def __init__(self,fnames,n_components,model_proto_filename,m,v,sub,test_mode=False):
+    def __init__(self,fnames,n_components,model_proto_filename,m,v,sub,test_mode=False,dc=None):
+        """
+        Simplify this mess haivng a seperate create vs load/init
+        """
         data = []
+        self.dc = dc
         self.fnames = fnames
         self.entries = []
         for fname in fnames:

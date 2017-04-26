@@ -37,6 +37,7 @@ class Query(models.Model):
     excluded_index_entries_pk = ArrayField(models.IntegerField(), default=[])
     results = models.BooleanField(default=False)
     results_metadata = models.TextField(default="")
+    approximate = models.BooleanField(default=False)
     user = models.ForeignKey(User, null=True)
 
 

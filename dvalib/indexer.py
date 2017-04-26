@@ -40,9 +40,6 @@ class BaseIndexer(object):
             self.index = np.concatenate([self.index, np.concatenate(temp_index).squeeze()])
             logging.info(self.index.shape)
 
-    def load_approximate(self,clusterer):
-        pass
-
     def nearest(self,image_path,n=12):
         query_vector = self.apply(image_path)
         temp = []

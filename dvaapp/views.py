@@ -817,7 +817,7 @@ def import_s3(request):
         user = request.user if request.user.is_authenticated() else None
         if user:
             video.uploader = user
-        video.name = "pending S3 import {} s3://{}/{}".format(region,key,bucket)
+        video.name = "pending S3 import {} s3://{}/{}".format(region,bucket,key)
         video.save()
         s3import.video = video
         s3import.save()

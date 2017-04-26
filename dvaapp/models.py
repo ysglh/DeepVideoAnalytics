@@ -235,3 +235,14 @@ class ClusterCodes(models.Model):
     coarse = ArrayField(models.IntegerField(), default=[])
     coarse_text = models.TextField(default="") # check if postgres built in text search
     fine_text = models.TextField(default="") # check if postgres built in text search can be used
+
+
+# class CustomIndexer(models.Model):
+#     algorithm = models.CharField(max_length=100)
+#     object_name = models.CharField(max_length=100)
+#     min_width = models.IntegerField(default=0)
+#     min_height = models.IntegerField(default=0)
+#     width = models.IntegerField(default=0)
+#     height = models.IntegerField(default=0)
+#     dimensions = models.IntegerField(default=0)
+#     tfgraph_filename = models.CharField(max_length=200)

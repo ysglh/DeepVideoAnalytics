@@ -67,7 +67,7 @@ def launch():
     time.sleep(10) # wait while the instance starts
     env.hosts = [instance.public_ip_address,]
     fh = open("connect.sh", 'w')
-    fh.write("#!/bin/bash\n" + "ssh -i " + env.key_filename + " " + env.user + "@" + env.hosts[0] + "\n")
+    fh.write("#!/bin/bash\n" + 'autossh -M 0 -o "ServerAliveInterval 30" -o "ServerAliveCountMax 3" -L 8500:localhost:8500 -i ' + env.key_filename + " " + env.user + "@" + env.hosts[0] + "\n")
     fh.close()
     local("fab deploy") # this forces fab to set new env.hosts correctly
 

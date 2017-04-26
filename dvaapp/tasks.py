@@ -657,7 +657,7 @@ def perform_clustering(cluster_task_id,test=False):
         k = IndexEntries.objects.get(pk=ipk)
         fnames.append("{}/{}/indexes/{}".format(settings.MEDIA_ROOT, k.video.pk, k.features_file_name))
     cluster_proto_filename = "{}{}.proto".format(clusters_dir,dc.pk)
-    c = clustering.Clustering(fnames, 64,cluster_proto_filename,m=dc.m,v=dc.v,sub=dc.sub,test_mode=test)
+    c = clustering.Clustering(fnames, dc.components,cluster_proto_filename,m=dc.m,v=dc.v,sub=dc.sub,test_mode=test)
     c.cluster()
     for e in c.entries:
         cc = ClusterCodes()

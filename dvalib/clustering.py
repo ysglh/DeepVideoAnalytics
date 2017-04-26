@@ -28,11 +28,12 @@ class Clustering(object):
             data.append(nmat)
             for e in json.load(file(fname.replace('npy','json'))):
                 self.entries.append(e)
-        if len(data) > 1:
-            self.data = np.concatenate(data)
-        else:
-            self.data = data[0]
-        logging.info(self.data.shape)
+        if data:
+            if len(data) > 1:
+                self.data = np.concatenate(data)
+            else:
+                self.data = data[0]
+            logging.info(self.data.shape)
         self.test_mode = test_mode
         self.n_components = n_components
         self.m = m
@@ -84,15 +85,15 @@ class Clustering(object):
             recall, _ = get_recall(self.searcher, test, nns)
             print 'Recall (V=%d, M=%d, subquants=%d): %s' % (self.model.V, self.model.M, self.model.subquantizer_clusters, str(recall))
         for i,e in enumerate(self.entries):
-            e['coarse'] = self.model.predict(self.data[i]).coarse
-            e['fine'] = self.model.predict(self.data[i]).fine
+            r = self.model.predict(self.data[i])
+            e['coarse'] = r.coarse
+            e['fine'] = r.fine
 
     def find(self):
         i,selected = random.choice([k for k in enumerate(self.entries)])
         print selected
         for k in self.searcher.get_result_quota(self.data[i],10):
             print k
-
 
     def save(self):
         self.model.export_proto(self.model_proto_filename)
@@ -107,3 +108,18 @@ class Clustering(object):
 
     def load(self):
         self.model = LOPQModel.load_proto(self.model_proto_filename)
+        self.pca_reduction = pickle.load(file(self.pca_filename))
+        self.P = np.load(file(self.P_filename))
+        self.mu = np.load(file(self.mu_filename))
+        self.permuted_inds = np.load(file(self.permuted_inds_filename))
+
+    def apply(self,vector):
+        print vector.shape
+        vector = self.pca_reduction.transform(vector)
+        print vector.shape
+        vector = vector - self.mu
+        print vector.shape
+        vector = np.dot(vector, self.P)
+        print vector.shape
+        results = self.model.predict(vector)
+        return results.coarse,results.fine

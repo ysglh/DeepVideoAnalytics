@@ -16,6 +16,7 @@ import celery
 import zipfile
 from . import serializers
 import boto3
+from botocore.exceptions import ClientError
 from dvalib import clustering
 
 
@@ -586,6 +587,16 @@ def perform_export(s3_export):
     time.sleep(20)  # wait for it to create the bucket
     path = "{}/{}/".format(settings.MEDIA_ROOT,s3_export.video.pk)
     a = serializers.VideoExportSerializer(instance=s3_export.video)
+    exists = False
+    try:
+        s3.Object(s3_export.bucket,'{}/table_data.json'.format(s3_export.key).replace('//','/')).load()
+    except ClientError as e:
+        if e.response['Error']['Code'] == "404":
+            exists = False
+        else:
+            raise
+    else:
+        return -1,"Error key already exists"
     with file("{}/{}/table_data.json".format(settings.MEDIA_ROOT,s3_export.video.pk),'w') as output:
         json.dump(a.data,output)
     upload = subprocess.Popen(args=["aws", "s3", "sync", ".", "s3://{}/{}/".format(s3_export.bucket,s3_export.key)],cwd=path)
@@ -593,7 +604,7 @@ def perform_export(s3_export):
     upload.wait()
     s3_export.completed = True
     s3_export.save()
-    return upload.returncode
+    return upload.returncode,""
 
 
 @app.task(name="backup_video_to_s3")
@@ -605,11 +616,12 @@ def backup_video_to_s3(s3_export_id):
     start.operation = backup_video_to_s3.name
     start.save()
     start_time = time.time()
-    returncode = perform_export(s3_export)
+    returncode, errormsg = perform_export(s3_export)
     if returncode == 0:
         start.completed = True
     else:
         start.errored = True
+        start.error_message = errormsg
     start.seconds = time.time() - start_time
     start.save()
 
@@ -623,11 +635,12 @@ def push_video_to_vdn_s3(s3_export_id):
     start.operation = push_video_to_vdn_s3.name
     start.save()
     start_time = time.time()
-    returncode = perform_export(s3_export)
+    returncode, errormsg = perform_export(s3_export)
     if returncode == 0:
         start.completed = True
     else:
         start.errored = True
+        start.error_message = errormsg
     start.seconds = time.time() - start_time
     start.save()
 

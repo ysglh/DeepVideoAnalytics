@@ -161,13 +161,14 @@ def ci():
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
+    import base64
     from django.core.files.uploadedfile import SimpleUploadedFile
-    from dvaapp.views import handle_uploaded_file, handle_youtube_video
+    from dvaapp.views import handle_uploaded_file, handle_youtube_video, create_query
     from dvaapp.models import Video, Clusters,IndexEntries
     from django.conf import settings
     from dvaapp.tasks import extract_frames, perform_face_indexing, inception_index_by_id, perform_ssd_detection_by_id,\
         perform_yolo_detection_by_id, inception_index_ssd_detection_by_id, export_video_by_id, import_video_by_id,\
-        perform_clustering
+        inception_query_by_image, perform_clustering
     for fname in glob.glob('tests/ci/*.mp4'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")
@@ -195,6 +196,8 @@ def ci():
     dc.components = 32
     dc.save()
     perform_clustering(dc.pk)
+    query,dv = create_query(10,False,['inception',],[],'data:image/png;base64,'+base64.encodestring(file('tests/query.png').read()))
+    inception_query_by_image(query.pk)
     test_backup()
 
 

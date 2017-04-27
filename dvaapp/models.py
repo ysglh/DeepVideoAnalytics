@@ -240,6 +240,8 @@ class ClusterCodes(models.Model):
 
     class Meta:
         unique_together = ('searcher_index', 'clusters')
+        index_together = [["clusters", "searcher_index"],] # Very important manually verify in Postgres
+
 
 # class CustomIndexer(models.Model):
 #     algorithm = models.CharField(max_length=100)

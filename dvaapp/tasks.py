@@ -171,7 +171,7 @@ def query_approximate(q,n,visual_index,clusterer):
         e = ClusterCodes.objects.get(searcher_index=k.id,clusters=clusterer.dc)
         if e.detection_id:
             results[visual_index.name].append({
-                'rank':i,
+                'rank':i+1,
                 'dist':i,
                 'detection_primary_key':e.detection_id,
                 'frame_index':e.frame.frame_index,
@@ -181,7 +181,7 @@ def query_approximate(q,n,visual_index,clusterer):
             })
         else:
             results[visual_index.name].append({
-                'rank':i,
+                'rank':i+1,
                 'dist':i,
                 'detection_primary_key':e.detection_id,
                 'frame_index':e.frame.frame_index,

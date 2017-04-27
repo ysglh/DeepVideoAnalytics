@@ -75,9 +75,8 @@ class IndexerTask(celery.Task):
                                                                       model_proto_filename=model_file_name,dc=dc)
             logging.warning("loading clusterer {}".format(model_file_name))
             IndexerTask._clusterer[algorithm].load()
-
         else:
-            raise ValueError,"No clusterer found"
+            logging.warning("No clusterer found switching to exact search for {}".format(algorithm))
 
 @app.task(name="inception_index_by_id",base=IndexerTask)
 def inception_index_by_id(video_id):
@@ -192,6 +191,7 @@ def query_approximate(q,n,visual_index,clusterer):
             })
     return results
 
+
 @app.task(name="inception_query_by_image",base=IndexerTask)
 def inception_query_by_image(query_id):
     dq = Query.objects.get(id=query_id)
@@ -201,16 +201,19 @@ def inception_query_by_image(query_id):
     start.operation = inception_query_by_image.name
     start.save()
     start_time = time.time()
-    inception_query_by_image.refresh_index('inception')
     inception = inception_query_by_image.visual_indexer['inception']
     Q = entity.WQuery(dquery=dq, media_dir=settings.MEDIA_ROOT,visual_index=inception)
+    exact = True # by default run exact search
     if dq.approximate:
         if inception_query_by_image.clusterer['inception'] is None:
             inception_query_by_image.load_clusterer('inception')
         clusterer = inception_query_by_image.clusterer['inception']
-        results = query_approximate(Q,10,inception,clusterer)
-    else:
-        results = Q.find(10)
+        if clusterer:
+            results = query_approximate(Q,dq.count,inception,clusterer)
+            exact = False
+    if exact:
+        inception_query_by_image.refresh_index('inception')
+        results = Q.find(dq.count)
     dq.results = True
     dq.results_metadata = json.dumps(results)
     for algo,rlist in results.iteritems():
@@ -273,10 +276,19 @@ def facenet_query_by_image(query_id):
     start.operation = facenet_query_by_image.name
     start.save()
     start_time = time.time()
-    facenet_query_by_image.refresh_index('facenet')
     facenet = facenet_query_by_image.visual_indexer['facenet']
     Q = entity.WQuery(dquery=dq, media_dir=settings.MEDIA_ROOT,visual_index=facenet)
-    results = Q.find(10)
+    exact = True
+    if dq.approximate:
+        if facenet_query_by_image.clusterer['facenet'] is None:
+            facenet_query_by_image.load_clusterer('facenet')
+        clusterer = facenet_query_by_image.clusterer['facenet']
+        if clusterer:
+            results = query_approximate(Q,dq.count,facenet,clusterer)
+            exact = False
+    if exact:
+        facenet_query_by_image.refresh_index('facenet')
+        results = Q.find(dq.count)
     for algo,rlist in results.iteritems():
         for r in rlist:
             qr = QueryResults()

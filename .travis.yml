@@ -55,3 +55,6 @@ script:
   - wget localhost:8000/videos/1/
   - wget localhost:8000/status
   - wget localhost:8000/queries/
+  - wget http://www.visualdata.network/api/
+  - wget http://www.visualdata.network/
+  - wget http://www.visualdata.network/get_token/

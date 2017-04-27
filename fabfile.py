@@ -198,6 +198,8 @@ def ci():
     perform_clustering(dc.pk)
     query,dv = create_query(10,False,['inception',],[],'data:image/png;base64,'+base64.encodestring(file('tests/query.png').read()))
     inception_query_by_image(query.pk)
+    query,dv = create_query(10,True,['inception',],[],'data:image/png;base64,'+base64.encodestring(file('tests/query.png').read()))
+    inception_query_by_image(query.pk)
     test_backup()
 
 

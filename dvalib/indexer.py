@@ -94,7 +94,7 @@ class AlexnetIndexer(BaseIndexer):
 
     def load(self):
         if self.net is None:
-            logging.warning("Loading the network {}".format(self.name))
+            logging.warning("Loading the network {} , first apply / query will be slower".format(self.name))
             self.net = alexnet(pretrained=True)
             if torch.cuda.is_available():
                 self.net.cuda()
@@ -118,7 +118,7 @@ class InceptionIndexer(BaseIndexer):
 
     def load(self):
         if self.session is None:
-            logging.warning("Loading the network {}".format(self.name))
+            logging.warning("Loading the network {} , first apply / query will be slower".format(self.name))
             config = tf.ConfigProto()
             config.gpu_options.per_process_gpu_memory_fraction = 0.15
             self.session = tf.InteractiveSession(config=config)
@@ -161,7 +161,7 @@ class FacenetIndexer(BaseIndexer):
 
     def load(self):
         if self.session is None:
-            logging.warning("Loading the network {}".format(self.name))
+            logging.warning("Loading the network {} , first apply / query will be slower".format(self.name))
             config = tf.ConfigProto()
             config.gpu_options.per_process_gpu_memory_fraction = 0.15
             self.session = tf.InteractiveSession(config=config)

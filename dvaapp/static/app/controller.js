@@ -428,7 +428,7 @@ $scope.toggle_all = function(){
     canvas.deactivateAll().renderAll();
 };
 
-$scope.search = function () {
+$scope.search = function (approximate) {
     debugger;
     var image_data = null;
     console.log($scope.send_entire_image);
@@ -468,6 +468,7 @@ $scope.search = function () {
         data: {
             'image_url': image_data,
             'count': $('#result_count').val(),
+            'approximate':approximate,
             'selected_indexers':selected_indexers,
             'excluded_index_entries':excluded_index_entries,
             'csrfmiddlewaretoken':$(csrf_token).val()

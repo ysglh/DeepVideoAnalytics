@@ -96,39 +96,45 @@ class VDNDatasetViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.VDNDatasetSerializer
 
 
+def create_query(count,approximate,selected,excluded_pks,image_data_url):
+    query = Query()
+    query.count = count
+    if excluded_pks:
+        query.excluded_index_entries_pk = [int(k) for k in excluded_pks]
+    query.selected_indexers = selected
+    query.approximate = approximate
+    query.save()
+    dv = Video()
+    dv.name = 'query_{}'.format(query.pk)
+    dv.dataset = True
+    dv.query = True
+    dv.parent_query = query
+    dv.save()
+    create_video_folders(dv)
+    image_data = base64.decodestring(image_data_url[22:])
+    query_path = "{}/queries/{}.png".format(settings.MEDIA_ROOT, query.pk)
+    query_frame_path = "{}/{}/frames/0.png".format(settings.MEDIA_ROOT, dv.pk)
+    with open(query_path, 'w') as fh:
+        fh.write(image_data)
+    with open(query_frame_path, 'w') as fh:
+        fh.write(image_data)
+    return query,dv
+
+
 def search(request):
     if request.method == 'POST':
-        query = Query()
         count = request.POST.get('count')
-        query.count = count
         excluded_index_entries_pk = json.loads(request.POST.get('excluded_index_entries'))
-        if excluded_index_entries_pk:
-            query.excluded_index_entries_pk = [int(k) for k in excluded_index_entries_pk]
         selected_indexers = json.loads(request.POST.get('selected_indexers'))
-        query.selected_indexers = selected_indexers
-        query.save()
-        primary_key = query.pk
-        dv = Video()
-        dv.name = 'query_{}'.format(query.pk)
-        dv.dataset = True
-        dv.query = True
-        dv.parent_query = query
-        dv.save()
-        create_video_folders(dv)
-        image_url = request.POST.get('image_url')
-        image_data = base64.decodestring(image_url[22:])
-        query_path = "{}/queries/{}.png".format(settings.MEDIA_ROOT,primary_key)
-        query_frame_path = "{}/{}/frames/0.png".format(settings.MEDIA_ROOT,dv.pk)
-        with open(query_path,'w') as fh:
-            fh.write(image_data)
-        with open(query_frame_path,'w') as fh:
-            fh.write(image_data)
+        approximate = True if request.POST.get('approximate') == 'true' else False
+        image_data_url = request.POST.get('image_url')
+        query, dv = create_query(count,approximate,selected_indexers,excluded_index_entries_pk,image_data_url)
         task_results = {}
         user = request.user if request.user.is_authenticated() else None
         for visual_index_name,visual_index in settings.VISUAL_INDEXES.iteritems():
             task_name = visual_index['retriever_task']
             if visual_index_name in selected_indexers:
-                task_results[visual_index_name] = app.send_task(task_name, args=[primary_key,],queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+                task_results[visual_index_name] = app.send_task(task_name, args=[query.pk,],queue=settings.TASK_NAMES_TO_QUEUE[task_name])
         query.user = user
         query.save()
         results = []
@@ -158,7 +164,7 @@ def search(request):
                                            Detection.objects.filter(frame_id=r['frame_primary_key'])]
                         r['result_type'] = 'frame'
                         results.append(r)
-        return JsonResponse(data={'task_id':"",'time_out':time_out,'primary_key':primary_key,'results':results,'results_detections':results_detections})
+        return JsonResponse(data={'task_id':"",'time_out':time_out,'primary_key':query.pk,'results':results,'results_detections':results_detections})
 
 
 def index(request,query_pk=None,frame_pk=None,detection_pk=None):

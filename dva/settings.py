@@ -53,7 +53,8 @@ INSTALLED_APPS = [
     'dvaapp',
     'djcelery',
     'rest_framework',
-    'crispy_forms'
+    'crispy_forms',
+    'django_filters',
 ]
 
 MIDDLEWARE = [

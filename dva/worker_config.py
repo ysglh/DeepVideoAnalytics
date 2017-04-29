@@ -7,7 +7,6 @@ Q_RETRIEVER = 'qretriever'
 Q_FACE_RETRIEVER = 'qfaceretriever'
 Q_FACE_DETECTOR = 'qfacedetector'
 Q_CLUSTER = 'qclusterer'
-Q_ANNOTATOR = 'qannotator'
 
 QUEUES = [Q_EXTRACTOR,Q_INDEXER,Q_DETECTOR,Q_RETRIEVER,Q_FACE_RETRIEVER,Q_FACE_DETECTOR,Q_CLUSTER]
 
@@ -28,7 +27,7 @@ TASK_NAMES_TO_QUEUE = {
     "import_video_by_id":Q_EXTRACTOR,
     "import_video_from_s3":Q_EXTRACTOR,
     "perform_clustering": Q_CLUSTER,
-    "assign_text_tags": Q_ANNOTATOR,
+    "assign_open_images_text_tags_by_id": Q_DETECTOR,
 }
 
 
@@ -55,7 +54,7 @@ TASK_NAMES_TO_TYPE = {
     "push_video_to_vdn_s3": S3_TASK,
     "import_video_from_s3": S3_TASK,
     "perform_clustering": CLUSTER_TASK,
-    "assign_text_tags": VIDEO_TASK,
+    "assign_open_images_text_tags_by_id": VIDEO_TASK,
 }
 
 # List of tasks which can be called manually
@@ -64,7 +63,7 @@ MANUAL_VIDEO_TASKS = ['inception_index_by_id',
                       'perform_ssd_detection_by_id',
                       'perform_face_detection_indexing_by_id',
                       'perform_yolo_detection_by_id',
-                      'assign_text_tags'
+                      'assign_open_images_text_tags_by_id'
                       ]
 
 

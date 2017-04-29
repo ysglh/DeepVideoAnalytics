@@ -735,6 +735,11 @@ def detections(request):
     return render(request, 'detections.html', context)
 
 
+def textsearch(request):
+    context = {}
+    return render(request, 'textsearch.html', context)
+
+
 def clustering(request):
     context = {}
     context['clusters'] = Clusters.objects.all()

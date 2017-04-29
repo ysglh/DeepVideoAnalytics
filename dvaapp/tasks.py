@@ -393,6 +393,29 @@ def perform_yolo_detection_by_id(video_id):
     return 0
 
 
+@app.task(name="assign_open_images_text_tags_by_id")
+def assign_open_images_text_tags_by_id(video_id):
+    start = TEvent()
+    start.video_id = video_id
+    start.started = True
+    start.operation = assign_open_images_text_tags_by_id.name
+    start.save()
+    start_time = time.time()
+    annotator_process = subprocess.Popen(['fab','assign_tags:{}'.format(video_id)],cwd=os.path.join(os.path.abspath(__file__).split('tasks.py')[0],'../'))
+    annotator_process.wait()
+    if annotator_process.returncode != 0:
+        start.errored = True
+        start.error_message = "assign_text_tags_by_id failed with return code {}".format(annotator_process.returncode)
+        start.seconds = time.time() - start_time
+        start.save()
+        raise ValueError,start.error_message
+    process_video_next(video_id,start.operation)
+    start.completed = True
+    start.seconds = time.time() - start_time
+    start.save()
+    return 0
+
+
 @app.task(name="perform_ssd_detection_by_id")
 def perform_ssd_detection_by_id(video_id):
     start = TEvent()

@@ -532,6 +532,35 @@ def perform_face_detection(video_id):
     perform_face_indexing(int(video_id))
 
 
+@task
+def assign_tags(video_id):
+    import django
+    from PIL import Image
+    sys.path.append(os.path.dirname(__file__))
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
+    django.setup()
+    from django.conf import settings
+    from dvaapp.models import Video,Frame,Annotation
+    from dvalib import entity,annotator
+    dv = Video.objects.get(id=video_id)
+    frames = Frame.objects.all().filter(video=dv)
+    v = entity.WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
+    wframes = {df.pk: entity.WFrame(video=v, frame_index=df.frame_index, primary_key=df.pk) for df in frames}
+    algorithm = annotator.OpenImagesAnnotator()
+    logging.info("starting annotation {}".format(algorithm.name))
+    for k,f in wframes.items():
+        tags = algorithm.apply(f.local_path())
+        a = Annotation()
+        a.frame_id = k
+        a.video_id = video_id
+        a.label = "OpenImagesTag"
+        a.metadata_text = " ".join([t for t,v in tags.iteritems() if v > 0.1])
+        a.metadata_json = json.dumps({t:100.0*v for t,v in tags.iteritems() if v > 0.1})
+        a.full_frame = True
+        a.save()
+        print a.metadata_text
+
+
 def setup_django():
     import django
     sys.path.append(os.path.dirname(__file__))

@@ -17,11 +17,11 @@
 - FabricJS [License](https://github.com/kangax/fabric.js/blob/master/LICENSE)
 - Modified PySceneDetect [License](https://github.com/Breakthrough/PySceneDetect)
 - Modified SSD-Tensorflow [Individual files are marked as Apache](https://github.com/balancap/SSD-Tensorflow)
-- Yahoo LOPQ [Apache License 2.0](https://github.com/yahoo/lopq)
 - FAISS [License (Non Commercial)](https://github.com/facebookresearch/faiss)
 - Facenet [License](https://github.com/davidsandberg/facenet)
 - MTCNN [TensorFlow port of MTCNN for face detection/alignment](https://github.com/kpzhang93/MTCNN_face_detection_alignment)
 - Locally Optimized Product Quantization [License](https://github.com/yahoo/lopq/blob/master/LICENSE)
+- Open Images Pre training network for text tags [License](https://github.com/openimages/dataset/blob/master/LICENSE)
 - Docker 
 - JSFeat [not used but included](https://inspirit.github.io/jsfeat/)
 - Segment annotator [Not used but inclued](https://github.com/kyamagu/js-segment-annotator/blob/master/LICENSE)

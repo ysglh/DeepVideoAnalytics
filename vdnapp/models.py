@@ -47,3 +47,15 @@ class Annotation(models.Model):
     h = models.IntegerField(default=0)
     w = models.IntegerField(default=0)
     created = models.DateTimeField('date created', auto_now_add=True)
+
+
+class Indexer(models.Model):
+    name = models.CharField(max_length=100,default="")
+    created = models.DateTimeField('date created', auto_now_add=True)
+    tfgraph_url = models.TextField(default="",blank=True)
+
+
+class Detector(models.Model):
+    name = models.CharField(max_length=100,default="")
+    created = models.DateTimeField('date created', auto_now_add=True)
+    tfgraph_url = models.TextField(default="",blank=True)

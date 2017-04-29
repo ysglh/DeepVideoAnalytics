@@ -168,7 +168,7 @@ def ci():
     from django.conf import settings
     from dvaapp.tasks import extract_frames, perform_face_indexing, inception_index_by_id, perform_ssd_detection_by_id,\
         perform_yolo_detection_by_id, inception_index_ssd_detection_by_id, export_video_by_id, import_video_by_id,\
-        inception_query_by_image, perform_clustering
+        inception_query_by_image, perform_clustering, assign_open_images_text_tags_by_id
     for fname in glob.glob('tests/ci/*.mp4'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")
@@ -186,6 +186,7 @@ def ci():
             perform_yolo_detection_by_id(v.pk)
             perform_face_indexing(v.pk)
             inception_index_ssd_detection_by_id(v.pk)
+            assign_open_images_text_tags_by_id(v.pk)
         fname = export_video_by_id(v.pk)
         f = SimpleUploadedFile(fname, file("{}/exports/{}".format(settings.MEDIA_ROOT,fname)).read(), content_type="application/zip")
         vimported = handle_uploaded_file(f, fname)

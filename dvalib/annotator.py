@@ -51,7 +51,7 @@ class OpenImagesAnnotator(BaseAnnotator):
         self.predictions = None
         self.num_classes = 6012
         self.top_n = 25
-        self.labelmap_path = os.path.abspath(__file__).split('annotator.py')[0]+'data/2016_08/labelmap.txt'
+        self.labelmap_path = os.path.abspath(__file__).split('annotator.py')[0]+'data/labelmap.txt'
         self.dict_path = os.path.abspath(__file__).split('annotator.py')[0]+'data/dict.csv'
         self.labelmap = [line.rstrip() for line in file(self.labelmap_path).readlines()]
         if len(self.labelmap) != self.num_classes:

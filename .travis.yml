@@ -40,6 +40,7 @@ before_script:
   - cd darknet && wget https://www.dropbox.com/s/0zopjpswug5rjqy/yolo9000.weights && make && cd ..
   - python manage.py migrate
   - python manage.py runserver 8000 &
+  - cd dvalib/data/2016_08 && wget https://www.dropbox.com/s/umo0xtljm9an90x/model.ckpt && wget https://www.dropbox.com/s/f93axdtlb3ltj40/model.ckpt.meta && cd ../../..
   - cd dvalib/ssd/checkpoints && unzip ssd_300_vgg.ckpt.zip && cd ../../..
   - cd dvalib/facenet/facenet_model && wget https://www.dropbox.com/s/2unad9skmc7msel/model-20170306-150500.ckpt-250000.data-00000-of-00001 && cd ../../..
   - cd dvalib/facenet/facenet_model && wget https://www.dropbox.com/s/j8ky6bl0jgpygp6/model-20170306-150500.ckpt-250000.index && cd ../../..

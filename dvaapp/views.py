@@ -336,7 +336,9 @@ def export_video(request):
             else:
                 task_name = 'export_video_by_id'
                 export_video_task = TEvent()
+                export_video_task.event_type = TEvent.EXPORT
                 export_video_task.video = video
+                export_video_task.operation = task_name
                 export_video_task.save()
                 app.send_task(task_name, args=[export_video_task.pk,], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
         return redirect('video_list')

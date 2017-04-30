@@ -15,11 +15,12 @@ psycopg2
 requests
 boto3
 protobuf
-lmdb
 humanize
-https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.0.0a0-cp27-none-linux_x86_64.whl
 enum34
 scikit-learn
 awscli
 django-crispy-forms
 django-cors-headers
+cffi
+uwsgi
+lmdb

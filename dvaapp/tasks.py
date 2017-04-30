@@ -24,7 +24,8 @@ def process_next(task_id):
     dt = TEvent.objects.get(pk=task_id)
     if dt.operation in settings.POST_OPERATION_TASKS:
         for k in settings.POST_OPERATION_TASKS[dt.operation]:
-            app.send_task(k,args=[dt.video_id,],queue=settings.TASK_NAMES_TO_QUEUE[k])
+            next_task = TEvent.objects.create(video=dt.video_id)
+            app.send_task(k,args=[next_task.pk,],queue=settings.TASK_NAMES_TO_QUEUE[k])
 
 
 class IndexerTask(celery.Task):

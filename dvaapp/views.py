@@ -334,7 +334,10 @@ def export_video(request):
                 app.send_task(task_name, args=[s3export.pk,], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
             else:
                 task_name = 'export_video_by_id'
-                app.send_task(task_name, args=[pk,], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+                export_video_task = TEvent()
+                export_video_task.video = video
+                export_video_task.save()
+                app.send_task(task_name, args=[export_video_task.pk,], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
         return redirect('video_list')
     else:
         raise NotImplementedError
@@ -359,8 +362,11 @@ def handle_youtube_video(name,url,extract=True,user=None):
     video.youtube_video = True
     video.save()
     create_video_folders(video)
+    extract_frames_task = TEvent()
+    extract_frames_task.video = video
+    extract_frames_task.save()
     if extract:
-        extract_frames.apply_async(args=[video.pk], queue=settings.Q_EXTRACTOR)
+        extract_frames.apply_async(args=[extract_frames_task.pk], queue=settings.Q_EXTRACTOR)
     return video
 
 
@@ -381,7 +387,10 @@ def handle_uploaded_file(f,name,extract=True,user=None):
         video.uploaded = True
         video.save()
         task_name = 'import_video_by_id'
-        app.send_task(name=task_name, args=[primary_key,], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+        import_video_task = TEvent()
+        import_video_task.video = video
+        import_video_task.save()
+        app.send_task(name=task_name, args=[import_video_task.pk,], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
     elif filename.endswith('.mp4') or filename.endswith('.flv') or filename.endswith('.zip'):
         create_video_folders(video,create_subdirs=True)
         with open('{}/{}/video/{}.{}'.format(settings.MEDIA_ROOT,video.pk,video.pk,filename.split('.')[-1]), 'wb+') as destination:
@@ -392,7 +401,10 @@ def handle_uploaded_file(f,name,extract=True,user=None):
             video.dataset = True
         video.save()
         if extract:
-            extract_frames.apply_async(args=[primary_key],queue=settings.Q_EXTRACTOR)
+            extract_frames_task = TEvent()
+            extract_frames_task.video = video
+            extract_frames_task.save()
+            extract_frames.apply_async(args=[extract_frames_task.pk],queue=settings.Q_EXTRACTOR)
     else:
         raise ValueError,"Extension {} not allowed".format(filename.split('.')[-1])
     return video
@@ -809,7 +821,10 @@ def import_dataset(request):
         primary_key = video.pk
         create_video_folders(video, create_subdirs=False)
         task_name = 'import_video_by_id'
-        app.send_task(name=task_name, args=[primary_key, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+        import_video_task = TEvent()
+        import_video_task.video = video
+        import_video_task.save()
+        app.send_task(name=task_name, args=[import_video_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
     else:
         raise NotImplementedError
     return redirect('video_list')
@@ -844,7 +859,10 @@ def video_send_task(request):
     if request.method == 'POST':
         video_id = int(request.POST.get('video_id'))
         task_name = request.POST.get('task_name')
-        app.send_task(name=task_name, args=[video_id, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+        manual_event = TEvent()
+        manual_event.video_id = video_id
+        manual_event.save()
+        app.send_task(name=task_name, args=[manual_event.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
     else:
         raise NotImplementedError
     return redirect('video_list')
@@ -917,7 +935,10 @@ def retry_task(request,pk):
     event = TEvent.objects.get(pk=int(pk))
     context = {}
     if settings.TASK_NAMES_TO_TYPE[event.operation] == settings.VIDEO_TASK:
-        result = app.send_task(name=event.operation, args=[event.video_id],queue=settings.TASK_NAMES_TO_QUEUE[event.operation])
+        new_event = TEvent()
+        new_event.video_id = event.video_id
+        new_event.save()
+        result = app.send_task(name=event.operation, args=[new_event.pk],queue=settings.TASK_NAMES_TO_QUEUE[event.operation])
         context['alert'] = "Operation {} on {} submitted".format(event.operation,event.video.name,queue=settings.TASK_NAMES_TO_QUEUE[event.operation])
         return render_tasks(request, context)
     elif settings.TASK_NAMES_TO_TYPE[event.operation] == settings.QUERY_TASK:

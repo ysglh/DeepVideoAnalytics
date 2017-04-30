@@ -20,10 +20,11 @@ from botocore.exceptions import ClientError
 from dvalib import clustering
 
 
-def process_video_next(video_id,current_task_name):
-    if current_task_name in settings.POST_OPERATION_TASKS:
-        for k in settings.POST_OPERATION_TASKS[current_task_name]:
-            app.send_task(k,args=[video_id,],queue=settings.TASK_NAMES_TO_QUEUE[k])
+def process_next(task_id):
+    dt = TEvent.objects.get(pk=task_id)
+    if dt.operation in settings.POST_OPERATION_TASKS:
+        for k in settings.POST_OPERATION_TASKS[dt.operation]:
+            app.send_task(k,args=[dt.video_id,],queue=settings.TASK_NAMES_TO_QUEUE[k])
 
 
 class IndexerTask(celery.Task):
@@ -78,13 +79,14 @@ class IndexerTask(celery.Task):
         else:
             logging.warning("No clusterer found switching to exact search for {}".format(algorithm))
 
+
 @app.task(name="inception_index_by_id",base=IndexerTask)
-def inception_index_by_id(video_id):
-    start = TEvent()
-    start.video_id = video_id
+def inception_index_by_id(task_id):
+    start = TEvent.objects.get(pk=task_id)
     start.started = True
     start.operation = inception_index_by_id.name
     start.save()
+    video_id = start.video_id
     start_time = time.time()
     dv = Video.objects.get(id=video_id)
     video = entity.WVideo(dv, settings.MEDIA_ROOT)
@@ -100,20 +102,20 @@ def inception_index_by_id(video_id):
     i.entries_file_name = entries_fname.split('/')[-1]
     i.features_file_name = feat_fname.split('/')[-1]
     i.save()
-    process_video_next(video_id, start.operation)
+    process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
 
 
 @app.task(name="inception_index_ssd_detection_by_id",base=IndexerTask)
-def inception_index_ssd_detection_by_id(video_id):
-    start = TEvent()
-    start.video_id = video_id
+def inception_index_ssd_detection_by_id(task_id):
+    start = TEvent.objects.get(pk=task_id)
     start.started = True
     start.operation = inception_index_ssd_detection_by_id.name
     start.save()
     start_time = time.time()
+    video_id = start.video_id
     dv = Video.objects.get(id=video_id)
     video = entity.WVideo(dv, settings.MEDIA_ROOT)
     detections = Detection.objects.all().filter(video=dv,object_name__startswith='SSD_',w__gte=50,h__gte=50)
@@ -129,20 +131,20 @@ def inception_index_ssd_detection_by_id(video_id):
     i.entries_file_name = entries_fname.split('/')[-1]
     i.features_file_name = feat_fname.split('/')[-1]
     i.save()
-    process_video_next(video_id, start.operation)
+    process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
 
 
 @app.task(name="alexnet_index_by_id",base=IndexerTask)
-def alexnet_index_by_id(video_id):
-    start = TEvent()
-    start.video_id = video_id
+def alexnet_index_by_id(task_id):
+    start = TEvent.objects.get(pk=task_id)
     start.started = True
     start.operation = alexnet_index_by_id.name
     start.save()
     start_time = time.time()
+    video_id = start.video_id
     dv = Video.objects.get(id=video_id)
     video = entity.WVideo(dv, settings.MEDIA_ROOT)
     frames = Frame.objects.all().filter(video=dv)
@@ -157,10 +159,11 @@ def alexnet_index_by_id(video_id):
     i.entries_file_name = entries_fname.split('/')[-1]
     i.features_file_name = feat_fname.split('/')[-1]
     i.save()
-    process_video_next(video_id, start.operation)
+    process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
+
 
 def query_approximate(q,n,visual_index,clusterer):
     vector = visual_index.apply(q.local_path)
@@ -329,13 +332,13 @@ def set_directory_labels(frames,dv):
             a.save()
 
 @app.task(name="extract_frames_by_id")
-def extract_frames(video_id,rescale=True):
-    start = TEvent()
-    start.video_id = video_id
+def extract_frames(task_id,rescale=True):
+    start = TEvent.objects.get(pk=task_id)
     start.started = True
     start.operation = extract_frames.name
     start.save()
     start_time = time.time()
+    video_id = start.video_id
     dv = Video.objects.get(id=video_id)
     v = entity.WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
     time.sleep(3) # otherwise ffprobe randomly fails
@@ -361,7 +364,7 @@ def extract_frames(video_id,rescale=True):
         df.save()
         f.primary_key = df.pk
     set_directory_labels(frames,dv)
-    process_video_next(video_id,start.operation)
+    process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
@@ -371,13 +374,13 @@ def extract_frames(video_id,rescale=True):
 
 
 @app.task(name="perform_yolo_detection_by_id")
-def perform_yolo_detection_by_id(video_id):
-    start = TEvent()
-    start.video_id = video_id
+def perform_yolo_detection_by_id(task_id):
+    start = TEvent.objects.get(pk=task_id)
     start.started = True
     start.operation = perform_yolo_detection_by_id.name
     start.save()
     start_time = time.time()
+    video_id = start.video_id
     detector = subprocess.Popen(['fab','yolo_detect:{}'.format(video_id)],cwd=os.path.join(os.path.abspath(__file__).split('tasks.py')[0],'../'))
     detector.wait()
     if detector.returncode != 0:
@@ -386,7 +389,7 @@ def perform_yolo_detection_by_id(video_id):
         start.seconds = time.time() - start_time
         start.save()
         raise ValueError,start.error_message
-    process_video_next(video_id,start.operation)
+    process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
@@ -394,13 +397,13 @@ def perform_yolo_detection_by_id(video_id):
 
 
 @app.task(name="assign_open_images_text_tags_by_id")
-def assign_open_images_text_tags_by_id(video_id):
-    start = TEvent()
-    start.video_id = video_id
+def assign_open_images_text_tags_by_id(task_id):
+    start = TEvent.objects.get(pk=task_id)
     start.started = True
     start.operation = assign_open_images_text_tags_by_id.name
     start.save()
     start_time = time.time()
+    video_id = start.video_id
     annotator_process = subprocess.Popen(['fab','assign_tags:{}'.format(video_id)],cwd=os.path.join(os.path.abspath(__file__).split('tasks.py')[0],'../'))
     annotator_process.wait()
     if annotator_process.returncode != 0:
@@ -409,7 +412,7 @@ def assign_open_images_text_tags_by_id(video_id):
         start.seconds = time.time() - start_time
         start.save()
         raise ValueError,start.error_message
-    process_video_next(video_id,start.operation)
+    process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
@@ -417,13 +420,13 @@ def assign_open_images_text_tags_by_id(video_id):
 
 
 @app.task(name="perform_ssd_detection_by_id")
-def perform_ssd_detection_by_id(video_id):
-    start = TEvent()
-    start.video_id = video_id
+def perform_ssd_detection_by_id(task_id):
+    start = TEvent.objects.get(pk=task_id)
     start.started = True
     start.operation = perform_ssd_detection_by_id.name
     start.save()
     start_time = time.time()
+    video_id = start.video_id
     detector = subprocess.Popen(['fab','ssd_detect:{}'.format(video_id)],cwd=os.path.join(os.path.abspath(__file__).split('tasks.py')[0],'../'))
     detector.wait()
     if detector.returncode != 0:
@@ -432,7 +435,7 @@ def perform_ssd_detection_by_id(video_id):
         start.seconds = time.time() - start_time
         start.save()
         raise ValueError, start.error_message
-    process_video_next(video_id,start.operation)
+    process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
@@ -440,13 +443,13 @@ def perform_ssd_detection_by_id(video_id):
 
 
 @app.task(name="perform_face_detection_indexing_by_id")
-def perform_face_detection_indexing_by_id(video_id):
-    start = TEvent()
-    start.video_id = video_id
+def perform_face_detection_indexing_by_id(task_id):
+    start = TEvent.objects.get(pk=task_id)
     start.started = True
     start.operation = perform_face_detection_indexing_by_id.name
     start.save()
     start_time = time.time()
+    video_id = start.video_id
     face_detector = subprocess.Popen(['fab','perform_face_detection:{}'.format(video_id)],cwd=os.path.join(os.path.abspath(__file__).split('tasks.py')[0],'../'))
     face_detector.wait()
     if face_detector.returncode != 0:
@@ -455,7 +458,7 @@ def perform_face_detection_indexing_by_id(video_id):
         start.seconds = time.time() - start_time
         start.save()
         raise ValueError, start.error_message
-    process_video_next(video_id,start.operation)
+    process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
@@ -513,13 +516,13 @@ def perform_face_indexing(video_id):
 
 
 @app.task(name="export_video_by_id")
-def export_video_by_id(video_id):
-    start = TEvent()
-    start.video_id = video_id
+def export_video_by_id(task_id):
+    start = TEvent.objects.get(pk=task_id)
     start.started = True
     start.operation = export_video_by_id.name
     start.save()
     start_time = time.time()
+    video_id = start.video_id
     video_obj = Video.objects.get(pk=video_id)
     export = Export()
     export.video = video_obj
@@ -555,13 +558,13 @@ def export_video_by_id(video_id):
 
 
 @app.task(name="import_video_by_id")
-def import_video_by_id(video_id):
-    start = TEvent()
-    start.video_id = video_id
+def import_video_by_id(task_id):
+    start = TEvent.objects.get(pk=task_id)
     start.started = True
     start.operation = import_video_by_id.name
     start.save()
     start_time = time.time()
+    video_id = start.video_id
     video_obj = Video.objects.get(pk=video_id)
     if video_obj.vdn_dataset and not video_obj.uploaded:
         output_filename = "{}/{}/{}.zip".format(settings.MEDIA_ROOT,video_obj.pk,video_obj.pk)

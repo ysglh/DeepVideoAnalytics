@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import subprocess,sys,shutil,os,glob,time,logging
 from django.conf import settings
 from dva.celery import app
-from .models import Video, Frame, Detection, TEvent, Query, IndexEntries,QueryResults, Annotation, VLabel, Export, VDNDataset, S3Export, S3Import, Clusters, ClusterCodes
+from .models import Video, Frame, Detection, TEvent, Query, IndexEntries,QueryResults, Annotation, VLabel, VDNDataset, Clusters, ClusterCodes
 from dvalib import entity
 from dvalib import detector
 from dvalib import indexer
@@ -525,11 +525,8 @@ def export_video_by_id(task_id):
     start_time = time.time()
     video_id = start.video_id
     video_obj = Video.objects.get(pk=video_id)
-    export = Export()
-    export.video = video_obj
     file_name = '{}_{}.dva_export.zip'.format(video_id, int(calendar.timegm(time.gmtime())))
-    export.file_name = file_name
-    export.save()
+    start.file_name = file_name
     try:
         os.mkdir("{}/{}".format(settings.MEDIA_ROOT,'exports'))
     except:
@@ -550,12 +547,10 @@ def export_video_by_id(task_id):
         start.save()
         raise ValueError, start.error_message
     shutil.rmtree("{}/exports/{}".format(settings.MEDIA_ROOT,video_id))
-    export.completed = True
-    export.save()
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
-    return export.file_name
+    return start.file_name
 
 
 @app.task(name="import_video_by_id")
@@ -570,15 +565,15 @@ def import_video_by_id(task_id):
     if video_obj.vdn_dataset and not video_obj.uploaded:
         output_filename = "{}/{}/{}.zip".format(settings.MEDIA_ROOT,video_obj.pk,video_obj.pk)
         if video_obj.vdn_dataset.aws_requester_pays:
-            s3import = S3Import()
+            s3import = TEvent()
             s3import.video = video_obj
             s3import.key = video_obj.vdn_dataset.aws_key
             s3import.region = video_obj.vdn_dataset.aws_region
             s3import.bucket = video_obj.vdn_dataset.aws_bucket
             s3import.requester_pays = True
+            s3import.operation = "import_video_from_s3"
             s3import.save()
-            task_name = "import_video_from_s3"
-            app.send_task(task_name, args=[s3import.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+            app.send_task(s3import.operation, args=[s3import.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[s3import.operation])
             start.completed = True
             start.seconds = time.time() - start_time
             start.save()
@@ -648,14 +643,12 @@ def perform_export(s3_export):
 
 @app.task(name="backup_video_to_s3")
 def backup_video_to_s3(s3_export_id):
-    s3_export = S3Export.objects.get(pk=s3_export_id)
-    start = TEvent()
-    start.video_id = s3_export.video_id
+    start = TEvent.objects.get(pk=s3_export_id)
     start.started = True
     start.operation = backup_video_to_s3.name
     start.save()
     start_time = time.time()
-    returncode, errormsg = perform_export(s3_export)
+    returncode, errormsg = perform_export(start.pk)
     if returncode == 0:
         start.completed = True
     else:
@@ -667,14 +660,12 @@ def backup_video_to_s3(s3_export_id):
 
 @app.task(name="push_video_to_vdn_s3")
 def push_video_to_vdn_s3(s3_export_id):
-    s3_export = S3Export.objects.get(pk=s3_export_id)
-    start = TEvent()
-    start.video_id = s3_export.video_id
+    start = TEvent.objects.get(pk=s3_export_id)
     start.started = True
     start.operation = push_video_to_vdn_s3.name
     start.save()
     start_time = time.time()
-    returncode, errormsg = perform_export(s3_export)
+    returncode, errormsg = perform_export(start)
     if returncode == 0:
         start.completed = True
     else:
@@ -709,23 +700,21 @@ def download_dir(client, resource, dist, local, bucket):
 
 @app.task(name="import_video_from_s3")
 def import_video_from_s3(s3_import_id):
-    s3_import= S3Import.objects.get(pk=s3_import_id)
-    start = TEvent()
-    start.video_id = s3_import.video_id
+    start = TEvent.objects.get(pk=s3_import_id)
     start.started = True
     start.operation = import_video_from_s3.name
     start.save()
     start_time = time.time()
-    path = "{}/{}/".format(settings.MEDIA_ROOT,s3_import.video.pk)
-    if s3_import.requester_pays:
+    path = "{}/{}/".format(settings.MEDIA_ROOT,start.video.pk)
+    if start.requester_pays:
         client = boto3.client('s3')
         resource = boto3.resource('s3')
-        download_dir(client, resource,s3_import.key,path,s3_import.bucket)
-        for filename in os.listdir(os.path.join(path,s3_import.key)):
-            shutil.move(os.path.join(path,s3_import.key, filename), os.path.join(path, filename))
-        os.rmdir(os.path.join(path,s3_import.key))
+        download_dir(client, resource,start.key,path,start.bucket)
+        for filename in os.listdir(os.path.join(path,start.key)):
+            shutil.move(os.path.join(path,start.key, filename), os.path.join(path, filename))
+        os.rmdir(os.path.join(path,start.key))
     else:
-        command = ["aws", "s3", "cp", "s3://{}/{}/".format(s3_import.bucket,s3_import.key),'.','--recursive']
+        command = ["aws", "s3", "cp", "s3://{}/{}/".format(start.bucket,start.key),'.','--recursive']
         command_exec = " ".join(command)
         download = subprocess.Popen(args=command,cwd=path)
         download.communicate()
@@ -736,11 +725,11 @@ def import_video_from_s3(s3_import_id):
             start.seconds = time.time() - start_time
             start.save()
             raise ValueError,start.error_message
-    with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, s3_import.video.pk)) as input_json:
+    with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, start.video.pk)) as input_json:
         video_json = json.load(input_json)
-    serializers.import_video_json(s3_import.video,video_json,path)
-    s3_import.completed = True
-    s3_import.save()
+    serializers.import_video_json(start.video,video_json,path)
+    start.completed = True
+    start.save()
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
@@ -748,7 +737,7 @@ def import_video_from_s3(s3_import_id):
 
 @app.task(name="perform_clustering")
 def perform_clustering(cluster_task_id,test=False):
-    start = TEvent()
+    start = TEvent.objects.get(pk=cluster_task_id)
     start.started = True
     start.operation = perform_clustering.name
     start.save()
@@ -756,7 +745,7 @@ def perform_clustering(cluster_task_id,test=False):
     clusters_dir = "{}/clusters/".format(settings.MEDIA_ROOT)
     if not os.path.isdir(clusters_dir):
         os.mkdir(clusters_dir)
-    dc = Clusters.objects.get(pk=cluster_task_id)
+    dc = start.clustering
     fnames = []
     for ipk in dc.included_index_entries_pk:
         k = IndexEntries.objects.get(pk=ipk)

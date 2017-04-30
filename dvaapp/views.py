@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView,DetailView
 from django.utils.decorators import method_decorator
 from .forms import UploadFileForm,YTVideoForm,AnnotationForm
-from .models import Video,Frame,Detection,Query,QueryResults,TEvent,IndexEntries,VDNDataset, Annotation, VLabel, Export, VDNServer, S3Export, S3Import, ClusterCodes, Clusters
+from .models import Video,Frame,Detection,Query,QueryResults,TEvent,IndexEntries,VDNDataset, Annotation, VLabel, VDNServer, ClusterCodes, Clusters
 from .tasks import extract_frames
 from dva.celery import app
 import serializers
@@ -324,7 +324,8 @@ def export_video(request):
                 key = request.POST.get('key')
                 region = request.POST.get('region')
                 bucket = request.POST.get('bucket')
-                s3export = S3Export()
+                s3export = TEvent()
+                s3export.event_type = TEvent.S3Export
                 s3export.video = video
                 s3export.key = key
                 s3export.region = region
@@ -416,8 +417,8 @@ class VideoList(ListView):
 
     def get_context_data(self, **kwargs):
         context = super(VideoList, self).get_context_data(**kwargs)
-        context['exports'] = Export.objects.all()
-        context['s3_exports'] = S3Export.objects.all()
+        context['exports'] = TEvent.objects.all().filter(event_type=TEvent.EXPORT)
+        context['s3_exports'] = TEvent.objects.all().filter(event_type=TEvent.S3EXPORT)
         return context
 
 
@@ -427,8 +428,8 @@ class VideoDetail(DetailView):
     def get_context_data(self, **kwargs):
         context = super(VideoDetail, self).get_context_data(**kwargs)
         max_frame_index = Frame.objects.all().filter(video=self.object).aggregate(Max('frame_index'))['frame_index__max']
-        context['exports'] = Export.objects.all().filter(video=self.object)
-        context['s3_exports'] = S3Export.objects.all().filter(video=self.object)
+        context['exports'] = TEvent.objects.all().filter(event_type=TEvent.EXPORT,video=self.object)
+        context['s3_exports'] = TEvent.objects.all().filter(event_type=TEvent.S3EXPORT,video=self.object)
         context['annotation_count'] = Annotation.objects.all().filter(video=self.object).count()
         if self.object.vdn_dataset:
             context['exportable_annotation_count'] = Annotation.objects.all().filter(video=self.object,vdn_dataset__isnull=True).count()
@@ -617,7 +618,8 @@ def push(request,video_id):
             bucket = request.POST.get('bucket')
             name = request.POST.get('name')
             description = request.POST.get('description')
-            s3export = S3Export()
+            s3export = TEvent()
+            s3export.event_type = TEvent.S3EXPORT
             s3export.video = video
             s3export.key = key
             s3export.region = region
@@ -773,7 +775,11 @@ def clustering(request):
         c.v = v
         c.save()
         task_name = "perform_clustering"
-        app.send_task(name=task_name, args=[c.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+        new_task = TEvent()
+        new_task.clustering = c
+        new_task.operation = task_name
+        new_task.save()
+        app.send_task(name=task_name, args=[new_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
     return render(request, 'clustering.html', context)
 
 
@@ -832,8 +838,9 @@ def import_dataset(request):
 
 def import_s3(request):
     if request.method == 'POST':
-        s3import = S3Import()
+        s3import = TEvent()
         key = request.POST.get('key')
+        s3import.event_type = TEvent.S3IMPORT
         region = request.POST.get('region')
         bucket = request.POST.get('bucket')
         s3import.key = key

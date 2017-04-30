@@ -187,7 +187,7 @@ def ci():
             perform_face_indexing(v.pk)
             inception_index_ssd_detection_by_id(TEvent.objects.create(video=v).pk)
             assign_open_images_text_tags_by_id(TEvent.objects.create(video=v).pk)
-        fname = export_video_by_id(TEvent.objects.create(video=v).pk)
+        fname = export_video_by_id(TEvent.objects.create(video=v,event_type=TEvent.EXPORT).pk)
         f = SimpleUploadedFile(fname, file("{}/exports/{}".format(settings.MEDIA_ROOT,fname)).read(), content_type="application/zip")
         vimported = handle_uploaded_file(f, fname)
         import_video_by_id(TEvent.objects.create(video=vimported).pk)
@@ -196,7 +196,12 @@ def ci():
     dc.included_index_entries_pk = [k.pk for k in IndexEntries.objects.all().filter(algorithm=dc.indexer_algorithm)]
     dc.components = 32
     dc.save()
-    perform_clustering(dc.pk)
+    clustering_task = TEvent()
+    clustering_task.clustering = dc
+    clustering_task.event_type = TEvent.CLUSTERING
+    clustering_task.operation = 'perform_clustering'
+    clustering_task.save()
+    perform_clustering(clustering_task.pk)
     query,dv = create_query(10,False,['inception',],[],'data:image/png;base64,'+base64.encodestring(file('tests/query.png').read()))
     inception_query_by_image(query.pk)
     query,dv = create_query(10,True,['inception',],[],'data:image/png;base64,'+base64.encodestring(file('tests/query.png').read()))

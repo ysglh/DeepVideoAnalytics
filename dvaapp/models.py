@@ -119,15 +119,6 @@ class IndexEntries(models.Model):
     def __unicode__(self):
         return "{} in {} index by {}".format(self.detection_name,self.algorithm,self.video.name)
 
-class TEvent(models.Model):
-    started = models.BooleanField(default=False)
-    completed = models.BooleanField(default=False)
-    errored = models.BooleanField(default=False)
-    error_message = models.TextField(default="")
-    video = models.ForeignKey(Video,null=True)
-    operation = models.CharField(max_length=100,default="")
-    created = models.DateTimeField('date created', auto_now_add=True)
-    seconds = models.FloatField(default=-1)
 
 
 class QueryResults(models.Model):
@@ -184,32 +175,6 @@ class Annotation(models.Model):
         super(Annotation, self).save(*args, **kwargs)
 
 
-class Export(models.Model):
-    video = models.ForeignKey(Video)
-    file_name = models.CharField(max_length=200)
-    started = models.DateTimeField('date created', auto_now_add=True)
-    completed = models.BooleanField(default=False)
-
-
-class S3Export(models.Model):
-    video = models.ForeignKey(Video)
-    key = models.CharField(max_length=300)
-    bucket = models.CharField(max_length=300)
-    region = models.CharField(max_length=300)
-    started = models.DateTimeField('date created', auto_now_add=True)
-    completed = models.BooleanField(default=False)
-
-
-class S3Import(models.Model):
-    video = models.ForeignKey(Video)
-    requester_pays = models.BooleanField(default=False)
-    key = models.CharField(max_length=300)
-    bucket = models.CharField(max_length=300)
-    region = models.CharField(max_length=300)
-    started = models.DateTimeField('date created', auto_now_add=True)
-    completed = models.BooleanField(default=False)
-
-
 class Clusters(models.Model):
     excluded_index_entries_pk = ArrayField(models.IntegerField(), default=[])
     included_index_entries_pk = ArrayField(models.IntegerField(), default=[])
@@ -243,7 +208,31 @@ class ClusterCodes(models.Model):
         index_together = [["clusters", "searcher_index"],] # Very important manually verify in Postgres
 
 
-# class CustomDetector(models.Model):
+class TEvent(models.Model):
+    VIDEO = 'V'
+    S3EXPORT = 'SE'
+    S3IMPORT = 'SI'
+    EXPORT = 'E'
+    CLUSTERING = 'CL'
+    TYPE_CHOICES = ((VIDEO, 'Video'), (S3EXPORT, 'S3 export'), (S3IMPORT, 'S3 import'), (CLUSTERING, 'Clustering'),(EXPORT,'Export as file'))
+    event_type = models.CharField(max_length=2, choices=TYPE_CHOICES, default=VIDEO, )
+    started = models.BooleanField(default=False)
+    completed = models.BooleanField(default=False)
+    errored = models.BooleanField(default=False)
+    error_message = models.TextField(default="")
+    video = models.ForeignKey(Video, null=True)
+    operation = models.CharField(max_length=100, default="")
+    created = models.DateTimeField('date created', auto_now_add=True)
+    seconds = models.FloatField(default=-1)
+    file_name = models.CharField(max_length=200,default="")  # FILENAME FOR EXPORT
+    key = models.CharField(max_length=300, default="")
+    bucket = models.CharField(max_length=300, default="")
+    region = models.CharField(max_length=300, default="")
+    requester_pays = models.BooleanField(default=False)
+    clustering = models.ForeignKey(Clusters,null=True)
+
+
+            # class CustomDetector(models.Model):
 #     algorithm = models.CharField(max_length=100)
 #     object_name = models.CharField(max_length=100)
 #     min_width = models.IntegerField(default=0)

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Video,Frame,Detection,TEvent,IndexEntries,QueryResults,Query,Annotation,VLabel,VDNServer,VDNDataset,Export, S3Export, S3Import, ClusterCodes, Clusters
+from .models import Video,Frame,Detection,TEvent,IndexEntries,QueryResults,Query,Annotation,VLabel,VDNServer,VDNDataset, ClusterCodes, Clusters
 
 
 @admin.register(VLabel)
@@ -55,20 +55,6 @@ class VDNDatasetAdmin(admin.ModelAdmin):
 class TEventAdmin(admin.ModelAdmin):
     pass
 
-
-@admin.register(Export)
-class ExportAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(S3Export)
-class S3ExportAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(S3Import)
-class S3ImportAdmin(admin.ModelAdmin):
-    pass
 
 
 @admin.register(Clusters)

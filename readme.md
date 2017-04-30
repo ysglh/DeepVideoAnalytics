@@ -17,7 +17,7 @@
 - FabricJS [License](https://github.com/kangax/fabric.js/blob/master/LICENSE)
 - Modified PySceneDetect [License](https://github.com/Breakthrough/PySceneDetect)
 - Modified SSD-Tensorflow [Individual files are marked as Apache](https://github.com/balancap/SSD-Tensorflow)
-- FAISS [License (Non Commercial)](https://github.com/facebookresearch/faiss)
+- FAISS [License (Non Commercial) will likely be removed from release candidate](https://github.com/facebookresearch/faiss)
 - Facenet [License](https://github.com/davidsandberg/facenet)
 - MTCNN [TensorFlow port of MTCNN for face detection/alignment](https://github.com/kpzhang93/MTCNN_face_detection_alignment)
 - Locally Optimized Product Quantization [License](https://github.com/yahoo/lopq/blob/master/LICENSE)
@@ -35,6 +35,6 @@
 
 **Copyright 2016-2017, Akshay Bhat, Cornell University, All rights reserved.**
 
-Please contact me for more information, I plan on relaxing the license soon, once a beta version is reached 
-(To the extent allowed by the code/models included. e.g. FAISS disallows commercial use.). 
+Please contact me for more information, I plan on relaxing the license soon.
+For more information about the approximate timeline see the [my answer on this issue](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/issues/29)
  

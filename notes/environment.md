@@ -1,6 +1,4 @@
-# List of environment options 
-
-###(incomplete, currently writing)
+### List of environment variable that can be specified in docker-compose.yml 
 
 - LAUNCH_SERVER_NGINX
     - Used in fabfile.py            
@@ -8,9 +6,37 @@
     - Used in fabfile.py        
 - ENABLE_BASICAUTH
     - Used in fabfile.py        
-- LAUNCH_Q_<queue_name>
-    - Used in fabfile.py        
+- LAUNCH_Q_\<queue_name>
+    - Used in fabfile.py 
+    - Launch specified queue    
 - DISABLE_VDN
-    - Used in fabfile.py        
+    - Used in fabfile.py
+    - Do not add default VDN server
 - TEST
-    - Used in fabfile.py        
+    - Used in fabfile.py
+    - Run tests on startup
+- DOCKER_MODE=true
+    - Specify that you are running code inside docker
+- RABBIT_HOST=\<hostname>
+    - RabbitMQ hostname
+- RABBIT_USER=\<username>
+    - RabbitMQ username
+- RABBIT_PASS=\<password>
+    - RabbitMQ password
+- DB_HOST=\<hostname>
+    - Postgres hostname
+- DB_NAME=\<db name>
+    - Postgres hostname
+- DB_USER=\<username>
+    - Postgres hostname
+- DB_PASS=\<passwordname>
+    - Postgres hostname
+- DISABLE_DEBUG=1
+    - Django debug mode is set to False
+- RESCALE_DISABLE=1
+    - Do not rescale extracted frames
+    - DEPRECATED will be replaced by user specified option when uploading videos.    
+- ENABLE_BASICAUTH=1
+    - Enable basicauth on Nginx
+- SECRET_KEY=\<seceret_value>
+    - Django Secret used in cookies, auth etc.    

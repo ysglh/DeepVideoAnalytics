@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView,DetailView
 from django.utils.decorators import method_decorator
 from .forms import UploadFileForm,YTVideoForm,AnnotationForm
-from .models import Video,Frame,Detection,Query,QueryResults,TEvent,IndexEntries,VDNDataset, Annotation, VLabel, VDNServer, ClusterCodes, Clusters
+from .models import Video,Frame,Query,QueryResults,TEvent,IndexEntries,VDNDataset, Region, VLabel, VDNServer, ClusterCodes, Clusters
 from .tasks import extract_frames
 from dva.celery import app
 import serializers
@@ -37,10 +37,10 @@ class FrameViewSet(viewsets.ReadOnlyModelViewSet):
     filter_fields = ('frame_index', 'subdir', 'name', 'video')
 
 
-class DetectionViewSet(viewsets.ReadOnlyModelViewSet):
+class RegionViewSet(mixins.ListModelMixin,mixins.RetrieveModelMixin,mixins.CreateModelMixin,mixins.DestroyModelMixin,viewsets.GenericViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)
-    queryset = Detection.objects.all()
-    serializer_class = serializers.DetectionSerializer
+    queryset = Region.objects.all()
+    serializer_class = serializers.RegionSerializer
     filter_fields = ('video', 'frame', 'object_name')
 
 
@@ -55,13 +55,6 @@ class QueryResultsViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = QueryResults.objects.all()
     serializer_class = serializers.QueryResultsSerializer
     filter_fields = ('frame', 'video')
-
-
-class AnnotationViewSet(mixins.ListModelMixin,mixins.RetrieveModelMixin,mixins.CreateModelMixin,mixins.DestroyModelMixin,viewsets.GenericViewSet):
-    permission_classes = (IsAuthenticatedOrReadOnly,)
-    queryset = Annotation.objects.all()
-    serializer_class = serializers.AnnotationSerializer
-    filter_fields = ('video','frame')
 
 
 class TEventViewSet(viewsets.ReadOnlyModelViewSet):
@@ -150,7 +143,7 @@ def search(request):
                 for algo,rlist in entries.iteritems():
                     for r in rlist:
                         r['url'] = '{}{}/detections/{}.jpg'.format(settings.MEDIA_URL,r['video_primary_key'],r['detection_primary_key'])
-                        d = Detection.objects.get(pk=r['detection_primary_key'])
+                        d = Region.objects.get(pk=r['detection_primary_key'])
                         r['result_detect'] = True
                         r['frame_primary_key'] = d.frame_id
                         r['result_type'] = 'detection'
@@ -161,7 +154,7 @@ def search(request):
                     for r in rlist:
                         r['url'] = '{}{}/frames/{}.jpg'.format(settings.MEDIA_URL,r['video_primary_key'], r['frame_index'])
                         r['detections'] = [{'pk': d.pk, 'name': d.object_name, 'confidence': d.confidence} for d in
-                                           Detection.objects.filter(frame_id=r['frame_primary_key'])]
+                                           Region.objects.filter(frame_id=r['frame_primary_key'])]
                         r['result_type'] = 'frame'
                         results.append(r)
         return JsonResponse(data={'task_id':"",'time_out':time_out,'primary_key':query.pk,'results':results,'results_detections':results_detections})
@@ -187,7 +180,7 @@ def index(request,query_pk=None,frame_pk=None,detection_pk=None):
         frame = Frame.objects.get(pk=frame_pk)
         context['initial_url'] = '{}{}/frames/{}.jpg'.format(settings.MEDIA_URL,frame.video.pk,frame.frame_index)
     elif detection_pk:
-        detection = Detection.objects.get(pk=detection_pk)
+        detection = Region.objects.get(pk=detection_pk)
         context['initial_url'] = '{}{}/detections/{}.jpg'.format(settings.MEDIA_URL,detection.video.pk, detection.pk)
     context['frame_count'] = Frame.objects.count()
     context['query_count'] = Query.objects.count()
@@ -197,8 +190,8 @@ def index(request,query_pk=None,frame_pk=None,detection_pk=None):
     context['task_events_count'] = TEvent.objects.count()
     context['video_count'] = Video.objects.count() - context['query_count']
     context['index_entries'] = IndexEntries.objects.all()
-    context['detection_count'] = Detection.objects.count()
-    context['annotation_count'] = Annotation.objects.count()
+    context['detection_count'] = Region.objects.all().filter(region_type=Region.DETECTION).count()
+    context['annotation_count'] = Region.objects.all().filter(region_type=Region.ANNOTATION).count()
     return render(request, 'dashboard.html', context)
 
 
@@ -212,8 +205,8 @@ def annotate(request,frame_pk):
     context['initial_url'] = '{}{}/frames/{}.jpg'.format(settings.MEDIA_URL,frame.video.pk,frame.frame_index)
     context['previous_frame'] = Frame.objects.filter(video=frame.video,frame_index__lt=frame.frame_index).order_by('-frame_index')[0:1]
     context['next_frame'] = Frame.objects.filter(video=frame.video,frame_index__gt=frame.frame_index).order_by('frame_index')[0:1]
-    context['detections'] = Detection.objects.filter(frame=frame)
-    for d in Detection.objects.filter(frame=frame):
+    context['detections'] = Region.objects.filter(frame=frame,region_type=Region.DETECTION)
+    for d in Region.objects.filter(frame=frame):
         temp = {
             'x':d.x,
             'y':d.y,
@@ -224,18 +217,6 @@ def annotate(request,frame_pk):
             'label':d.object_name,
             'full_frame': False,
             'detection_pk':None
-        }
-        context['existing'].append(temp)
-    for d in Annotation.objects.filter(frame=frame):
-        temp = {
-            'x':d.x,
-            'y':d.y,
-            'h':d.h,
-            'w':d.w,
-            'pk': d.pk,
-            'box_type':"annotation",
-            'label':d.label,
-            'full_frame':d.full_frame
         }
         context['existing'].append(temp)
     context['existing'] = json.dumps(context['existing'])
@@ -260,7 +241,7 @@ def annotate_entire_frame(request,frame_pk):
         applied_tags = request.POST.getlist('tags')
         applied_tags = applied_tags if applied_tags else ['metadata', ]
         for label_name in applied_tags:
-            annotation = Annotation()
+            annotation = Region()
             annotation.x = 0
             annotation.y = 0
             annotation.h = 0
@@ -278,7 +259,7 @@ def annotate_entire_frame(request,frame_pk):
 
 
 def create_annotation(form,label_name,label_dict,frame):
-    annotation = Annotation()
+    annotation = Region()
     if form.cleaned_data['high_level']:
         annotation.full_frame = True
         annotation.x = 0
@@ -432,9 +413,9 @@ class VideoDetail(DetailView):
         max_frame_index = Frame.objects.all().filter(video=self.object).aggregate(Max('frame_index'))['frame_index__max']
         context['exports'] = TEvent.objects.all().filter(event_type=TEvent.EXPORT,video=self.object)
         context['s3_exports'] = TEvent.objects.all().filter(event_type=TEvent.S3EXPORT,video=self.object)
-        context['annotation_count'] = Annotation.objects.all().filter(video=self.object).count()
+        context['annotation_count'] = Region.objects.all().filter(video=self.object,region_type=Region.ANNOTATION).count()
         if self.object.vdn_dataset:
-            context['exportable_annotation_count'] = Annotation.objects.all().filter(video=self.object,vdn_dataset__isnull=True).count()
+            context['exportable_annotation_count'] = Region.objects.all().filter(video=self.object,vdn_dataset__isnull=True,region_type=Region.ANNOTATION).count()
         else:
             context['exportable_annotation_count'] = 0
         context['label_count'] = VLabel.objects.all().filter(video=self.object).count()
@@ -443,7 +424,7 @@ class VideoDetail(DetailView):
         show_all = self.request.GET.get('show_all_labels', False)
         if context['label_count'] < 100 or show_all:
             for k in VLabel.objects.all().filter(video=context['object']):
-                label_list.append({'label_name': k.label_name,'created': k.created,'pk': k.pk,'source': k.get_source_display(),'count':Annotation.objects.filter(label_parent=k).count()})
+                label_list.append({'label_name': k.label_name,'created': k.created,'pk': k.pk,'source': k.get_source_display(),'count':Region.objects.filter(label_parent=k).count()})
         else:
             context['label_count_warning'] = True
         context['label_list'] = label_list
@@ -452,8 +433,8 @@ class VideoDetail(DetailView):
             delta = 1000
         if max_frame_index <= delta:
             context['frame_list'] = Frame.objects.all().filter(video=self.object).order_by('frame_index')
-            context['detection_list'] = Detection.objects.all().filter(video=self.object)
-            context['annotation_list'] = Annotation.objects.all().filter(video=self.object)
+            context['detection_list'] = Region.objects.all().filter(video=self.object,region_type=Region.DETECTION)
+            context['annotation_list'] = Region.objects.all().filter(video=self.object,region_type=Region.ANNOTATION)
             context['offset'] = 0
             context['limit'] = max_frame_index
         else:
@@ -465,8 +446,8 @@ class VideoDetail(DetailView):
             context['offset'] = offset
             context['limit'] = limit
             context['frame_list'] = Frame.objects.all().filter(video=self.object,frame_index__gte=offset,frame_index__lte=limit).order_by('frame_index')
-            context['detection_list'] = Detection.objects.all().filter(video=self.object,parent_frame_index__gte=offset,parent_frame_index__lte=limit)
-            context['annotation_list'] = Annotation.objects.all().filter(video=self.object,parent_frame_index__gte=offset,parent_frame_index__lte=limit)
+            context['detection_list'] = Region.objects.all().filter(video=self.object,parent_frame_index__gte=offset,parent_frame_index__lte=limit,region_type=Region.DETECTION)
+            context['annotation_list'] = Region.objects.all().filter(video=self.object,parent_frame_index__gte=offset,parent_frame_index__lte=limit,region_type=Region.ANNOTATION)
             context['frame_index_offsets'] = [(k*delta,(k*delta)+delta) for k in range(int(math.ceil(max_frame_index / float(delta))))]
         context['frame_first'] = context['frame_list'].first()
         context['frame_last'] = context['frame_list'].last()
@@ -502,6 +483,7 @@ def coarse_code_detail(request,pk,coarse_code):
                'objects': ClusterCodes.objects.all().filter(coarse_text=coarse_code,clusters_id=pk)
                }
     return render(request,'coarse_code_details.html',context)
+
 
 class QueryList(ListView):
     model = Query
@@ -596,7 +578,7 @@ def push(request,video_id):
             new_vdn_dataset = create_child_vdn_dataset(video, server, headers)
             for key in request.POST:
                 if key.startswith('annotation_') and request.POST[key]:
-                    annotation = Annotation.objects.get(pk=int(key.split('annotation_')[1]))
+                    annotation = Region.objects.get(pk=int(key.split('annotation_')[1]))
                     data = {
                         'label':annotation.label,
                         'metadata_text':annotation.metadata_text,
@@ -636,9 +618,9 @@ def push(request,video_id):
     servers = VDNServer.objects.all()
     context = {'video':video, 'servers':servers}
     if video.vdn_dataset:
-        context['annotations'] = Annotation.objects.all().filter(video=video, vdn_dataset__isnull=True)
+        context['annotations'] = Region.objects.all().filter(video=video, vdn_dataset__isnull=True,region_type=Region.ANNOTATION)
     else:
-        context['annotations'] = Annotation.objects.all().filter(video=video)
+        context['annotations'] = Region.objects.all().filter(video=video,region_type=Region.ANNOTATION)
     return render(request,'push.html',context)
 
 
@@ -647,8 +629,8 @@ class FrameDetail(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(FrameDetail, self).get_context_data(**kwargs)
-        context['detection_list'] = Detection.objects.all().filter(frame=self.object)
-        context['annotation_list'] = Annotation.objects.all().filter(frame=self.object)
+        context['detection_list'] = Region.objects.all().filter(frame=self.object,region_type=Region.DETECTION)
+        context['annotation_list'] = Region.objects.all().filter(frame=self.object,region_type=Region.ANNOTATION)
         context['video'] = self.object.video
         context['url'] = '{}/{}/frames/{}.jpg'.format(settings.MEDIA_URL,self.object.video.pk,self.object.frame_index)
         context['previous_frame'] = Frame.objects.filter(video=self.object.video,frame_index__lt=self.object.frame_index).order_by('-frame_index')[0:1]
@@ -725,7 +707,7 @@ def indexes(request):
 
 
 def annotations(request):
-    query = Annotation.objects.all().values('label_parent_id').annotate(
+    query = Region.objects.all().filter(region_type=Region.ANNOTATION).values('label_parent_id').annotate(
         total=Count('pk'),
         frame_count=Count('frame',distinct=True),
         video_count=Count('video',distinct=True)).order_by('total')
@@ -742,7 +724,7 @@ def annotations(request):
                              'frame_count': k['frame_count'],
                              'video_count':k['video_count']})
     context = {'vlabels':VLabel.objects.all(),'label_stats':query_result,
-               'annotations_count':Annotation.objects.all().count(),'labels_count':VLabel.objects.all().count(),}
+               'annotations_count':Region.objects.all().filter(region_type=Region.ANNOTATION).count(),'labels_count':VLabel.objects.all().count(),}
     return render(request, 'annotations.html', context)
 
 
@@ -789,8 +771,9 @@ def delete_object(request):
     if request.method == 'POST':
         pk = request.POST.get('pk')
         if request.POST.get('object_type') == 'annotation':
-            annotation = Annotation.objects.get(pk=pk)
-            annotation.delete()
+            annotation = Region.objects.get(pk=pk)
+            if annotation.region_type == Region.ANNOTATION:
+                annotation.delete()
     return JsonResponse({'status':True})
 
 
@@ -898,7 +881,7 @@ def delete_label(request):
         for key in request.POST:
             if key.startswith('delete_label_pk_') and request.POST[key]:
                 label = VLabel.objects.get(pk=int(key.split('_')[-1]))
-                Annotation.objects.filter(label_parent=label).delete()
+                Region.objects.filter(label_parent=label,region_type=Region.ANNOTATION).delete()
                 label.delete()
         video_id = request.POST.get('video_pk')
         video = Video.objects.get(pk=video_id)
@@ -961,7 +944,7 @@ def render_status(request,context):
     context['frame_count'] = Frame.objects.count()
     context['query_count'] = Query.objects.count()
     context['events'] = TEvent.objects.all()
-    context['detection_count'] = Detection.objects.count()
+    context['detection_count'] = Region.objects.all().filter(region_type=Region.DETECTION).count()
     context['settings_task_names_to_type'] = settings.TASK_NAMES_TO_TYPE
     context['settings_task_names_to_queue'] = settings.TASK_NAMES_TO_QUEUE
     context['settings_post_operation_tasks'] = settings.POST_OPERATION_TASKS

@@ -1,6 +1,6 @@
 from rest_framework import serializers, viewsets
 from django.contrib.auth.models import User
-from models import Video, VLabel, Frame, Annotation, Detection, Query, QueryResults, TEvent, IndexEntries, VDNDataset, VDNServer
+from models import Video, VLabel, Frame, Region, Query, QueryResults, TEvent, IndexEntries, VDNDataset, VDNServer
 import os, json, logging, glob
 
 
@@ -41,15 +41,9 @@ class FrameSerializer(serializers.HyperlinkedModelSerializer):
         fields = '__all__'
 
 
-class DetectionSerializer(serializers.HyperlinkedModelSerializer):
+class RegionSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = Detection
-        fields = '__all__'
-
-
-class AnnotationSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Annotation
+        model = Region
         fields = '__all__'
 
 
@@ -89,25 +83,18 @@ class IndexEntriesSerializer(serializers.HyperlinkedModelSerializer):
         fields = '__all__'
 
 
-class AnnotationExportSerializer(serializers.ModelSerializer):
+class RegionExportSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Annotation
-        fields = '__all__'
-
-
-class DetectionExportSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Detection
+        model = Region
         fields = '__all__'
 
 
 class FrameExportSerializer(serializers.ModelSerializer):
-    annotation_list = AnnotationExportSerializer(source='annotation_set',read_only=True,many=True)
-    detection_list = DetectionExportSerializer(source='detection_set',read_only=True,many=True)
+    region_list = RegionExportSerializer(source='region_set',read_only=True,many=True)
 
     class Meta:
         model = Frame
-        fields = ('annotation_list', 'detection_list','video','frame_index','name','subdir','id')
+        fields = ('region_list','video','frame_index','name','subdir','id')
 
 
 class IndexEntryExportSerializer(serializers.ModelSerializer):
@@ -128,36 +115,23 @@ class VideoExportSerializer(serializers.ModelSerializer):
                   'frame_list','index_entries_list')
 
 
-
-def import_detection(d,video_obj,frame,vdn_dataset=None):
-    dd = Detection()
-    dd.video = video_obj
-    dd.x = d['x']
-    dd.y = d['y']
-    dd.h = d['h']
-    dd.w = d['w']
-    dd.frame = frame
-    dd.confidence = d['confidence']
-    dd.object_name = d['object_name']
-    dd.metadata = d['metadata']
-    if vdn_dataset:
-        dd.vdn_dataset = dd.video.vdn_dataset
-    dd.vdn_key = d['id']
-    dd.save()
-    return dd
-
-
-def import_annotation(a,video_obj,frame,vdn_dataset=None):
-    da = Annotation()
+def import_region(a,video_obj,frame,detection_to_pk,vdn_dataset=None):
+    da = Region()
     da.video = video_obj
     da.x = a['x']
     da.y = a['y']
     da.h = a['h']
     da.w = a['w']
     da.vdn_key = a['id']
+    da.metadata_text = a['metadata_text']
+    da.metadata_json = a['metadata_json']
+    da.region_type = a['region_type']
+    da.confidence = a['confidence']
+    da.object_name = a['object_name']
+    da.full_frame = a['full_frame']
     if vdn_dataset:
         da.vdn_dataset = vdn_dataset
-    if a['label'].strip():
+    if 'label' in a and a['label'].strip():
         da.label = a['label']
         if vdn_dataset:
             label_object, created = VLabel.objects.get_or_create(label_name=a['label'], source=VLabel.VDN, video=video_obj, vdn_dataset=vdn_dataset)
@@ -165,10 +139,9 @@ def import_annotation(a,video_obj,frame,vdn_dataset=None):
             label_object, created = VLabel.objects.get_or_create(label_name=a['label'], source=VLabel.UI, video=video_obj)
         da.label_parent = label_object
     da.frame = frame
-    da.full_frame = a['full_frame']
-    da.metadata_text = a['metadata_text']
-    da.metadata_json = a['metadata_json']
     da.save()
+    if da.region_type == Region.DETECTION:
+        detection_to_pk[a['id']]=da.pk
     return da
 
 
@@ -206,6 +179,50 @@ def transform_index_entries(di,detection_to_pk,frame_to_pk,video_id,video_root_d
     with open('{}/indexes/{}'.format(video_root_dir, di.entries_file_name),'w') as output:
         json.dump(transformed,output)
 
+def import_legacy_detection(d,video_obj,frame,vdn_dataset=None):
+    dd = Region()
+    dd.region_type = Region.DETECTION
+    dd.video = video_obj
+    dd.x = d['x']
+    dd.y = d['y']
+    dd.h = d['h']
+    dd.w = d['w']
+    dd.frame = frame
+    dd.confidence = d['confidence']
+    dd.object_name = d['object_name']
+    dd.metadata_json = d['metadata']
+    if vdn_dataset:
+        dd.vdn_dataset = dd.video.vdn_dataset
+    dd.vdn_key = d['id']
+    dd.save()
+    return dd
+
+
+def import_legacy_annotation(a,video_obj,frame,vdn_dataset=None):
+    da = Region()
+    da.region_type = Region.ANNOTATION
+    da.video = video_obj
+    da.x = a['x']
+    da.y = a['y']
+    da.h = a['h']
+    da.w = a['w']
+    da.vdn_key = a['id']
+    if vdn_dataset:
+        da.vdn_dataset = vdn_dataset
+    if a['label'].strip():
+        da.label = a['label']
+        if vdn_dataset:
+            label_object, created = VLabel.objects.get_or_create(label_name=a['label'], source=VLabel.VDN, video=video_obj, vdn_dataset=vdn_dataset)
+        else:
+            label_object, created = VLabel.objects.get_or_create(label_name=a['label'], source=VLabel.UI, video=video_obj)
+        da.label_parent = label_object
+    da.frame = frame
+    da.full_frame = a['full_frame']
+    da.metadata_text = a['metadata_text']
+    da.metadata_json = a['metadata_json']
+    da.save()
+    return da
+
 
 def import_frame(f,video_obj,detection_to_pk,vdn_dataset=None):
     df = Frame()
@@ -214,11 +231,15 @@ def import_frame(f,video_obj,detection_to_pk,vdn_dataset=None):
     df.frame_index = f['frame_index']
     df.subdir = f['subdir']
     df.save()
-    for d in f['detection_list']:
-        dd = import_detection(d,video_obj,df,vdn_dataset)
-        detection_to_pk[d['id']]=dd.pk
-    for a in f['annotation_list']:
-        da = import_annotation(a,video_obj,df,vdn_dataset)
+    if 'region_list' in f:
+        for a in f['region_list']:
+            da = import_region(a,video_obj,df,detection_to_pk,vdn_dataset)
+    else:
+        for d in f['detection_list']:
+            dd = import_legacy_detection(d, video_obj, df, vdn_dataset)
+            detection_to_pk[d['id']] = dd.pk
+        for a in f['annotation_list']:
+            da = import_legacy_annotation(a, video_obj, df, vdn_dataset)
     return df
 
 

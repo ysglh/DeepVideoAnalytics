@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Video,Frame,Detection,TEvent,IndexEntries,QueryResults,Query,Annotation,VLabel,VDNServer,VDNDataset, ClusterCodes, Clusters
+from .models import Video,Frame,TEvent,IndexEntries,QueryResults,Query,VLabel,VDNServer,VDNDataset, ClusterCodes, Clusters, Region
 
 
 @admin.register(VLabel)
@@ -7,8 +7,8 @@ class AnnotationTagAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(Annotation)
-class AnnotationAdmin(admin.ModelAdmin):
+@admin.register(Region)
+class RegionAdmin(admin.ModelAdmin):
     pass
 
 
@@ -33,11 +33,6 @@ class FrameAdmin(admin.ModelAdmin):
 
 @admin.register(IndexEntries)
 class IndexEntriesAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(Detection)
-class DetectionAdmin(admin.ModelAdmin):
     pass
 
 

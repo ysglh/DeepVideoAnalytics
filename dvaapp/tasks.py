@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import subprocess,sys,shutil,os,glob,time,logging
 from django.conf import settings
 from dva.celery import app
-from .models import Video, Frame, Detection, TEvent, Query, IndexEntries,QueryResults, Annotation, VLabel, VDNDataset, Clusters, ClusterCodes
+from .models import Video, Frame, TEvent, Query, IndexEntries,QueryResults, VLabel, VDNDataset, Clusters, ClusterCodes, Region
 from dvalib import entity
 from dvalib import detector
 from dvalib import indexer
@@ -119,7 +119,7 @@ def inception_index_ssd_detection_by_id(task_id):
     video_id = start.video_id
     dv = Video.objects.get(id=video_id)
     video = entity.WVideo(dv, settings.MEDIA_ROOT)
-    detections = Detection.objects.all().filter(video=dv,object_name__startswith='SSD_',w__gte=50,h__gte=50)
+    detections = Region.objects.all().filter(region_type=Region.DETECTION,video=dv,object_name__startswith='SSD_',w__gte=50,h__gte=50)
     logging.info("Indexing {} SSD detections".format(detections.count()))
     visual_index = inception_index_ssd_detection_by_id.visual_indexer['inception']
     index_name, index_results, feat_fname, entries_fname = video.index_detections(detections,'SSD',visual_index)
@@ -297,7 +297,7 @@ def facenet_query_by_image(query_id):
         for r in rlist:
             qr = QueryResults()
             qr.query = dq
-            dd = Detection.objects.get(pk=r['detection_primary_key'])
+            dd = Region.objects.get(pk=r['detection_primary_key'])
             qr.detection = dd
             qr.frame_id = dd.frame_id
             qr.video_id = r['video_primary_key']
@@ -324,7 +324,8 @@ def set_directory_labels(frames,dv):
         label_object, created = VLabel.objects.get_or_create(label_name=l,source=VLabel.DIRECTORY,video=dv)
         _, created = VLabel.objects.get_or_create(label_name=l, source=VLabel.UI,video=dv)
         for fpk in labels_to_frame[l]:
-            a = Annotation()
+            a = Region()
+            a.region_type = Region.ANNOTATION
             a.full_frame = True
             a.video = dv
             a.frame_id = fpk
@@ -483,7 +484,8 @@ def perform_face_indexing(video_id):
     count = 0
     for path,v in aligned_paths.iteritems():
         for scaled_img,bb in v:
-            d = Detection()
+            d = Region()
+            d.region_type = Region.DETECTION
             d.video = dv
             d.confidence = 100.0
             d.frame_id = input_paths[path]
@@ -758,7 +760,7 @@ def perform_clustering(cluster_task_id,test=False):
         cc.video_id = e['video_primary_key']
         if 'detection_primary_key' in e:
             cc.detection_id = e['detection_primary_key']
-            cc.frame_id = Detection.objects.get(pk=cc.detection_id).frame_id
+            cc.frame_id = Region.objects.get(pk=cc.detection_id).frame_id
         else:
             cc.frame_id = e['frame_primary_key']
         cc.clusters = dc

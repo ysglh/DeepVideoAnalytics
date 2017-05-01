@@ -77,19 +77,51 @@ class Frame(models.Model):
         return u'{}:{}'.format(self.video_id, self.frame_index)
 
 
-class Detection(models.Model):
-    video = models.ForeignKey(Video,null=True)
-    frame = models.ForeignKey(Frame)
+class VLabel(models.Model):
+    UI = 'UI'
+    DIRECTORY = 'DR'
+    ALGO = 'AG'
+    VDN = "VD"
+    SOURCE_CHOICES = ((UI, 'User Interface'),(DIRECTORY, 'Directory Name'),(ALGO, 'Algorithm'),(VDN,"Visual Data Network"))
+    label_name = models.CharField(max_length=200)
+    source = models.CharField(max_length=2,choices=SOURCE_CHOICES,default=UI,)
+    created = models.DateTimeField('date created', auto_now_add=True)
+    vdn_dataset = models.ForeignKey(VDNDataset,null=True)
+    video = models.ForeignKey(Video)
+    class Meta:
+        unique_together = ('source', 'label_name','video')
+
+
+class Region(models.Model):
+    ANNOTATION = 'A'
+    DETECTION = 'D'
+    SEGMENTATION = 'S'
+    POLYGON = 'P'
+    REGION_TYPES = (
+        (ANNOTATION, 'Annotation'),
+        (DETECTION, 'Detection'),
+        (POLYGON, 'Polygon'),
+        (SEGMENTATION, 'Segmentation'),
+    )
+    region_type = models.CharField(max_length=1,choices=REGION_TYPES)
+    video = models.ForeignKey(Video)
+    user = models.ForeignKey(User,null=True)
+    frame = models.ForeignKey(Frame,null=True)
     parent_frame_index = models.IntegerField(default=-1)
-    object_name = models.CharField(max_length=100)
-    confidence = models.FloatField(default=0.0)
+    metadata_text = models.TextField(default="")
+    metadata_json = models.TextField(default="")
+    label_parent = models.ForeignKey(VLabel, null=True)
+    label = models.TextField(default="")
+    full_frame = models.BooleanField(default=False)
     x = models.IntegerField(default=0)
     y = models.IntegerField(default=0)
     h = models.IntegerField(default=0)
     w = models.IntegerField(default=0)
-    metadata = models.TextField(default="")
-    vdn_dataset = models.ForeignKey(VDNDataset, null=True)
+    created = models.DateTimeField('date created', auto_now_add=True)
+    vdn_dataset = models.ForeignKey(VDNDataset,null=True)
     vdn_key = models.IntegerField(default=-1)
+    object_name = models.CharField(max_length=100)
+    confidence = models.FloatField(default=0.0)
 
     def clean(self):
         if self.parent_frame_index == -1 or self.parent_frame_index is None:
@@ -98,7 +130,8 @@ class Detection(models.Model):
     def save(self, *args, **kwargs):
         if self.parent_frame_index == -1 or self.parent_frame_index is None:
             self.parent_frame_index = self.frame.frame_index
-        super(Detection, self).save(*args, **kwargs)
+        super(Region, self).save(*args, **kwargs)
+
 
 
 class IndexEntries(models.Model):
@@ -125,54 +158,14 @@ class QueryResults(models.Model):
     query = models.ForeignKey(Query)
     video = models.ForeignKey(Video)
     frame = models.ForeignKey(Frame)
-    detection = models.ForeignKey(Detection,null=True)
+    detection = models.ForeignKey(Region,null=True)
     rank = models.IntegerField()
     algorithm = models.CharField(max_length=100)
     distance = models.FloatField(default=0.0)
 
 
-class VLabel(models.Model):
-    UI = 'UI'
-    DIRECTORY = 'DR'
-    ALGO = 'AG'
-    VDN = "VD"
-    SOURCE_CHOICES = ((UI, 'User Interface'),(DIRECTORY, 'Directory Name'),(ALGO, 'Algorithm'),(VDN,"Visual Data Network"))
-    label_name = models.CharField(max_length=200)
-    source = models.CharField(max_length=2,choices=SOURCE_CHOICES,default=UI,)
-    created = models.DateTimeField('date created', auto_now_add=True)
-    vdn_dataset = models.ForeignKey(VDNDataset,null=True)
-    video = models.ForeignKey(Video)
-    class Meta:
-        unique_together = ('source', 'label_name','video')
 
 
-class Annotation(models.Model):
-    video = models.ForeignKey(Video)
-    user = models.ForeignKey(User,null=True)
-    frame = models.ForeignKey(Frame,null=True)
-    parent_frame_index = models.IntegerField(default=-1)
-    metadata_text = models.TextField(default="")
-    metadata_json = models.TextField(default="")
-    label_parent = models.ForeignKey(VLabel, null=True)
-    label = models.TextField(default="")
-    full_frame = models.BooleanField(default=True)
-    x = models.IntegerField(default=0)
-    y = models.IntegerField(default=0)
-    h = models.IntegerField(default=0)
-    w = models.IntegerField(default=0)
-    created = models.DateTimeField('date created', auto_now_add=True)
-    vdn_dataset = models.ForeignKey(VDNDataset,null=True)
-    vdn_key = models.IntegerField(default=-1)
-
-
-    def clean(self):
-        if self.parent_frame_index == -1 or self.parent_frame_index is None:
-            self.parent_frame_index = self.frame.frame_index
-
-    def save(self, *args, **kwargs):
-        if self.parent_frame_index == -1 or self.parent_frame_index is None:
-            self.parent_frame_index = self.frame.frame_index
-        super(Annotation, self).save(*args, **kwargs)
 
 
 class Clusters(models.Model):
@@ -196,7 +189,7 @@ class ClusterCodes(models.Model):
     clusters = models.ForeignKey(Clusters)
     video = models.ForeignKey(Video)
     frame = models.ForeignKey(Frame)
-    detection = models.ForeignKey(Detection,null=True)
+    detection = models.ForeignKey(Region,null=True)
     fine = ArrayField(models.IntegerField(), default=[])
     coarse = ArrayField(models.IntegerField(), default=[])
     coarse_text = models.TextField(default="") # check if postgres built in text search

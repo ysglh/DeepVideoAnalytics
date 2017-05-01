@@ -410,7 +410,7 @@ def yolo_detect(video_id):
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from django.conf import settings
-    from dvaapp.models import Video,Detection,Frame
+    from dvaapp.models import Video,Region,Frame
     from dvalib import entity,detector
     dv = Video.objects.get(id=video_id)
     frames = Frame.objects.all().filter(video=dv)
@@ -422,7 +422,8 @@ def yolo_detect(video_id):
     frame_detections = algorithm.detect(wframes.values())
     for frame_pk,detections in frame_detections.iteritems():
         for d in detections:
-            dd = Detection()
+            dd = Region()
+            dd.region_type = Region.DETECTION
             dd.video = dv
             dd.frame_id = frame_pk
             dd.object_name = d['name']
@@ -457,7 +458,7 @@ def ssd_detect(video_id):
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from django.conf import settings
-    from dvaapp.models import Video,Detection,Frame
+    from dvaapp.models import Video,Region,Frame
     from dvalib import entity,detector
     dv = Video.objects.get(id=video_id)
     frames = Frame.objects.all().filter(video=dv)
@@ -469,7 +470,8 @@ def ssd_detect(video_id):
     frame_detections = algorithm.detect(wframes.values())
     for frame_pk,detections in frame_detections.iteritems():
         for d in detections:
-            dd = Detection()
+            dd = Region()
+            dd.region_type = Region.DETECTION
             dd.video = dv
             dd.frame_id = frame_pk
             dd.object_name = d['name']
@@ -546,7 +548,7 @@ def assign_tags(video_id):
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from django.conf import settings
-    from dvaapp.models import Video,Frame,Annotation
+    from dvaapp.models import Video,Frame,Region
     from dvalib import entity,annotator
     dv = Video.objects.get(id=video_id)
     frames = Frame.objects.all().filter(video=dv)
@@ -556,7 +558,8 @@ def assign_tags(video_id):
     logging.info("starting annotation {}".format(algorithm.name))
     for k,f in wframes.items():
         tags = algorithm.apply(f.local_path())
-        a = Annotation()
+        a = Region()
+        a.region_type = Region.ANNOTATION
         a.frame_id = k
         a.video_id = video_id
         a.label = "OpenImagesTag"
@@ -727,10 +730,11 @@ def generate_vdn(fast=False):
     v = handle_uploaded_file(f, 'mscoco_sample_500')
     extract_frames(TEvent.objects.create(video=v).pk)
     video = v
-    models.Annotation.objects.all().filter(video=video).delete()
+    models.Region.objects.all().filter(video=video).delete()
     for frame in models.Frame.objects.all().filter(video=video):
         frame_id = str(int(frame.name.split('_')[-1].split('.')[0]))
-        annotation = models.Annotation()
+        annotation = models.Region()
+        annotation.region_type = models.Region.ANNOTATION
         annotation.video = v
         annotation.frame = frame
         annotation.full_frame = True
@@ -740,7 +744,8 @@ def generate_vdn(fast=False):
     for frame in models.Frame.objects.all().filter(video=video):
         frame_id = str(int(frame.name.split('_')[-1].split('.')[0]))
         for a in data[frame_id][u'annotations']:
-            annotation = models.Annotation()
+            annotation = models.Region()
+            annotation.region_type = models.Region.ANNOTATION
             annotation.video = v
             annotation.frame = frame
             annotation.metadata_json = json.dumps(a)
@@ -755,7 +760,8 @@ def generate_vdn(fast=False):
             annotation.label_parent = label
             annotation.save()
         for a in data[frame_id][u'keypoints']:
-            annotation = models.Annotation()
+            annotation = models.Region()
+            annotation.region_type = models.Region.ANNOTATION
             annotation.video = v
             annotation.frame = frame
             annotation.metadata_json = json.dumps(a)
@@ -769,7 +775,8 @@ def generate_vdn(fast=False):
             annotation.label_parent = label
             annotation.save()
         for caption in data[frame_id][u'captions']:
-            annotation = models.Annotation()
+            annotation = models.Region()
+            annotation.region_type = models.Region.ANNOTATION
             annotation.video = v
             annotation.frame = frame
             annotation.metadata_text = caption['caption']

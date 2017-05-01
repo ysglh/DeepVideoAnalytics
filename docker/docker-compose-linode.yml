@@ -53,7 +53,7 @@
    dva-worker:
      build: .
      image: akshayubhat/dva:cpu
-     container_name: dva-server
+     container_name: dva-worker
      environment:
        - DOCKER_MODE=true
        - RABBIT_HOST=rabbit

@@ -213,9 +213,9 @@ def annotate(request,frame_pk):
             'h':d.h,
             'w':d.w,
             'pk':d.pk,
-            'box_type':"detection",
-            'label':d.object_name,
-            'full_frame': False,
+            'box_type':"detection" if d.region_type == d.DETECTION else 'annotation',
+            'label': d.object_name if d.region_type == d.DETECTION else d.label,
+            'full_frame': d.full_frame,
             'detection_pk':None
         }
         context['existing'].append(temp)

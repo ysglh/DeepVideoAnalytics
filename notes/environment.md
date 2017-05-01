@@ -1,14 +1,18 @@
 ### List of environment variable that can be specified in docker-compose.yml 
 
 - LAUNCH_SERVER_NGINX
-    - Used in fabfile.py            
+    - Used in fabfile.py
+    - Launch NGINX <--> uwsgi <--> Django servers
 - LAUNCH_SERVER
-    - Used in fabfile.py        
+    - Used in fabfile.py
+    - Launch Django server
 - ENABLE_BASICAUTH
-    - Used in fabfile.py        
+    - Used in fabfile.py
+    - In conjunction with NGINX
 - LAUNCH_Q_\<queue_name>
     - Used in fabfile.py 
-    - Launch specified queue    
+    - Launch specified queue
+    - Note to launch a worker container use bash command "fab startq:<queue_name>"
 - DISABLE_VDN
     - Used in fabfile.py
     - Do not add default VDN server
@@ -39,4 +43,6 @@
 - ENABLE_BASICAUTH=1
     - Enable basicauth on Nginx
 - SECRET_KEY=\<seceret_value>
-    - Django Secret used in cookies, auth etc.    
+    - Django Secret used in cookies, auth etc.
+- SCENEDETECT_DISABLE=1
+    - Disable scene detection

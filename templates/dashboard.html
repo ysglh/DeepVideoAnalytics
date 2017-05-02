@@ -107,31 +107,59 @@
             <div class="col-lg-12">
                 <div class="box box-primary">
                     <div class="box-body with_border">
-                        <p class="text-center"><a class="btn btn-primary" data-toggle="modal" data-target="#allowed" href="#" >Upload video, dataset or exported file</a></p>
+                        <div class="row">
+                            <div class="col-xs-7 text-center"><a class="btn btn-primary" data-toggle="modal" data-target="#allowed" href="#" ><i class="fa fa-upload"></i> Upload video, dataset or exported file</a></div>
+                            <div class="col-xs-5 text-center"><a class="btn btn-primary" data-toggle="modal" data-target="#ytdisclaimer" href="#" ><i class="fa fa-youtube"></i> Submit youtube video</a></div>
+                        </div>
+                        <div class="row m-t">
+                            <p div class="col-xs-7 text-center"><a class="btn btn-primary" data-toggle="modal" data-target="#awscreds" href="#" ><i class="fa fa-cloud-download"></i> Import from AWS S3</a></p>
+                            <p div class="col-xs-5 text-center"><a class="btn btn-primary" href="/external" ><i class="fa fa-globe"></i> Import from VDN</a></p>
+                        </div>
+
                         <div class="modal fade" tabindex="-1" role="dialog" id="allowed">
                         <div class="modal-dialog" role="document">
                             <div class="modal-content">
                             <div class="modal-header">
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span></button><h4 class="modal-title">Upload video / dataset</h4></div>
+                                    <span aria-hidden="true">&times;</span></button><h4 class="modal-title">Upload video / dataset or exported zip file.</h4></div>
                                 <div class="modal-body">
                                 <p>An .mp4 video file or multiple images in a single zip file <a href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/tests/exampledataset.zip" target="_blank">(example of a zip file)</a> or an exported ".dva_export.zip".</p>
                                 <form role="form"  method="post" enctype="multipart/form-data" action="#" >
                                     <div class="form-group">
                                     <input id="id_name" name="name" class="form-control" type="text" required="" placeholder="provide a name">
                                     </div>
-                                    <div class="form-group">
-                                    <label class="" for="id_file">Video (.mp4) or zip file:</label><input id="id_file" name="file" class="btn btn-file" type="file" required="">
+                                    <div class="row">
+                                    <div class="col-xs-10 col-xs-offset-1">
+                                        <div class="form-group text-center">
+                                        <label for="id_file" >Video (.mp4) or zip file:</label>
+                                        <input style="margin: 10px auto 10px" id="id_file" name="file" class="btn bg-blue btn-file form-control" type="file" required="">
+                                        </div>
+                                    </div>
+                                    </div>
+                                    <div class="row">
+                                    <div class="col-xs-6">
+                                        <div class="form-group">
+                                        <label for="nth">Extract every nth frame from video<input id="nth" class="form-control" name="nth" type="number" value="30"></label>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-6">
+                                        <div class="form-group">
+                                        <label for="rescale">Rescale frames to width <input id="rescale" class="form-control" name="rescale" type="number" placeholder="Default original width"></label>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12">
+                                        <div class="checkbox">
+                                        <label for="scene" ><input id="scene" name="scene" type="checkbox" checked="checked"> Perform scene detection on video</label>
+                                        </div>
+                                    </div>
+                                    </div>
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-primary btn-block">Upload</button>
-                                    </div>
                                 </form>
                             </div>
                             </div>
                         </div>
                         </div>
-                        <h4 class="text-center">Or </h4>
-                        <p class="text-center"><a class="btn btn-primary" data-toggle="modal" data-target="#ytdisclaimer" href="#" >Submit youtube video url</a></p>
                         <div class="modal fade" tabindex="-1" role="dialog" id="ytdisclaimer">
                         <div class="modal-dialog" role="document"><div class="modal-content">
                             <div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><h4 class="modal-title">Submit Youtube url</h4></div>
@@ -153,9 +181,6 @@
                         </div>
                         </div>
                         </div>
-
-                        <h4 class="text-center">Or </h4>
-                        <p class="text-center"><a class="btn btn-primary" data-toggle="modal" data-target="#awscreds" href="#" >Import from AWS S3</a></p>
                         <div class="modal fade" tabindex="-1" role="dialog" id="awscreds">
                         <div class="modal-dialog" role="document"><div class="modal-content">
                             <div class="modal-header">

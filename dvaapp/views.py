@@ -165,7 +165,10 @@ def index(request,query_pk=None,frame_pk=None,detection_pk=None):
         form = UploadFileForm(request.POST, request.FILES)
         user = request.user if request.user.is_authenticated() else None
         if form.is_valid():
-            handle_uploaded_file(request.FILES['file'],form.cleaned_data['name'],user=user)
+            handle_uploaded_file(request.FILES['file'],form.cleaned_data['name'],user=user,
+                                 perform_scene_detection=form.cleaned_data['scene'],
+                                 rate=form.cleaned_data['nth'],
+                                 rescale=form.cleaned_data['rescale'] if 'rescale' in form.cleaned_data else 0)
             return redirect('video_list')
         else:
             raise ValueError
@@ -354,7 +357,7 @@ def handle_youtube_video(name,url,extract=True,user=None):
     return video
 
 
-def handle_uploaded_file(f,name,extract=True,user=None):
+def handle_uploaded_file(f,name,extract=True,user=None,perform_scene_detection=True,rate=None,rescale=0):
     video = Video()
     if user:
         video.uploader = user
@@ -386,6 +389,9 @@ def handle_uploaded_file(f,name,extract=True,user=None):
         video.save()
         if extract:
             extract_frames_task = TEvent()
+            extract_frames_task.arguments_json = json.dumps({'perform_scene_detection': perform_scene_detection,
+                                                             'rate': rate,
+                                                             'rescale': rescale})
             extract_frames_task.video = video
             extract_frames_task.save()
             extract_frames.apply_async(args=[extract_frames_task.pk],queue=settings.Q_EXTRACTOR)

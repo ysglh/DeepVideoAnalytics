@@ -360,6 +360,10 @@ def extract_frames(task_id,rescale=True):
         df = Frame()
         df.frame_index = f.frame_index
         df.video = dv
+        if f.h:
+            df.h = f.h
+        if f.w:
+            df.w = f.w
         if f.name:
             df.name = f.name[:150]
             df.subdir = f.subdir.replace('/',' ')

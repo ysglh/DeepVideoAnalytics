@@ -5,7 +5,9 @@ from django.forms import ModelForm
 class UploadFileForm(forms.Form):
     name = forms.CharField()
     file = forms.FileField()
-
+    scene = forms.BooleanField(initial=False,required=False)
+    nth = forms.IntegerField()
+    rescale = forms.IntegerField(required=False)
 
 class YTVideoForm(forms.Form):
     name = forms.CharField()

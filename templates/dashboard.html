@@ -104,43 +104,39 @@
     </div>
     <div class=" col-xs-12 col-sm-12 col-md-6 col-lg-4 m-t uploadmenu">
             <div class="row">
-            <div class="col-lg-6">
+            <div class="col-lg-12">
                 <div class="box box-primary">
                     <div class="box-body with_border">
-                        <h4 class="text-center">Upload video / dataset</h4>
-                        <p class="text-center"><a data-toggle="modal" data-target="#allowed" href="#" >Compatible files</a></p>
+                        <p class="text-center"><a class="btn btn-primary" data-toggle="modal" data-target="#allowed" href="#" >Upload video, dataset or exported file</a></p>
                         <div class="modal fade" tabindex="-1" role="dialog" id="allowed">
                         <div class="modal-dialog" role="document">
                             <div class="modal-content">
                             <div class="modal-header">
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span></button><h4 class="modal-title">Compatible files</h4></div>
-                            <div class="modal-body">
+                                    <span aria-hidden="true">&times;</span></button><h4 class="modal-title">Upload video / dataset</h4></div>
+                                <div class="modal-body">
                                 <p>An .mp4 video file or multiple images in a single zip file <a href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/tests/exampledataset.zip" target="_blank">(example of a zip file)</a> or an exported ".dva_export.zip".</p>
+                                <form role="form"  method="post" enctype="multipart/form-data" action="#" >
+                                    <div class="form-group">
+                                    <input id="id_name" name="name" class="form-control" type="text" required="" placeholder="provide a name">
+                                    </div>
+                                    <div class="form-group">
+                                    <label class="" for="id_file">Video (.mp4) or zip file:</label><input id="id_file" name="file" class="btn btn-file" type="file" required="">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-primary btn-block">Upload</button>
+                                    </div>
+                                </form>
                             </div>
                             </div>
                         </div>
                         </div>
-                        <form role="form"  method="post" enctype="multipart/form-data" action="#" >
-                            <div class="form-group">
-                            <input id="id_name" name="name" class="form-control" type="text" required="" placeholder="provide a name">
-                            </div>
-                            <div class="form-group">
-                            <label class="" for="id_file">Video (.mp4) or zip file:</label><input id="id_file" name="file" class="btn btn-file" type="file" required="">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-primary btn-block">Upload</button>
-                            </div>
-                        </form>
-                        <h4 class="text-center">Or Submit youtube video url</h4>
-                        <p class="text-center"><a data-toggle="modal" data-target="#ytdisclaimer" href="#" >legal disclaimer</a></p>
+                        <h4 class="text-center">Or </h4>
+                        <p class="text-center"><a class="btn btn-primary" data-toggle="modal" data-target="#ytdisclaimer" href="#" >Submit youtube video url</a></p>
                         <div class="modal fade" tabindex="-1" role="dialog" id="ytdisclaimer">
                         <div class="modal-dialog" role="document"><div class="modal-content">
-                            <div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><h4 class="modal-title">Youtube legal disclaimer</h4></div>
-                            <div class="modal-body"><p>We use <a target="_blank" href="https://rg3.github.io/youtube-dl/">youtube-dl</a>. Its your responsibility to abide by laws governing <a target="_blank" href="https://www.youtube.com/static?template=terms">Youtube TOS</a> in your jurisdiction.</p></div></div>
-                        </div>
-                        </div>
-
-                        <form role="form"  method="post" action="/youtube" >
+                            <div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><h4 class="modal-title">Submit Youtube url</h4></div>
+                            <div class="modal-body">legal disclaimer <p>We use <a target="_blank" href="https://rg3.github.io/youtube-dl/">youtube-dl</a>. Its your responsibility to abide by laws governing <a target="_blank" href="https://www.youtube.com/static?template=terms">Youtube TOS</a> in your jurisdiction.</p>
+                                <form role="form"  method="post" action="/youtube" >
                                 <div class="form-group">
                                     <input id="id_ytname" name="name" class="form-control" type="text" required="" placeholder="provide a name">
                                 </div>
@@ -152,13 +148,19 @@
                                 <button type="submit" class="btn btn-primary btn-block">submit</button>
                                 </div>
                         </form>
-                        <h4 class="text-center">Or Import from AWS S3</h4>
-                        <p class="text-center"><a data-toggle="modal" data-target="#awscreds" href="#" >Providing AWS credentials</a></p>
+
+                            </div>
+                        </div>
+                        </div>
+                        </div>
+
+                        <h4 class="text-center">Or </h4>
+                        <p class="text-center"><a class="btn btn-primary" data-toggle="modal" data-target="#awscreds" href="#" >Import from AWS S3</a></p>
                         <div class="modal fade" tabindex="-1" role="dialog" id="awscreds">
                         <div class="modal-dialog" role="document"><div class="modal-content">
                             <div class="modal-header">
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span></button><h4 class="modal-title">AWS credentials</h4></div>
+                                    <span aria-hidden="true">&times;</span></button><h4 class="modal-title">Import from AWS S3</h4></div>
                             <div class="modal-body" style="text-align:left">
                                 <p>We suggest setting AWS authentication credentials using one of following methods.</p>
                                     <ul>
@@ -167,11 +169,7 @@
                                         <li>Using IAM Roles (instance metadata discovery service) when running DVA on AWS.</li>
                                     </ul>
                                 <p>We do not provide a method to enter AWS credentials via web interface.</p>
-                            </div></div>
-                        </div>
-                        </div>
-
-                        <form role="form"  method="post" action="/import_s3" >
+                                <form role="form"  method="post" action="/import_s3" >
                                 <div class="form-group">
                                     <div class="row">
                                         <div class="col-sm-6"><input id="id_s3_region" name="region" class="form-control" type="text" required="" placeholder="S3 region" value="us-east-1"></div>
@@ -185,13 +183,10 @@
                                     {% csrf_token %}
                                 <button type="submit" class="btn btn-primary btn-block">Import</button>
                                 </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-6 hidden-md">
-                <div class="box box-primary">
-                    <div class="box-body">
+                                </form>
+                            </div></div>
+                        </div>
+                        </div>
                         <table class="table">
                             <thead>
                             <tr>
@@ -248,6 +243,7 @@
                                 </tr>
                             </tbody>
                         </table>
+
                     </div>
                 </div>
             </div>

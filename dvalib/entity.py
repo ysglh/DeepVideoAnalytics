@@ -2,6 +2,7 @@ import shlex,json,os,zipfile,glob,logging
 import subprocess as sp
 import numpy as np
 import pyscenecustom
+from PIL import Image
 
 
 class WQuery(object):
@@ -95,9 +96,9 @@ class WVideo(object):
                             i += 1
                             dst = "{}/{}/frames/{}.jpg".format(self.media_dir, self.primary_key, i)
                             os.rename(fname, dst)
-                            f = WFrame(frame_index=i, video=self,name=fname.split('/')[-1],
-                                       subdir=subdir.replace("{}/{}/frames/".format(self.media_dir, self.primary_key),'')
-                                       )
+                            im = Image.open(dst)
+                            w, h = im.size
+                            f = WFrame(frame_index=i, video=self,name=fname.split('/')[-1],subdir=subdir.replace("{}/{}/frames/".format(self.media_dir, self.primary_key),''),w=w,h=h)
                             frames.append(f)
                         else:
                             logging.warning("skipping {} not a jpeg file".format(fname))
@@ -156,19 +157,23 @@ class WVideo(object):
 
 class WFrame(object):
 
-    def __init__(self,frame_index=None,video=None,primary_key=None,name=None,subdir=None):
+    def __init__(self,frame_index=None,video=None,primary_key=None,name=None,subdir=None,h=None,w=None):
         if video:
             self.subdir = subdir
             self.frame_index = frame_index
             self.video = video
             self.primary_key = primary_key
             self.name = name
+            self.h = self.video.height
+            self.w = self.video.width
         else:
             self.subdir = None
             self.frame_index = None
             self.video = None
             self.primary_key = None
             self.name = None
+            self.h = h
+            self.w = w
 
     def local_path(self):
         return "{}/{}/{}/{}.jpg".format(self.video.media_dir,self.video.primary_key,'frames',self.frame_index)

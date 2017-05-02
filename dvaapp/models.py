@@ -69,6 +69,8 @@ class Frame(models.Model):
     frame_index = models.IntegerField()
     name = models.CharField(max_length=200,null=True)
     subdir = models.TextField(default="") # Retains information if the source is a dataset for labeling
+    h = models.IntegerField(default=0)
+    w = models.IntegerField(default=0)
 
     class Meta:
         unique_together = (("video", "frame_index"),)
@@ -117,6 +119,7 @@ class Region(models.Model):
     y = models.IntegerField(default=0)
     h = models.IntegerField(default=0)
     w = models.IntegerField(default=0)
+    polygon_points_json = models.TextField(default="[]")
     created = models.DateTimeField('date created', auto_now_add=True)
     vdn_dataset = models.ForeignKey(VDNDataset,null=True)
     vdn_key = models.IntegerField(default=-1)
@@ -162,10 +165,6 @@ class QueryResults(models.Model):
     rank = models.IntegerField()
     algorithm = models.CharField(max_length=100)
     distance = models.FloatField(default=0.0)
-
-
-
-
 
 
 class Clusters(models.Model):
@@ -223,7 +222,7 @@ class TEvent(models.Model):
     region = models.CharField(max_length=300, default="")
     requester_pays = models.BooleanField(default=False)
     clustering = models.ForeignKey(Clusters,null=True)
-
+    arguments_json = models.TextField(default="{}")
 
             # class CustomDetector(models.Model):
 #     algorithm = models.CharField(max_length=100)

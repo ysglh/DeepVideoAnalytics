@@ -708,11 +708,11 @@ def tasks(request):
     return render_tasks(request,context)
 
 
-
 def indexes(request):
     context = {
         'visual_index_list':settings.VISUAL_INDEXES.items(),
-        'index_entries':IndexEntries.objects.all()
+        'index_entries':IndexEntries.objects.all(),
+        "videos" : Video.objects.all().filter(parent_query__count__isnull=True)
     }
 
     return render(request, 'indexes.html', context)

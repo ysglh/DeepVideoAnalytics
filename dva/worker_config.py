@@ -12,7 +12,7 @@ QUEUES = [Q_EXTRACTOR,Q_INDEXER,Q_DETECTOR,Q_RETRIEVER,Q_FACE_RETRIEVER,Q_FACE_D
 
 TASK_NAMES_TO_QUEUE = {
     "inception_index_by_id":Q_INDEXER,
-    "inception_index_ssd_detection_by_id":Q_INDEXER,
+    "inception_index_regions_by_id":Q_INDEXER,
     "inception_query_by_image":Q_RETRIEVER,
     "facenet_query_by_image":Q_FACE_RETRIEVER,
     "extract_frames_by_id":Q_EXTRACTOR,
@@ -39,7 +39,7 @@ CLUSTER_TASK = 'cluster'
 
 TASK_NAMES_TO_TYPE = {
     "inception_index_by_id":VIDEO_TASK,
-    "inception_index_ssd_detection_by_id":VIDEO_TASK,
+    "inception_index_regions_by_id":VIDEO_TASK,
     "inception_query_by_image":QUERY_TASK,
     "facenet_query_by_image":QUERY_TASK,
     "extract_frames_by_id":VIDEO_TASK,
@@ -59,7 +59,7 @@ TASK_NAMES_TO_TYPE = {
 
 # List of tasks which can be called manually
 MANUAL_VIDEO_TASKS = ['inception_index_by_id',
-                      'inception_index_ssd_detection_by_id',
+                      'inception_index_regions_by_id',
                       'perform_ssd_detection_by_id',
                       'perform_face_detection_indexing_by_id',
                       'perform_yolo_detection_by_id',
@@ -70,7 +70,7 @@ MANUAL_VIDEO_TASKS = ['inception_index_by_id',
 
 POST_OPERATION_TASKS = {
     "extract_frames_by_id":['perform_ssd_detection_by_id','inception_index_by_id','perform_face_detection_indexing_by_id'],
-    'perform_ssd_detection_by_id':['inception_index_ssd_detection_by_id',]
+    'perform_ssd_detection_by_id':['inception_index_regions_by_id',]
 }
 
 VISUAL_INDEXES = {

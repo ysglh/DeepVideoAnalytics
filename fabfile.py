@@ -167,7 +167,7 @@ def ci():
     from dvaapp.models import Video, Clusters,IndexEntries,TEvent
     from django.conf import settings
     from dvaapp.tasks import extract_frames, perform_face_indexing, inception_index_by_id, perform_ssd_detection_by_id,\
-        perform_yolo_detection_by_id, inception_index_ssd_detection_by_id, export_video_by_id, import_video_by_id,\
+        perform_yolo_detection_by_id, inception_index_regions_by_id, export_video_by_id, import_video_by_id,\
         inception_query_by_image, perform_clustering, assign_open_images_text_tags_by_id
     for fname in glob.glob('tests/ci/*.mp4'):
         name = fname.split('/')[-1].split('.')[0]
@@ -185,7 +185,7 @@ def ci():
             perform_ssd_detection_by_id(TEvent.objects.create(video=v).pk)
             perform_yolo_detection_by_id(TEvent.objects.create(video=v).pk)
             perform_face_indexing(v.pk)
-            inception_index_ssd_detection_by_id(TEvent.objects.create(video=v).pk)
+            inception_index_regions_by_id(TEvent.objects.create(video=v).pk)
             assign_open_images_text_tags_by_id(TEvent.objects.create(video=v).pk)
         fname = export_video_by_id(TEvent.objects.create(video=v,event_type=TEvent.EXPORT).pk)
         f = SimpleUploadedFile(fname, file("{}/exports/{}".format(settings.MEDIA_ROOT,fname)).read(), content_type="application/zip")
@@ -719,7 +719,7 @@ def generate_vdn(fast=False):
     from dvaapp import models
     from dvaapp.models import TEvent
     from dvaapp.tasks import extract_frames, perform_face_detection_indexing_by_id, inception_index_by_id, \
-        perform_ssd_detection_by_id, perform_yolo_detection_by_id, inception_index_ssd_detection_by_id, \
+        perform_ssd_detection_by_id, perform_yolo_detection_by_id, inception_index_regions_by_id, \
         export_video_by_id
     dirname = get_coco_dirname()
     local('wget https://www.dropbox.com/s/2dq085iu34y0hdv/coco_input.zip?dl=1 -O coco.zip')
@@ -792,7 +792,7 @@ def generate_vdn(fast=False):
         inception_index_by_id(TEvent.objects.create(video=v).pk)
         perform_ssd_detection_by_id(TEvent.objects.create(video=v).pk)
         perform_face_detection_indexing_by_id(TEvent.objects.create(video=v).pk)
-        inception_index_ssd_detection_by_id(TEvent.objects.create(video=v).pk)
+        inception_index_regions_by_id(TEvent.objects.create(video=v).pk)
     export_video_by_id(TEvent.objects.create(video=v).pk)
     v = handle_youtube_video("Zelda","https://www.youtube.com/watch?v=vHiTxNrbB4M")
     extract_frames(TEvent.objects.create(video=v).pk)
@@ -800,7 +800,7 @@ def generate_vdn(fast=False):
         inception_index_by_id(TEvent.objects.create(video=v).pk)
         perform_ssd_detection_by_id(TEvent.objects.create(video=v).pk)
         perform_face_detection_indexing_by_id(TEvent.objects.create(video=v).pk)
-        inception_index_ssd_detection_by_id(TEvent.objects.create(video=v).pk)
+        inception_index_regions_by_id(TEvent.objects.create(video=v).pk)
     export_video_by_id(TEvent.objects.create(video=v).pk)
     v = handle_youtube_video("Paris","https://www.youtube.com/watch?v=zEAqJmS6ajk")
     extract_frames(TEvent.objects.create(video=v).pk)
@@ -808,7 +808,7 @@ def generate_vdn(fast=False):
         inception_index_by_id(TEvent.objects.create(video=v).pk)
         perform_ssd_detection_by_id(TEvent.objects.create(video=v).pk)
         perform_face_detection_indexing_by_id(TEvent.objects.create(video=v).pk)
-        inception_index_ssd_detection_by_id(TEvent.objects.create(video=v).pk)
+        inception_index_regions_by_id(TEvent.objects.create(video=v).pk)
     export_video_by_id(TEvent.objects.create(video=v).pk)
     local('wget https://www.dropbox.com/s/g8dv5yeh9bmflec/lfw_funneled.zip?dl=1 -O lfw.zip')
     f = SimpleUploadedFile("lfw.zip", file("lfw.zip").read(), content_type="application/zip")

@@ -109,19 +109,23 @@ def inception_index_by_id(task_id):
     start.save()
 
 
-@app.task(name="inception_index_ssd_detection_by_id",base=IndexerTask)
-def inception_index_ssd_detection_by_id(task_id):
+@app.task(name="inception_index_regions_by_id",base=IndexerTask)
+def inception_index_regions_by_id(task_id):
     start = TEvent.objects.get(pk=task_id)
     start.started = True
-    start.operation = inception_index_ssd_detection_by_id.name
-    start.save()
-    start_time = time.time()
+    start.operation = inception_index_regions_by_id.name
     video_id = start.video_id
     dv = Video.objects.get(id=video_id)
+    arguments = json.loads(start.arguments_json)
+    if arguments == {}:
+        arguments = {'region_type':Region.DETECTION,'video_id':dv.pk,'object_name__startswith':'SSD_', 'w__gte':50,'h__gte':50}
+        start.arguments_json = json.dumps(arguments)
+    start.save()
+    start_time = time.time()
     video = entity.WVideo(dv, settings.MEDIA_ROOT)
-    detections = Region.objects.all().filter(region_type=Region.DETECTION,video=dv,object_name__startswith='SSD_',w__gte=50,h__gte=50)
-    logging.info("Indexing {} SSD detections".format(detections.count()))
-    visual_index = inception_index_ssd_detection_by_id.visual_indexer['inception']
+    detections = Region.objects.all().filter(**arguments)
+    logging.info("Indexing {} Regions".format(detections.count()))
+    visual_index = inception_index_regions_by_id.visual_indexer['inception']
     index_name, index_results, feat_fname, entries_fname = video.index_detections(detections,'SSD',visual_index)
     i = IndexEntries()
     i.video = dv
@@ -132,10 +136,10 @@ def inception_index_ssd_detection_by_id(task_id):
     i.entries_file_name = entries_fname.split('/')[-1]
     i.features_file_name = feat_fname.split('/')[-1]
     i.save()
-    process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
+    process_next(task_id)
 
 
 @app.task(name="alexnet_index_by_id",base=IndexerTask)

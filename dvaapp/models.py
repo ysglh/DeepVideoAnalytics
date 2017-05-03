@@ -252,6 +252,8 @@ class Scene(models.Model):
     video = models.ForeignKey(Video,null=True)
     start_frame_index = models.IntegerField()
     end_frame_index = models.IntegerField()
+    start_frame = models.ForeignKey(Frame,null=True,related_name="start_frame")
+    end_frame = models.ForeignKey(Frame,null=True,related_name="end_frame")
     metadata_text = models.TextField(default="")
     metadata_json = models.TextField(default="")
     label_parent = models.ForeignKey(VLabel, null=True)

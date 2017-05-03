@@ -57,6 +57,7 @@ class WVideo(object):
 
     def extract_frames(self,args):
         frames = []
+        cuts = []
         if args['rate']:
             denominator = int(args['rate'])
         else:
@@ -81,6 +82,10 @@ class WVideo(object):
                 scencedetect.wait()
                 if scencedetect.returncode != 0:
                     logging.info("pyscene detect failed with {} check fab.log for the reason".format(scencedetect.returncode))
+                else:
+                    with open('{}/{}/frames/scenes.json'.format(self.media_dir,self.primary_key)) as fh:
+                        cuts = json.load(fh)
+                    os.remove('{}/{}/frames/scenes.json'.format(self.media_dir,self.primary_key))
             frame_width, frame_height = 0, 0
             for i,fname in enumerate(glob.glob(output_dir+'*.jpg')):
                 ind = int(fname.split('/')[-1].replace('.jpg', ''))
@@ -110,7 +115,7 @@ class WVideo(object):
                             logging.warning("skipping {} not a jpeg file".format(fname))
                 else:
                     logging.warning("skipping {} ".format(subdir))
-        return frames
+        return frames, cuts
 
     def index_frames(self,frames,visual_index):
         results = {}

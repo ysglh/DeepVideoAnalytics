@@ -46,7 +46,7 @@ import cli
 # Third-Party Library Imports
 import cv2
 import numpy
-
+import json
 
 # Used for module identification and when printing copyright & version info.
 __version__ = 'v0.4'
@@ -262,7 +262,8 @@ def detect_scenes(cap, scene_manager, start_frame = 0, end_frame = 0, duration_f
     # perform any post-processing required by the detectors being used
     for detector in scene_manager.detector_list:
         detector.post_process(scene_manager.scene_list)
-
+    with open('{}/scenes.json'.format(scene_manager.save_image_prefix, frames_read), 'w') as scene_list:
+        json.dump(framelist,scene_list)
     if start_frame > 0:
         frames_read = frames_read - start_frame
     return framelist

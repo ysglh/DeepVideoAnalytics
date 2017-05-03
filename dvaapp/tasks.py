@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import subprocess,sys,shutil,os,glob,time,logging
 from django.conf import settings
 from dva.celery import app
-from .models import Video, Frame, TEvent, Query, IndexEntries,QueryResults, VLabel, VDNDataset, Clusters, ClusterCodes, Region
+from .models import Video, Frame, TEvent, Query, IndexEntries,QueryResults, VLabel, VDNDataset, Clusters, ClusterCodes, Region, Scene
 from dvalib import entity
 from dvalib import detector
 from dvalib import indexer
@@ -358,8 +358,9 @@ def extract_frames(task_id):
         dv.height = v.height
         dv.width = v.width
         dv.save()
-    frames = v.extract_frames(args)
+    frames, cuts = v.extract_frames(args)
     dv.frames = len(frames)
+    index_to_df = {}
     dv.save()
     for f in frames:
         df = Frame()
@@ -373,7 +374,17 @@ def extract_frames(task_id):
             df.name = f.name[:150]
             df.subdir = f.subdir.replace('/',' ')
         df.save()
+        index_to_df[df.frame_index] = df
         f.primary_key = df.pk
+    for start_frame_index,end_frame_index in [(cuts[cutindex],cuts[cutindex+1]) for cutindex,cut in enumerate(sorted(cuts)[:-1])]:
+        ds = Scene()
+        ds.video = dv
+        ds.start_frame_index = start_frame_index
+        ds.end_frame_index = end_frame_index
+        ds.start_frame = index_to_df[start_frame_index]
+        ds.end_frame = index_to_df[end_frame_index]
+        ds.source = start
+        ds.save()
     set_directory_labels(frames,dv)
     process_next(task_id)
     start.completed = True

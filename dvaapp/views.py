@@ -712,9 +712,13 @@ def indexes(request):
     context = {
         'visual_index_list':settings.VISUAL_INDEXES.items(),
         'index_entries':IndexEntries.objects.all(),
-        "videos" : Video.objects.all().filter(parent_query__count__isnull=True)
+        "videos" : Video.objects.all().filter(parent_query__count__isnull=True),
+        "region_types" : Region.REGION_TYPES
     }
-
+    if request.method == 'POST':
+        index_event = TEvent()
+        index_event.operation = ''
+        app.send_task()
     return render(request, 'indexes.html', context)
 
 

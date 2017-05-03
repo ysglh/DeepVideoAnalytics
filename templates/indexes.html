@@ -49,7 +49,7 @@
             <form action="/indexes" method="POST">
 
             <div class="box-header with-border">
-                <h4>Custom index region</h4>
+                <h4>Index custom set of regions</h4>
             </div>
             <div class="box-body">
                 <div class="row">
@@ -71,19 +71,32 @@
                             </select>
                         </div>
                     </div>
+                    <div class="col-sm-12"><div class="form-group">
+                            <label for="region_type">Region types</label>
+                            <select class="js-example-basic" class="js-example-basic-multiple" multiple="multiple" id="region_type" class="form-control" name="region_type" style="width:100%">
+                            {% for k,v in region_types %}
+                                <option value="{{ k }}" selected="selected" >{{ v }}</option>
+                            {% endfor %}
+                            </select>
+                        </div>
+                    </div>
                 </div>
                 <div class="row">
-                    <div class="col-sm-4"><div class="form-group"><label>Specific detection<input type="text" class="form-control" name="detection_name"> </label></div></div>
-                    <div class="col-sm-4"><div class="form-group"><label>Min height<input type="number" class="form-control" value="50" name="min_height" required="required"> </label></div></div>
-                    <div class="col-sm-4"><div class="form-group"><label>Min width<input type="number"  class="form-control" value="50" name="min_width" required="required"> </label></div></div>
+                    <div class="col-xs-4"><div class="form-group"><label>object name<input type="text" class="form-control" name="object_name"> </label></div></div>
+                    <div class="col-xs-4"><div class="form-group"><label>object_name_contains<input type="text" class="form-control" name="object_name__contains"></label></div></div>
+                    <div class="col-xs-4"><div class="form-group"><label>text_contains<input type="text" class="form-control" name="metadata_text__contains"></label></div></div>
                 </div>
-
-
+                <div class="row">
+                    <div class="col-xs-3"><div class="form-group"><label>Min height<input type="number" class="form-control" value="50" name="h__gte"></label></div></div>
+                    <div class="col-xs-3"><div class="form-group"><label>Max height<input type="number" class="form-control" value="0" name="h__lte"></label></div></div>
+                    <div class="col-xs-3"><div class="form-group"><label>Min width<input type="number"  class="form-control" value="50" name="w__gte"></label></div></div>
+                    <div class="col-xs-3"><div class="form-group"><label>Max width<input type="number"  class="form-control" value="0" name="w__lte"></label></div></div>
+                </div>
             </div>
             <div class="box-footer">
                 <div class="form-group">
                     {% csrf_token %}
-                    <button class="btn btn-primary" type="submit">Create custom index</button>
+                    <button class="btn btn-primary pull-right" type="submit">Create custom index</button>
                 </div>
             </div>
             </form>
@@ -140,6 +153,8 @@
         visual_index_name.select2({theme: "bootstrap"});
         var video_name = $("#video_name");
         video_name.select2({theme: "bootstrap"});
+        var region_type = $("#region_type");
+        region_type.select2({theme: "bootstrap",multiple:true});
     })
 </script>
 {% endblock %}

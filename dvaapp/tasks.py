@@ -102,6 +102,7 @@ def inception_index_by_id(task_id):
     i.algorithm = index_name
     i.entries_file_name = entries_fname.split('/')[-1]
     i.features_file_name = feat_fname.split('/')[-1]
+    i.source = start
     i.save()
     process_next(task_id)
     start.completed = True
@@ -135,6 +136,7 @@ def inception_index_regions_by_id(task_id):
     i.algorithm = index_name
     i.entries_file_name = entries_fname.split('/')[-1]
     i.features_file_name = feat_fname.split('/')[-1]
+    i.source = start
     i.save()
     start.completed = True
     start.seconds = time.time() - start_time
@@ -163,6 +165,7 @@ def alexnet_index_by_id(task_id):
     i.algorithm = index_name
     i.entries_file_name = entries_fname.split('/')[-1]
     i.features_file_name = feat_fname.split('/')[-1]
+    i.source = start
     i.save()
     process_next(task_id)
     start.completed = True

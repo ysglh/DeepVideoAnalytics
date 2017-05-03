@@ -136,27 +136,6 @@ class Region(models.Model):
         super(Region, self).save(*args, **kwargs)
 
 
-
-class IndexEntries(models.Model):
-    video = models.ForeignKey(Video)
-    features_file_name = models.CharField(max_length=100)
-    entries_file_name = models.CharField(max_length=100)
-    algorithm = models.CharField(max_length=100)
-    detection_name = models.CharField(max_length=100)
-    count = models.IntegerField()
-    approximate = models.BooleanField(default=False)
-    contains_frames = models.BooleanField(default=False)
-    contains_detections = models.BooleanField(default=False)
-    created = models.DateTimeField('date created', auto_now_add=True)
-
-    class Meta:
-        unique_together = ('video', 'features_file_name',)
-
-    def __unicode__(self):
-        return "{} in {} index by {}".format(self.detection_name,self.algorithm,self.video.name)
-
-
-
 class QueryResults(models.Model):
     query = models.ForeignKey(Query)
     video = models.ForeignKey(Video)
@@ -223,6 +202,27 @@ class TEvent(models.Model):
     requester_pays = models.BooleanField(default=False)
     clustering = models.ForeignKey(Clusters,null=True)
     arguments_json = models.TextField(default="{}")
+
+
+class IndexEntries(models.Model):
+    video = models.ForeignKey(Video)
+    features_file_name = models.CharField(max_length=100)
+    entries_file_name = models.CharField(max_length=100)
+    algorithm = models.CharField(max_length=100)
+    detection_name = models.CharField(max_length=100)
+    count = models.IntegerField()
+    approximate = models.BooleanField(default=False)
+    contains_frames = models.BooleanField(default=False)
+    contains_detections = models.BooleanField(default=False)
+    created = models.DateTimeField('date created', auto_now_add=True)
+    source = models.ForeignKey(TEvent, null=True)
+
+    class Meta:
+        unique_together = ('video', 'features_file_name',)
+
+    def __unicode__(self):
+        return "{} in {} index by {}".format(self.detection_name, self.algorithm, self.video.name)
+
 
             # class CustomDetector(models.Model):
 #     algorithm = models.CharField(max_length=100)

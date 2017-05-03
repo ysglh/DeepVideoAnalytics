@@ -246,3 +246,14 @@ class TEvent(models.Model):
 #     dimensions = models.IntegerField(default=0)
 #     tfgraph_filename = models.CharField(max_length=200)
 #     vdn_parent = models.TextField(default="")
+
+
+class Scene(models.Model):
+    video = models.ForeignKey(Video,null=True)
+    start_frame_index = models.IntegerField()
+    end_frame_index = models.IntegerField()
+    metadata_text = models.TextField(default="")
+    metadata_json = models.TextField(default="")
+    label_parent = models.ForeignKey(VLabel, null=True)
+    label = models.TextField(default="")
+    source = models.ForeignKey(TEvent,null=True)

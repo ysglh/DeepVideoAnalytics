@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Video,Frame,TEvent,IndexEntries,QueryResults,Query,VLabel,VDNServer,VDNDataset, ClusterCodes, Clusters, Region
+from .models import Video,Frame,TEvent,IndexEntries,QueryResults,Query,VLabel,VDNServer,VDNDataset, ClusterCodes, Clusters, Region, Scene
 
 
 @admin.register(VLabel)
@@ -51,7 +51,6 @@ class TEventAdmin(admin.ModelAdmin):
     pass
 
 
-
 @admin.register(Clusters)
 class ClustersAdmin(admin.ModelAdmin):
     pass
@@ -62,4 +61,7 @@ class ClusterCodesAdmin(admin.ModelAdmin):
     pass
 
 
+@admin.register(Scene)
+class SceneAdmin(admin.ModelAdmin):
+    pass
 

@@ -127,12 +127,13 @@ def inception_index_regions_by_id(task_id):
     detections = Region.objects.all().filter(**arguments)
     logging.info("Indexing {} Regions".format(detections.count()))
     visual_index = inception_index_regions_by_id.visual_indexer['inception']
-    index_name, index_results, feat_fname, entries_fname = video.index_detections(detections,'SSD',visual_index)
+    detection_name = 'Regions_subset_by_{}'.format(start.pk)
+    index_name, index_results, feat_fname, entries_fname = video.index_regions(detections,detection_name,visual_index)
     i = IndexEntries()
     i.video = dv
     i.count = len(index_results)
     i.contains_detections = True
-    i.detection_name = 'SSD'
+    i.detection_name = detection_name
     i.algorithm = index_name
     i.entries_file_name = entries_fname.split('/')[-1]
     i.features_file_name = feat_fname.split('/')[-1]

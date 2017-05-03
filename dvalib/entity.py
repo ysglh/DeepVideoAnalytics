@@ -142,24 +142,29 @@ class WVideo(object):
             json.dump(entries, entryfile)
         return visual_index.name,entries,feat_fname,entries_fname
 
-    def index_detections(self,detections,detection_name,visual_index):
+    def index_regions(self,regions,regions_name,visual_index):
         visual_index.load()
         entries = []
         paths = []
-        for i, d in enumerate(detections):
+        for i, d in enumerate(regions):
             entry = {
                 'frame_index': d.frame.frame_index,
                 'detection_primary_key': d.pk,
                 'frame_primary_key': d.frame.pk,
                 'video_primary_key': self.primary_key,
                 'index': i,
-                'type': 'detection'
+                'type': d.region_type
             }
-            paths.append("{}/{}/detections/{}.jpg".format(self.media_dir, self.primary_key, d.pk))
+            path = "{}/{}/detections/{}.jpg".format(self.media_dir, self.primary_key, d.pk)
+            if os.path.isfile(path=path):
+                paths.append(path)
+            else:
+                # Temporarily crop and compute
+                raise NotImplementedError
             entries.append(entry)
         features = visual_index.index_paths(paths)
-        feat_fname = "{}/{}/indexes/{}_{}.npy".format(self.media_dir, self.primary_key,detection_name, visual_index.name)
-        entries_fname = "{}/{}/indexes/{}_{}.json".format(self.media_dir, self.primary_key,detection_name, visual_index.name)
+        feat_fname = "{}/{}/indexes/{}_{}.npy".format(self.media_dir, self.primary_key,regions_name, visual_index.name)
+        entries_fname = "{}/{}/indexes/{}_{}.json".format(self.media_dir, self.primary_key,regions_name, visual_index.name)
         with open(feat_fname, 'w') as feats:
             np.save(feats, np.array(features))
         with open(entries_fname, 'w') as entryfile:

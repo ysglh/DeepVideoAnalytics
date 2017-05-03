@@ -30,7 +30,7 @@
                                 <tr>
                                     <td>{{ server.name }}</td>
                                     <td><a target="_blank" href="{{ server.url }}" >{{ server.url }}</a></td>
-                                    <td class="text-center"><form action="." method="post">{% csrf_token %}<input type="hidden" name="server_pk" value="{{ server.pk }}"/><button type="submit" class="btn btn-primary"> Load / Refresh </button></form></td>
+                                    <td class="text-center"><form action="/external" method="post">{% csrf_token %}<input type="hidden" name="server_pk" value="{{ server.pk }}"/><button type="submit" class="btn btn-primary"> Load / Refresh </button></form></td>
                                 </tr>
                             {% endfor %}
                         </tbody>

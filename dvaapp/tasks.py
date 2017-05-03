@@ -333,11 +333,18 @@ def set_directory_labels(frames,dv):
             a.label = l
             a.save()
 
+
 @app.task(name="extract_frames_by_id")
-def extract_frames(task_id,rescale=True):
+def extract_frames(task_id):
     start = TEvent.objects.get(pk=task_id)
     start.started = True
     start.operation = extract_frames.name
+    args = json.loads(start.arguments_json)
+    if args == {}:
+        args['perform_scene_detection'] = True
+        args['rescale'] = 0
+        args['rate'] = 30
+        start.arguments_json = json.dumps(args)
     start.save()
     start_time = time.time()
     video_id = start.video_id
@@ -351,9 +358,7 @@ def extract_frames(task_id,rescale=True):
         dv.height = v.height
         dv.width = v.width
         dv.save()
-    if 'RESCALE_DISABLE' in os.environ:
-        rescale = False
-    frames = v.extract_frames(rescale)
+    frames = v.extract_frames(args)
     dv.frames = len(frames)
     dv.save()
     for f in frames:

@@ -32,7 +32,6 @@
        - DB_PASS=pgdbpass
        - LAUNCH_SERVER_NGINX=1
        - DISABLE_DEBUG=1
-       - RESCALE_DISABLE=1
 #       - ENABLE_BASICAUTH=1 # No need for basic auth just tunnel through SSH
        - SECRET_KEY=283y312bhv2b13v13
        - LAUNCH_Q_qindexer=1
@@ -64,7 +63,6 @@
        - DB_USER=pgdbuser
        - DB_PASS=pgdbpass
        - DISABLE_DEBUG=1
-       - RESCALE_DISABLE=1
        - SECRET_KEY=283y312bhv2b13v13
      command: bash -c "git pull && fab startq:qextract"
      depends_on:

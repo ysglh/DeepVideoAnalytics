@@ -30,7 +30,6 @@
        - DB_USER=pgdbuser
        - DB_PASS=pgdbpass
        - ENABLE_YOLO=1
-       - SCENEDETECT_DISABLE=1
      command: bash -c "youtube-dl -U && git pull && fab setup_container_gpu && fab launch_queues:1 && fab process_video_list:experiments/Driving/data.json && supervisord -n"
      ports:
        - "8000:80"
@@ -54,7 +53,6 @@
        - DB_USER=pgdbuser
        - DB_PASS=pgdbpass
        - ENABLE_YOLO=1
-       - SCENEDETECT_DISABLE=1
      command: bash -c "youtube-dl -U && git pull && fab startq:extractor"
      devices:
        - /dev/nvidia{{i+1}}
@@ -79,7 +77,6 @@
        - DB_USER=pgdbuser
        - DB_PASS=pgdbpass
        - ENABLE_YOLO=1
-       - SCENEDETECT_DISABLE=1
      command: bash -c "youtube-dl -U && git pull && fab startq:detector"
      depends_on:
        - db
@@ -102,7 +99,6 @@
        - DB_USER=pgdbuser
        - DB_PASS=pgdbpass
        - ENABLE_YOLO=1
-       - SCENEDETECT_DISABLE=1
      command: bash -c "youtube-dl -U && git pull && fab startq:indexer"
      devices:
        - /dev/nvidia{{i+4}}

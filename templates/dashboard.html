@@ -139,7 +139,7 @@
                                     <div class="row">
                                     <div class="col-xs-6">
                                         <div class="form-group">
-                                        <label for="nth">Extract every nth frame from video<input id="nth" class="form-control" name="nth" type="number" value="30"></label>
+                                        <label for="nth">Extract every n<sup>th</sup> frame from video<input id="nth" class="form-control" name="nth" type="number" value="30"></label>
                                         </div>
                                     </div>
                                     <div class="col-xs-6">
@@ -163,13 +163,30 @@
                         <div class="modal fade" tabindex="-1" role="dialog" id="ytdisclaimer">
                         <div class="modal-dialog" role="document"><div class="modal-content">
                             <div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button><h4 class="modal-title">Submit Youtube url</h4></div>
-                            <div class="modal-body">legal disclaimer <p>We use <a target="_blank" href="https://rg3.github.io/youtube-dl/">youtube-dl</a>. Its your responsibility to abide by laws governing <a target="_blank" href="https://www.youtube.com/static?template=terms">Youtube TOS</a> in your jurisdiction.</p>
+                            <div class="modal-body"><p> <span style="font-weight:bold">Legal disclaimer:</span>Its your responsibility to abide by laws governing <a target="_blank" href="https://www.youtube.com/static?template=terms">Youtube TOS</a> in your jurisdiction. We use <a target="_blank" href="https://rg3.github.io/youtube-dl/">youtube-dl</a> to process urls.</p>
                                 <form role="form"  method="post" action="/youtube" >
                                 <div class="form-group">
                                     <input id="id_ytname" name="name" class="form-control" type="text" required="" placeholder="provide a name">
                                 </div>
                                 <div class="form-group">
                                     <input id="id_yturl" name="url" class="form-control" type="text" required="" placeholder="url of youtube video">
+                                </div>
+                                <div class="row">
+                                <div class="col-xs-6">
+                                    <div class="form-group">
+                                    <label for="nth">Extract every n<sup>th</sup> frame from video<input id="nth" class="form-control" name="nth" type="number" value="30"></label>
+                                    </div>
+                                </div>
+                                <div class="col-xs-6">
+                                    <div class="form-group">
+                                    <label for="rescale">Rescale frames to width <input id="rescale" class="form-control" name="rescale" type="number" placeholder="Default original width"></label>
+                                    </div>
+                                </div>
+                                <div class="col-xs-12">
+                                    <div class="checkbox">
+                                    <label for="scene" ><input id="scene" name="scene" type="checkbox" checked="checked"> Perform scene detection on video</label>
+                                    </div>
+                                </div>
                                 </div>
                                 <div class="form-group">
                                 {% csrf_token %}

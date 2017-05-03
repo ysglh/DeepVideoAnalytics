@@ -30,7 +30,6 @@
        - DB_NAME=postgres
        - DB_USER=pgdbuser
        - DB_PASS=pgdbpass
-       - RESCALE_DISABLE=1
        - LAUNCH_SERVER_NGINX=1
        - LAUNCH_Q_qindexer=1
        - LAUNCH_Q_qretriever=1

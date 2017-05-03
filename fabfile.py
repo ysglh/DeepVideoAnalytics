@@ -491,7 +491,7 @@ def ssd_detect(video_id):
 
 
 @task
-def pyscenedetect(video_id,rescaled_width=600,rescale=True):
+def pyscenedetect(video_id,rescaled_width=0):
     """
     Pyscenedetect often causes unexplainable double free errors on some machine when executing cap.release()
     This ensures that the task recovers partial frame data i.e. every nth frame even if the command running inside a subprocess fails
@@ -509,8 +509,11 @@ def pyscenedetect(video_id,rescaled_width=600,rescale=True):
     from dvalib import pyscenecustom,entity
     dv = Video.objects.get(id=video_id)
     v = entity.WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
-    if 'RESCALE_DISABLE' in os.environ:
+    rescaled_width = int(rescaled_width)
+    if rescaled_width == 0:
         rescale = False
+    else:
+        rescale = True
     manager = pyscenecustom.manager.SceneManager(save_image_prefix="{}/{}/frames/".format(settings.MEDIA_ROOT, video_id), rescaled_width=int(rescaled_width),rescale=rescale)
     pyscenecustom.detect_scenes_file(v.local_path, manager)
 

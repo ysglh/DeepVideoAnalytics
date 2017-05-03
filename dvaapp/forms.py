@@ -12,6 +12,9 @@ class UploadFileForm(forms.Form):
 class YTVideoForm(forms.Form):
     name = forms.CharField()
     url = forms.CharField()
+    scene = forms.BooleanField(initial=False, required=False)
+    nth = forms.IntegerField()
+    rescale = forms.IntegerField(required=False)
 
 
 class AnnotationForm(forms.Form):

@@ -23,7 +23,7 @@ class WQuery(object):
 
 class WVideo(object):
 
-    def __init__(self,dvideo,media_dir,rescaled_width=600):
+    def __init__(self,dvideo,media_dir):
         self.dvideo = dvideo
         self.primary_key = self.dvideo.pk
         self.media_dir = media_dir
@@ -31,7 +31,6 @@ class WVideo(object):
         self.duration = None
         self.width = None
         self.height = None
-        self.rescaled_width = rescaled_width
         self.metadata = {}
 
     def get_metadata(self):
@@ -56,13 +55,16 @@ class WVideo(object):
         except:
             raise ValueError,str(self.metadata)
 
-    def extract_frames(self,rescale=True):
+    def extract_frames(self,args):
         frames = []
-        denominator = 30
+        if args['rate']:
+            denominator = int(args['rate'])
+        else:
+            denominator = 30
         if not self.dvideo.dataset:
             output_dir = "{}/{}/{}/".format(self.media_dir,self.primary_key,'frames')
-            if rescale:
-                command = 'ffmpeg -i {} -vf "select=not(mod(n\,{})),scale={}:-1" -vsync vfr  {}/%d_b.jpg'.format(self.local_path,denominator,self.rescaled_width,output_dir)
+            if args['rescale']:
+                command = 'ffmpeg -i {} -vf "select=not(mod(n\,{})),scale={}:-1" -vsync vfr  {}/%d_b.jpg'.format(self.local_path,denominator,int(args['rescale']),output_dir)
             else:
                 command = 'ffmpeg -i {} -vf "select=not(mod(n\,{}))" -vsync vfr  {}/%d_b.jpg'.format(self.local_path,denominator,output_dir)
             extract = sp.Popen(shlex.split(command))
@@ -72,16 +74,20 @@ class WVideo(object):
             for fname in glob.glob(output_dir+'*_b.jpg'):
                 ind = int(fname.split('/')[-1].replace('_b.jpg', ''))
                 os.rename(fname,fname.replace('{}_b.jpg'.format(ind),'{}.jpg'.format((ind-1)*denominator)))
-            if 'SCENEDETECT_DISABLE' in os.environ:
+            if not args['perform_scene_detection']:
                 logging.warning("Scene detection is disabled")
             else:
-                scencedetect = sp.Popen(['fab','pyscenedetect:{},{}'.format(self.primary_key,self.rescaled_width)],cwd=os.path.join(os.path.abspath(__file__).split('entity.py')[0],'../'))
+                scencedetect = sp.Popen(['fab','pyscenedetect:{},{}'.format(self.primary_key,args['rescale'])],cwd=os.path.join(os.path.abspath(__file__).split('entity.py')[0],'../'))
                 scencedetect.wait()
                 if scencedetect.returncode != 0:
                     logging.info("pyscene detect failed with {} check fab.log for the reason".format(scencedetect.returncode))
-            for fname in glob.glob(output_dir+'*.jpg'):
+            frame_width, frame_height = 0, 0
+            for i,fname in enumerate(glob.glob(output_dir+'*.jpg')):
                 ind = int(fname.split('/')[-1].replace('.jpg', ''))
-                f = WFrame(frame_index=int(ind),video=self)
+                if i == 0:
+                    im = Image.open(fname)
+                    frame_width, frame_height = im.size # this remains constant for all frames
+                f = WFrame(frame_index=int(ind),video=self,w=frame_width,h=frame_height)
                 frames.append(f)
         else:
             zipf = zipfile.ZipFile("{}/{}/video/{}.zip".format(self.media_dir, self.primary_key, self.primary_key), 'r')
@@ -164,16 +170,14 @@ class WFrame(object):
             self.video = video
             self.primary_key = primary_key
             self.name = name
-            self.h = self.video.height
-            self.w = self.video.width
         else:
             self.subdir = None
             self.frame_index = None
             self.video = None
             self.primary_key = None
             self.name = None
-            self.h = h
-            self.w = w
+        self.h = h
+        self.w = w
 
     def local_path(self):
         return "{}/{}/{}/{}.jpg".format(self.video.media_dir,self.video.primary_key,'frames',self.frame_index)

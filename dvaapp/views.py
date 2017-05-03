@@ -290,7 +290,10 @@ def yt(request):
         form = YTVideoForm(request.POST, request.FILES)
         user = request.user if request.user.is_authenticated() else None
         if form.is_valid():
-            handle_youtube_video(form.cleaned_data['name'],form.cleaned_data['url'],user=user)
+            handle_youtube_video(form.cleaned_data['name'],form.cleaned_data['url'],user=user,
+                                 perform_scene_detection=form.cleaned_data['scene'],
+                                 rate=form.cleaned_data['nth'],
+                                 rescale=form.cleaned_data['rescale'] if 'rescale' in form.cleaned_data else 0)
         else:
             raise ValueError
     else:
@@ -340,7 +343,7 @@ def create_video_folders(video,create_subdirs=True):
         os.mkdir('{}/{}/audio/'.format(settings.MEDIA_ROOT, video.pk))
 
 
-def handle_youtube_video(name,url,extract=True,user=None):
+def handle_youtube_video(name,url,extract=True,user=None,perform_scene_detection=True,rate=30,rescale=0):
     video = Video()
     if user:
         video.uploader = user
@@ -351,13 +354,16 @@ def handle_youtube_video(name,url,extract=True,user=None):
     create_video_folders(video)
     extract_frames_task = TEvent()
     extract_frames_task.video = video
+    extract_frames_task.arguments_json = json.dumps({'perform_scene_detection': perform_scene_detection,
+                                                     'rate': rate,
+                                                     'rescale': rescale})
     extract_frames_task.save()
     if extract:
         extract_frames.apply_async(args=[extract_frames_task.pk], queue=settings.Q_EXTRACTOR)
     return video
 
 
-def handle_uploaded_file(f,name,extract=True,user=None,perform_scene_detection=True,rate=None,rescale=0):
+def handle_uploaded_file(f,name,extract=True,user=None,perform_scene_detection=True,rate=30,rescale=0):
     video = Video()
     if user:
         video.uploader = user
@@ -935,6 +941,7 @@ def retry_task(request,pk):
     if settings.TASK_NAMES_TO_TYPE[event.operation] == settings.VIDEO_TASK:
         new_event = TEvent()
         new_event.video_id = event.video_id
+        new_event.arguments_json = event.arguments_json
         new_event.save()
         result = app.send_task(name=event.operation, args=[new_event.pk],queue=settings.TASK_NAMES_TO_QUEUE[event.operation])
         context['alert'] = "Operation {} on {} submitted".format(event.operation,event.video.name,queue=settings.TASK_NAMES_TO_QUEUE[event.operation])

@@ -37,15 +37,10 @@
     - Postgres hostname
 - DISABLE_DEBUG=1
     - Django debug mode is set to False
-- RESCALE_DISABLE=1
-    - Do not rescale extracted frames
-    - DEPRECATED will be replaced by user specified option when uploading videos.    
 - ENABLE_BASICAUTH=1
     - Enable basicauth on Nginx
 - SECRET_KEY=\<seceret_value>
     - Django Secret used in cookies, auth etc.
-- SCENEDETECT_DISABLE=1
-    - Disable scene detection
 - YOLO_ENABLE=1 
     - To use YOLO 9000 detector.
     

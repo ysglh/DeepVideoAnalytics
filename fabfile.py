@@ -649,11 +649,24 @@ def heroku_local_static():
 def heroku_migrate():
     local('heroku run python vdn_manage.py migrate')
 
+
 def get_coco_dirname():
     if sys.platform == 'darwin':
         dirname = '/Users/aub3/coco_input/'
     else:
         dirname = 'coco_input'
+    return dirname
+
+
+def get_visual_genome_dirname():
+    if sys.platform == 'darwin':
+        dirname = '/Users/aub3/visual_genome/'
+    else:
+        dirname = 'visual_genome'
+    try:
+        os.mkdir(dirname)
+    except:
+        pass
     return dirname
 
 
@@ -706,6 +719,120 @@ def download_coco(size=500):
     with open('{}/coco_sample_metadata.json'.format(dirname), 'w') as output:
         json.dump(data, output)
 
+
+@task
+def generate_visual_genome(fast=False):
+    kill()
+    import django
+    sys.path.append(os.path.dirname(__file__))
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
+    django.setup()
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    from dvaapp.views import handle_uploaded_file, handle_youtube_video
+    from dvaapp import models
+    from dvaapp.models import TEvent
+    import gzip
+    from dvaapp.tasks import extract_frames, perform_face_detection_indexing_by_id, inception_index_by_id, \
+        perform_ssd_detection_by_id, inception_index_regions_by_id, \
+        export_video_by_id
+    dirname = get_visual_genome_dirname()
+    with lcd(dirname):
+        if not os.path.isfile("{}/vg.zip".format(dirname)):
+            local('wget https://www.dropbox.com/s/7g2c1j5n318eovr/visual_genome_sample.zip?dl=1 -O vg.zip')
+            local('wget https://www.dropbox.com/s/589tyg6vn3uxqcc/visual_genome_objects.txt.gz?dl=1 -O visual_genome_objects.txt.gz')
+    data = defaultdict(list)
+    with gzip.open('{}/visual_genome_objects.txt.gz'.format(dirname)) as metadata:
+        for line in metadata:
+            entries = line.strip().split('\t')
+            data[entries[1]].append({
+                'x':int(entries[2]),
+                'y':int(entries[3]),
+                'w':int(entries[4]),
+                'h':int(entries[5]),
+                'object_id':entries[0],
+                'object_name':entries[6],
+                'metadata_text':' '.join(entries[6:]),
+            })
+    f = SimpleUploadedFile("vg.zip", file('{}/vg.zip'.format(dirname)).read(), content_type="application/zip")
+    v = handle_uploaded_file(f, 'visual genome sample')
+    extract_frames(TEvent.objects.create(video=v).pk)
+    video = v
+    models.Region.objects.all().filter(video=video).delete()
+    for frame in models.Frame.objects.all().filter(video=video):
+        frame_id = str(int(frame.name.split('_')[-1].split('.')[0]))
+        for o in data[frame_id]:
+            annotation = models.Region()
+            annotation.region_type = models.Region.ANNOTATION
+            annotation.video = v
+            annotation.frame = frame
+            annotation.full_frame = False
+            annotation.x = o['x']
+            annotation.y = o['y']
+            annotation.h = o['h']
+            annotation.w = o['w']
+            annotation.object_name = o['object_name']
+            annotation.metadata_json = json.dumps(o)
+            annotation.metadata_text = o['metadata_text']
+            annotation.label = '{}'.format(o['object_name'])
+            annotation.save()
+    if not fast:
+        inception_index_by_id(TEvent.objects.create(video=v).pk)
+        perform_ssd_detection_by_id(TEvent.objects.create(video=v).pk)
+        default_args = {'region_type':'D','object_name__startswith':'SSD_', 'w__gte':50,'h__gte':50}
+        inception_index_regions_by_id(TEvent.objects.create(video=v,arguments_json=json.dumps(default_args)).pk)
+    export_video_by_id(TEvent.objects.create(video=v).pk)
+
+
+@task
+def benchmark():
+    """
+    TODO :Just like Continuous integration, perform continuous benchmarking of the performance
+    of various algorithms.
+    :return:
+    """
+    pass
+
+
+@task
+def make_requester_pays(bucket_name):
+    """
+    Convert AWS S3 bucket into requester pays bucket
+    DOES NOT WORKS,
+    :param bucket_name:
+    :return:
+    """
+    s3 = boto3.resource('s3')
+    bucket_request_payment = s3.BucketRequestPayment(bucket_name)
+    response = bucket_request_payment.put(RequestPaymentConfiguration={'Payer': 'Requester'})
+    bucket_policy = s3.BucketPolicy(bucket_name)
+    policy = {
+          "Id": "Policy1493037034955",
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "Stmt1493036947566",
+              "Action": [
+                "s3:ListBucket"
+              ],
+              "Effect": "Allow",
+              "Resource": "arn:aws:s3:::{}".format(bucket_name),
+              "Principal": "*"
+            },
+            {
+              "Sid": "Stmt1493037029723",
+              "Action": [
+                "s3:GetObject"
+              ],
+              "Effect": "Allow",
+              "Resource": "arn:aws:s3:::{}/*".format(bucket_name),
+              "Principal": {
+                "AWS": [
+                  "*"
+                ]
+              }
+            }
+          ]}
+    response = bucket_policy.put(Policy=json.dumps(policy))
 
 @task
 def generate_vdn(fast=False):
@@ -794,79 +921,3 @@ def generate_vdn(fast=False):
         perform_face_detection_indexing_by_id(TEvent.objects.create(video=v).pk)
         inception_index_regions_by_id(TEvent.objects.create(video=v).pk)
     export_video_by_id(TEvent.objects.create(video=v).pk)
-    v = handle_youtube_video("Zelda","https://www.youtube.com/watch?v=vHiTxNrbB4M")
-    extract_frames(TEvent.objects.create(video=v).pk)
-    if not fast:
-        inception_index_by_id(TEvent.objects.create(video=v).pk)
-        perform_ssd_detection_by_id(TEvent.objects.create(video=v).pk)
-        perform_face_detection_indexing_by_id(TEvent.objects.create(video=v).pk)
-        inception_index_regions_by_id(TEvent.objects.create(video=v).pk)
-    export_video_by_id(TEvent.objects.create(video=v).pk)
-    v = handle_youtube_video("Paris","https://www.youtube.com/watch?v=zEAqJmS6ajk")
-    extract_frames(TEvent.objects.create(video=v).pk)
-    if not fast:
-        inception_index_by_id(TEvent.objects.create(video=v).pk)
-        perform_ssd_detection_by_id(TEvent.objects.create(video=v).pk)
-        perform_face_detection_indexing_by_id(TEvent.objects.create(video=v).pk)
-        inception_index_regions_by_id(TEvent.objects.create(video=v).pk)
-    export_video_by_id(TEvent.objects.create(video=v).pk)
-    local('wget https://www.dropbox.com/s/g8dv5yeh9bmflec/lfw_funneled.zip?dl=1 -O lfw.zip')
-    f = SimpleUploadedFile("lfw.zip", file("lfw.zip").read(), content_type="application/zip")
-    v = handle_uploaded_file(f, 'LFW subset')
-    extract_frames(TEvent.objects.create(video=v).pk)
-    if not fast:
-        inception_index_by_id(TEvent.objects.create(video=v).pk)
-        perform_face_detection_indexing_by_id(TEvent.objects.create(video=v).pk)
-    export_video_by_id(TEvent.objects.create(video=v).pk)
-
-
-@task
-def benchmark():
-    """
-    TODO :Just like Continuous integration, perform continuous benchmarking of the performance
-    of various algorithms.
-    :return:
-    """
-    pass
-
-
-@task
-def make_requester_pays(bucket_name):
-    """
-    Convert AWS S3 bucket into requester pays bucket
-    DOES NOT WORKS,
-    :param bucket_name:
-    :return:
-    """
-    s3 = boto3.resource('s3')
-    bucket_request_payment = s3.BucketRequestPayment(bucket_name)
-    response = bucket_request_payment.put(RequestPaymentConfiguration={'Payer': 'Requester'})
-    bucket_policy = s3.BucketPolicy(bucket_name)
-    policy = {
-          "Id": "Policy1493037034955",
-          "Version": "2012-10-17",
-          "Statement": [
-            {
-              "Sid": "Stmt1493036947566",
-              "Action": [
-                "s3:ListBucket"
-              ],
-              "Effect": "Allow",
-              "Resource": "arn:aws:s3:::{}".format(bucket_name),
-              "Principal": "*"
-            },
-            {
-              "Sid": "Stmt1493037029723",
-              "Action": [
-                "s3:GetObject"
-              ],
-              "Effect": "Allow",
-              "Resource": "arn:aws:s3:::{}/*".format(bucket_name),
-              "Principal": {
-                "AWS": [
-                  "*"
-                ]
-              }
-            }
-          ]}
-    response = bucket_policy.put(Policy=json.dumps(policy))

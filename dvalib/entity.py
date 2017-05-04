@@ -105,12 +105,17 @@ class WVideo(object):
                         fname = os.path.join(subdir,fname)
                         if fname.endswith('jpg') or fname.endswith('jpeg'):
                             i += 1
-                            dst = "{}/{}/frames/{}.jpg".format(self.media_dir, self.primary_key, i)
-                            os.rename(fname, dst)
-                            im = Image.open(dst)
-                            w, h = im.size
-                            f = WFrame(frame_index=i, video=self,name=fname.split('/')[-1],subdir=subdir.replace("{}/{}/frames/".format(self.media_dir, self.primary_key),''),w=w,h=h)
-                            frames.append(f)
+                            try:
+                                im = Image.open(fname)
+                                w, h = im.size
+                                im.close()
+                            except IOError:
+                                logging.info("Could not open {} skipping".format(fname))
+                            else:
+                                dst = "{}/{}/frames/{}.jpg".format(self.media_dir, self.primary_key, i)
+                                os.rename(fname, dst)
+                                f = WFrame(frame_index=i, video=self,name=fname.split('/')[-1],subdir=subdir.replace("{}/{}/frames/".format(self.media_dir, self.primary_key),''),w=w,h=h)
+                                frames.append(f)
                         else:
                             logging.warning("skipping {} not a jpeg file".format(fname))
                 else:

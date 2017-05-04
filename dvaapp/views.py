@@ -442,7 +442,7 @@ class VideoDetail(DetailView):
         context['label_list'] = label_list
         delta = 10000
         if context['object'].dataset:
-            delta = 1000
+            delta = 500
         if max_frame_index <= delta:
             context['frame_list'] = Frame.objects.all().filter(video=self.object).order_by('frame_index')
             context['detection_list'] = Region.objects.all().filter(video=self.object,region_type=Region.DETECTION)

@@ -108,7 +108,6 @@ class WVideo(object):
                             try:
                                 im = Image.open(fname)
                                 w, h = im.size
-                                im.close()
                             except IOError:
                                 logging.info("Could not open {} skipping".format(fname))
                             else:

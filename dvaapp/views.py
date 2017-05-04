@@ -691,12 +691,15 @@ def indexes(request):
             index_event.operation = 'inception_index_regions_by_id'
             arguments ={
                 'region_type__in': request.POST.getlist('region_type__in', []),
-                'w__gte': request.POST.get('w__gte'),
-                'h__gte': request.POST.get('h__gte')
+                'w__gte': int(request.POST.get('w__gte')),
+                'h__gte': int(request.POST.get('h__gte'))
             }
-            for optional_key in ['metadata_text__contains','object_name__contains','object_name','h__lte','w__lte']:
+            for optional_key in ['metadata_text__contains','object_name__contains','object_name']:
                 if request.POST.get(optional_key,None):
                     arguments[optional_key] = request.POST.get(optional_key)
+            for optional_key in ['h__lte','w__lte']:
+                if request.POST.get(optional_key,None):
+                    arguments[optional_key] = int(request.POST.get(optional_key))
             index_event.arguments_json = json.dumps(arguments)
             index_event.video_id = request.POST.get('video_id')
             index_event.save()

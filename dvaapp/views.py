@@ -692,12 +692,8 @@ def indexes(request):
             arguments ={
                 'region_type__in': request.POST.getlist('region_type__in', []),
                 'w__gte': request.POST.get('w__gte'),
-                'h__gte': 50
+                'h__gte': request.POST.get('h__gte')
             }
-            if 'object_name' in request.POST.keys():
-                arguments['object_name'] = request.POST.get('object_name')
-            if 'object_name__contains' in request.POST.keys():
-                arguments['object_name__contains'] = request.POST.get('object_name__contains')
             for optional_key in ['metadata_text__contains','object_name__contains','object_name','h__lte','w__lte']:
                 if request.POST.get(optional_key,None):
                     arguments[optional_key] = request.POST.get(optional_key)

@@ -58,43 +58,6 @@
             </div>
         </div>
     </div>
-    <div class="col-lg-12">
-        <div class="box box-primary">
-            <div class="box-body">
-            <div class="row">
-                <div class="col-md-3 col-lg-2 col-sm-12">
-                <table class="table">
-                    <thead><tr><th>Queue</th></tr></thead>
-                    <tbody>
-                    {% for k in settings_queues %}
-                            <tr><td>{{ k }}</td></tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-                </div>
-                <div class="col-md-9 col-lg-10 col-sm-12">
-                <table class="table dataTables">
-                    <thead><tr>
-                        <th>Name</th>
-                        <th>Type</th>
-                        <th>Queue</th>
-                        <th>Post success tasks</th>
-                    </tr>
-                    </thead>
-                    <tbody>{% for k in task_list %}
-                        <tr>
-                            <td>{{ k.name }}</td>
-                            <td>{{ k.type }}</td>
-                            <td>{{ k.queue }}</td>
-                            <td>{{ k.edges }}</td>
-                        </tr>
-                    {% endfor %}</tbody>
-                </table>
-                </div>
-            </div>
-        </div>
-    </div>
-    </div>
 </div>
 <div class="row">
     <div class="col-lg-12">
@@ -205,6 +168,48 @@
                 </table>
             </div>
         </div>
+    </div>
+</div>
+<div class="row">
+        <div class="col-lg-12">
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h3>Task & Queue configuration</h3>
+            </div>
+            <div class="box-body">
+            <div class="row">
+                <div class="col-md-3 col-lg-2 col-sm-12">
+                <table class="table">
+                    <thead><tr><th>Queue</th></tr></thead>
+                    <tbody>
+                    {% for k in settings_queues %}
+                            <tr><td>{{ k }}</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                </div>
+                <div class="col-md-9 col-lg-10 col-sm-12">
+                <table class="table dataTables">
+                    <thead><tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Queue</th>
+                        <th>Post success tasks</th>
+                    </tr>
+                    </thead>
+                    <tbody>{% for k in task_list %}
+                        <tr>
+                            <td>{{ k.name }}</td>
+                            <td>{{ k.type }}</td>
+                            <td>{{ k.queue }}</td>
+                            <td>{{ k.edges }}</td>
+                        </tr>
+                    {% endfor %}</tbody>
+                </table>
+                </div>
+            </div>
+        </div>
+    </div>
     </div>
 </div>
 </section>

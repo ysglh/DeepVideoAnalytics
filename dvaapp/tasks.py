@@ -24,8 +24,8 @@ def process_next(task_id):
     dt = TEvent.objects.get(pk=task_id)
     if dt.operation in settings.POST_OPERATION_TASKS:
         for k in settings.POST_OPERATION_TASKS[dt.operation]:
-            next_task = TEvent.objects.create(video=dt.video,operation=k)
-            app.send_task(k,args=[next_task.pk,],queue=settings.TASK_NAMES_TO_QUEUE[k])
+            next_task = TEvent.objects.create(video=dt.video,operation=k['task_name'],arguments_json=json.dumps(k['arguments']))
+            app.send_task(k,args=[next_task.pk,],queue=settings.TASK_NAMES_TO_QUEUE[k['task_name']])
 
 
 class IndexerTask(celery.Task):
@@ -118,12 +118,10 @@ def inception_index_regions_by_id(task_id):
     video_id = start.video_id
     dv = Video.objects.get(id=video_id)
     arguments = json.loads(start.arguments_json)
-    if arguments == {}:
-        arguments = {'region_type':Region.DETECTION,'video_id':dv.pk,'object_name__startswith':'SSD_', 'w__gte':50,'h__gte':50}
-        start.arguments_json = json.dumps(arguments)
     start.save()
     start_time = time.time()
     video = entity.WVideo(dv, settings.MEDIA_ROOT)
+    arguments['video_id']=dv.pk
     detections = Region.objects.all().filter(**arguments)
     logging.info("Indexing {} Regions".format(detections.count()))
     visual_index = inception_index_regions_by_id.visual_indexer['inception']

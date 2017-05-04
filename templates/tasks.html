@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 {% load static from staticfiles %}
 {% block page_css %}
-  <script type="text/javascript" src={% static 'vis.js' %}></script>
-  <link href={% static 'vis-network.min.css' %} rel="stylesheet" type="text/css" />
-
-  <style type="text/css">
-    #mynetwork {
-      width: 100%;
-      height: 200px;
-      border: 1px solid lightgray;
-    }
-  </style>
+{#  <script type="text/javascript" src={% static 'vis.js' %}></script>#}
+{#  <link href={% static 'vis-network.min.css' %} rel="stylesheet" type="text/css" />#}
+{##}
+{#  <style type="text/css">#}
+{#    #mynetwork {#}
+{#      width: 100%;#}
+{#      height: 200px;#}
+{#      border: 1px solid lightgray;#}
+{#    }#}
+{#  </style>#}
 {% endblock %}
 
 
@@ -62,7 +62,7 @@
         <div class="box box-primary">
             <div class="box-body">
             <div class="row">
-                <div class="col-md-3 col-lg-2 col-sm-6">
+                <div class="col-md-3 col-lg-2 col-sm-12">
                 <table class="table">
                     <thead><tr><th>Queue</th></tr></thead>
                     <tbody>
@@ -72,20 +72,7 @@
                     </tbody>
                 </table>
                 </div>
-                <div class="col-md-9 col-lg-10 col-sm-6">
-                    <h3 class="text-center">Task network visualization</h3>
-                    <div id="mynetwork"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-    </div>
-</div>
-<div class="row">
-    <div class="col-lg-12">
-        <div class="box box-primary">
-            <div class="box-header with-border">Tasks</div>
-            <div class="box-body">
+                <div class="col-md-9 col-lg-10 col-sm-12">
                 <table class="table dataTables">
                     <thead><tr>
                         <th>Name</th>
@@ -103,8 +90,10 @@
                         </tr>
                     {% endfor %}</tbody>
                 </table>
+                </div>
             </div>
         </div>
+    </div>
     </div>
 </div>
 <div class="row">
@@ -228,16 +217,6 @@
         var video_name = $("#video_name");
         video_name.select2({theme: "bootstrap"});
         InitializeTables();
-        var nodes = JSON.parse('{{ nodes|safe }}');
-        var edges = JSON.parse('{{ edges|safe }}');
-  // create a network
-  var container = document.getElementById('mynetwork');
-  var data = {
-    nodes: nodes,
-    edges: edges
-  };
-  var options = {};
-  var network = new vis.Network(container, data, options);
     })
 </script>
 {% endblock %}

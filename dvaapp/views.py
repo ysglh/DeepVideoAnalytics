@@ -663,36 +663,6 @@ def render_tasks(request,context):
                           'edges':settings.POST_OPERATION_TASKS[k] if k in settings.POST_OPERATION_TASKS else []
                           })
     context['task_list'] = task_list
-    """
-      // create an array with nodes
-      var nodes = [
-        {id: 1, label: 'Node 1'},
-        {id: 2, label: 'Node 2'},
-        {id: 3, label: 'Node 3:\nLeft-Aligned', font: {'face': 'Monospace', align: 'left'}},
-        {id: 4, label: 'Node 4'},
-        {id: 5, label: 'Node 5\nLeft-Aligned box', shape: 'box',
-         font: {'face': 'Monospace', align: 'left'}}
-      ];
-
-      // create an array with edges
-      var edges = [
-        {from: 1, to: 2, label: 'middle',     font: {align: 'middle'}},
-        {from: 1, to: 3, label: 'top',        font: {align: 'top'}},
-        {from: 2, to: 4, label: 'horizontal', font: {align: 'horizontal'}},
-        {from: 2, to: 5, label: 'bottom',     font: {align: 'bottom'}}
-      ];
-    """
-    taskid = {}
-    nodes = []
-    edges = []
-    for i,k in enumerate(settings.TASK_NAMES_TO_TYPE.iteritems()):
-        nodes.append({'id':i,'label':"{} type {}".format(k[0],k[1])})
-        taskid[k[0]] = i
-    for initial,subs in settings.POST_OPERATION_TASKS.iteritems():
-        for v in subs:
-            edges.append({"from":taskid[initial],'to':taskid[v],'label':settings.TASK_NAMES_TO_QUEUE[v],'arrows':'to'})
-    context["nodes"] = json.dumps(nodes)
-    context["edges"] = json.dumps(edges)
     context["videos"] = Video.objects.all().filter(parent_query__count__isnull=True)
     context['manual_tasks'] = settings.MANUAL_VIDEO_TASKS
     return render(request, 'tasks.html', context)

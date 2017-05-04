@@ -778,7 +778,7 @@ def generate_visual_genome(fast=False):
     if not fast:
         inception_index_by_id(TEvent.objects.create(video=v).pk)
         perform_ssd_detection_by_id(TEvent.objects.create(video=v).pk)
-        default_args = {'region_type':'D','object_name__startswith':'SSD_', 'w__gte':50,'h__gte':50}
+        default_args = {'region_type':'A','w__gte':50,'h__gte':50}
         inception_index_regions_by_id(TEvent.objects.create(video=v,arguments_json=json.dumps(default_args)).pk)
     export_video_by_id(TEvent.objects.create(video=v).pk)
 

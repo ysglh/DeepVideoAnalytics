@@ -52,3 +52,5 @@ mydatabase
 shared/*.zip
 /dvalib/data/2016_08/model.ckpt
 /dvalib/data/2016_08/model.ckpt.meta
+/shared/visual_genome_objects.ipynb
+/shared/visual_genome_objects.txt.gz

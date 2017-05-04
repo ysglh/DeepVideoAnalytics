@@ -73,7 +73,7 @@
                     </div>
                     <div class="col-sm-12"><div class="form-group">
                             <label for="region_type">Region types</label>
-                            <select class="js-example-basic" class="js-example-basic-multiple" multiple="multiple" id="region_type" class="form-control" name="region_type" style="width:100%">
+                            <select class="js-example-basic" class="js-example-basic-multiple" multiple="multiple" id="region_type" class="form-control" name="region_type__in" style="width:100%">
                             {% for k,v in region_types %}
                                 <option value="{{ k }}" selected="selected" >{{ v }}</option>
                             {% endfor %}

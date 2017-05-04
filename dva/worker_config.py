@@ -69,8 +69,14 @@ MANUAL_VIDEO_TASKS = ['inception_index_by_id',
 
 
 POST_OPERATION_TASKS = {
-    "extract_frames_by_id":['perform_ssd_detection_by_id','inception_index_by_id','perform_face_detection_indexing_by_id'],
-    'perform_ssd_detection_by_id':['inception_index_regions_by_id',]
+    "extract_frames_by_id":[
+        {'task_name':'perform_ssd_detection_by_id','arguments':{}},
+        {'task_name':'inception_index_by_id','arguments':{}},
+        {'task_name':'perform_face_detection_indexing_by_id','arguments':{}},
+    ],
+    'perform_ssd_detection_by_id':[
+        {'task_name':'inception_index_regions_by_id','arguments':{'region_type':'D','object_name__startswith':'SSD_', 'w__gte':50,'h__gte':50}},
+    ]
 }
 
 VISUAL_INDEXES = {
@@ -94,7 +100,9 @@ VISUAL_INDEXES = {
 
 
 if 'ALEX_ENABLE' in os.environ:
-    POST_OPERATION_TASKS['extract_frames_by_id'].append('alexnet_index_by_id')
+    POST_OPERATION_TASKS['extract_frames_by_id'].append(
+        {'task_name':'alexnet_index_by_id','arguments':{}}
+    )
     VISUAL_INDEXES['alexnet'] = {
          'indexer_task': "alexnet_index_by_id",
          'indexer_queue': Q_INDEXER,
@@ -104,4 +112,6 @@ if 'ALEX_ENABLE' in os.environ:
 
 
 if 'YOLO_ENABLE' in os.environ:
-    POST_OPERATION_TASKS['extract_frames_by_id'].append('perform_yolo_detection_by_id')
+    POST_OPERATION_TASKS['extract_frames_by_id'].append(
+        {'task_name': 'perform_yolo_detection_by_id', 'arguments': {}}
+    )

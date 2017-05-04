@@ -193,6 +193,7 @@ def index(request,query_pk=None,frame_pk=None,detection_pk=None):
     context['task_events_count'] = TEvent.objects.count()
     context['pending_tasks'] = TEvent.objects.all().filter(started=False).count()
     context['running_tasks'] = TEvent.objects.all().filter(started=True,completed=False).count()
+    context['successful_tasks'] = TEvent.objects.all().filter(started=True,completed=True).count()
     context['video_count'] = Video.objects.count() - context['query_count']
     context['index_entries'] = IndexEntries.objects.all()
     context['detection_count'] = Region.objects.all().filter(region_type=Region.DETECTION).count()

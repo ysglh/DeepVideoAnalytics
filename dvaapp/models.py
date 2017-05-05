@@ -202,7 +202,7 @@ class TEvent(models.Model):
     requester_pays = models.BooleanField(default=False)
     clustering = models.ForeignKey(Clusters,null=True)
     arguments_json = models.TextField(default="{}")
-
+    task_id = models.TextField(null=True)
 
 class IndexEntries(models.Model):
     video = models.ForeignKey(Video)

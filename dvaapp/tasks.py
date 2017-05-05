@@ -84,6 +84,7 @@ class IndexerTask(celery.Task):
 @app.task(name="inception_index_by_id",base=IndexerTask)
 def inception_index_by_id(task_id):
     start = TEvent.objects.get(pk=task_id)
+    start.task_id = inception_index_by_id.request.id
     start.started = True
     start.operation = inception_index_by_id.name
     start.save()
@@ -113,6 +114,7 @@ def inception_index_by_id(task_id):
 @app.task(name="inception_index_regions_by_id",base=IndexerTask)
 def inception_index_regions_by_id(task_id):
     start = TEvent.objects.get(pk=task_id)
+    start.task_id = inception_index_regions_by_id.request.id
     start.started = True
     start.operation = inception_index_regions_by_id.name
     video_id = start.video_id
@@ -146,6 +148,7 @@ def inception_index_regions_by_id(task_id):
 @app.task(name="alexnet_index_by_id",base=IndexerTask)
 def alexnet_index_by_id(task_id):
     start = TEvent.objects.get(pk=task_id)
+    start.task_id = alexnet_index_by_id.request.id
     start.started = True
     start.operation = alexnet_index_by_id.name
     start.save()
@@ -206,6 +209,7 @@ def query_approximate(q,n,visual_index,clusterer):
 def inception_query_by_image(query_id):
     dq = Query.objects.get(id=query_id)
     start = TEvent()
+    start.task_id = inception_query_by_image.request.id
     start.video_id = Video.objects.get(parent_query=dq).pk
     start.started = True
     start.operation = inception_query_by_image.name
@@ -249,6 +253,7 @@ def inception_query_by_image(query_id):
 def alexnet_query_by_image(query_id):
     dq = Query.objects.get(id=query_id)
     start = TEvent()
+    start.task_id = alexnet_query_by_image.request.id
     start.video_id = Video.objects.get(parent_query=dq).pk
     start.started = True
     start.operation = alexnet_query_by_image.name
@@ -281,6 +286,7 @@ def alexnet_query_by_image(query_id):
 def facenet_query_by_image(query_id):
     dq = Query.objects.get(id=query_id)
     start = TEvent()
+    start.task_id = facenet_query_by_image.request.id
     start.video_id = Video.objects.get(parent_query=dq).pk
     start.started = True
     start.operation = facenet_query_by_image.name
@@ -343,6 +349,7 @@ def set_directory_labels(frames,dv):
 @app.task(name="extract_frames_by_id")
 def extract_frames(task_id):
     start = TEvent.objects.get(pk=task_id)
+    start.task_id = extract_frames.request.id
     start.started = True
     start.operation = extract_frames.name
     args = json.loads(start.arguments_json)
@@ -404,6 +411,7 @@ def extract_frames(task_id):
 @app.task(name="perform_yolo_detection_by_id")
 def perform_yolo_detection_by_id(task_id):
     start = TEvent.objects.get(pk=task_id)
+    start.task_id = perform_yolo_detection_by_id.request.id
     start.started = True
     start.operation = perform_yolo_detection_by_id.name
     start.save()
@@ -427,6 +435,7 @@ def perform_yolo_detection_by_id(task_id):
 @app.task(name="assign_open_images_text_tags_by_id")
 def assign_open_images_text_tags_by_id(task_id):
     start = TEvent.objects.get(pk=task_id)
+    start.task_id = assign_open_images_text_tags_by_id.request.id
     start.started = True
     start.operation = assign_open_images_text_tags_by_id.name
     start.save()
@@ -450,6 +459,7 @@ def assign_open_images_text_tags_by_id(task_id):
 @app.task(name="perform_ssd_detection_by_id")
 def perform_ssd_detection_by_id(task_id):
     start = TEvent.objects.get(pk=task_id)
+    start.task_id = perform_ssd_detection_by_id.request.id
     start.started = True
     start.operation = perform_ssd_detection_by_id.name
     start.save()
@@ -473,6 +483,7 @@ def perform_ssd_detection_by_id(task_id):
 @app.task(name="perform_face_detection_indexing_by_id")
 def perform_face_detection_indexing_by_id(task_id):
     start = TEvent.objects.get(pk=task_id)
+    start.task_id = perform_face_detection_indexing_by_id.request.id
     start.started = True
     start.operation = perform_face_detection_indexing_by_id.name
     start.save()
@@ -547,6 +558,7 @@ def perform_face_indexing(video_id):
 @app.task(name="export_video_by_id")
 def export_video_by_id(task_id):
     start = TEvent.objects.get(pk=task_id)
+    start.task_id = export_video_by_id.request.id
     start.started = True
     start.operation = export_video_by_id.name
     start.save()
@@ -584,6 +596,7 @@ def export_video_by_id(task_id):
 @app.task(name="import_video_by_id")
 def import_video_by_id(task_id):
     start = TEvent.objects.get(pk=task_id)
+    start.task_id = import_video_by_id.request.id
     start.started = True
     start.operation = import_video_by_id.name
     start.save()
@@ -673,6 +686,7 @@ def perform_export(s3_export):
 def backup_video_to_s3(s3_export_id):
     start = TEvent.objects.get(pk=s3_export_id)
     start.started = True
+    start.task_id = backup_video_to_s3.request.id
     start.operation = backup_video_to_s3.name
     start.save()
     start_time = time.time()
@@ -689,6 +703,7 @@ def backup_video_to_s3(s3_export_id):
 @app.task(name="push_video_to_vdn_s3")
 def push_video_to_vdn_s3(s3_export_id):
     start = TEvent.objects.get(pk=s3_export_id)
+    start.task_id = push_video_to_vdn_s3.request.id
     start.started = True
     start.operation = push_video_to_vdn_s3.name
     start.save()
@@ -730,6 +745,7 @@ def download_dir(client, resource, dist, local, bucket):
 def import_video_from_s3(s3_import_id):
     start = TEvent.objects.get(pk=s3_import_id)
     start.started = True
+    start.task_id = import_video_from_s3.request.id
     start.operation = import_video_from_s3.name
     start.save()
     start_time = time.time()
@@ -766,6 +782,7 @@ def import_video_from_s3(s3_import_id):
 @app.task(name="perform_clustering")
 def perform_clustering(cluster_task_id,test=False):
     start = TEvent.objects.get(pk=cluster_task_id)
+    start.task_id = perform_clustering.request.id
     start.started = True
     start.operation = perform_clustering.name
     start.save()

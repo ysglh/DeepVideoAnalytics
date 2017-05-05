@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView,DetailView
 from django.utils.decorators import method_decorator
 from .forms import UploadFileForm,YTVideoForm,AnnotationForm
-from .models import Video,Frame,Query,QueryResults,TEvent,IndexEntries,VDNDataset, Region, VLabel, VDNServer, ClusterCodes, Clusters
+from .models import Video,Frame,Query,QueryResults,TEvent,IndexEntries,VDNDataset, Region, VDNServer, ClusterCodes, Clusters, AppliedLabel
 from .tasks import extract_frames
 from dva.celery import app
 import serializers
@@ -71,9 +71,9 @@ class IndexEntriesViewSet(viewsets.ReadOnlyModelViewSet):
     filter_fields = ('video','algorithm','detection_name')
 
 
-class VLabelViewSet(viewsets.ModelViewSet):
+class AppliedLabelViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)
-    queryset = VLabel.objects.all()
+    queryset = AppliedLabel.objects.all()
     serializer_class = serializers.VLabelSerializer
 
 
@@ -256,9 +256,9 @@ def annotate_entire_frame(request,frame_pk):
             annotation.full_frame = True
             annotation.metadata_text = request.POST.get('metadata_text')
             annotation.metadata_json = request.POST.get('metadata_json')
-            annotation.label = label_name
-            if label_name in label_dict:
-                annotation.label_parent_id = label_dict[label_name]
+            # annotation.label = label_name
+            # if label_name in label_dict:
+            #     annotation.label_parent_id = label_dict[label_name]
             annotation.frame = frame
             annotation.video = frame.video
             annotation.save()
@@ -281,9 +281,9 @@ def create_annotation(form,label_name,label_dict,frame):
         annotation.w = form.cleaned_data['w']
     annotation.metadata_text = form.cleaned_data['metadata_text']
     annotation.metadata_json = form.cleaned_data['metadata_json']
-    annotation.label = label_name
-    if label_name in label_dict:
-        annotation.label_parent_id = label_dict[label_name]
+    # annotation.label = label_name
+    # if label_name in label_dict:
+    #     annotation.label_parent_id = label_dict[label_name]
     annotation.frame = frame
     annotation.video = frame.video
     annotation.save()
@@ -434,15 +434,9 @@ class VideoDetail(DetailView):
             context['exportable_annotation_count'] = Region.objects.all().filter(video=self.object,vdn_dataset__isnull=True,region_type=Region.ANNOTATION).count()
         else:
             context['exportable_annotation_count'] = 0
-        context['label_count'] = VLabel.objects.all().filter(video=self.object).count()
         context['url'] = '{}/{}/video/{}.mp4'.format(settings.MEDIA_URL,self.object.pk,self.object.pk)
         label_list = []
         show_all = self.request.GET.get('show_all_labels', False)
-        if context['label_count'] < 100 or show_all:
-            for k in VLabel.objects.all().filter(video=context['object']):
-                label_list.append({'label_name': k.label_name,'created': k.created,'pk': k.pk,'source': k.get_source_display(),'count':Region.objects.filter(label_parent=k).count()})
-        else:
-            context['label_count_warning'] = True
         context['label_list'] = label_list
         delta = 10000
         if context['object'].dataset:
@@ -715,26 +709,6 @@ def indexes(request):
     return render(request, 'indexes.html', context)
 
 
-def annotations(request):
-    query = Region.objects.all().filter(region_type=Region.ANNOTATION).values('label_parent_id').annotate(
-        total=Count('pk'),
-        frame_count=Count('frame',distinct=True),
-        video_count=Count('video',distinct=True)).order_by('total')
-    query_result = []
-    for k in query:
-        label = VLabel.objects.get(pk=k['label_parent_id'])
-        query_result.append({'label_name':label.label_name,
-                             'created': label.created,
-                             'hidden': label.hidden,
-                             'pk': label.pk,
-                             'vdn_dataset': label.vdn_dataset,
-                             'source':label.get_source_display(),
-                             'total':k['total'],
-                             'frame_count': k['frame_count'],
-                             'video_count':k['video_count']})
-    context = {'vlabels':VLabel.objects.all(),'label_stats':query_result,
-               'annotations_count':Region.objects.all().filter(region_type=Region.ANNOTATION).count(),'labels_count':VLabel.objects.all().count(),}
-    return render(request, 'annotations.html', context)
 
 
 def detections(request):
@@ -869,34 +843,6 @@ def video_send_task(request):
     return redirect('video_list')
 
 
-def create_label(request):
-    if request.method == 'POST':
-        video_id = request.POST.get('video_pk')
-        name = request.POST.get('name')
-        multiple = request.POST.get('video_pk')
-        video = Video.objects.get(pk=video_id)
-        if multiple:
-            for k in name.strip().split(','):
-                label, created = VLabel.objects.get_or_create(label_name=k, source=VLabel.UI, video=video)
-        else:
-            label,created = VLabel.objects.get_or_create(label_name=name,source=VLabel.UI,video=video)
-    else:
-        raise NotImplementedError
-    return redirect('video_detail',pk=video_id)
-
-
-def delete_label(request):
-    if request.method == 'POST':
-        for key in request.POST:
-            if key.startswith('delete_label_pk_') and request.POST[key]:
-                label = VLabel.objects.get(pk=int(key.split('_')[-1]))
-                Region.objects.filter(label_parent=label,region_type=Region.ANNOTATION).delete()
-                label.delete()
-        video_id = request.POST.get('video_pk')
-        video = Video.objects.get(pk=video_id)
-    else:
-        raise NotImplementedError
-    return redirect('video_detail',pk=video_id)
 
 
 def external(request):

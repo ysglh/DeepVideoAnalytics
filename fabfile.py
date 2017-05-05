@@ -565,7 +565,7 @@ def assign_tags(video_id):
         a.region_type = Region.ANNOTATION
         a.frame_id = k
         a.video_id = video_id
-        a.label = "OpenImagesTag"
+        a.object_name = "OpenImagesTag"
         a.metadata_text = " ".join([t for t,v in tags.iteritems() if v > 0.1])
         a.metadata_json = json.dumps({t:100.0*v for t,v in tags.iteritems() if v > 0.1})
         a.full_frame = True
@@ -773,7 +773,6 @@ def generate_visual_genome(fast=False):
             annotation.object_name = o['object_name']
             annotation.metadata_json = json.dumps(o)
             annotation.metadata_text = o['metadata_text']
-            annotation.label = '{}'.format(o['object_name'])
             annotation.save()
     if not fast:
         inception_index_by_id(TEvent.objects.create(video=v).pk)
@@ -869,7 +868,7 @@ def generate_vdn(fast=False):
         annotation.frame = frame
         annotation.full_frame = True
         annotation.metadata_json = json.dumps(data[frame_id]['image'])
-        annotation.label = 'metadata'
+        annotation.object_name = 'metadata'
         annotation.save()
     for frame in models.Frame.objects.all().filter(video=video):
         frame_id = str(int(frame.name.split('_')[-1].split('.')[0]))
@@ -884,10 +883,7 @@ def generate_vdn(fast=False):
             annotation.y = a['bbox'][1]
             annotation.w = a['bbox'][2]
             annotation.h = a['bbox'][3]
-            label, _ = models.VLabel.objects.get_or_create(video=video, label_name='coco_instance/{}/{}'.format(
-                a[u'category'][u'supercategory'], a[u'category'][u'name']))
-            annotation.label = label.label_name
-            annotation.label_parent = label
+            annotation.object_name = 'coco_instance/{}/{}'.format(a[u'category'][u'supercategory'], a[u'category'][u'name'])
             annotation.save()
         for a in data[frame_id][u'keypoints']:
             annotation = models.Region()
@@ -899,10 +895,7 @@ def generate_vdn(fast=False):
             annotation.y = a['bbox'][1]
             annotation.w = a['bbox'][2]
             annotation.h = a['bbox'][3]
-            label, _ = models.VLabel.objects.get_or_create(video=video, label_name='coco_keypoints/{}/{}'.format(
-                a[u'category'][u'supercategory'], a[u'category'][u'name']))
-            annotation.label = label.label_name
-            annotation.label_parent = label
+            annotation.object_name = 'coco_keypoints/{}/{}'.format(a[u'category'][u'supercategory'], a[u'category'][u'name'])
             annotation.save()
         for caption in data[frame_id][u'captions']:
             annotation = models.Region()
@@ -911,9 +904,7 @@ def generate_vdn(fast=False):
             annotation.frame = frame
             annotation.metadata_text = caption['caption']
             annotation.full_frame = True
-            label, _ = models.VLabel.objects.get_or_create(video=video, label_name='coco_caption')
-            annotation.label = label.label_name
-            annotation.label_parent = label
+            annotation.object_name = 'caption'
             annotation.save()
     if not fast:
         inception_index_by_id(TEvent.objects.create(video=v).pk)

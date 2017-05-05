@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import subprocess,sys,shutil,os,glob,time,logging
 from django.conf import settings
 from dva.celery import app
-from .models import Video, Frame, TEvent, Query, IndexEntries,QueryResults, VLabel, VDNDataset, Clusters, ClusterCodes, Region, Scene
+from .models import Video, Frame, TEvent, Query, IndexEntries,QueryResults, AppliedLabel, VDNDataset, Clusters, ClusterCodes, Region, Scene
 from dvalib import entity
 from dvalib import detector
 from dvalib import indexer
@@ -333,16 +333,12 @@ def set_directory_labels(frames,dv):
                 if l.strip():
                     labels_to_frame[l].add(f.primary_key)
     for l in labels_to_frame:
-        label_object, created = VLabel.objects.get_or_create(label_name=l,source=VLabel.DIRECTORY,video=dv)
-        _, created = VLabel.objects.get_or_create(label_name=l, source=VLabel.UI,video=dv)
         for fpk in labels_to_frame[l]:
-            a = Region()
-            a.region_type = Region.ANNOTATION
-            a.full_frame = True
+            a = AppliedLabel()
             a.video = dv
             a.frame_id = fpk
-            a.label_parent = label_object
-            a.label = l
+            a.source = AppliedLabel.DIRECTORY
+            a.label_name = l
             a.save()
 
 

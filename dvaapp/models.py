@@ -79,19 +79,6 @@ class Frame(models.Model):
         return u'{}:{}'.format(self.video_id, self.frame_index)
 
 
-class VLabel(models.Model):
-    UI = 'UI'
-    DIRECTORY = 'DR'
-    ALGO = 'AG'
-    VDN = "VD"
-    SOURCE_CHOICES = ((UI, 'User Interface'),(DIRECTORY, 'Directory Name'),(ALGO, 'Algorithm'),(VDN,"Visual Data Network"))
-    label_name = models.CharField(max_length=200)
-    source = models.CharField(max_length=2,choices=SOURCE_CHOICES,default=UI,)
-    created = models.DateTimeField('date created', auto_now_add=True)
-    vdn_dataset = models.ForeignKey(VDNDataset,null=True)
-    video = models.ForeignKey(Video)
-    class Meta:
-        unique_together = ('source', 'label_name','video')
 
 
 class Region(models.Model):
@@ -112,8 +99,6 @@ class Region(models.Model):
     parent_frame_index = models.IntegerField(default=-1)
     metadata_text = models.TextField(default="")
     metadata_json = models.TextField(default="")
-    label_parent = models.ForeignKey(VLabel, null=True)
-    label = models.TextField(default="")
     full_frame = models.BooleanField(default=False)
     x = models.IntegerField(default=0)
     y = models.IntegerField(default=0)
@@ -256,6 +241,20 @@ class Scene(models.Model):
     end_frame = models.ForeignKey(Frame,null=True,related_name="end_frame")
     metadata_text = models.TextField(default="")
     metadata_json = models.TextField(default="")
-    label_parent = models.ForeignKey(VLabel, null=True)
-    label = models.TextField(default="")
     source = models.ForeignKey(TEvent,null=True)
+
+
+class AppliedLabel(models.Model):
+    UI = 'UI'
+    DIRECTORY = 'DR'
+    ALGO = 'AG'
+    VDN = "VD"
+    SOURCE_CHOICES = (
+    (UI, 'User Interface'), (DIRECTORY, 'Directory Name'), (ALGO, 'Algorithm'), (VDN, "Visual Data Network"))
+    video = models.ForeignKey(Video)
+    scene = models.ForeignKey(Scene,null=True)
+    frame = models.ForeignKey(Frame,null=True)
+    region = models.ForeignKey(Region,null=True)
+    label_name = models.CharField(max_length=200)
+    source = models.CharField(max_length=2, choices=SOURCE_CHOICES, default=UI)
+    created = models.DateTimeField('date created', auto_now_add=True)

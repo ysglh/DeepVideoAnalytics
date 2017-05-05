@@ -1,9 +1,9 @@
 from django.contrib import admin
-from .models import Video,Frame,TEvent,IndexEntries,QueryResults,Query,VLabel,VDNServer,VDNDataset, ClusterCodes, Clusters, Region, Scene
+from .models import Video,Frame,TEvent,IndexEntries,QueryResults,Query,AppliedLabel,VDNServer,VDNDataset, ClusterCodes, Clusters, Region, Scene
 
 
-@admin.register(VLabel)
-class AnnotationTagAdmin(admin.ModelAdmin):
+@admin.register(AppliedLabel)
+class AppliedLabelAdmin(admin.ModelAdmin):
     pass
 
 

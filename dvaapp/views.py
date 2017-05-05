@@ -258,7 +258,7 @@ def annotate_entire_frame(request,frame_pk):
         for label_name in request.POST.get('tags').split(','):
             dl = AppliedLabel()
             dl.video = frame.video
-            dl.frame = dl.frame
+            dl.frame = frame
             dl.label_name = label_name
             if annotation:
                 dl.region = annotation

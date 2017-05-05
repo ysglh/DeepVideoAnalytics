@@ -244,6 +244,7 @@ def annotate_entire_frame(request,frame_pk):
                 or request.POST.get('metadata_json').strip() \
                 or request.POST.get('object_name',None):
             annotation = Region()
+            annotation.region_type = Region.ANNOTATION
             annotation.x = 0
             annotation.y = 0
             annotation.h = 0
@@ -256,14 +257,15 @@ def annotate_entire_frame(request,frame_pk):
             annotation.video = frame.video
             annotation.save()
         for label_name in request.POST.get('tags').split(','):
-            dl = AppliedLabel()
-            dl.video = frame.video
-            dl.frame = frame
-            dl.label_name = label_name
-            if annotation:
-                dl.region = annotation
-            dl.source = dl.UI
-            dl.save()
+            if label_name.strip():
+                dl = AppliedLabel()
+                dl.video = frame.video
+                dl.frame = frame
+                dl.label_name = label_name
+                if annotation:
+                    dl.region = annotation
+                dl.source = dl.UI
+                dl.save()
     return redirect("frame_detail",pk=frame.pk)
 
 
@@ -286,15 +288,17 @@ def create_annotation(form,object_name,labels,frame):
     annotation.metadata_json = form.cleaned_data['metadata_json']
     annotation.frame = frame
     annotation.video = frame.video
+    annotation.region_type = Region.ANNOTATION
     annotation.save()
     for l in labels:
-        dl = AppliedLabel()
-        dl.video = annotation.video
-        dl.frame = annotation.frame
-        dl.region = annotation
-        dl.label_name = l
-        dl.source = dl.UI
-        dl.save()
+        if l.strip():
+            dl = AppliedLabel()
+            dl.video = annotation.video
+            dl.frame = annotation.frame
+            dl.region = annotation
+            dl.label_name = l
+            dl.source = dl.UI
+            dl.save()
 
 
 def yt(request):

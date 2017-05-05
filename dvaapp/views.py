@@ -202,6 +202,21 @@ def index(request,query_pk=None,frame_pk=None,detection_pk=None):
     return render(request, 'dashboard.html', context)
 
 
+def assign_video_labels(request):
+    if request.method == 'POST':
+        video = Video.objects.get(pk=request.POST.get('video_pk'))
+        for k in request.POST.get('labels').split(','):
+            if k.strip():
+                dl = AppliedLabel()
+                dl.video = video
+                dl.label_name = k.strip()
+                dl.source = dl.UI
+                dl.save()
+        return redirect('video_detail',pk=video.pk)
+    else:
+        raise NotImplementedError
+
+
 def annotate(request,frame_pk):
     context = {'frame':None, 'detection':None ,'existing':[]}
     frame = None
@@ -261,7 +276,7 @@ def annotate_entire_frame(request,frame_pk):
                 dl = AppliedLabel()
                 dl.video = frame.video
                 dl.frame = frame
-                dl.label_name = label_name
+                dl.label_name = label_name.strip()
                 if annotation:
                     dl.region = annotation
                 dl.source = dl.UI
@@ -296,7 +311,7 @@ def create_annotation(form,object_name,labels,frame):
             dl.video = annotation.video
             dl.frame = annotation.frame
             dl.region = annotation
-            dl.label_name = l
+            dl.label_name = l.strip()
             dl.source = dl.UI
             dl.save()
 

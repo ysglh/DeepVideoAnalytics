@@ -172,6 +172,7 @@ def transform_index_entries(di,detection_to_pk,frame_to_pk,video_id,video_root_d
     with open('{}/indexes/{}'.format(video_root_dir, di.entries_file_name),'w') as output:
         json.dump(transformed,output)
 
+
 def import_legacy_detection(d,video_obj,frame,vdn_dataset=None):
     dd = Region()
     dd.region_type = Region.DETECTION

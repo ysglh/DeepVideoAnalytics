@@ -249,14 +249,12 @@
     <div class="col-lg-6">
         <div class="box box-primary">
         <div class="box-body with-border">
-            <h4>Create new annotation labels</h4>
-            <form role="form"  method="post" action="/create_labels" >
+            <h4>Assign label to entire video</h4>
+            <form role="form"  method="post" action="/assign_video_labels" >
                     <div class="form-group">
-                        <input id="label_name" style="margin:10px auto" name="name" class="form-control" type="text-area" rows="3" width="80%" required="" placeholder="provide a single label name, or a comma separated list of multiple labels and check box below">
+                        <input id="labels" style="margin:10px auto" name="labels" class="form-control" type="text-area" rows="3" width="80%" required="" placeholder="provide a single label name, or a comma separated list">
                     </div>
-                        <label for="multiple">Multiple labels:</label>
-                        <input id="multiple" name="multiple" type="checkbox">
-                        <input id="label_name" name="video_pk" class="form-control" type="hidden" value="{{ object.pk }}">
+                        <input name="video_pk" class="form-control" type="hidden" value="{{ object.pk }}">
                     <div class="form-group">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-primary pull-right">submit</button>
@@ -264,50 +262,6 @@
             </form>
         </div>
         </div>
-        {% if label_count_warning %}
-            <div class="box">
-            <div class="box-body">
-            <h4 class="text-center"><a class="btn btn-warning" href="?show_all_labels=1"> There are {{ label_count }} labels, click here to reload and view all</a></h4>
-            </div></div>
-        {% else %}
-            <form role="form"  method="post" action="/delete_labels" >
-            <div class="box">
-            <div class="box-body">
-                <h3>Labels</h3>
-                    <input id="label_name" name="video_pk" class="form-control" type="hidden" value="{{ object.pk }}">
-                    <table class="table dataTables">
-                    <thead><tr>
-                        <th class="text-center">label name</th>
-                        <th class="text-center">source</th>
-                        <th class="text-center">annotations</th>
-                        <th class="text-center">VDN</th>
-                        <th class="text-center">created</th>
-                        <th class="text-center">Delete</th>
-                    </tr></thead>
-                    <tbody>
-                        {% for k in label_list %}
-                        <tr>
-                        <td>{{ k.label_name }}</td>
-                        <td>{{ k.source }}</td>
-                        <td class="text-center">{{ k.count }}</td>
-                        <td class="text-center">{% if k.vdn_dataset %}<a href="/external_dataset/{{ k.vdn_dataset.pk }}">VDN source</a>{%  endif %}</td>
-                        <td>{{ k.created }}</td>
-                        <td class="text-center"><input type="checkbox" name="delete_label_pk_{{ k.pk }}" /></td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                    </table>
-
-            </div>
-            <div class="box-footer">
-                    <div class="form-group">
-                    {% csrf_token %}
-                        <button type="submit" class="btn btn-danger pull-right"><i class="fa fa-trash"></i> Delete selected labels, and associated annotations</button>
-                    </div>
-            </div>
-        </div>
-        </form>
-        {% endif %}
     </div>
     <div class="col-lg-6">
             <div class="box">

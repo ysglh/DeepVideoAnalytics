@@ -31,7 +31,7 @@ urlpatterns = [
     url(r'^import_dataset', views.import_dataset, name='import_dataset'),
     url(r'^import_s3', views.import_s3, name='import_s3'),
     url(r'^video_send_task', views.video_send_task, name='video_send_task'),
-    # url(r'^create_labels', views.create_label, name='create_labels'),
+    url(r'^assign_video_labels', views.assign_video_labels, name='assign_video_labels'),
     # url(r'^delete_labels', views.delete_label, name='delete_labels'),
     url(r'^videos/$', views.VideoList.as_view(),name="video_list"),
     url(r'^queries/$', views.QueryList.as_view()),

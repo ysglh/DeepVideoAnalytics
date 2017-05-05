@@ -527,7 +527,8 @@ $scope.submit_annotation = function(box_id){
             'w': box.width * box.scaleX,
             'x': box.left,
             'high_level':false,
-            'tags': JSON.stringify($('#' + box.id + '_tags').val()),
+            'tags': $('#' + box.id + '_tags').val(),
+            'object_name': $('#' + box.id + '_object_name').val(),
             'metadata_text': $('#' + box.id + '_metadata_text').val(),
             'metadata_json': $('#' + box.id + '_metadata_json').val()
         },

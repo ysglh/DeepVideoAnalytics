@@ -37,12 +37,10 @@
                     <textarea class="form-control" rows="2" placeholder="metadata_json" name="metadata_json"></textarea>
                 </div></div>
                 <div class="col-sm-12">
-                    <label style="font-weight:bold">Assign tags/labels (Define new tags <a href="/videos/{{ frame.video.pk }}">here</a>) :</label>
-                    <select class="js-example-basic-multiple" multiple="multiple" name="tags" id="tags" style="width:100%">
-                    {% for tag in available_tags %}
-                        <option value="{{ tag }}">{{ tag }}</option>
-                    {% endfor %}
-                    </select>
+                    <label style="font-weight:bold">Name</label>
+                    <input type="text" class="form-control" placeholder="optional otherwise frame_metadata is used" name="object_name" id="object_name" />
+                    <label style="font-weight:bold">Assign tags/labels</label>
+                    <textarea class="form-control" name="tags" id="tags" rows="2" placeholder="you can seperate multiple labels using a comma" style="width:100%"></textarea>
                 </div>
                 <div class="col-sm-4 col-sm-offset-4" style="margin-top:15px">
                     <div class="form-group">
@@ -240,8 +238,6 @@
     };
     $(document).ready(function() {
         InitializeTables();
-        var selecttags = $("#tags");
-        selecttags.select2({theme: "bootstrap",'multiple':true});
     })
 </script>
 {% endblock %}

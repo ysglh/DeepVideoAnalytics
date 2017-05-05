@@ -307,7 +307,6 @@ $scope.add_bounding_box = function (){
     $scope.boxes.push(rect);
     canvas.add(rect);
     $scope.$apply();
-    $('#'+current_id+'_tags').select2({theme: "bootstrap"});
 };
 
 

@@ -65,13 +65,9 @@
                             </div>
                         </div>
                         <div class="col-xs-5">
-                            <div class="form-group" style="margin-top:8px">
-                                <label style="font-weight:bold">Assign tags/labels (Define new tags <a href="/videos/{{ frame.video.pk }}">here</a>) :</label>
-                                <select class="js-example-basic-multiple" multiple="multiple" id="{[ box.id ]}_tags" style="width:100%">
-                                {% for tag in available_tags %}
-                                    <option value="{{ tag }}">{{ tag }}</option>
-                                {% endfor %}
-                                </select>
+                            <div class="form-group">
+                                <label for="labels" style="font-weight:bold">Assign labels :</label>
+                                <textarea name="labels" class="form-control" placeholder="specify multiple by seperating with a comma"  rows="1" id="{[ box.id ]}_tags" ></textarea>
                             </div>
                             <div style="margin-top:26px">
                                 <button ng-click="submit_annotation(box.id)" id="{[ box.id ]}_submit" class="btn btn-primary btn-block">submit</button>

@@ -219,7 +219,7 @@ def annotate(request,frame_pk):
             'w':d.w,
             'pk':d.pk,
             'box_type':"detection" if d.region_type == d.DETECTION else 'annotation',
-            'label': d.object_name if d.region_type == d.DETECTION else d.label,
+            'label': d.object_name,
             'full_frame': d.full_frame,
             'detection_pk':None
         }

@@ -1,6 +1,6 @@
 from rest_framework import serializers, viewsets
 from django.contrib.auth.models import User
-from models import Video, VLabel, Frame, Region, Query, QueryResults, TEvent, IndexEntries, VDNDataset, VDNServer
+from models import Video, AppliedLabel, Frame, Region, Query, QueryResults, TEvent, IndexEntries, VDNDataset, VDNServer
 import os, json, logging, glob
 
 
@@ -29,9 +29,9 @@ class VideoSerializer(serializers.HyperlinkedModelSerializer):
         fields = '__all__'
 
 
-class VLabelSerializer(serializers.HyperlinkedModelSerializer):
+class AppliedLabelSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = VLabel
+        model = AppliedLabel
         fields = '__all__'
 
 
@@ -131,13 +131,6 @@ def import_region(a,video_obj,frame,detection_to_pk,vdn_dataset=None):
     da.full_frame = a['full_frame']
     if vdn_dataset:
         da.vdn_dataset = vdn_dataset
-    if 'label' in a and a['label'].strip():
-        da.label = a['label']
-        if vdn_dataset:
-            label_object, created = VLabel.objects.get_or_create(label_name=a['label'], source=VLabel.VDN, video=video_obj, vdn_dataset=vdn_dataset)
-        else:
-            label_object, created = VLabel.objects.get_or_create(label_name=a['label'], source=VLabel.UI, video=video_obj)
-        da.label_parent = label_object
     da.frame = frame
     da.save()
     if da.region_type == Region.DETECTION:
@@ -209,18 +202,18 @@ def import_legacy_annotation(a,video_obj,frame,vdn_dataset=None):
     da.vdn_key = a['id']
     if vdn_dataset:
         da.vdn_dataset = vdn_dataset
-    if a['label'].strip():
-        da.label = a['label']
-        if vdn_dataset:
-            label_object, created = VLabel.objects.get_or_create(label_name=a['label'], source=VLabel.VDN, video=video_obj, vdn_dataset=vdn_dataset)
-        else:
-            label_object, created = VLabel.objects.get_or_create(label_name=a['label'], source=VLabel.UI, video=video_obj)
-        da.label_parent = label_object
     da.frame = frame
     da.full_frame = a['full_frame']
     da.metadata_text = a['metadata_text']
     da.metadata_json = a['metadata_json']
     da.save()
+    if a['label'].strip():
+        dl = AppliedLabel()
+        dl.region = da
+        dl.label_name = a['label']
+        dl.video = da.video
+        dl.frame = da.frame
+        dl.save()
     return da
 
 

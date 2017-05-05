@@ -7,7 +7,7 @@ router = routers.DefaultRouter()
 router.register(r'users', views.UserViewSet)
 router.register(r'videos', views.VideoViewSet)
 router.register(r'frames', views.FrameViewSet)
-router.register(r'vlabels', views.VLabelViewSet)
+router.register(r'labels', views.AppliedLabelViewSet)
 router.register(r'regions', views.RegionViewSet)
 router.register(r'queries', views.QueryViewSet)
 router.register(r'queryresults', views.QueryResultsViewSet)
@@ -22,7 +22,6 @@ urlpatterns = [
     url(r'^status$', views.status, name='status'),
     url(r'^tasks', views.tasks, name='tasks'),
     url(r'^indexes', views.indexes, name='indexes'),
-    url(r'^annotations', views.annotations, name='annotations'),
     url(r'^detections', views.detections, name='detections'),
     url(r'^textsearch', views.textsearch, name='textsearch'),
     url(r'^clustering/$', views.clustering, name='clustering'),
@@ -32,8 +31,8 @@ urlpatterns = [
     url(r'^import_dataset', views.import_dataset, name='import_dataset'),
     url(r'^import_s3', views.import_s3, name='import_s3'),
     url(r'^video_send_task', views.video_send_task, name='video_send_task'),
-    url(r'^create_labels', views.create_label, name='create_labels'),
-    url(r'^delete_labels', views.delete_label, name='delete_labels'),
+    # url(r'^create_labels', views.create_label, name='create_labels'),
+    # url(r'^delete_labels', views.delete_label, name='delete_labels'),
     url(r'^videos/$', views.VideoList.as_view(),name="video_list"),
     url(r'^queries/$', views.QueryList.as_view()),
     url(r'^Search$', views.search),

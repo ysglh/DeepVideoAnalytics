@@ -202,6 +202,8 @@ def import_legacy_annotation(a,video_obj,frame,vdn_dataset=None):
     da.vdn_key = a['id']
     if vdn_dataset:
         da.vdn_dataset = vdn_dataset
+    if a['label'].strip():
+        da.object_name = a['label']
     da.frame = frame
     da.full_frame = a['full_frame']
     da.metadata_text = a['metadata_text']

@@ -185,7 +185,6 @@
                 <tr>
                         <th class="text-center">type</th>
                         <th class="text-center">file / annotation / object name</th>
-                        <th class="text-center">label</th>
                         <th class="text-center">confidence</th>
                         <th class="text-center">size in pixels</th>
                         <th class="text-center">x</th>
@@ -201,7 +200,6 @@
                     <tr>
                         <td>{% if object.dataset %} image {% else %} video frame {% endif %}</td>
                         <td class="text-left">{% if object.dataset %}  {{ f.name }} {% endif %}</td>
-                        <td></td>
                         <td class="text-right"> 100.0 %</td>
                         <td class="text-right">{% widthratio object.height 1 object.width %}</td>
                         <td class="text-right">{{ 0 }}</td>
@@ -216,7 +214,6 @@
                     <tr>
                         <td>detection</td>
                         <td class="text-left">{{ d.object_name }} </td>
-                        <td></td>
                         <td class="text-right"> {{ d.confidence|floatformat }} %</td>
                         <td class="text-right">{% widthratio d.h 1 d.w %}</td>
                         <td class="text-right">{{ d.x }}</td>
@@ -230,8 +227,7 @@
                 {% for d in annotation_list %}
                     <tr>
                         <td>annotation</td>
-                        <td class="text-left">{{ d.name }}</td>
-                        <td>{{ d.label }}</td>
+                        <td class="text-left">{{ d.object_name }}</td>
                         <td class="text-right"> 100 %</td>
                         <td class="text-right">{% widthratio d.h 1 d.w %}</td>
                         <td class="text-right">{{ d.x }}</td>

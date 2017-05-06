@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView,DetailView
 from django.utils.decorators import method_decorator
 from .forms import UploadFileForm,YTVideoForm,AnnotationForm
-from .models import Video,Frame,Query,QueryResults,TEvent,IndexEntries,VDNDataset, Region, VDNServer, ClusterCodes, Clusters, AppliedLabel
+from .models import Video,Frame,Query,QueryResults,TEvent,IndexEntries,VDNDataset, Region, VDNServer, ClusterCodes, Clusters, AppliedLabel, Scene
 from .tasks import extract_frames
 from dva.celery import app
 import serializers
@@ -18,6 +18,7 @@ from django.db.models import Count
 from celery.exceptions import TimeoutError
 import math
 from django.db.models import Max,Avg,Sum
+
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -87,6 +88,24 @@ class VDNDatasetViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = VDNDataset.objects.all()
     serializer_class = serializers.VDNDatasetSerializer
+
+
+class SceneViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    queryset = Scene.objects.all()
+    serializer_class = serializers.SceneSerializer
+
+
+class ClustersViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    queryset = Clusters.objects.all()
+    serializer_class = serializers.ClustersSerializer
+
+
+class ClusterCodesViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    queryset = ClusterCodes.objects.all()
+    serializer_class = serializers.ClusterCodesSerializer
 
 
 def create_query(count,approximate,selected,excluded_pks,image_data_url):

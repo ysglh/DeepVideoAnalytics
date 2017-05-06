@@ -56,3 +56,4 @@ shared/*.zip
 /shared/visual_genome_objects.txt.gz
 /shared/attention/
 /shared/attention_ocr/
+notes/*.mov

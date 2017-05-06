@@ -1,6 +1,6 @@
 from rest_framework import serializers, viewsets
 from django.contrib.auth.models import User
-from models import Video, AppliedLabel, Frame, Region, Query, QueryResults, TEvent, IndexEntries, VDNDataset, VDNServer
+from models import Video, AppliedLabel, Frame, Region, Query, QueryResults, TEvent, IndexEntries, VDNDataset, VDNServer, Scene, Clusters, ClusterCodes
 import os, json, logging, glob
 
 
@@ -44,6 +44,24 @@ class FrameSerializer(serializers.HyperlinkedModelSerializer):
 class RegionSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Region
+        fields = '__all__'
+
+
+class SceneSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Scene
+        fields = '__all__'
+
+
+class ClustersSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Clusters
+        fields = '__all__'
+
+
+class ClusterCodesSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = ClusterCodes
         fields = '__all__'
 
 

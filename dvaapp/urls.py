@@ -6,15 +6,18 @@ from rest_framework import routers
 router = routers.DefaultRouter()
 router.register(r'users', views.UserViewSet)
 router.register(r'videos', views.VideoViewSet)
+router.register(r'scenes', views.SceneViewSet)
 router.register(r'frames', views.FrameViewSet)
-router.register(r'labels', views.AppliedLabelViewSet)
 router.register(r'regions', views.RegionViewSet)
+router.register(r'labels', views.AppliedLabelViewSet)
 router.register(r'queries', views.QueryViewSet)
 router.register(r'queryresults', views.QueryResultsViewSet)
 router.register(r'indexentries', views.IndexEntriesViewSet)
-router.register(r'taskevents', views.TEventViewSet)
+router.register(r'events', views.TEventViewSet)
 router.register(r'vdnservers', views.VDNServerViewSet)
 router.register(r'vdndatasets', views.VDNDatasetViewSet)
+router.register(r'clusters', views.ClustersViewSet)
+router.register(r'clustercodes', views.ClusterCodesViewSet)
 
 
 urlpatterns = [

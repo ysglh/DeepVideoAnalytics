@@ -32,7 +32,7 @@
             <div class="box-body">
             <div class="row m-t" style="margin-top:20px">
             <form action="/video_send_task" method="POST" >
-                <div class="col-sm-5"><div class="form-group">
+                <div class="col-sm-3"><div class="form-group">
                         <label for="task_name">Task</label>
                         <select class="js-example-basic" id="task_name" name="task_name" style="width:100%">
                         {% for v in manual_tasks %}
@@ -41,13 +41,18 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-sm-5"><div class="form-group">
+                <div class="col-sm-3"><div class="form-group">
                         <label for="video_name">Video</label>
                         <select class="js-example-basic" id="video_name" name="video_id" style="width:100%">
                         {% for v in videos %}
                             <option value="{{ v.pk }}">{{ v.name }}</option>
                         {% endfor %}
                         </select>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="form-group">
+                        <label for="arguments_json">Arguments as JSON</label><textarea rows="2" class="form-control" name="arguments_json" id="arguments_json">{}</textarea>
                     </div>
                 </div>
                 <div class="col-sm-2"><button class="form-actions btn btn-primary" style="margin-top:25px"  type="submit"><i class="fa fa-send"></i> Submit</button></div>

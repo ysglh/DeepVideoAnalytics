@@ -362,7 +362,7 @@ def export_video(request):
                 region = request.POST.get('region')
                 bucket = request.POST.get('bucket')
                 s3export = TEvent()
-                s3export.event_type = TEvent.S3Export
+                s3export.event_type = TEvent.S3EXPORT
                 s3export.video = video
                 s3export.key = key
                 s3export.region = region

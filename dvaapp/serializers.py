@@ -121,16 +121,35 @@ class IndexEntryExportSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class TEventExportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TEvent
+        fields = '__all__'
+
+
+class AppliedLabelExportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AppliedLabel
+        fields = '__all__'
+
+
+class SceneExportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Scene
+        fields = '__all__'
+
+
 class VideoExportSerializer(serializers.ModelSerializer):
     frame_list = FrameExportSerializer(source='frame_set',read_only=True,many=True)
     index_entries_list = IndexEntryExportSerializer(source='indexentries_set',read_only=True,many=True)
+    event_list = TEventExportSerializer(source='tevent_set',read_only=True,many=True)
+    label_list = AppliedLabelExportSerializer(source='appliedlabel_set', read_only=True, many=True)
+    scene_list = SceneExportSerializer(source='scene_set', read_only=True, many=True)
 
     class Meta:
         model = Video
-        fields = ('name','length_in_seconds','height','width','metadata',
-                  'frames','created','description','uploaded','dataset',
-                  'uploader','detections','url','youtube_video',
-                  'frame_list','index_entries_list')
+        fields = ('name','length_in_seconds','height','width','metadata','frames','created','description','uploaded','dataset',
+                  'uploader','detections','url','youtube_video','frame_list','event_list','label_list','scene_list','index_entries_list')
 
 
 def import_region(a,video_obj,frame,detection_to_pk,vdn_dataset=None):

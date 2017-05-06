@@ -686,7 +686,7 @@ def backup_video_to_s3(s3_export_id):
     start.operation = backup_video_to_s3.name
     start.save()
     start_time = time.time()
-    returncode, errormsg = perform_export(start.pk)
+    returncode, errormsg = perform_export(start)
     if returncode == 0:
         start.completed = True
     else:

@@ -78,6 +78,8 @@ class WVideo(object):
             if not args['perform_scene_detection']:
                 logging.warning("Scene detection is disabled")
             else:
+                if args['rescale'] is None or args['rescale'].strip() == '':
+                    args['rescale'] = 0
                 scencedetect = sp.Popen(['fab','pyscenedetect:{},{}'.format(self.primary_key,args['rescale'])],cwd=os.path.join(os.path.abspath(__file__).split('entity.py')[0],'../'))
                 scencedetect.wait()
                 if scencedetect.returncode != 0:

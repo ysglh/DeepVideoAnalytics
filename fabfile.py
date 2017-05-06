@@ -758,6 +758,7 @@ def generate_visual_genome(fast=False):
     extract_frames(TEvent.objects.create(video=v).pk)
     video = v
     models.Region.objects.all().filter(video=video).delete()
+    buffer = []
     for frame in models.Frame.objects.all().filter(video=video):
         frame_id = str(int(frame.name.split('_')[-1].split('.')[0]))
         for o in data[frame_id]:
@@ -773,10 +774,15 @@ def generate_visual_genome(fast=False):
             annotation.object_name = o['object_name']
             annotation.metadata_json = json.dumps(o)
             annotation.metadata_text = o['metadata_text']
-            annotation.save()
+            buffer.append(annotation)
+            if len(buffer) == 1000:
+                models.Region.objects.bulk_create(buffer)
+                print "saving"
+                buffer = []
+    models.Region.objects.bulk_create(buffer)
+    print "saving final"
     if not fast:
         inception_index_by_id(TEvent.objects.create(video=v).pk)
-        perform_ssd_detection_by_id(TEvent.objects.create(video=v).pk)
         default_args = {'region_type':'A','w__gte':50,'h__gte':50}
         inception_index_regions_by_id(TEvent.objects.create(video=v,arguments_json=json.dumps(default_args)).pk)
     export_video_by_id(TEvent.objects.create(video=v).pk)

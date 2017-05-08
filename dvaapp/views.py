@@ -821,28 +821,32 @@ def create_dataset(d,server):
     return dataset
 
 
+def import_vdn_dataset_url(server,url,user):
+    r = requests.get(url)
+    response = r.json()
+    vdn_dataset = create_dataset(response, server)
+    vdn_dataset.save()
+    video = Video()
+    if user:
+        video.uploader = user
+    video.name = vdn_dataset.name
+    video.vdn_dataset = vdn_dataset
+    video.save()
+    primary_key = video.pk
+    create_video_folders(video, create_subdirs=False)
+    task_name = 'import_video_by_id'
+    import_video_task = TEvent()
+    import_video_task.video = video
+    import_video_task.save()
+    app.send_task(name=task_name, args=[import_video_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+
+
 def import_dataset(request):
     if request.method == 'POST':
         url = request.POST.get('dataset_url')
-        r = requests.get(url)
-        response = r.json()
         server = VDNServer.objects.get(pk=request.POST.get('server_pk'))
-        vdn_dataset = create_dataset(response,server)
-        vdn_dataset.save()
-        video = Video()
         user = request.user if request.user.is_authenticated() else None
-        if user:
-            video.uploader = user
-        video.name = vdn_dataset.name
-        video.vdn_dataset = vdn_dataset
-        video.save()
-        primary_key = video.pk
-        create_video_folders(video, create_subdirs=False)
-        task_name = 'import_video_by_id'
-        import_video_task = TEvent()
-        import_video_task.video = video
-        import_video_task.save()
-        app.send_task(name=task_name, args=[import_video_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+        import_vdn_dataset_url(server, url, user)
     else:
         raise NotImplementedError
     return redirect('video_list')
@@ -887,25 +891,29 @@ def video_send_task(request):
     return redirect('video_list')
 
 
-
+def pull_vdn_dataset_list(pk):
+    """
+    Pull list of datasets from configured VDN servers
+    """
+    server = VDNServer.objects.get(pk=pk)
+    r = requests.get("{}api/datasets/".format(server.url))
+    response = r.json()
+    datasets = []
+    for d in response['results']:
+        datasets.append(d)
+    while response['next']:
+        r = requests.get("{}api/datasets/".format(server))
+        response = r.json()
+        for d in response['results']:
+            datasets.append(d)
+    server.last_response_datasets = json.dumps(datasets)
+    server.save()
+    return server,datasets
 
 def external(request):
     if request.method == 'POST':
         pk = request.POST.get('server_pk')
-        server = VDNServer.objects.get(pk=pk)
-        r = requests.get("{}api/datasets/".format(server.url))
-        response = r.json()
-        datasets = []
-        for d in response['results']:
-            datasets.append(d)
-
-        while response['next']:
-            r = request.get("{}api/datasets/".format(server))
-            response = r.json()
-            for d in response['results']:
-                datasets.append(d)
-        server.last_response_datasets = json.dumps(datasets)
-        server.save()
+        pull_vdn_dataset_list(pk)
     context = {
         'servers':VDNServer.objects.all(),
         'available':{ server:json.loads(server.last_response_datasets) for server in VDNServer.objects.all()},

@@ -51,6 +51,7 @@ before_script:
   - sleep 3 # give xvfb some time to start
 
 script:
+  - fab add_default_vdn_server
   - fab ci
   - wget localhost:8000
   - wget localhost:8000/videos/

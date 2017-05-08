@@ -163,8 +163,9 @@ def ci():
     django.setup()
     import base64
     from django.core.files.uploadedfile import SimpleUploadedFile
-    from dvaapp.views import handle_uploaded_file, handle_youtube_video, create_query
-    from dvaapp.models import Video, Clusters,IndexEntries,TEvent
+    from dvaapp.views import handle_uploaded_file, handle_youtube_video, create_query, pull_vdn_dataset_list\
+        ,import_vdn_dataset_url
+    from dvaapp.models import Video, Clusters,IndexEntries,TEvent,VDNServer
     from django.conf import settings
     from dvaapp.tasks import extract_frames, perform_face_indexing, inception_index_by_id, perform_ssd_detection_by_id,\
         perform_yolo_detection_by_id, inception_index_regions_by_id, export_video_by_id, import_video_by_id,\
@@ -206,6 +207,11 @@ def ci():
     inception_query_by_image(query.pk)
     query,dv = create_query(10,True,['inception',],[],'data:image/png;base64,'+base64.encodestring(file('tests/query.png').read()))
     inception_query_by_image(query.pk)
+    server, datasets = pull_vdn_dataset_list(1)
+    for k in datasets:
+        if k['name'] == 'MSCOCO_Sample_500':
+            print 'FOUND MSCOCO SAMPLE'
+            import_vdn_dataset_url(VDNServer.objects.get(pk=1),k['url'],None)
     test_backup()
 
 
@@ -282,6 +288,24 @@ def launch_queues_env():
             server.save()
     if 'TEST' in os.environ and Video.objects.count() == 0:
         test()
+
+
+@task
+def add_default_vdn_server():
+    """
+    Add http://www.visualdata.network/ as default VDN server
+    :return:
+    """
+    import django, os
+    sys.path.append(os.path.dirname(__file__))
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
+    django.setup()
+    from dvaapp.models import Video,VDNServer
+    if VDNServer.objects.count() == 0:
+        server = VDNServer()
+        server.url = "http://www.visualdata.network/"
+        server.name = "VisualData.Network"
+        server.save()
 
 
 @task

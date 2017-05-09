@@ -874,7 +874,7 @@ def import_s3(request):
             download.wait()
             if download.returncode != 0:
                 raise ValueError, "could  not download"
-            handle_uploaded_file(None,'{}/{}'.format(bucket,key),predownloaded=fname)
+            handle_uploaded_file(None,'{}/{}'.format(bucket,key),predownloaded="{}/{}".format(path,fname))
         else:
             s3import = TEvent()
             s3import.event_type = TEvent.S3IMPORT

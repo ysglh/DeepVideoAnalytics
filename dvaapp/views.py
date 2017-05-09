@@ -867,7 +867,7 @@ def import_s3(request):
         bucket = request.POST.get('bucket')
         if key.endswith('.zip') or key.endswith('.mp4'):
             fname = 'temp_'+str(random.randint(0,100))+'.'+key.split('.')[1]
-            command = ["aws", "s3", "cp", "s3://{}/{}".format(bucket, key), '.',fname]
+            command = ["aws", "s3", "cp", "s3://{}/{}".format(bucket, key), fname]
             path = "{}/".format(settings.MEDIA_ROOT)
             download = subprocess.Popen(args=command, cwd=path)
             download.communicate()

@@ -19,7 +19,7 @@
        - dvarabbit:/var/lib/rabbitmq
    dva:
      build: .
-     image: akshayubhat/dva:cpu
+     image: akshayubhat/dva-auto:latest
      container_name: dva-server
      environment:
        - DOCKER_MODE=true
@@ -51,7 +51,7 @@
        - dvadata:/root/DVA/dva/media
    dva-worker:
      build: .
-     image: akshayubhat/dva:cpu
+     image: akshayubhat/dva-auto:latest
      container_name: dva-worker
      environment:
        - DOCKER_MODE=true

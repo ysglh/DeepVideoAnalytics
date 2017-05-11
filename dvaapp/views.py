@@ -814,7 +814,7 @@ def import_s3(request):
             if key.strip():
                 s3import = TEvent()
                 s3import.event_type = TEvent.S3IMPORT
-                s3import.key = key
+                s3import.key = key.strip()
                 s3import.region = region
                 s3import.bucket = bucket
                 video = Video()

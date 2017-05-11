@@ -14,8 +14,10 @@ def create_video_folders(video,create_subdirs=True):
         os.mkdir('{}/{}/audio/'.format(settings.MEDIA_ROOT, video.pk))
 
 
-def handle_uploaded_file(f,name,extract=True,user=None,perform_scene_detection=True,rate=30,rescale=0,predownloaded=None):
-    video = Video()
+def handle_uploaded_file(f,name,extract=True,user=None,perform_scene_detection=True,rate=30,rescale=0,predownloaded=None,video=None):
+    if video is None:
+        video = Video()
+        create_video_folders(video, create_subdirs=False)
     if user:
         video.uploader = user
     video.name = name
@@ -27,7 +29,6 @@ def handle_uploaded_file(f,name,extract=True,user=None,perform_scene_detection=T
         filename = f.name
         filename = filename.lower()
     if filename.endswith('.dva_export.zip'):
-        create_video_folders(video, create_subdirs=False)
         if predownloaded:
             os.rename(predownloaded,'{}/{}/video/{}.{}'.format(settings.MEDIA_ROOT,video.pk,video.pk,filename.split('.')[-1]))
         else:
@@ -42,7 +43,6 @@ def handle_uploaded_file(f,name,extract=True,user=None,perform_scene_detection=T
         import_video_task.save()
         app.send_task(name=task_name, args=[import_video_task.pk,], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
     elif filename.endswith('.mp4') or filename.endswith('.flv') or filename.endswith('.zip'):
-        create_video_folders(video,create_subdirs=True)
         if predownloaded:
             os.rename(predownloaded,'{}/{}/video/{}.{}'.format(settings.MEDIA_ROOT,video.pk,video.pk,filename.split('.')[-1]))
         else:

@@ -760,7 +760,7 @@ def import_video_from_s3(s3_import_id):
             start.seconds = time.time() - start_time
             start.save()
             raise ValueError,start.error_message
-        handle_uploaded_file(None, '{}/{}'.format(start.bucket, start.key), predownloaded="{}/{}".format(path, fname))
+        handle_uploaded_file(None, '{}/{}'.format(start.bucket, start.key), predownloaded="{}/{}".format(path, fname),video=start.video)
         start.completed = True
         start.save()
         start.completed = True
@@ -774,6 +774,9 @@ def import_video_from_s3(s3_import_id):
         for filename in os.listdir(os.path.join(path,start.key)):
             shutil.move(os.path.join(path,start.key, filename), os.path.join(path, filename))
         os.rmdir(os.path.join(path,start.key))
+        with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, start.video.pk)) as input_json:
+            video_json = json.load(input_json)
+        serializers.import_video_json(start.video,video_json,path)
     else:
         command = ["aws", "s3", "cp", "s3://{}/{}/".format(start.bucket,start.key),'.','--recursive']
         command_exec = " ".join(command)
@@ -786,9 +789,9 @@ def import_video_from_s3(s3_import_id):
             start.seconds = time.time() - start_time
             start.save()
             raise ValueError,start.error_message
-    with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, start.video.pk)) as input_json:
-        video_json = json.load(input_json)
-    serializers.import_video_json(start.video,video_json,path)
+        with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, start.video.pk)) as input_json:
+            video_json = json.load(input_json)
+        serializers.import_video_json(start.video,video_json,path)
     start.completed = True
     start.save()
     start.completed = True

@@ -20,7 +20,7 @@ from celery.exceptions import TimeoutError
 import math
 import subprocess
 from django.db.models import Max,Avg,Sum
-
+from shared import create_video_folders,handle_uploaded_file
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -385,14 +385,6 @@ def export_video(request):
         raise NotImplementedError
 
 
-def create_video_folders(video,create_subdirs=True):
-    os.mkdir('{}/{}'.format(settings.MEDIA_ROOT, video.pk))
-    if create_subdirs:
-        os.mkdir('{}/{}/video/'.format(settings.MEDIA_ROOT, video.pk))
-        os.mkdir('{}/{}/frames/'.format(settings.MEDIA_ROOT, video.pk))
-        os.mkdir('{}/{}/indexes/'.format(settings.MEDIA_ROOT, video.pk))
-        os.mkdir('{}/{}/detections/'.format(settings.MEDIA_ROOT, video.pk))
-        os.mkdir('{}/{}/audio/'.format(settings.MEDIA_ROOT, video.pk))
 
 
 def handle_youtube_video(name,url,extract=True,user=None,perform_scene_detection=True,rate=30,rescale=0):
@@ -415,53 +407,6 @@ def handle_youtube_video(name,url,extract=True,user=None,perform_scene_detection
     return video
 
 
-def handle_uploaded_file(f,name,extract=True,user=None,perform_scene_detection=True,rate=30,rescale=0,predownloaded=None):
-    video = Video()
-    if user:
-        video.uploader = user
-    video.name = name
-    video.save()
-    primary_key = video.pk
-    if predownloaded:
-        filename = predownloaded.split('/')[-1]
-    else:
-        filename = f.name
-        filename = filename.lower()
-    if filename.endswith('.dva_export.zip'):
-        create_video_folders(video, create_subdirs=False)
-        with open('{}/{}/{}.{}'.format(settings.MEDIA_ROOT,video.pk,video.pk,filename.split('.')[-1]), 'wb+') as destination:
-            for chunk in f.chunks():
-                destination.write(chunk)
-        video.uploaded = True
-        video.save()
-        task_name = 'import_video_by_id'
-        import_video_task = TEvent()
-        import_video_task.video = video
-        import_video_task.save()
-        app.send_task(name=task_name, args=[import_video_task.pk,], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
-    elif filename.endswith('.mp4') or filename.endswith('.flv') or filename.endswith('.zip'):
-        create_video_folders(video,create_subdirs=True)
-        if predownloaded:
-            os.rename(predownloaded,'{}/{}/video/{}.{}'.format(settings.MEDIA_ROOT,video.pk,video.pk,filename.split('.')[-1]))
-        else:
-            with open('{}/{}/video/{}.{}'.format(settings.MEDIA_ROOT,video.pk,video.pk,filename.split('.')[-1]), 'wb+') as destination:
-                for chunk in f.chunks():
-                    destination.write(chunk)
-        video.uploaded = True
-        if filename.endswith('.zip'):
-            video.dataset = True
-        video.save()
-        if extract:
-            extract_frames_task = TEvent()
-            extract_frames_task.arguments_json = json.dumps({'perform_scene_detection': perform_scene_detection,
-                                                             'rate': rate,
-                                                             'rescale': rescale})
-            extract_frames_task.video = video
-            extract_frames_task.save()
-            extract_frames.apply_async(args=[extract_frames_task.pk],queue=settings.Q_EXTRACTOR)
-    else:
-        raise ValueError,"Extension {} not allowed".format(filename.split('.')[-1])
-    return video
 
 
 class VideoList(ListView):
@@ -862,36 +807,27 @@ def import_dataset(request):
 
 def import_s3(request):
     if request.method == 'POST':
-        key = request.POST.get('key')
+        keys = request.POST.get('key')
         region = request.POST.get('region')
         bucket = request.POST.get('bucket')
-        if key.endswith('.zip') or key.endswith('.mp4'):
-            fname = 'temp_'+str(random.randint(0,100))+'.'+key.split('.')[1]
-            command = ["aws", "s3", "cp", "s3://{}/{}".format(bucket, key), fname]
-            path = "{}/".format(settings.MEDIA_ROOT)
-            download = subprocess.Popen(args=command, cwd=path)
-            download.communicate()
-            download.wait()
-            if download.returncode != 0:
-                raise ValueError, "could  not download"
-            handle_uploaded_file(None,'{}/{}'.format(bucket,key),predownloaded="{}/{}".format(path,fname))
-        else:
-            s3import = TEvent()
-            s3import.event_type = TEvent.S3IMPORT
-            s3import.key = key
-            s3import.region = region
-            s3import.bucket = bucket
-            video = Video()
-            user = request.user if request.user.is_authenticated() else None
-            if user:
-                video.uploader = user
-            video.name = "pending S3 import {} s3://{}/{}".format(region,bucket,key)
-            video.save()
-            s3import.video = video
-            s3import.save()
-            create_video_folders(video, create_subdirs=False)
-            task_name = 'import_video_from_s3'
-            app.send_task(name=task_name, args=[s3import.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+        for key in keys.strip().split('\n'):
+            if key.strip():
+                s3import = TEvent()
+                s3import.event_type = TEvent.S3IMPORT
+                s3import.key = key
+                s3import.region = region
+                s3import.bucket = bucket
+                video = Video()
+                user = request.user if request.user.is_authenticated() else None
+                if user:
+                    video.uploader = user
+                video.name = "pending S3 import {} s3://{}/{}".format(region,bucket,key)
+                video.save()
+                s3import.video = video
+                s3import.save()
+                create_video_folders(video, create_subdirs=False)
+                task_name = 'import_video_from_s3'
+                app.send_task(name=task_name, args=[s3import.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
     else:
         raise NotImplementedError
     return redirect('video_list')

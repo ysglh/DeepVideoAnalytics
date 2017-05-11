@@ -16,9 +16,10 @@ import celery
 import zipfile
 from . import serializers
 import boto3
+import random
 from botocore.exceptions import ClientError
 from dvalib import clustering
-
+from .shared import handle_uploaded_file
 
 def process_next(task_id):
     dt = TEvent.objects.get(pk=task_id)
@@ -746,7 +747,27 @@ def import_video_from_s3(s3_import_id):
     start.save()
     start_time = time.time()
     path = "{}/{}/".format(settings.MEDIA_ROOT,start.video.pk)
-    if start.requester_pays:
+    if (not start.requester_pays) and start.key.strip() and (start.key.endswith('.zip') or start.key.endswith('.mp4')):
+        fname = 'temp_' + str(random.randint(0, 100)) + '.' + start.key.split('.')[1] # TODO: BAD come up with better
+        command = ["aws", "s3", "cp", "s3://{}/{}".format(start.bucket, start.key), fname]
+        path = "{}/".format(settings.MEDIA_ROOT)
+        download = subprocess.Popen(args=command, cwd=path)
+        download.communicate()
+        download.wait()
+        if download.returncode != 0:
+            start.errored = True
+            start.error_message = "return code for '{}' was {}".format(" ".join(command),download.returncode)
+            start.seconds = time.time() - start_time
+            start.save()
+            raise ValueError,start.error_message
+        handle_uploaded_file(None, '{}/{}'.format(start.bucket, start.key), predownloaded="{}/{}".format(path, fname))
+        start.completed = True
+        start.save()
+        start.completed = True
+        start.seconds = time.time() - start_time
+        start.save()
+        return
+    elif start.requester_pays:
         client = boto3.client('s3')
         resource = boto3.resource('s3')
         download_dir(client, resource,start.key,path,start.bucket)

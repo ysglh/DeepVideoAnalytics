@@ -333,6 +333,7 @@ def set_directory_labels(frames,dv):
             for l in f.subdir.split('/')[1:]:
                 if l.strip():
                     labels_to_frame[l].add(f.primary_key)
+    label_list = []
     for l in labels_to_frame:
         for fpk in labels_to_frame[l]:
             a = AppliedLabel()
@@ -340,7 +341,9 @@ def set_directory_labels(frames,dv):
             a.frame_id = fpk
             a.source = AppliedLabel.DIRECTORY
             a.label_name = l
-            a.save()
+            label_list.append(a)
+    AppliedLabel.objects.bulk_create(label_list)
+
 
 
 @app.task(name="extract_frames_by_id")
@@ -819,6 +822,7 @@ def perform_clustering(cluster_task_id,test=False):
     cluster_proto_filename = "{}{}.proto".format(clusters_dir,dc.pk)
     c = clustering.Clustering(fnames, dc.components,cluster_proto_filename,m=dc.m,v=dc.v,sub=dc.sub,test_mode=test)
     c.cluster()
+    cluster_codes = []
     for e in c.entries:
         cc = ClusterCodes()
         cc.video_id = e['video_primary_key']
@@ -833,7 +837,8 @@ def perform_clustering(cluster_task_id,test=False):
         cc.coarse_text = " ".join(map(str,e['coarse']))
         cc.fine_text = " ".join(map(str,e['fine']))
         cc.searcher_index = e['index']
-        cc.save()
+        cluster_codes.append(cc)
+    ClusterCodes.objects.bulk_create(cluster_codes)
     c.save()
     dc.completed = True
     dc.save()

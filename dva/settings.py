@@ -192,7 +192,7 @@ STATICFILES_FINDERS = (
 )
 
 
-for create_dirname in ['queries','external']:
+for create_dirname in ['queries','external','models']:
     if not os.path.isdir("{}/{}".format(MEDIA_ROOT,create_dirname)):
         try:
             os.mkdir("{}/{}".format(MEDIA_ROOT,create_dirname))

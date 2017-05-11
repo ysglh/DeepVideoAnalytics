@@ -73,6 +73,7 @@ def handle_downloaded_file(downloaded,video,name,extract=True,user=None,perform_
         import_video_task.save()
         app.send_task(name=task_name, args=[import_video_task.pk,], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
     elif filename.endswith('.mp4') or filename.endswith('.flv') or filename.endswith('.zip'):
+        create_video_folders(video, create_subdirs=True)
         os.rename(downloaded,'{}/{}/video/{}.{}'.format(settings.MEDIA_ROOT, video.pk, video.pk, filename.split('.')[-1]))
         video.uploaded = True
         if filename.endswith('.zip'):

@@ -64,6 +64,7 @@ def handle_downloaded_file(downloaded,video,name,extract=True,user=None,perform_
     video.save()
     filename = downloaded.split('/')[-1]
     if filename.endswith('.dva_export.zip'):
+        create_video_folders(video, create_subdirs=False)
         os.rename(downloaded,'{}/{}/{}.{}'.format(settings.MEDIA_ROOT,video.pk,video.pk,filename.split('.')[-1]))
         video.uploaded = True
         video.save()

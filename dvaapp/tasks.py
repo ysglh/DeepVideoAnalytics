@@ -19,7 +19,7 @@ import boto3
 import random
 from botocore.exceptions import ClientError
 from dvalib import clustering
-from .shared import handle_downloaded_file
+from .shared import handle_downloaded_file,create_video_folders
 
 def process_next(task_id):
     dt = TEvent.objects.get(pk=task_id)
@@ -767,6 +767,7 @@ def import_video_from_s3(s3_import_id):
         start.save()
         return
     elif start.requester_pays:
+        create_video_folders(start.video, create_subdirs=False)
         client = boto3.client('s3')
         resource = boto3.resource('s3')
         download_dir(client, resource,start.key,path,start.bucket)
@@ -777,6 +778,7 @@ def import_video_from_s3(s3_import_id):
             video_json = json.load(input_json)
         serializers.import_video_json(start.video,video_json,path)
     else:
+        create_video_folders(start.video, create_subdirs=False)
         command = ["aws", "s3", "cp", "s3://{}/{}/".format(start.bucket,start.key),'.','--recursive']
         command_exec = " ".join(command)
         download = subprocess.Popen(args=command,cwd=path)

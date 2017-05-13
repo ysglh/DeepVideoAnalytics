@@ -21,18 +21,20 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-if 'SECRET_KEY' in os.environ:
+if 'SECRET_KEY' in os.environ or 'HEROKU_DEPLOY' in os.environ:
     SECRET_KEY = os.environ['SECRET_KEY']
 else:
     SECRET_KEY = 'changemeabblasdasbdbrp2$j&^' # change this in prod
 
 # SECURITY WARNING: don't run with debug turned on in production!
-if 'DISABLE_DEBUG' in os.environ:
+if 'DISABLE_DEBUG' in os.environ or 'HEROKU_DEPLOY' in os.environ:
     DEBUG = False
 else:
     DEBUG = True
-
-ALLOWED_HOSTS = ["*"] # Dont use this in prod
+if 'HEROKU_DEPLOY' in os.environ:
+    ALLOWED_HOSTS = ["deepvideoanalytics.herokuapp.com",'demo.deepvideonalaytics.com']  # Dont use this in prod
+else:
+    ALLOWED_HOSTS = ["*"] # Dont use this in prod
 
 #: Only add pickle to this list if your broker is secured
 #: from unwanted access (see userguide/security.html)
@@ -98,7 +100,7 @@ REST_FRAMEWORK = {
 
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
-if 'DATABASE_URL' in os.environ:
+if 'HEROKU_DEPLOY' in os.environ:
     DATABASES = {}
     db_from_env = dj_database_url.config(conn_max_age=500)
     DATABASES['default'] = db_from_env
@@ -174,16 +176,24 @@ USE_L10N = True
 
 USE_TZ = True
 
-
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
-if 'DATABASE_URL' in os.environ:
-    STATIC_URL = 'http://dvastatic.s3-website-us-east-1.amazonaws.com/'
+if 'HEROKU_DEPLOY' in os.environ:
+    STATIC_URL = os.environ['STATIC_URL'] # ENV to set static URL on cloud UI platform
+    MEDIA_URL = os.environ.get('MEDIA_URL','') # ENV to set static URL on cloud UI platform
+    MEDIA_ROOT = '/tmp/'
 else:
     STATIC_URL = '/static/'
-PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-MEDIA_ROOT = '/Users/aub3/media/' if sys.platform == 'darwin' else os.path.join(PROJECT_ROOT, 'media')
-MEDIA_URL = '/media/'
+    MEDIA_ROOT = '/Users/aub3/media/' if sys.platform == 'darwin' else os.path.join(PROJECT_ROOT, 'media')
+    MEDIA_URL = '/media/'
+    for create_dirname in ['queries', 'external', 'models']:
+        if not os.path.isdir("{}/{}".format(MEDIA_ROOT, create_dirname)):
+            try:
+                os.mkdir("{}/{}".format(MEDIA_ROOT, create_dirname))
+            except:
+                pass
+
 DATA_UPLOAD_MAX_MEMORY_SIZE=26214400
 
 STATIC_ROOT = os.path.join(PROJECT_ROOT, 'staticfiles')
@@ -198,10 +208,3 @@ STATICFILES_FINDERS = (
 #'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
-
-for create_dirname in ['queries','external','models']:
-    if not os.path.isdir("{}/{}".format(MEDIA_ROOT,create_dirname)):
-        try:
-            os.mkdir("{}/{}".format(MEDIA_ROOT,create_dirname))
-        except:
-            pass

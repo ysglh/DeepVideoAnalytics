@@ -58,3 +58,4 @@ shared/*.zip
 /shared/attention_ocr/
 notes/*.mov
 /shared/demo_model/
+/dva/staticfiles/

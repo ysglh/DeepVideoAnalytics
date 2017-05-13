@@ -24,3 +24,4 @@ django-cors-headers
 cffi
 uwsgi
 lmdb
+gunicorn

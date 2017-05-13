@@ -3,14 +3,18 @@ import subprocess,sys,shutil,os,glob,time,logging
 from django.conf import settings
 from dva.celery import app
 from .models import Video, Frame, TEvent, Query, IndexEntries,QueryResults, AppliedLabel, VDNDataset, Clusters, ClusterCodes, Region, Scene
-from dvalib import entity
-from dvalib import detector
-from dvalib import indexer
+try:
+    from dvalib import entity
+    from dvalib import detector
+    from dvalib import indexer
+    from dvalib import clustering
+    from PIL import Image
+    from scipy import misc
+except ImportError:
+    logging.warning("Could not import dvalib assuming operating in frontend only mode")
 from collections import defaultdict
 import calendar
 import requests
-from PIL import Image
-from scipy import misc
 import json
 import celery
 import zipfile
@@ -18,7 +22,6 @@ from . import serializers
 import boto3
 import random
 from botocore.exceptions import ClientError
-from dvalib import clustering
 from .shared import handle_downloaded_file,create_video_folders
 
 def process_next(task_id):

@@ -1,1 +1,1 @@
-web: gunicorn vdn.wsgi --log-file -
+web: gunicorn dva.wsgi --log-file -

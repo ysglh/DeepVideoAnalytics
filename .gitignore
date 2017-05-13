@@ -57,3 +57,4 @@ shared/*.zip
 /shared/attention/
 /shared/attention_ocr/
 notes/*.mov
+/shared/demo_model/

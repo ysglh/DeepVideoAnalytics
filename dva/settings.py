@@ -177,8 +177,10 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
-
-STATIC_URL = '/static/'
+if 'DATABASE_URL' in os.environ:
+    STATIC_URL = 'http://dvastatic.s3-website-us-east-1.amazonaws.com/'
+else:
+    STATIC_URL = '/static/'
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 MEDIA_ROOT = '/Users/aub3/media/' if sys.platform == 'darwin' else os.path.join(PROJECT_ROOT, 'media')
 MEDIA_URL = '/media/'

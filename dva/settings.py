@@ -98,7 +98,12 @@ REST_FRAMEWORK = {
 
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
-if sys.platform == 'darwin':
+if 'DATABASE_URL' in os.environ:
+    DATABASES = {}
+    db_from_env = dj_database_url.config(conn_max_age=500)
+    DATABASES['default'] = db_from_env
+    BROKER_URL = 'amqp://{}:{}@localhost//'.format('dvauser', 'localpass')
+elif sys.platform == 'darwin':
     BROKER_URL = 'amqp://{}:{}@localhost//'.format('dvauser','localpass')
     DATABASES = {
         'default': {

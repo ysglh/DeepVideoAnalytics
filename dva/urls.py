@@ -17,7 +17,16 @@ from django.conf.urls import url,include
 from django.contrib import admin
 from django.conf.urls.static import static
 from django.conf import settings
-urlpatterns = [
-    url(r'^admin/', admin.site.urls),
-    url(r'', include('dvaapp.urls')),
-]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+admin.autodiscover()
+
+if settings.VDN_ONLY_MODE:
+    urlpatterns = [
+        url(r'', include('vdnapp.urls')),
+        url(r'^admin/', admin.site.urls),
+    ]
+else:
+    urlpatterns = [
+        url(r'^admin/', admin.site.urls),
+        url(r'', include('dvaapp.urls')),
+    ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

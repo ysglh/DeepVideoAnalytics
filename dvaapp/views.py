@@ -21,6 +21,13 @@ import math
 import subprocess
 from django.db.models import Max,Avg,Sum
 from shared import create_video_folders,handle_uploaded_file
+from django.contrib.auth.decorators import login_required,user_passes_test
+
+class LoginRequiredMixin(object):
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(LoginRequiredMixin, self).dispatch(*args, **kwargs)
+
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()

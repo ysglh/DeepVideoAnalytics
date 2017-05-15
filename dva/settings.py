@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 import os,dj_database_url,sys
 from .worker_config import *
 
+VDN_ONLY_MODE = 'VDN_ONLY_MODE' in os.environ
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -21,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-if 'SECRET_KEY' in os.environ or 'HEROKU_DEPLOY' in os.environ:
+if 'SECRET_KEY' in os.environ or 'HEROKU_DEPLOY' in os.environ or VDN_ONLY_MODE:
     SECRET_KEY = os.environ['SECRET_KEY']
 else:
     SECRET_KEY = 'changemeabblasdasbdbrp2$j&^' # change this in prod
@@ -31,8 +33,11 @@ if 'DISABLE_DEBUG' in os.environ or 'HEROKU_DEPLOY' in os.environ:
     DEBUG = False
 else:
     DEBUG = True
-if 'HEROKU_DEPLOY' in os.environ:
-    ALLOWED_HOSTS = ["deepvideoanalytics.herokuapp.com",'demo.deepvideonalaytics.com']  # Dont use this in prod
+
+if VDN_ONLY_MODE:
+    ALLOWED_HOSTS = ['visualdatanetwork.herokuapp.com','www.visualdata.network']
+elif 'HEROKU_DEPLOY' in os.environ:
+    ALLOWED_HOSTS = ["deepvideoanalytics.herokuapp.com",'demo.deepvideonalaytics.com','visualdatanetwork.herokuapp.com']  # Dont use this in prod
 else:
     ALLOWED_HOSTS = ["*"] # Dont use this in prod
 
@@ -41,35 +46,65 @@ else:
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
-
-
-# Application definition
-
-INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'dvaapp',
-    'djcelery',
-    'rest_framework',
-    'crispy_forms',
-    'django_filters',
-]
-
-MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-]
-
+WSGI_APPLICATION = 'dva.wsgi.application'
 ROOT_URLCONF = 'dva.urls'
+
+if VDN_ONLY_MODE:
+    INSTALLED_APPS = [
+        'django.contrib.admin',
+        'django.contrib.auth',
+        'django.contrib.contenttypes',
+        'django.contrib.sessions',
+        'django.contrib.messages',
+        'django.contrib.staticfiles',
+        'raven.contrib.django.raven_compat',
+        'django.contrib.humanize',
+        'django.contrib.postgres',
+        'djcelery',
+        'corsheaders',
+        'rest_framework',
+        'vdnapp',
+        'crispy_forms',
+        'rest_framework.authtoken'
+    ]
+else:
+    INSTALLED_APPS = [
+        'django.contrib.admin',
+        'django.contrib.auth',
+        'django.contrib.contenttypes',
+        'django.contrib.sessions',
+        'django.contrib.messages',
+        'django.contrib.staticfiles',
+        'dvaapp',
+        'djcelery',
+        'rest_framework',
+        'crispy_forms',
+        'django_filters',
+    ]
+
+if VDN_ONLY_MODE:
+    MIDDLEWARE_CLASSES = [
+        'corsheaders.middleware.CorsMiddleware',
+        'django.middleware.security.SecurityMiddleware',
+        'django.contrib.sessions.middleware.SessionMiddleware',
+        'django.middleware.common.CommonMiddleware',
+        'django.middleware.csrf.CsrfViewMiddleware',
+        'django.contrib.auth.middleware.AuthenticationMiddleware',
+        'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+        'django.contrib.messages.middleware.MessageMiddleware',
+        'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    ]
+else:
+    MIDDLEWARE = [
+        'django.middleware.security.SecurityMiddleware',
+        'django.contrib.sessions.middleware.SessionMiddleware',
+        'django.middleware.common.CommonMiddleware',
+        'django.middleware.csrf.CsrfViewMiddleware',
+        'django.contrib.auth.middleware.AuthenticationMiddleware',
+        'django.contrib.messages.middleware.MessageMiddleware',
+        'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    ]
+
 PATH_PROJECT = os.path.realpath(os.path.dirname(__file__))
 
 TEMPLATES = [
@@ -90,17 +125,33 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'dva.wsgi.application'
-
-REST_FRAMEWORK = {
-    'PAGE_SIZE': 10,
-    'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
-}
+if VDN_ONLY_MODE:
+    REST_FRAMEWORK = {
+        'PAGE_SIZE': 10,
+        'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
+        'DEFAULT_PERMISSION_CLASSES': (
+            'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+        ),
+        'DEFAULT_AUTHENTICATION_CLASSES': (
+            'rest_framework.authentication.BasicAuthentication',
+            'rest_framework.authentication.SessionAuthentication',
+            'rest_framework.authentication.TokenAuthentication',
+        )
+    }
+else:
+    REST_FRAMEWORK = {
+        'PAGE_SIZE': 10,
+        'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
+    }
 
 
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
-if 'HEROKU_DEPLOY' in os.environ:
+if VDN_ONLY_MODE:
+    DATABASES = {}
+    db_from_env = dj_database_url.config(conn_max_age=500)
+    DATABASES['default'] = db_from_env
+elif 'HEROKU_DEPLOY' in os.environ:
     DATABASES = {}
     db_from_env = dj_database_url.config(conn_max_age=500)
     DATABASES['default'] = db_from_env
@@ -179,7 +230,14 @@ USE_TZ = True
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
-if 'HEROKU_DEPLOY' in os.environ:
+if VDN_ONLY_MODE:
+    STATIC_URL = '/static/'
+    STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
+    CORS_ORIGIN_ALLOW_ALL = True
+    CORS_URLS_REGEX = r'^/api/.*$'
+    CORS_ALLOW_METHODS = ('POST', 'GET',)
+    CORS_ALLOW_CREDENTIALS = True
+elif 'HEROKU_DEPLOY' in os.environ:
     STATIC_URL = os.environ['STATIC_URL'] # ENV to set static URL on cloud UI platform
     MEDIA_URL = os.environ.get('MEDIA_URL','') # ENV to set static URL on cloud UI platform
     MEDIA_ROOT = '/tmp/'

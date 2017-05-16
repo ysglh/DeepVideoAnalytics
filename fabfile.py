@@ -660,6 +660,7 @@ def heroku_dbflush():
     heroku_migrate()
     local('heroku run python manage.py createsuperuser')
 
+
 @task
 def heroku_local_static():
     local('python manage.py collectstatic')
@@ -668,6 +669,11 @@ def heroku_local_static():
 @task
 def heroku_migrate():
     local('heroku run python manage.py migrate')
+
+
+@task
+def heroku_setup_vdn(password):
+    local('heroku run fab setup_vdn:{}'.format(password))
 
 
 def get_coco_dirname():
@@ -938,6 +944,7 @@ def generate_vdn(fast=False):
         perform_face_detection_indexing_by_id(TEvent.objects.create(video=v).pk)
         inception_index_regions_by_id(TEvent.objects.create(video=v).pk)
     export_video_by_id(TEvent.objects.create(video=v).pk)
+
 
 @task
 def setup_vdn(password):

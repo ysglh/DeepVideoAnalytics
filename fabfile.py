@@ -625,17 +625,17 @@ def cluster():
 
 @task
 def heroku_migrate():
-    local('heroku run python vdn_manage.py migrate')
+    local('heroku run python manage.py migrate')
 
 
-@task
-def heroku_update_env():
-    local('heroku config:get DATABASE_URL > db.env')
+# @task
+# def heroku_update_env():
+#     local('heroku config:get DATABASE_URL > db.env')
 
 
 @task
 def heroku_shell():
-    local('heroku run python vdn_manage.py shell')
+    local('heroku run python manage.py shell')
 
 
 @task
@@ -653,25 +653,21 @@ def heroku_psql():
     local('heroku pg:psql')
 
 
-@task
-def heroku_make_migrate():
-    local('python vdn_manage.py makemigrations')
-
 
 @task
 def heroku_dbflush():
     local('heroku pg:reset DATABASE_URL')
     heroku_migrate()
-    local('heroku run python vdn_manage.py createsuperuser')
+    local('heroku run python manage.py createsuperuser')
 
 @task
 def heroku_local_static():
-    local('python vdn_manage.py collectstatic')
+    local('python manage.py collectstatic')
 
 
 @task
 def heroku_migrate():
-    local('heroku run python vdn_manage.py migrate')
+    local('heroku run python manage.py migrate')
 
 
 def get_coco_dirname():

@@ -857,13 +857,13 @@ def pull_vdn_dataset_list(pk):
     Pull list of datasets from configured VDN servers
     """
     server = VDNServer.objects.get(pk=pk)
-    r = requests.get("{}api/datasets/".format(server.url))
+    r = requests.get("{}vdn/api/datasets/".format(server.url))
     response = r.json()
     datasets = []
     for d in response['results']:
         datasets.append(d)
     while response['next']:
-        r = requests.get("{}api/datasets/".format(server))
+        r = requests.get("{}vdn/api/datasets/".format(server))
         response = r.json()
         for d in response['results']:
             datasets.append(d)

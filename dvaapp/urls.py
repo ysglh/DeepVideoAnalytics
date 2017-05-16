@@ -1,6 +1,6 @@
 from django.conf.urls import url,include
 import views
-
+from django.contrib.auth import views as auth_views
 from rest_framework import routers
 
 router = routers.DefaultRouter()
@@ -55,5 +55,11 @@ urlpatterns = [
     url(r'^annotate_entire_frame/(?P<frame_pk>\d+)/$', views.annotate_entire_frame, name='annotate_entire_frame'),
     url(r'^delete', views.delete_object, name='delete_object'),
     url(r'^api/', include(router.urls)),
-    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework'))
+    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^login/$', auth_views.login, name='login'),
+    url(r'^logout/$', auth_views.logout, name='logout'),
+    url(r'^accounts/login/$', auth_views.login, name='login'),
+    url(r'^accounts/logout/$', auth_views.logout, name='logout'),
+    url(r'^password_reset/$', auth_views.password_reset, name='password_reset'),
+    url(r'^accounts/profile/$', views.index, name='profile'),
 ]

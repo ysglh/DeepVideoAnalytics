@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 import os,dj_database_url,sys
 from .worker_config import *
 
-VDN_ONLY_MODE = 'VDN_ONLY_MODE' in os.environ
+VDN_ENABLE = 'VDN_ENABLE' in os.environ
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-if 'SECRET_KEY' in os.environ or 'HEROKU_DEPLOY' in os.environ or VDN_ONLY_MODE:
+if 'SECRET_KEY' in os.environ or 'HEROKU_DEPLOY' in os.environ:
     SECRET_KEY = os.environ['SECRET_KEY']
 else:
     SECRET_KEY = 'changemeabblasdasbdbrp2$j&^' # change this in prod
@@ -65,7 +65,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken'
 ]
 
-if VDN_ONLY_MODE:
+if VDN_ENABLE:
     MIDDLEWARE_CLASSES = [
         'corsheaders.middleware.CorsMiddleware',
         'django.middleware.security.SecurityMiddleware',
@@ -77,6 +77,22 @@ if VDN_ONLY_MODE:
         'django.contrib.messages.middleware.MessageMiddleware',
         'django.middleware.clickjacking.XFrameOptionsMiddleware',
     ]
+    CORS_ORIGIN_ALLOW_ALL = True
+    CORS_URLS_REGEX = r'^vdn/api/.*$'
+    CORS_ALLOW_METHODS = ('POST', 'GET',)
+    CORS_ALLOW_CREDENTIALS = True
+    REST_FRAMEWORK = {
+        'PAGE_SIZE': 10,
+        'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
+        'DEFAULT_PERMISSION_CLASSES': (
+            'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+        ),
+        'DEFAULT_AUTHENTICATION_CLASSES': (
+            'rest_framework.authentication.BasicAuthentication',
+            'rest_framework.authentication.SessionAuthentication',
+            'rest_framework.authentication.TokenAuthentication',
+        )
+    }
 else:
     MIDDLEWARE = [
         'django.middleware.security.SecurityMiddleware',
@@ -87,6 +103,10 @@ else:
         'django.contrib.messages.middleware.MessageMiddleware',
         'django.middleware.clickjacking.XFrameOptionsMiddleware',
     ]
+    REST_FRAMEWORK = {
+        'PAGE_SIZE': 10,
+        'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
+    }
 
 PATH_PROJECT = os.path.realpath(os.path.dirname(__file__))
 
@@ -108,24 +128,6 @@ TEMPLATES = [
     },
 ]
 
-if VDN_ONLY_MODE:
-    REST_FRAMEWORK = {
-        'PAGE_SIZE': 10,
-        'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
-        'DEFAULT_PERMISSION_CLASSES': (
-            'rest_framework.permissions.IsAuthenticatedOrReadOnly',
-        ),
-        'DEFAULT_AUTHENTICATION_CLASSES': (
-            'rest_framework.authentication.BasicAuthentication',
-            'rest_framework.authentication.SessionAuthentication',
-            'rest_framework.authentication.TokenAuthentication',
-        )
-    }
-else:
-    REST_FRAMEWORK = {
-        'PAGE_SIZE': 10,
-        'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
-    }
 
 
 # Database
@@ -209,11 +211,6 @@ USE_TZ = True
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
-if VDN_ONLY_MODE:
-    CORS_ORIGIN_ALLOW_ALL = True
-    CORS_URLS_REGEX = r'^vdn/api/.*$'
-    CORS_ALLOW_METHODS = ('POST', 'GET',)
-    CORS_ALLOW_CREDENTIALS = True
 
 if 'HEROKU_DEPLOY' in os.environ:
     STATIC_URL = os.environ['STATIC_URL'] # ENV to set static URL on cloud UI platform

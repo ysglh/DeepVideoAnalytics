@@ -88,7 +88,7 @@
                         <td>{% if not v.root %}<a href="{{ v.parent_url }}" target="_blank">parent</a>{% endif %}</td>
                         <td>{{ v.organization.user.username }} at {{ v.organization.name }} </td>
                         <td>{% if v.aws_requester_pays %}{{ v.aws_region }} / {{ v.aws_bucket }} / {{ v.aws_key }}{% else %}<a href="{{ v.download_url }}">Direct download</a>{% endif %}</td>
-                        <td class="text-center"><a href="/api/datasets/{{ v.pk }}">View details</a></td>
+                        <td class="text-center"><a href="/vdn/api/datasets/{{ v.pk }}">View details</a></td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -130,7 +130,7 @@
                                 <td class="text-right">{{ d.w }}</td>
                                 <td class="text-right">{{ d.h }}</td>
                                 <td class="text-right">{{ d.parent_frame_index }} </td>
-                                <td class="text-center"><a href="/api/datasets/{{ d.dataset.pk }}/">view dataset</a></td>
+                                <td class="text-center"><a href="/vdn/api/datasets/{{ d.dataset.pk }}/">view dataset</a></td>
                                 <td class="text-center"><a href="{{ d.url }}">view / delete</a></td>
                             </tr>
                         {% endfor %}

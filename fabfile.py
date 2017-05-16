@@ -938,3 +938,33 @@ def generate_vdn(fast=False):
         perform_face_detection_indexing_by_id(TEvent.objects.create(video=v).pk)
         inception_index_regions_by_id(TEvent.objects.create(video=v).pk)
     export_video_by_id(TEvent.objects.create(video=v).pk)
+
+@task
+def setup_vdn(password):
+    import django
+    sys.path.append(os.path.dirname(__file__))
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
+    django.setup()
+    from vdnapp.models import User,Dataset,Organization
+    user = User(username="akshayubhat",password=password,email="akshayubhat@gmail.com")
+    user.save()
+    o = Organization()
+    o.user = user
+    o.description = "Default organization"
+    o.name = "Akshay Bhat"
+    o.save()
+    datasets = [
+        ('LFW_subset','https://www.dropbox.com/s/6nn84z4yzy47vuh/LFW.dva_export.zip'),
+        ('MSCOCO_Sample_500','https://www.dropbox.com/s/qhzl9ig7yhems6j/MSCOCO_Sample.dva_export.zip'),
+        ('Paris','https://www.dropbox.com/s/a7qf1f3j8vp4nuh/Paris.dva_export.zip'),
+        ('Zelda','https://www.dropbox.com/s/oi71afelw5mbt8q/Zelda.dva_export.zip'),
+    ]
+    for name,url in datasets:
+        d = Dataset()
+        d.organization = o
+        d.download_url = url
+        d.name = name
+        d.root = True
+        d.aws_requester_pays = False
+        d.description = name
+        d.save()

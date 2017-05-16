@@ -20,13 +20,7 @@ from django.conf import settings
 
 admin.autodiscover()
 
-if settings.VDN_ONLY_MODE:
-    urlpatterns = [
-        url(r'', include('vdnapp.urls')),
-        url(r'^admin/', admin.site.urls),
-    ]
-else:
-    urlpatterns = [
-        url(r'^admin/', admin.site.urls),
-        url(r'', include('dvaapp.urls')),
-    ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns = [
+    url(r'^admin/', admin.site.urls),
+    url(r'', include('dvaapp.urls')),
+    url(r'^vdn/', include('vdnapp.urls'))]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

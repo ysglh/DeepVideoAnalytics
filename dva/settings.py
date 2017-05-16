@@ -34,10 +34,8 @@ if 'DISABLE_DEBUG' in os.environ or 'HEROKU_DEPLOY' in os.environ:
 else:
     DEBUG = True
 
-if VDN_ONLY_MODE:
-    ALLOWED_HOSTS = ['visualdatanetwork.herokuapp.com','www.visualdata.network']
-elif 'HEROKU_DEPLOY' in os.environ:
-    ALLOWED_HOSTS = ["deepvideoanalytics.herokuapp.com",'demo.deepvideonalaytics.com','visualdatanetwork.herokuapp.com']  # Dont use this in prod
+if 'HEROKU_DEPLOY' in os.environ:
+    ALLOWED_HOSTS = [k.strip() for k in os.environ['ALLOWED_HOSTS'].split(',') if k.strip()]
 else:
     ALLOWED_HOSTS = ["*"] # Dont use this in prod
 
@@ -49,38 +47,23 @@ CELERY_RESULT_SERIALIZER = 'json'
 WSGI_APPLICATION = 'dva.wsgi.application'
 ROOT_URLCONF = 'dva.urls'
 
-if VDN_ONLY_MODE:
-    INSTALLED_APPS = [
-        'django.contrib.admin',
-        'django.contrib.auth',
-        'django.contrib.contenttypes',
-        'django.contrib.sessions',
-        'django.contrib.messages',
-        'django.contrib.staticfiles',
-        'raven.contrib.django.raven_compat',
-        'django.contrib.humanize',
-        'django.contrib.postgres',
-        'djcelery',
-        'corsheaders',
-        'rest_framework',
-        'vdnapp',
-        'crispy_forms',
-        'rest_framework.authtoken'
-    ]
-else:
-    INSTALLED_APPS = [
-        'django.contrib.admin',
-        'django.contrib.auth',
-        'django.contrib.contenttypes',
-        'django.contrib.sessions',
-        'django.contrib.messages',
-        'django.contrib.staticfiles',
-        'dvaapp',
-        'djcelery',
-        'rest_framework',
-        'crispy_forms',
-        'django_filters',
-    ]
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'dvaapp',
+    'django.contrib.humanize',
+    'django.contrib.postgres',
+    'djcelery',
+    'corsheaders',
+    'rest_framework',
+    'vdnapp',
+    'crispy_forms',
+    'rest_framework.authtoken'
+]
 
 if VDN_ONLY_MODE:
     MIDDLEWARE_CLASSES = [
@@ -147,11 +130,7 @@ else:
 
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
-if VDN_ONLY_MODE:
-    DATABASES = {}
-    db_from_env = dj_database_url.config(conn_max_age=500)
-    DATABASES['default'] = db_from_env
-elif 'HEROKU_DEPLOY' in os.environ:
+if 'HEROKU_DEPLOY' in os.environ:
     DATABASES = {}
     db_from_env = dj_database_url.config(conn_max_age=500)
     DATABASES['default'] = db_from_env
@@ -231,13 +210,12 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 if VDN_ONLY_MODE:
-    STATIC_URL = '/static/'
-    STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
     CORS_ORIGIN_ALLOW_ALL = True
-    CORS_URLS_REGEX = r'^/api/.*$'
+    CORS_URLS_REGEX = r'^vdn/api/.*$'
     CORS_ALLOW_METHODS = ('POST', 'GET',)
     CORS_ALLOW_CREDENTIALS = True
-elif 'HEROKU_DEPLOY' in os.environ:
+
+if 'HEROKU_DEPLOY' in os.environ:
     STATIC_URL = os.environ['STATIC_URL'] # ENV to set static URL on cloud UI platform
     MEDIA_URL = os.environ.get('MEDIA_URL','') # ENV to set static URL on cloud UI platform
     MEDIA_ROOT = '/tmp/'

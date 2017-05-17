@@ -71,9 +71,9 @@
                 </div>
                 <div class="box-body">
                     {% if d.detection %}
-                        <a href="/frames/{{ d.frame.pk }}"><img class="img-responsive img-bordered-sm" style="width:80%;margin-left:auto;margin-right:auto" src="{{ MEDIA_URL }}{{ d.video.pk }}/detections/{{ d.detection.pk }}.jpg"></a>
+                        <a href="/frames/{{ d.frame.pk }}"><img class="img-responsive img-bordered-sm" style="max-height:200px;margin-left:auto;margin-right:auto" src="{{ MEDIA_URL }}{{ d.video.pk }}/detections/{{ d.detection.pk }}.jpg"></a>
                     {% else %}
-                        <a href="/frames/{{ d.frame.pk }}"><img class="img-responsive img-bordered-sm" style="width:80%;margin-left:auto;margin-right:auto" src="{{ MEDIA_URL }}{{ d.video.pk }}/frames/{{ d.frame.frame_index }}.jpg"></a>
+                        <a href="/frames/{{ d.frame.pk }}"><img class="img-responsive img-bordered-sm" style="max-height:200px;margin-left:auto;margin-right:auto" src="{{ MEDIA_URL }}{{ d.video.pk }}/frames/{{ d.frame.frame_index }}.jpg"></a>
                     {% endif %}
                 </div>
                 </div>

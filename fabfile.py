@@ -653,11 +653,16 @@ def heroku_psql():
     local('heroku pg:psql')
 
 
-
 @task
 def heroku_dbflush():
-    local('heroku pg:reset DATABASE_URL')
-    heroku_migrate()
+    if raw_input("Are you sure type yes >>") == 'yes':
+        local('heroku pg:reset DATABASE_URL')
+        heroku_migrate()
+        local('heroku run python manage.py createsuperuser')
+
+
+@task
+def heroku_super():
     local('heroku run python manage.py createsuperuser')
 
 

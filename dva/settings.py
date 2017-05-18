@@ -25,8 +25,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 if 'SECRET_KEY' in os.environ or 'HEROKU_DEPLOY' in os.environ:
     SECRET_KEY = os.environ['SECRET_KEY']
+    AUTH_DISABLED = False
 else:
     SECRET_KEY = 'changemeabblasdasbdbrp2$j&^' # change this in prod
+    AUTH_DISABLED = os.environ.get('AUTH_DISABLED',False)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 if 'DISABLE_DEBUG' in os.environ or 'HEROKU_DEPLOY' in os.environ:

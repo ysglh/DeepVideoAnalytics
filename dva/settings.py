@@ -38,6 +38,11 @@ else:
 
 if 'HEROKU_DEPLOY' in os.environ:
     ALLOWED_HOSTS = [k.strip() for k in os.environ['ALLOWED_HOSTS'].split(',') if k.strip()]
+    # SESSION_COOKIE_SECURE = True
+    # CSRF_COOKIE_SECURE = True
+    # SECURE_SSL_REDIRECT = True
+    # SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https') # Confirm this cannot be spoofed for heroku
+    # SECURE_REDIRECT_EXEMPT = [r'^vdn/.']
 else:
     ALLOWED_HOSTS = ["*"] # Dont use this in prod
 

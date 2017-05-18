@@ -16,7 +16,7 @@ from celery.exceptions import TimeoutError
 import math
 from django.db.models import Max
 from shared import create_video_folders,handle_uploaded_file,create_annotation,create_child_vdn_dataset,\
-    create_query,create_root_vdn_dataset,handle_youtube_video,pull_vdn_dataset_list
+    create_query,create_root_vdn_dataset,handle_youtube_video,pull_vdn_dataset_list,import_vdn_dataset_url
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.mixins import UserPassesTestMixin
 
@@ -676,45 +676,6 @@ def delete_object(request):
             if annotation.region_type == Region.ANNOTATION:
                 annotation.delete()
     return JsonResponse({'status':True})
-
-
-@user_passes_test(user_check)
-def create_dataset(d,server):
-    dataset = VDNDataset()
-    dataset.server = server
-    dataset.name = d['name']
-    dataset.description = d['description']
-    dataset.download_url = d['download_url']
-    dataset.url = d['url']
-    dataset.aws_bucket = d['aws_bucket']
-    dataset.aws_key = d['aws_key']
-    dataset.aws_region = d['aws_region']
-    dataset.aws_requester_pays = d['aws_requester_pays']
-    dataset.organization_url = d['organization']['url']
-    dataset.response = json.dumps(d)
-    dataset.save()
-    return dataset
-
-
-@user_passes_test(user_check)
-def import_vdn_dataset_url(server,url,user):
-    r = requests.get(url)
-    response = r.json()
-    vdn_dataset = create_dataset(response, server)
-    vdn_dataset.save()
-    video = Video()
-    if user:
-        video.uploader = user
-    video.name = vdn_dataset.name
-    video.vdn_dataset = vdn_dataset
-    video.save()
-    primary_key = video.pk
-    create_video_folders(video, create_subdirs=False)
-    task_name = 'import_video_by_id'
-    import_video_task = TEvent()
-    import_video_task.video = video
-    import_video_task.save()
-    app.send_task(name=task_name, args=[import_video_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
 
 
 @user_passes_test(user_check)

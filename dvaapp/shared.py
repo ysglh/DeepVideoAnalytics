@@ -212,6 +212,7 @@ def pull_vdn_dataset_list(pk):
     server.save()
     return server,datasets
 
+
 def create_query(count,approximate,selected,excluded_pks,image_data_url):
     query = Query()
     query.count = count
@@ -235,3 +236,40 @@ def create_query(count,approximate,selected,excluded_pks,image_data_url):
     with open(query_frame_path, 'w') as fh:
         fh.write(image_data)
     return query,dv
+
+
+def create_dataset(d,server):
+    dataset = VDNDataset()
+    dataset.server = server
+    dataset.name = d['name']
+    dataset.description = d['description']
+    dataset.download_url = d['download_url']
+    dataset.url = d['url']
+    dataset.aws_bucket = d['aws_bucket']
+    dataset.aws_key = d['aws_key']
+    dataset.aws_region = d['aws_region']
+    dataset.aws_requester_pays = d['aws_requester_pays']
+    dataset.organization_url = d['organization']['url']
+    dataset.response = json.dumps(d)
+    dataset.save()
+    return dataset
+
+
+def import_vdn_dataset_url(server,url,user):
+    r = requests.get(url)
+    response = r.json()
+    vdn_dataset = create_dataset(response, server)
+    vdn_dataset.save()
+    video = Video()
+    if user:
+        video.uploader = user
+    video.name = vdn_dataset.name
+    video.vdn_dataset = vdn_dataset
+    video.save()
+    primary_key = video.pk
+    create_video_folders(video, create_subdirs=False)
+    task_name = 'import_video_by_id'
+    import_video_task = TEvent()
+    import_video_task.video = video
+    import_video_task.save()
+    app.send_task(name=task_name, args=[import_video_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])

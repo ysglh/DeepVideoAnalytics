@@ -14,7 +14,7 @@ import os,dj_database_url,sys
 from .worker_config import *
 
 VDN_ENABLE = 'VDN_ENABLE' in os.environ
-
+DVA_PRIVATE_ENABLE = 'DVA_PRIVATE_ENABLE' in os.environ
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -70,7 +70,8 @@ INSTALLED_APPS = [
     'vdnapp',
     'crispy_forms',
     'rest_framework.authtoken'
-]
+] + (['dvap',] if DVA_PRIVATE_ENABLE else [])
+
 
 if VDN_ENABLE:
     MIDDLEWARE_CLASSES = [

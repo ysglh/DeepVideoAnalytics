@@ -10,7 +10,7 @@ from dva.celery import app
 import serializers
 from rest_framework import viewsets,mixins
 from django.contrib.auth.models import User
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly,IsAuthenticated
 from django.db.models import Count
 from celery.exceptions import TimeoutError
 import math
@@ -26,89 +26,90 @@ def user_check(user):
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
     queryset = User.objects.all()
     serializer_class = serializers.UserSerializer
 
 
 class VideoViewSet(viewsets.ReadOnlyModelViewSet):
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
     queryset = Video.objects.all()
     serializer_class = serializers.VideoSerializer
 
 
 class FrameViewSet(viewsets.ReadOnlyModelViewSet):
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,) 
     queryset = Frame.objects.all()
     serializer_class = serializers.FrameSerializer
     filter_fields = ('frame_index', 'subdir', 'name', 'video')
 
 
 class RegionViewSet(mixins.ListModelMixin,mixins.RetrieveModelMixin,mixins.CreateModelMixin,mixins.DestroyModelMixin,viewsets.GenericViewSet):
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
     queryset = Region.objects.all()
     serializer_class = serializers.RegionSerializer
     filter_fields = ('video', 'frame', 'object_name')
 
 
 class QueryViewSet(viewsets.ReadOnlyModelViewSet):
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
     queryset = Query.objects.all()
     serializer_class = serializers.QuerySerializer
 
 
 class QueryResultsViewSet(viewsets.ReadOnlyModelViewSet):
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
     queryset = QueryResults.objects.all()
     serializer_class = serializers.QueryResultsSerializer
     filter_fields = ('frame', 'video')
 
 
 class TEventViewSet(viewsets.ReadOnlyModelViewSet):
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
     queryset = TEvent.objects.all()
     serializer_class = serializers.TEventSerializer
     filter_fields = ('video','operation')
 
 
 class IndexEntriesViewSet(viewsets.ReadOnlyModelViewSet):
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
     queryset = IndexEntries.objects.all()
     serializer_class = serializers.IndexEntriesSerializer
     filter_fields = ('video','algorithm','detection_name')
 
 
 class AppliedLabelViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
     queryset = AppliedLabel.objects.all()
     serializer_class = serializers.AppliedLabelSerializer
 
 
 class VDNServerViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
     queryset = VDNServer.objects.all()
     serializer_class = serializers.VDNServerSerializer
 
 
 class VDNDatasetViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
     queryset = VDNDataset.objects.all()
     serializer_class = serializers.VDNDatasetSerializer
 
 
 class SceneViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
     queryset = Scene.objects.all()
     serializer_class = serializers.SceneSerializer
 
 
 class ClustersViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
     queryset = Clusters.objects.all()
     serializer_class = serializers.ClustersSerializer
 
 
 class ClusterCodesViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
     queryset = ClusterCodes.objects.all()
     serializer_class = serializers.ClusterCodesSerializer
 

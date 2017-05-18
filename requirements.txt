@@ -9,7 +9,6 @@ django-filter
 celery==3.1.23
 django-celery==3.1.17
 dj-database-url==0.4.0
-whitenoise==3.0
 raven
 psycopg2
 requests

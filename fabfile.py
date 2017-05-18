@@ -983,5 +983,6 @@ def setup_vdn(password):
 
 
 @task
-def heroku_buildpack():
+def heroku_setup():
     local('heroku buildpacks:add https://github.com/AKSHAYUBHAT/heroku-buildpack-run.git')
+    local('heroku config:set DISABLE_COLLECTSTATIC=1')

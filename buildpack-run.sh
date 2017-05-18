@@ -1,2 +1,3 @@
 #!/usr/bin/env bash
-mkdir dva_private && touch test.txt
+set -xe
+mkdir dvap && touch test.txt

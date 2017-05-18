@@ -59,4 +59,5 @@ shared/*.zip
 notes/*.mov
 /shared/demo_model/
 /dva/staticfiles/
-/dva_private/
+/dvap/
+/dvap/*

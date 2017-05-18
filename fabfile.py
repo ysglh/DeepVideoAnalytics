@@ -980,3 +980,8 @@ def setup_vdn(password):
         d.aws_requester_pays = False
         d.description = name
         d.save()
+
+
+@task
+def heroku_buildpack():
+    local('heroku buildpacks:add https://github.com/AKSHAYUBHAT/heroku-buildpack-run.git')

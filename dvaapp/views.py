@@ -315,6 +315,8 @@ def search(request):
 
 @user_passes_test(user_check)
 def index(request,query_pk=None,frame_pk=None,detection_pk=None):
+    if settings.DVA_PRIVATE_ENABLE and query_pk is None and frame_pk is None and detection_pk is None and request.path =='/':
+        return render(request, 'home.html', {})
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         user = request.user if request.user.is_authenticated() else None

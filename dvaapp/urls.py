@@ -22,6 +22,7 @@ router.register(r'clustercodes', views.ClusterCodesViewSet)
 
 urlpatterns = [
     url(r'^$', views.index, name='app'),
+    url(r'^app$', views.index, name='app'),
     url(r'^status$', views.status, name='status'),
     url(r'^tasks', views.tasks, name='tasks'),
     url(r'^indexes', views.indexes, name='indexes'),

@@ -170,17 +170,25 @@ elif 'CONTINUOUS_INTEGRATION' in os.environ:
     }
     BROKER_URL = 'amqp://{}:{}@localhost//'.format('guest','guest')
 elif 'DOCKER_MODE' in os.environ:
-    BROKER_URL = 'amqp://{}:{}@{}//'.format(os.environ.get('RABBIT_USER','dvauser'),os.environ.get('RABBIT_PASS','localpass'),os.environ.get('RABBIT_HOST','rabbit'))
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': os.environ.get('DB_NAME','postgres'),
-            'USER': os.environ.get('DB_USER','postgres'),
-            'PASSWORD': os.environ.get('DB_PASS','postgres'),
-            'HOST': os.environ.get('DB_HOST','db'),
-            'PORT': 5432,
+    if 'BROKER_URL' in os.environ:
+        BROKER_URL = os.environ['BROKER_URL']
+    else:
+        BROKER_URL = 'amqp://{}:{}@{}//'.format(os.environ.get('RABBIT_USER','dvauser'),os.environ.get('RABBIT_PASS','localpass'),os.environ.get('RABBIT_HOST','rabbit'))
+    if 'DATABASE_URL' in os.environ:
+        DATABASES = {}
+        db_from_env = dj_database_url.config(conn_max_age=500)
+        DATABASES['default'] = db_from_env
+    else:
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql_psycopg2',
+                'NAME': os.environ.get('DB_NAME','postgres'),
+                'USER': os.environ.get('DB_USER','postgres'),
+                'PASSWORD': os.environ.get('DB_PASS','postgres'),
+                'HOST': os.environ.get('DB_HOST','db'),
+                'PORT': 5432,
+            }
         }
-    }
 
 
 

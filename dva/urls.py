@@ -20,7 +20,8 @@ from django.conf import settings
 
 admin.autodiscover()
 
-urlpatterns = [
-    url(r'^admin/', admin.site.urls),
-    url(r'', include('dvaapp.urls')),
-    url(r'^vdn/', include('vdnapp.urls'))]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns = [url(r'^admin/', admin.site.urls), url(r'', include('dvaapp.urls')),
+               url(r'^vdn/', include('vdnapp.urls'))]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+if settings.DVA_PRIVATE_ENABLE:
+    urlpatterns.append(url(r'^demo/', include('dvap.urls')))

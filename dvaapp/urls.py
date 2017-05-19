@@ -63,4 +63,9 @@ urlpatterns = [
     url(r'^accounts/logout/$', auth_views.logout, name='logout'),
     url(r'^password_reset/$', auth_views.password_reset, name='password_reset'),
     url(r'^accounts/profile/$', views.index, name='profile'),
-] + [url(r'^$', views.home, name='home'),] if settings.DVA_PRIVATE_ENABLE else [url(r'^$', views.index, name='app_home'),]
+]
+
+if settings.DVA_PRIVATE_ENABLE:
+    urlpatterns.append(url(r'^$', views.home, name='home'))
+else:
+    urlpatterns.append(url(r'^$', views.index, name='app_home'))

@@ -1,5 +1,6 @@
 from django.conf.urls import url,include
 import views
+from django.conf import settings
 from django.contrib.auth import views as auth_views
 from rest_framework import routers
 
@@ -21,7 +22,6 @@ router.register(r'clustercodes', views.ClusterCodesViewSet)
 
 
 urlpatterns = [
-    url(r'^$', views.index, name='app'),
     url(r'^app$', views.index, name='app'),
     url(r'^status$', views.status, name='status'),
     url(r'^tasks', views.tasks, name='tasks'),
@@ -63,4 +63,4 @@ urlpatterns = [
     url(r'^accounts/logout/$', auth_views.logout, name='logout'),
     url(r'^password_reset/$', auth_views.password_reset, name='password_reset'),
     url(r'^accounts/profile/$', views.index, name='profile'),
-]
+] + [url(r'^$', views.home, name='home'),] if settings.DVA_PRIVATE_ENABLE else [url(r'^$', views.index, name='app_home'),]

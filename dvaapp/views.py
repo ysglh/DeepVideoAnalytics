@@ -313,51 +313,51 @@ def search(request):
         return JsonResponse(data={'task_id':"",'time_out':time_out,'primary_key':query.pk,'results':results,'results_detections':results_detections})
 
 
+def home(request):
+    return render(request, 'home.html', {})
+
+
+@user_passes_test(user_check)
 def index(request,query_pk=None,frame_pk=None,detection_pk=None):
-    if settings.DVA_PRIVATE_ENABLE and query_pk is None and frame_pk is None and detection_pk is None and request.path =='/':
-        return render(request, 'home.html', {})
-    elif user_check(request.user):
-        if request.method == 'POST':
-            form = UploadFileForm(request.POST, request.FILES)
-            user = request.user if request.user.is_authenticated() else None
-            if form.is_valid():
-                handle_uploaded_file(request.FILES['file'],form.cleaned_data['name'],user=user,
-                                     perform_scene_detection=form.cleaned_data['scene'],
-                                     rate=form.cleaned_data['nth'],
-                                     rescale=form.cleaned_data['rescale'] if 'rescale' in form.cleaned_data else 0)
-                return redirect('video_list')
-            else:
-                raise ValueError
+    if request.method == 'POST':
+        form = UploadFileForm(request.POST, request.FILES)
+        user = request.user if request.user.is_authenticated() else None
+        if form.is_valid():
+            handle_uploaded_file(request.FILES['file'],form.cleaned_data['name'],user=user,
+                                 perform_scene_detection=form.cleaned_data['scene'],
+                                 rate=form.cleaned_data['nth'],
+                                 rescale=form.cleaned_data['rescale'] if 'rescale' in form.cleaned_data else 0)
+            return redirect('video_list')
         else:
-            form = UploadFileForm()
-        context = { 'form' : form }
-        context['indexes'] = settings.VISUAL_INDEXES
-        if query_pk:
-            previous_query = Query.objects.get(pk=query_pk)
-            context['initial_url'] = '{}queries/{}.png'.format(settings.MEDIA_URL,query_pk)
-        elif frame_pk:
-            frame = Frame.objects.get(pk=frame_pk)
-            context['initial_url'] = '{}{}/frames/{}.jpg'.format(settings.MEDIA_URL,frame.video.pk,frame.frame_index)
-        elif detection_pk:
-            detection = Region.objects.get(pk=detection_pk)
-            context['initial_url'] = '{}{}/detections/{}.jpg'.format(settings.MEDIA_URL,detection.video.pk, detection.pk)
-        context['frame_count'] = Frame.objects.count()
-        context['query_count'] = Query.objects.count()
-        context['index_entries_count'] = IndexEntries.objects.count()
-        context['external_datasets_count'] = VDNDataset.objects.count()
-        context['external_servers_count'] = VDNServer.objects.count()
-        context['task_events_count'] = TEvent.objects.count()
-        context['pending_tasks'] = TEvent.objects.all().filter(started=False).count()
-        context['running_tasks'] = TEvent.objects.all().filter(started=True,completed=False).count()
-        context['successful_tasks'] = TEvent.objects.all().filter(started=True,completed=True).count()
-        context['errored_tasks'] = TEvent.objects.all().filter(errored=True).count()
-        context['video_count'] = Video.objects.count() - context['query_count']
-        context['index_entries'] = IndexEntries.objects.all()
-        context['detection_count'] = Region.objects.all().filter(region_type=Region.DETECTION).count()
-        context['annotation_count'] = Region.objects.all().filter(region_type=Region.ANNOTATION).count()
-        return render(request, 'dashboard.html', context)
+            raise ValueError
     else:
-        redirect('/login')
+        form = UploadFileForm()
+    context = { 'form' : form }
+    context['indexes'] = settings.VISUAL_INDEXES
+    if query_pk:
+        previous_query = Query.objects.get(pk=query_pk)
+        context['initial_url'] = '{}queries/{}.png'.format(settings.MEDIA_URL,query_pk)
+    elif frame_pk:
+        frame = Frame.objects.get(pk=frame_pk)
+        context['initial_url'] = '{}{}/frames/{}.jpg'.format(settings.MEDIA_URL,frame.video.pk,frame.frame_index)
+    elif detection_pk:
+        detection = Region.objects.get(pk=detection_pk)
+        context['initial_url'] = '{}{}/detections/{}.jpg'.format(settings.MEDIA_URL,detection.video.pk, detection.pk)
+    context['frame_count'] = Frame.objects.count()
+    context['query_count'] = Query.objects.count()
+    context['index_entries_count'] = IndexEntries.objects.count()
+    context['external_datasets_count'] = VDNDataset.objects.count()
+    context['external_servers_count'] = VDNServer.objects.count()
+    context['task_events_count'] = TEvent.objects.count()
+    context['pending_tasks'] = TEvent.objects.all().filter(started=False).count()
+    context['running_tasks'] = TEvent.objects.all().filter(started=True,completed=False).count()
+    context['successful_tasks'] = TEvent.objects.all().filter(started=True,completed=True).count()
+    context['errored_tasks'] = TEvent.objects.all().filter(errored=True).count()
+    context['video_count'] = Video.objects.count() - context['query_count']
+    context['index_entries'] = IndexEntries.objects.all()
+    context['detection_count'] = Region.objects.all().filter(region_type=Region.DETECTION).count()
+    context['annotation_count'] = Region.objects.all().filter(region_type=Region.ANNOTATION).count()
+    return render(request, 'dashboard.html', context)
 
 @user_passes_test(user_check)
 def assign_video_labels(request):

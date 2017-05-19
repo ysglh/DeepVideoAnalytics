@@ -8,7 +8,7 @@
 
 #### Author: [Akshay Bhat, Cornell University.](http://www.akshaybhat.com)
 
-#### Deep Video Analytics is a platform for indexing and extracting information from videos and images. For installation instructions & demo go to [https://deepvideoanalytics.com](https://deepvideoanalytics.com)
+#### Deep Video Analytics is a platform for indexing and extracting information from videos and images. For installation instructions & demo go to [https://www.deepvideoanalytics.com](https://www.deepvideoanalytics.com)
 
 #### Libraries used and their licenses
 

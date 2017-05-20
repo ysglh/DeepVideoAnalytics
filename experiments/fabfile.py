@@ -94,3 +94,10 @@ def deploy(compose_file="docker-compose-gpu.yml"):
     if sys.platform == 'darwin':
         chrome_path = 'open -a /Applications/Google\ Chrome.app %s'
         webbrowser.get(chrome_path).open('http://{}:8000'.format(env.hosts[0]))
+
+
+@task
+def mount_efs(dns):
+    sudo('apt-get install nfs-common')
+    sudo('mkdir efs')
+    sudo('mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 {}:/ efs'.format(dns))

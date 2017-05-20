@@ -1,0 +1,31 @@
+# specify using docker-compose -f docker-compose-deploy.yml up
+ version: '3'
+ services:
+   dva:
+     build: .
+     image: akshayubhat/dva:gpu
+     container_name: dva-server
+     environment:
+       - DOCKER_MODE=true
+       - LAUNCH_SERVER_NGINX=1
+       - DISABLE_DEBUG=1
+       - BROKER_URL=${BROKER_URL}
+       - DATABASE_URL=${DATABASE_URL}
+       - SECRET_KEY=${SECRET_KEY}
+       - LAUNCH_Q_qindexer=1
+       - LAUNCH_Q_qretriever=1
+       - LAUNCH_Q_qextract=1
+       - LAUNCH_Q_qdetector=1
+       - LAUNCH_Q_qfaceretriever=1
+       - LAUNCH_Q_qclusterer=1
+       - LAUNCH_Q_qfacedetector=1
+       - CELERY_MUTE=1
+       - GPU_AVAILABLE=1
+     command: bash -c "youtube-dl -U && git pull && fab start_container"
+     ports:
+       - "127.0.0.1:8500:80"
+     volumes:
+       - dvadata:/root/DVA/dva/media
+ volumes:
+  dvadata:
+    external: true

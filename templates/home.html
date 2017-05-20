@@ -1,0 +1,360 @@
+{% load static from staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Deep Video Analytics</title>
+    <link href={% static 'private_static/static/insp_seed/css/bootstrap.min.css' %} rel="stylesheet">
+    <link href={% static 'private_static/static/insp_seed/css/animate.css' %} rel="stylesheet">
+    <link href={% static 'private_static/static/insp_seed/font-awesome/css/font-awesome.min.css' %} rel="stylesheet">
+    <link href={% static 'private_static/static/insp_seed/fontcustom/fontcustom.css' %} rel="stylesheet">
+    <link href={% static 'private_static/static/insp_seed/css/style.css' %} rel="stylesheet">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/styles/railscasts.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js"></script>
+
+    <style>
+        .landing-page section p {
+            color: #171111 !important;
+            font-size: 14px !important;
+        }
+        .video-container {
+        position: relative;
+        padding-bottom: 56.25%;
+        padding-top: 30px; height: 0; overflow: hidden;
+        }
+
+        .video-container iframe,
+        .video-container object,
+        .video-container embed {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        }
+    </style>
+</head>
+<body id="page-top" class="landing-page" style="background-color:white">
+<div class="navbar-wrapper">
+        <nav class="navbar navbar-scroll navbar-default navbar-fixed-top" role="navigation">
+            <div class="container">
+                <div class="navbar-header page-scroll">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="/">Deep Video Analytics</a>
+                </div>
+                <div id="navbar" class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav navbar-right">
+                        <li><a class="page-scroll" href="#installation">Installation</a></li>
+                        <li><a class="page-scroll" href="#demos">Demos</a></li>
+                        <li><a class="page-scroll" href="#contact">Contact</a></li>
+                        <li><a href="http://www.akshaybhat.com" target="_blank">By Akshay Bhat</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+</div>
+
+<section class="container" style="margin-top:80px">
+
+<div class="row">
+    <div class="col-lg-6 text-center">
+        <h2 class="hidden-xs m-t" style="margin-top:65px">Relational data : Postgres, MySQL, SQLite</h2>
+        <h3  class="hidden-xs ">::</h3>
+        <h2  class="hidden-xs " style="margin-top:0px">Text, HTML : Lucene/Solr, Elasticsearch</h2>
+        <h3  class="hidden-xs ">::</h3>
+        <h2  class="hidden-xs " style="margin-top:0px">Videos & Images : <span style="font-weight:bold">Deep Video Analytics</span></h2>
+
+        <h3 class="visible-xs m-t" style="margin-top:35px">Relational data : Postgres, MYSQL, SQLite</h3>
+        <h5 class="visible-xs">::</h5>
+        <h3 class="visible-xs" style="margin-top:0px">Text, HTML : Lucene/Solr, Elasticsearch</h3>
+        <h5 class="visible-xs">::</h5>
+        <h3 class="visible-xs" style="margin-top:0px">Videos & Images : <span style="font-weight:bold">Deep Video Analytics</span></h3>
+        <div class="alert alert-info" style="margin-bottom:15px;margin-top:40px">
+            <a class="btn btn-success" href="http://github.com/akshayubhat/deepvideoanalytics"><i class="fa fa-github"></i> Visit github repo</a>
+            <div style="margin-top:25px">
+                <iframe src="https://ghbtns.com/github-btn.html?user=akshayubhat&repo=deepvideoanalytics&type=star&count=true&size=large" frameborder="0" scrolling="0" width="160px" height="30px"></iframe>
+                <iframe src="https://ghbtns.com/github-btn.html?user=akshayubhat&repo=deepvideoanalytics&type=watch&count=true&size=large&v=2" frameborder="0" scrolling="0" width="160px" height="30px"></iframe>
+                <iframe src="https://ghbtns.com/github-btn.html?user=akshayubhat&repo=deepvideoanalytics&type=fork&count=true&size=large" frameborder="0" scrolling="0" width="158px" height="30px"></iframe>
+            </div>
+        </div>
+        </div>
+        <div class="col-lg-6 text-center m-t">
+            <div class="video-container" style="margin-top:25px">
+                <iframe width="853" height="480" src="https://www.youtube.com/embed/vZVUJkM32NQ?rel=0&amp;controls=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe>
+            </div>
+        </div>
+</div>
+</section>
+<section id="features" class="container services">
+    <div class="row">
+        <div class="col-sm-3 text-center">
+            <i class="fa fa-video-camera features-icon" style="font-size:36px"></i>
+            <h2>Upload</h2>
+            <p>Upload videos or set of images. Download Youtube urls automatically.
+                Browse & annotate uploaded videos. Ability to import pre-indexed datasets.</p>
+        </div>
+        <div class="col-sm-3 text-center">
+            <i class="fa fa-forward features-icon" style="font-size:36px"></i>
+            <h2>Process</h2>
+            <p>Perform scene detection, frame extraction on videos.
+                Annotate frames, detections with bounding boxes, labels and metadata.</p>
+        </div>
+        <div class="col-sm-3 text-center">
+            <i class="fa fa-search features-icon" style="font-size:36px"></i>
+            <h2>Search</h2>
+            <p>Extracted objects, along with entire frames and crops, are indexed using deep features.
+                Feature vectors are used for visual search retrieval.</p>
+        </div>
+        <div class="col-sm-3 text-center">
+            <i class="fa fa-docker features-icon" style="font-size:36px"></i>
+            <h2>Deploy</h2>
+            <p>Deploy on variety of machines with/without GPUs, local & cloud.
+                Docker compose enables automated setup of Postgres & RabbitMQ. </p>
+        </div>
+    </div>
+</section>
+<section  class="container features">
+    <div class="row">
+        <div class="col-lg-12 text-center">
+            <div class="navy-line"></div>
+            <h1 style="margin-bottom:15px">Features & Models</h1>
+            <h4>We take significant efforts to ensure that following models (code+weights included) work without having to write any code.</h4>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <h2>Features</h2>
+            <ul>
+                <li><p>Visual Search as a primary interface</p></li>
+                <li><p>Upload videos, multiple images.</p></li>
+                <li><p>Provide Youtube url to be automatically downloaded.</p></li>
+                <li><p>Pre-trained recognition/detection, face recognition models.</p></li>
+                <li><p>Metadata stored in Postgres, all operations performed asynchronously.</p></li>
+                <li><p>Celery allows video & query flows to be easily modified.</p></li>
+                <li><p>Videos, frames, indexes, etc. stored in media directory, served through nginx.</p></li>
+                <li><p>Manually run code & tasks without UI using a Jupyter notebook.</p></li>
+                <li><p>Customize by specifying <a target="_blank" href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/notes/environment.md">environment variables</a></p></li>
+            </ul>
+        </div>
+        <div class="col-md-6 ">
+            <h2>Models</h2>
+            <ul>
+                <li><p>Indexing using Google inception V3 trained on Imagenet</p></li>
+                <li><p><a href="https://github.com/balancap/SSD-Tensorflow" target="_blank">Single Shot Detector (SSD) Multibox 300 training using VOC</a></p></li>
+                <li><p>Alexnet using Pytorch</p></li>
+                <li><p>YOLO 9000 </p></li>
+                <li><p><a href="https://github.com/davidsandberg/facenet" target="_blank">Face detection/alignment/recognition using MTCNN and Facenet</a></p></li>
+                <li><p>Open Images multi-label inception v3 for text tags</p></li>
+            </ul>
+            <h2> Import external datasets using VDN</h2>
+            <ul>
+                <li><p>MSCOCO</p></li>
+                <li><p>Labeled Faces in the Wild</p></li>
+            </ul>
+        </div>
+    </div>
+</section>
+<section class="container features" id="vdn">
+<div class="row">
+    <div class="col-lg-12 text-center">
+    <div class="navy-line"></div>
+    <h1 style="margin-bottom:10px" class="m-t hidden-xs hidden-md hidden-sm">Part of Visual Intelligence Platform =  Deep Video Analytics + <a target="_blank" href="http://visualdata.network">Visual Data Network</a></h1>
+    <h2 style="margin-bottom:10px;margin-top:10px" class="m-t hidden-xs hidden-lg visible-md visible-sm">Part of Visual Intelligence Platform =  Deep Video Analytics + <a target="_blank" href="http://visualdata.network">Visual Data Network</a></h2>
+    <div class="visible-xs m-t">
+        <h3 style="font-weight:bold;">Part of Visual Intelligence Platform</h3>
+        <h3 style="font-weight:bold;">Deep Video Analytics</h3>
+        <h3 style="font-weight:bold;">+</h3>
+        <h3 style="font-weight:bold;"><a target="_blank" href="http://visualdata.network">Visual Data Network</a></h3>
+    </div>
+    </div>
+    <div class="col-lg-6 col-md-6 m-t text-center">
+        <h3>Seamless integration with Visual Data Network</h3>
+        <a href="http://visualdata.network" target="_blank"><img src={% static 'private_static/static/insp_seed/img/VDN.png' %} class="img-responsive"></a>
+    </div>
+    <div class="col-lg-6 col-md-6 text-center m-t">
+        <h3>Quickly import pre-processed datasets</h3>
+        <div class="video-container">
+            <iframe height="320" src="https://www.youtube.com/embed/Vt5qsNQoUB4?rel=0&amp;controls=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe>
+        </div>
+    </div>
+</div>
+</section>
+<section  class="container features" id="installation">
+    <div class="row">
+        <div class="col-lg-12 text-center">
+            <div class="navy-line"></div>
+            <h1 style="margin-bottom:15px">Installation</h1>
+            <h4>Pre-built docker images for both CPU & GPU versions are <a href="https://hub.docker.com/r/akshayubhat/" target="_blank">available on Docker Hub</a>.</h4>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <h2>Machines without an Nvidia GPU</h2>
+            <p>Deep Video analytics is implemented using Docker and works on Mac, Windows and Linux. Make sure you have latest version of Docker installed.</p>
+        </div>
+        <div class="col-md-6 ">
+<pre class="m-t"  style="padding:0"><code class="bash">git clone https://github.com/AKSHAYUBHAT/DeepVideoAnalytics
+cd DeepVideoAnalytics/docker && docker-compose up
+</code></pre>
+        </div>
+    </div>
+    <div class="row m-t">
+        <div class="col-md-6">
+            <h2>Machines with Nvidia GPU</h2>
+            <p>You need to have latest version of Docker and nvidia-docker installed. The GPU Dockerfile is slightly different from the CPU version dockerfile.</p>
+        </div>
+        <div class="col-md-6 ">
+<pre class="m-t"  style="padding:0"><code class="bash">pip install --upgrade nvidia-docker-compose
+git clone https://github.com/AKSHAYUBHAT/DeepVideoAnalytics
+cd DeepVideoAnalytics/docker && ./rebuild_gpu.sh
+nvidia-docker-compose -f docker-compose-gpu.yml up
+</code></pre>
+        </div>
+    </div>
+    <div class="row m-t">
+        <div class="col-md-6">
+            <h2>On AWS using a P2.xlarge instance</h2>
+            <p>We provide an AMI with all dependencies such as docker & nvidia drivers pre-installed. To use it start a P2.xlarge instance with <span style="font-weight:bold">AMI ID: ami-848f3d92 (N. Virginia)</span>  and ports 8000, 6006, 8888 open (preferably to only your IP). Run following commands after logging into the machine via SSH.
+                After approximately 5 ~ 1 minutes the user interface will appear on port 8000 of the instance ip. AMI creation is <a href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/notes/ami.md" target="_parent">documented here</a>.</p>
+        </div>
+        <div class="col-md-6 ">
+<pre class="m-t"  style="padding:0"><code class="bash">
+rm -rf deepvideoanalytics
+git clone https://github.com/akshayubhat/deepvideoanalytics
+cd deepvideoanalytics/docker
+./rebuild_gpu.sh
+nvidia-docker-compose -f docker-compose-gpu.yml up
+
+</code></pre>
+        </div>
+    </div>
+<div class="row">
+    <div class="col-lg-12">
+        <div class="alert alert-danger"><h4 class="text-center">Security warning</h4>
+        We recommend that you allow inbound traffic only from your own IP addresses, you can easily change these using AWS security rules even after instance has started.
+        When deploying/running on remote Ubuntu machines on VPS services such as Linode etc. beware of the <a href="https://askubuntu.com/questions/652556/uncomplicated-firewall-ufw-is-not-blocking-anything-when-using-docker" target="_blank">Docker/UFW firewall issues</a>.
+        Docker bypasses UFW firewall and opens the port 8000 to internet. You can change the behavior by using a loopback interface (127.0.0.1:8000:80) and then forwarding the port (8000) over SSH tunnel, an example of this is <a href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/docker/docker-compose-linode.yml" target="_blank">shown here</a>.
+        </div>
+    </div>
+</div>
+</section>
+<section  class="container features" id="demos">
+    <div class="row">
+        <div class="col-lg-12 text-center">
+            <div class="navy-line"></div>
+            <h1 style="margin-bottom:15px">Demo & Tutorials</h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-12 text-center">
+            <h2>Coming Soon!</h2>
+        </div>
+    </div>
+</section>
+<section class="container features">
+    <div class="row">
+        <div class="col-lg-12 text-center">
+        <div class="navy-line"></div>
+            <h1>Architecture</h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <h3 class="text-center">Docker containers, networking and volumes</h3>
+            <img src={% static 'private_static/static/insp_seed/img/architecture.png' %} class="img-responsive" />
+        </div>
+        <div class="col-md-6 ">
+            <h3 class="text-center">Video & Query processing</h3>
+            <img src={% static 'private_static/static/insp_seed/img/flowchart.png' %} class="img-responsive" />
+        </div>
+    </div>
+</section>
+<section class="container features">
+    <div class="row">
+        <div class="navy-line"></div>
+        <div class="col-lg-12 text-center">
+            <h1>Documentation & Presentation</h1>
+            <h4>Some documentation is available <a href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/tree/master/notes">here</a> along with a board for <a href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/projects/1">planned future tasks</a>.</h4>
+            <h4>For a quick overview of design choices and vision behind this project we strongly recommend going through following presentation.</h4>
+            <div class="hidden-sm hidden-xs"><iframe style="margin-top:25px" src="https://docs.google.com/presentation/d/1nweK60ywx1h-MMg75oo0E5jwBQtrFIVK6hPgMuB985U/embed?start=false&loop=false&delayms=3000" frameborder="0" width="960" height="569" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe></div>
+            <div class="visible-sm"><iframe style="margin-top:20px" src="https://docs.google.com/presentation/d/1nweK60ywx1h-MMg75oo0E5jwBQtrFIVK6hPgMuB985U/embed?start=false&loop=false&delayms=3000" frameborder="0" width="480" height="299" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe></div>
+            <div class="visible-xs"><iframe style="margin-top:20px" src="https://docs.google.com/presentation/d/1nweK60ywx1h-MMg75oo0E5jwBQtrFIVK6hPgMuB985U/embed?start=false&loop=false&delayms=3000" frameborder="0" width="320" height="209" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe></div>
+        </div>
+    </div>
+</section>
+<section class="container features">
+    <div class="row">
+        <div class="navy-line"></div>
+        <div class="col-lg-12 text-center">
+            <h1>Paper & Citation</h1>
+            <div class="alert alert-warning text-center"><h3>Coming Soon!</h3></div>
+        </div>
+    </div>
+</section>
+<section class="container features">
+    <div class="row">
+        <div class="navy-line"></div>
+        <div class="col-lg-12 text-center">
+            <h1 >References</h1>
+        </div>
+        <div class="col-lg-12"><ol>
+            <li><p>Schroff, Florian, Dmitry Kalenichenko, and James Philbin. "Facenet: A unified embedding for face recognition and clustering." Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition. 2015.</p></li>
+            <li><p>Szegedy, Christian, et al. "Going deeper with convolutions." Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition. 2015.</p></li>
+            <li><p>Zhang, Kaipeng, et al. "Joint Face Detection and Alignment Using Multitask Cascaded Convolutional Networks." IEEE Signal Processing Letters 23.10 (2016): 1499-1503.</p></li>
+            <li><p>Liu, Wei, et al. "SSD: Single shot multibox detector." European Conference on Computer Vision. Springer International Publishing, 2016.</p></li>
+            <li><p>Redmon, Joseph, et al. "You only look once: Unified, real-time object detection." Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition. 2016.</p></li>
+            <li><p>Krizhevsky, Alex, Ilya Sutskever, and Geoffrey E. Hinton. "Imagenet classification with deep convolutional neural networks." Advances in neural information processing systems. 2012.</p></li>
+            <li><p>Johnson, Jeff, Matthijs Douze, and Hervé Jégou. "Billion-scale similarity search with GPUs." arXiv preprint arXiv:1702.08734 (2017).</p></li>
+        </ol></div>
+    </div>
+</section>
+<section id="contact" class="contact">
+    <div class="container">
+        <div class="row m-b-lg">
+            <div class="col-lg-12 text-center">
+                <div class="navy-line"></div>
+                <h1>Issues, Questions & Contact</h1>
+                <h4>Please submit all software related bugs and questions using <a href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/issues" target="_blank">Github issues</a>, for other questions you can contact me at <a href="mailto:akshayubhat@gmail.com">akshayubhat@gmail.com</a>.</h4>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 text-center m-t-lg m-b-lg">
+                <p><strong>&copy; 2017 Akshay Bhat, Cornell University.</strong><br/> All rights reserved.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Mainly scripts -->
+<script src={% static 'private_static/static/insp_seed/js/jquery-2.1.1.js' %}></script>
+<script src={% static 'private_static/static/insp_seed/js/bootstrap.min.js' %}></script>
+<script src={% static 'private_static/static/insp_seed/js/plugins/metisMenu/jquery.metisMenu.js' %}></script>
+<script src={% static 'private_static/static/insp_seed/js/plugins/slimscroll/jquery.slimscroll.min.js' %}></script>
+
+<!-- Custom and plugin javascript -->
+<script src={% static 'private_static/static/insp_seed/js/inspinia.js' %}></script>
+<script src={% static 'private_static/static/insp_seed/js/plugins/pace/pace.min.js' %}></script>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-92887806-1', 'auto');
+  ga('send', 'pageview');
+</script>
+<script>
+    $(document).ready(function() {
+        hljs.initHighlightingOnLoad();
+    });
+</script>
+</body>
+</html>

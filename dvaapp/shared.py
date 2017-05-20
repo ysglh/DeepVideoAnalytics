@@ -133,7 +133,6 @@ def handle_youtube_video(name,url,extract=True,user=None,perform_scene_detection
     video.url = url
     video.youtube_video = True
     video.save()
-    create_video_folders(video)
     task_name = 'extract_frames_by_id'
     extract_frames_task = TEvent()
     extract_frames_task.video = video

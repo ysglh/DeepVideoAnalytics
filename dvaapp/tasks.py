@@ -365,6 +365,8 @@ def extract_frames(task_id):
     start_time = time.time()
     video_id = start.video_id
     dv = Video.objects.get(id=video_id)
+    if dv.youtube_video:
+        create_video_folders(dv)
     v = entity.WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
     time.sleep(3) # otherwise ffprobe randomly fails
     if not dv.dataset:

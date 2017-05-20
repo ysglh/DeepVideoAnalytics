@@ -2,6 +2,14 @@ import os,json,requests,base64
 from models import Video,TEvent,AppliedLabel,Region,Frame,VDNDataset,VDNServer,Query
 from django.conf import settings
 from dva.celery import app
+from celery.result import AsyncResult
+
+
+def refresh_task_status():
+    for t in TEvent.objects.all().filter(started=True,completed=False,errored=False):
+        if AsyncResult(t.id).status == 'FAILURE':
+            t.errored = True
+            t.save()
 
 
 def create_video_folders(video,create_subdirs=True):

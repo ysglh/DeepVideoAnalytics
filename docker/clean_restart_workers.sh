@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+source heroku.env
 docker-compose -f docker-compose-worker.yml down -v
 docker-compose -f docker-compose-worker.yml up -d
 sleep 120

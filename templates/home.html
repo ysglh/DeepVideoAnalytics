@@ -142,7 +142,7 @@
                 <li><p>Celery allows video & query flows to be easily modified.</p></li>
                 <li><p>Videos, frames, indexes, etc. stored in media directory, served through nginx.</p></li>
                 <li><p>Manually run code & tasks without UI using a Jupyter notebook.</p></li>
-                <li><p>Customize by specifying <a target="_blank" href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/notes/environment.md">environment variables</a></p></li>
+                <li><p>Customize by specifying <a target="_blank" href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/notebooks/environment.md">environment variables</a></p></li>
             </ul>
         </div>
         <div class="col-md-6 ">
@@ -223,8 +223,8 @@ nvidia-docker-compose -f docker-compose-gpu.yml up
     <div class="row m-t">
         <div class="col-md-6">
             <h2>On AWS using a P2.xlarge instance</h2>
-            <p>We provide an AMI with all dependencies such as docker & nvidia drivers pre-installed. To use it start a P2.xlarge instance with <span style="font-weight:bold">AMI ID: ami-848f3d92 (N. Virginia)</span>  and ports 8000, 6006, 8888 open (preferably to only your IP). Run following commands after logging into the machine via SSH.
-                After approximately 5 ~ 1 minutes the user interface will appear on port 8000 of the instance ip. AMI creation is <a href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/notes/ami.md" target="_parent">documented here</a>.</p>
+            <p>We provide an AMI with all dependencies such as docker & nvidia drivers pre-installed. To use it start a P2.xlarge instance with <span style="font-weight:bold">AMI ID: (Please email us)</span>  and ports 8000, 6006, 8888 open (preferably to only your IP). Run following commands after logging into the machine via SSH.
+                After approximately 5 ~ 1 minutes the user interface will appear on port 8000 of the instance ip. AMI creation is <a href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/notebooks/ami.md" target="_parent">documented here</a>.</p>
         </div>
         <div class="col-md-6 ">
 <pre class="m-t"  style="padding:0"><code class="bash">
@@ -283,7 +283,7 @@ nvidia-docker-compose -f docker-compose-gpu.yml up
         <div class="navy-line"></div>
         <div class="col-lg-12 text-center">
             <h1>Documentation & Presentation</h1>
-            <h4>Some documentation is available <a href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/tree/master/notes">here</a> along with a board for <a href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/projects/1">planned future tasks</a>.</h4>
+            <h4>Some documentation is available <a href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/tree/master/notebooks">here</a> along with a board for <a href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/projects/1">planned future tasks</a>.</h4>
             <h4>For a quick overview of design choices and vision behind this project we strongly recommend going through following presentation.</h4>
             <div class="hidden-sm hidden-xs"><iframe style="margin-top:25px" src="https://docs.google.com/presentation/d/1nweK60ywx1h-MMg75oo0E5jwBQtrFIVK6hPgMuB985U/embed?start=false&loop=false&delayms=3000" frameborder="0" width="960" height="569" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe></div>
             <div class="visible-sm"><iframe style="margin-top:20px" src="https://docs.google.com/presentation/d/1nweK60ywx1h-MMg75oo0E5jwBQtrFIVK6hPgMuB985U/embed?start=false&loop=false&delayms=3000" frameborder="0" width="480" height="299" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe></div>

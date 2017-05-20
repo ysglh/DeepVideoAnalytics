@@ -63,4 +63,5 @@ notes/*.mov
 /dvap/*
 /marketing/
 /marketing/private_static/
+*.mov
 

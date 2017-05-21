@@ -655,10 +655,11 @@ def heroku_psql():
 
 
 @task
-def heroku_dbflush():
+def heroku_reset(password):
     if raw_input("Are you sure type yes >>") == 'yes':
         local('heroku pg:reset DATABASE_URL')
         heroku_migrate()
+        heroku_setup_vdn(password)
         local('heroku run python manage.py createsuperuser')
 
 

@@ -959,7 +959,7 @@ def setup_vdn(password):
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from vdnapp.models import User,Dataset,Organization
-    user = User(username="akshayubhat",password=password,email="akshayubhat@gmail.com")
+    user = User(username="akshayvdn",password=password,email="aub3@cornell.edu")
     user.save()
     o = Organization()
     o.user = user

@@ -8,7 +8,6 @@
      environment:
        - DOCKER_MODE=true
        - LAUNCH_SERVER_NGINX=1
-       - DISABLE_DEBUG=1
        - BROKER_URL=${BROKER_URL}
        - DATABASE_URL=${DATABASE_URL}
        - SECRET_KEY=${SECRET_KEY}

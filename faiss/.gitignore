@@ -1,9 +1,0 @@
-/tests/demo_ivfpq_indexing
-*.swp
-*.swo
-*.o
-*.a
-*.dSYM
-*.so
-*.pyc
-*~

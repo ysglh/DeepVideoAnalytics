@@ -17,7 +17,7 @@ VDN_ENABLE = 'VDN_ENABLE' in os.environ
 DVA_PRIVATE_ENABLE = 'DVA_PRIVATE_ENABLE' in os.environ
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
+MEDIA_BUCKET = os.environ.get('MEDIA_BUCKET','')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/

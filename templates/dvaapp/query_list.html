@@ -23,7 +23,7 @@
                     </div>
                     <div class="box-body">
                         <a href="/queries/{{ v.pk }}">
-                            <img  class="img-responsive img-bordered" src="{{ MEDIA_URL }}queries/{{ v.pk }}.png" style="width:80%;margin-left:auto;margin-right:auto"/>
+                            <img  class="img-responsive img-bordered" src="{{ MEDIA_URL }}queries/{{ v.pk }}.png" style="max-height:200px;max-width:80%;margin-left:auto;margin-right:auto"/>
                             <h4 class="text-center">{% if v.results %} <a  class="btn btn-success" href="/queries/{{ v.pk }}"><i class="fa fa-list"></i> View results</a> {% else %} <a class="btn btn-warning btwn disabled">waiting</a>{% endif %}</h4>
                         </a>
                     </div>

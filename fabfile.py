@@ -62,7 +62,6 @@ def start_container():
     if 'LAUNCH_SERVER' in os.environ:
         local('python manage.py runserver 0.0.0.0:8000')
     elif 'LAUNCH_SERVER_NGINX' in os.environ:
-        migrate()
         local('chmod 0777 -R /tmp')
         try:
             local("mv docker/configs/nginx.conf /etc/nginx/")
@@ -88,7 +87,7 @@ def start_container():
             pass
         local("python manage.py collectstatic --no-input")
         local("chmod 0777 -R dva/staticfiles/")
-        local("chmod 0777 -R dva/media/")
+        # local("chmod 0777 -R dva/media/")
         local('supervisord -n')
 
 

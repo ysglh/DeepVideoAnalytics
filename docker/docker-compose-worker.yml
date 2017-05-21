@@ -27,3 +27,4 @@
        - dvadata:/root/DVA/dva/media
  volumes:
   dvadata:
+    external: true

@@ -993,5 +993,3 @@ def heroku_setup():
 def sync_static(bucket_name='dvastatic'):
     with lcd('dva'):
         local('aws s3 sync staticfiles/ s3://{}/'.format(bucket_name))
-    with lcd('marketing'):
-        local('aws s3 sync private_static/ s3://{}/private_static/'.format(bucket_name))

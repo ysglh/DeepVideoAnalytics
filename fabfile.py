@@ -993,3 +993,40 @@ def heroku_setup():
 def sync_static(bucket_name='dvastatic'):
     with lcd('dva'):
         local('aws s3 sync staticfiles/ s3://{}/'.format(bucket_name))
+
+
+@task
+def enable_bucket_static_hosting(bucket_name):
+    """
+    Enable static hosting for given bucket name
+    Note that the bucket / media becomes publicly viewable.
+    An alternative is using presigned url but it will require a django filter
+    https://stackoverflow.com/questions/33549254/how-to-generate-url-from-boto3-in-amazon-web-services
+    :param bucket_name:
+    :return:
+    """
+    s3 = boto3.client('s3')
+    cors_configuration = {
+        'CORSRules': [{
+            'AllowedHeaders': ['Authorization'],
+            'AllowedMethods': ['GET'],
+            'AllowedOrigins': ['*'],
+            'ExposeHeaders': ['GET'],
+            'MaxAgeSeconds': 3000
+        }]
+    }
+    s3.put_bucket_cors(Bucket=bucket_name, CORSConfiguration=cors_configuration)
+    bucket_policy = {
+        'Version': '2012-10-17',
+        'Statement': [{
+            'Sid': 'AddPerm',
+            'Effect': 'Allow',
+            'Principal': '*',
+            'Action': ['s3:GetObject'],
+            'Resource': "arn:aws:s3:::%s/*" % bucket_name
+        }]
+    }
+    bucket_policy = json.dumps(bucket_policy)
+    s3.put_bucket_policy(Bucket=bucket_name, Policy=bucket_policy)
+    website_configuration = {'ErrorDocument': {'Key': 'error.html'},'IndexDocument': {'Suffix': 'index.html'},}
+    s3.put_bucket_website(Bucket=bucket_name,WebsiteConfiguration=website_configuration)

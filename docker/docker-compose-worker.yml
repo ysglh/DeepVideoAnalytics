@@ -11,6 +11,7 @@
        - BROKER_URL=${BROKER_URL}
        - DATABASE_URL=${DATABASE_URL}
        - SECRET_KEY=${SECRET_KEY}
+       - MEDIA_BUCKET=${MEDIA_BUCKET}
        - LAUNCH_Q_qindexer=1
        - LAUNCH_Q_qretriever=1
        - LAUNCH_Q_qextract=1

@@ -855,3 +855,24 @@ def perform_clustering(cluster_task_id,test=False):
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
+
+
+@app.task(name="sync_bucket_video_by_id")
+def sync_bucket_video_by_id(task_id):
+    start = TEvent.objects.get(pk=task_id)
+    start.task_id = sync_bucket_video_by_id.request.id
+    start.started = True
+    start.operation = sync_bucket_video_by_id.name
+    start.save()
+    start_time = time.time()
+    video_id = start.video_id
+    syncer = subprocess.Popen(['aws','s3','sync','{}/{}/'.format(settings.MEDIA_ROOT,video_id),'s3://{}/{}/'.format(settings.MEDIA_BUCKET,video_id)])
+    syncer.wait()
+    if syncer.returncode != 0:
+        start.errored = True
+        start.save()
+        return
+    start.completed = True
+    start.seconds = time.time() - start_time
+    start.save()
+    return

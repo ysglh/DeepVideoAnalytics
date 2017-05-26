@@ -873,7 +873,7 @@ def sync_bucket_video_by_id(task_id):
             src = '{}/{}/'.format(settings.MEDIA_ROOT, video_id)
             dest = 's3://{}/{}/'.format(settings.MEDIA_BUCKET,video_id)
         command = " ".join(['aws','s3','sync',src,dest])
-        syncer = subprocess.Popen(['aws','s3','sync',src,dest])
+        syncer = subprocess.Popen(['aws','s3','sync','--size-only',src,dest])
         syncer.wait()
         if syncer.returncode != 0:
             start.errored = True

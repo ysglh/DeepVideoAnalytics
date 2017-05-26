@@ -866,10 +866,19 @@ def sync_bucket_video_by_id(task_id):
     start.save()
     start_time = time.time()
     video_id = start.video_id
-    syncer = subprocess.Popen(['aws','s3','sync','{}/{}/'.format(settings.MEDIA_ROOT,video_id),'s3://{}/{}/'.format(settings.MEDIA_BUCKET,video_id)])
+    args = json.loads(start.arguments_json)
+    if 'dirname' in args:
+        src = '{}/{}/{}/'.format(settings.MEDIA_ROOT, video_id,args['dirname'])
+        dest = 's3://{}/{}/{}/'.format(settings.MEDIA_BUCKET,video_id,args['dirname'])
+    else:
+        src = '{}/{}/'.format(settings.MEDIA_ROOT, video_id)
+        dest = 's3://{}/{}/'.format(settings.MEDIA_BUCKET,video_id)
+    command = " ".join(['aws','s3','sync',src,dest])
+    syncer = subprocess.Popen(['aws','s3','sync',src,dest])
     syncer.wait()
     if syncer.returncode != 0:
         start.errored = True
+        start.error_message = "Error while executing : {}".format(command)
         start.save()
         return
     start.completed = True

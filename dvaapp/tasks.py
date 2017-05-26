@@ -760,7 +760,7 @@ def import_video_from_s3(s3_import_id):
     path = "{}/{}/".format(settings.MEDIA_ROOT,start.video.pk)
     logging.info("processing key  {}space".format(start.key))
     if start.key.strip() and (start.key.endswith('.zip') or start.key.endswith('.mp4')):
-        fname = 'temp_' + str(random.randint(0, 100)) + '.' + start.key.split('.')[1] # TODO: BAD come up with better
+        fname = 'temp_' + str(random.randint(0, 100)) + '.' + start.key.split('.')[-1] # TODO: BAD come up with better
         command = ["aws", "s3", "cp", "s3://{}/{}".format(start.bucket, start.key), fname]
         path = "{}/".format(settings.MEDIA_ROOT)
         download = subprocess.Popen(args=command, cwd=path)

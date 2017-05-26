@@ -33,8 +33,6 @@ def process_next(task_id):
             app.send_task(k['task_name'],args=[next_task.pk,],queue=settings.TASK_NAMES_TO_QUEUE[k['task_name']])
 
 
-def upload_results_to_bucket(task_id):
-    pass
 
 
 class IndexerTask(celery.Task):
@@ -867,20 +865,23 @@ def sync_bucket_video_by_id(task_id):
     start_time = time.time()
     video_id = start.video_id
     args = json.loads(start.arguments_json)
-    if 'dirname' in args:
-        src = '{}/{}/{}/'.format(settings.MEDIA_ROOT, video_id,args['dirname'])
-        dest = 's3://{}/{}/{}/'.format(settings.MEDIA_BUCKET,video_id,args['dirname'])
+    if settings.MEDIA_BUCKET.strip():
+        if 'dirname' in args:
+            src = '{}/{}/{}/'.format(settings.MEDIA_ROOT, video_id,args['dirname'])
+            dest = 's3://{}/{}/{}/'.format(settings.MEDIA_BUCKET,video_id,args['dirname'])
+        else:
+            src = '{}/{}/'.format(settings.MEDIA_ROOT, video_id)
+            dest = 's3://{}/{}/'.format(settings.MEDIA_BUCKET,video_id)
+        command = " ".join(['aws','s3','sync',src,dest])
+        syncer = subprocess.Popen(['aws','s3','sync',src,dest])
+        syncer.wait()
+        if syncer.returncode != 0:
+            start.errored = True
+            start.error_message = "Error while executing : {}".format(command)
+            start.save()
+            return
     else:
-        src = '{}/{}/'.format(settings.MEDIA_ROOT, video_id)
-        dest = 's3://{}/{}/'.format(settings.MEDIA_BUCKET,video_id)
-    command = " ".join(['aws','s3','sync',src,dest])
-    syncer = subprocess.Popen(['aws','s3','sync',src,dest])
-    syncer.wait()
-    if syncer.returncode != 0:
-        start.errored = True
-        start.error_message = "Error while executing : {}".format(command)
-        start.save()
-        return
+        start.error_message = "Media bucket name is empty".format(settings.MEDIA_BUCKET)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()

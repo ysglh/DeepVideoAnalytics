@@ -65,3 +65,4 @@ notes/*.mov
 /marketing/private_static/
 *.mov
 
+/shared/ctpn_trained_model.caffemodel

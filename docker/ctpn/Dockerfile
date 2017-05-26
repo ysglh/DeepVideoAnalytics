@@ -55,7 +55,7 @@ RUN cd ~/ocv-tmp/opencv-2.4.12/release && cmake -D CMAKE_BUILD_TYPE=RELEASE -D C
 WORKDIR $CTPN_ROOT/CTPN
 RUN make
 RUN pip install --upgrade numpy
-RUN wget "https://www.dropbox.com/s/eoqmlds9rg7w3nz/ctpn_trained_model.caffemodel?dl=1" -O $CTPN_ROOT/CTPN/models/ctpn_trained_model.caffemodel
+RUN wget "https://www.dropbox.com/s/yyj53aet2emhvs7/ctpn_trained_model.caffemodel?dl=1" -O $CTPN_ROOT/CTPN/models/ctpn_trained_model.caffemodel
 RUN mkdir /opt/ctpn/CTPN/output
 VOLUME ['/opt/ctpn/CTPN/output/']
 RUN pip install --upgrade jupyter

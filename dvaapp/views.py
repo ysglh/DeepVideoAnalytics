@@ -141,7 +141,7 @@ class VideoDetail(UserPassesTestMixin,DetailView):
             context['exportable_annotation_count'] = Region.objects.all().filter(video=self.object,vdn_dataset__isnull=True,region_type=Region.ANNOTATION).count()
         else:
             context['exportable_annotation_count'] = 0
-        context['url'] = '{}/{}/video/{}.mp4'.format(settings.MEDIA_URL,self.object.pk,self.object.pk)
+        context['url'] = '{}{}/video/{}.mp4'.format(settings.MEDIA_URL,self.object.pk,self.object.pk)
         label_list = []
         show_all = self.request.GET.get('show_all_labels', False)
         context['label_list'] = label_list
@@ -214,7 +214,7 @@ class FrameDetail(UserPassesTestMixin,DetailView):
         context['detection_list'] = Region.objects.all().filter(frame=self.object,region_type=Region.DETECTION)
         context['annotation_list'] = Region.objects.all().filter(frame=self.object,region_type=Region.ANNOTATION)
         context['video'] = self.object.video
-        context['url'] = '{}/{}/frames/{}.jpg'.format(settings.MEDIA_URL,self.object.video.pk,self.object.frame_index)
+        context['url'] = '{}{}/frames/{}.jpg'.format(settings.MEDIA_URL,self.object.video.pk,self.object.frame_index)
         context['previous_frame'] = Frame.objects.filter(video=self.object.video,frame_index__lt=self.object.frame_index).order_by('-frame_index')[0:1]
         context['next_frame'] = Frame.objects.filter(video=self.object.video,frame_index__gt=self.object.frame_index).order_by('frame_index')[0:1]
         return context
@@ -248,7 +248,7 @@ class QueryDetail(UserPassesTestMixin,DetailView):
             context['inception'] = zip(*context['inception'])[1]
         if context['facenet']:
             context['facenet'] = zip(*context['facenet'])[1]
-        context['url'] = '{}/queries/{}.png'.format(settings.MEDIA_URL,self.object.pk,self.object.pk)
+        context['url'] = '{}queries/{}.png'.format(settings.MEDIA_URL,self.object.pk,self.object.pk)
         return context
 
     def test_func(self):

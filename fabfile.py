@@ -1030,3 +1030,16 @@ def enable_bucket_static_hosting(bucket_name):
     s3.put_bucket_policy(Bucket=bucket_name, Policy=bucket_policy)
     website_configuration = {'ErrorDocument': {'Key': 'error.html'},'IndexDocument': {'Suffix': 'index.html'},}
     s3.put_bucket_website(Bucket=bucket_name,WebsiteConfiguration=website_configuration)
+
+
+@task
+def sync_efs_to_s3():
+    setup_django()
+    from dvaapp.models import Video,TEvent
+    from dvaapp.tasks import sync_bucket_video_by_id
+    for v in Video.objects.all():
+        e = TEvent()
+        e.video_id = v.pk
+        e.operation = 'sync_bucket_video_by_id'
+        e.save()
+        sync_bucket_video_by_id(e.pk)

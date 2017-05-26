@@ -23,6 +23,7 @@ TASK_NAMES_TO_QUEUE = {
     "alexnet_query_by_image":Q_RETRIEVER,
     "export_video_by_id":Q_EXTRACTOR,
     "backup_video_to_s3":Q_EXTRACTOR,
+    "sync_bucket_video_by_id":Q_EXTRACTOR,
     "push_video_to_vdn_s3":Q_EXTRACTOR,
     "import_video_by_id":Q_EXTRACTOR,
     "import_video_from_s3":Q_EXTRACTOR,
@@ -64,6 +65,7 @@ MANUAL_VIDEO_TASKS = ['inception_index_by_id',
                       'perform_face_detection_indexing_by_id',
                       'perform_yolo_detection_by_id',
                       'assign_open_images_text_tags_by_id'
+                      'sync_bucket_video_by_id'
                       ]
 
 

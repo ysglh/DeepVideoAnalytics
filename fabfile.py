@@ -996,7 +996,7 @@ def sync_static(bucket_name='dvastatic'):
 
 
 @task
-def enable_bucket_static_hosting(bucket_name):
+def enable_media_bucket_static_hosting(bucket_name, allow_videos=False):
     """
     Enable static hosting for given bucket name
     Note that the bucket / media becomes publicly viewable.
@@ -1023,9 +1023,24 @@ def enable_bucket_static_hosting(bucket_name):
             'Effect': 'Allow',
             'Principal': '*',
             'Action': ['s3:GetObject'],
-            'Resource': "arn:aws:s3:::%s/*" % bucket_name
+            'Resource': "arn:aws:s3:::%s/*.jpg" % bucket_name
+        },
+            {
+            'Sid': 'AddPerm',
+            'Effect': 'Allow',
+            'Principal': '*',
+            'Action': ['s3:GetObject'],
+            'Resource': "arn:aws:s3:::%s/*.png" % bucket_name
         }]
     }
+    if allow_videos:
+        bucket_policy['Statement'].append({
+                'Sid': 'AddPerm',
+                'Effect': 'Allow',
+                'Principal': '*',
+                'Action': ['s3:GetObject'],
+                'Resource': "arn:aws:s3:::%s/*.mp4" % bucket_name
+            })
     bucket_policy = json.dumps(bucket_policy)
     s3.put_bucket_policy(Bucket=bucket_name, Policy=bucket_policy)
     website_configuration = {'ErrorDocument': {'Key': 'error.html'},'IndexDocument': {'Suffix': 'index.html'},}

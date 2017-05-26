@@ -1008,7 +1008,7 @@ def enable_bucket_static_hosting(bucket_name):
     s3 = boto3.client('s3')
     cors_configuration = {
         'CORSRules': [{
-            'AllowedHeaders': ['Authorization'],
+            'AllowedHeaders': ['*'],
             'AllowedMethods': ['GET'],
             'AllowedOrigins': ['*'],
             'ExposeHeaders': ['GET'],

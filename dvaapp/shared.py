@@ -238,13 +238,15 @@ def create_query(count,approximate,selected,excluded_pks,image_data_url):
     dv.query = True
     dv.parent_query = query
     dv.save()
-    query_path = "{}/queries/{}.png".format(settings.MEDIA_ROOT, query.pk)
-    query_frame_path = "{}/{}/frames/0.png".format(settings.MEDIA_ROOT, dv.pk)
     if settings.HEROKU_DEPLOY:
+        query_key = "queries/{}.png".format(settings.MEDIA_ROOT, query.pk)
+        query_frame_key = "{}/frames/0.png".format(dv.pk)
         s3 = boto3.resource('s3')
-        s3.Bucket(settings.MEDIA_BUCKET).put_object(Key=query_path, Body=image_data)
-        s3.Bucket(settings.MEDIA_BUCKET).put_object(Key=query_frame_path, Body=image_data)
+        s3.Bucket(settings.MEDIA_BUCKET).put_object(Key=query_key, Body=image_data)
+        s3.Bucket(settings.MEDIA_BUCKET).put_object(Key=query_frame_key, Body=image_data)
     else:
+        query_path = "{}/queries/{}.png".format(settings.MEDIA_ROOT, query.pk)
+        query_frame_path = "{}/{}/frames/0.png".format(settings.MEDIA_ROOT, dv.pk)
         create_video_folders(dv)
         with open(query_path, 'w') as fh:
             fh.write(image_data)

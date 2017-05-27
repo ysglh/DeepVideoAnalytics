@@ -3,6 +3,7 @@ from models import Video,TEvent,AppliedLabel,Region,Frame,VDNDataset,VDNServer,Q
 from django.conf import settings
 from dva.celery import app
 from celery.result import AsyncResult
+import boto3
 
 
 def refresh_task_status():
@@ -227,6 +228,9 @@ def create_query(count,approximate,selected,excluded_pks,image_data_url):
         query.excluded_index_entries_pk = [int(k) for k in excluded_pks]
     query.selected_indexers = selected
     query.approximate = approximate
+    image_data = base64.decodestring(image_data_url[22:])
+    if settings.HEROKU_DEPLOY:
+        query.image_data = image_data
     query.save()
     dv = Video()
     dv.name = 'query_{}'.format(query.pk)
@@ -235,13 +239,17 @@ def create_query(count,approximate,selected,excluded_pks,image_data_url):
     dv.parent_query = query
     dv.save()
     create_video_folders(dv)
-    image_data = base64.decodestring(image_data_url[22:])
     query_path = "{}/queries/{}.png".format(settings.MEDIA_ROOT, query.pk)
     query_frame_path = "{}/{}/frames/0.png".format(settings.MEDIA_ROOT, dv.pk)
-    with open(query_path, 'w') as fh:
-        fh.write(image_data)
-    with open(query_frame_path, 'w') as fh:
-        fh.write(image_data)
+    if settings.HEROKU_DEPLOY:
+        s3 = boto3.resource('s3')
+        s3.Bucket(settings.MEDIA_BUCKET).put_object(Key=query_path, Body=image_data)
+        s3.Bucket(settings.MEDIA_BUCKET).put_object(Key=query_frame_path, Body=image_data)
+    else:
+        with open(query_path, 'w') as fh:
+            fh.write(image_data)
+        with open(query_frame_path, 'w') as fh:
+            fh.write(image_data)
     return query,dv
 
 

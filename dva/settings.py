@@ -18,12 +18,12 @@ DVA_PRIVATE_ENABLE = 'DVA_PRIVATE_ENABLE' in os.environ
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MEDIA_BUCKET = os.environ.get('MEDIA_BUCKET','')
-
+HEROKU_DEPLOY = 'HEROKU_DEPLOY' in os.environ
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-if 'SECRET_KEY' in os.environ or 'HEROKU_DEPLOY' in os.environ:
+if 'SECRET_KEY' in os.environ or HEROKU_DEPLOY:
     SECRET_KEY = os.environ['SECRET_KEY']
     AUTH_DISABLED = False
 else:
@@ -31,12 +31,12 @@ else:
     AUTH_DISABLED = os.environ.get('AUTH_DISABLED',False)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-if 'DISABLE_DEBUG' in os.environ or 'HEROKU_DEPLOY' in os.environ:
+if 'DISABLE_DEBUG' in os.environ or HEROKU_DEPLOY:
     DEBUG = False
 else:
     DEBUG = True
 
-if 'HEROKU_DEPLOY' in os.environ:
+if HEROKU_DEPLOY:
     ALLOWED_HOSTS = [k.strip() for k in os.environ['ALLOWED_HOSTS'].split(',') if k.strip()]
     # SESSION_COOKIE_SECURE = True
     # CSRF_COOKIE_SECURE = True
@@ -140,7 +140,7 @@ TEMPLATES = [
 
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
-if 'HEROKU_DEPLOY' in os.environ:
+if HEROKU_DEPLOY:
     DATABASES = {}
     db_from_env = dj_database_url.config(conn_max_age=500)
     DATABASES['default'] = db_from_env
@@ -228,7 +228,7 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
-if 'HEROKU_DEPLOY' in os.environ:
+if HEROKU_DEPLOY:
     STATIC_URL = os.environ['STATIC_URL'] # ENV to set static URL on cloud UI platform
     MEDIA_URL = os.environ.get('MEDIA_URL','') # ENV to set static URL on cloud UI platform
     MEDIA_ROOT = '/tmp/'

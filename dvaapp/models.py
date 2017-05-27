@@ -39,7 +39,7 @@ class Query(models.Model):
     results_metadata = models.TextField(default="")
     approximate = models.BooleanField(default=False)
     user = models.ForeignKey(User, null=True)
-
+    image_data = models.BinaryField(null=True)
 
 class Video(models.Model):
     name = models.CharField(max_length=500,default="")

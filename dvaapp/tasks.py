@@ -223,6 +223,8 @@ def inception_query_by_image(query_id):
     start.save()
     start_time = time.time()
     inception = inception_query_by_image.visual_indexer['inception']
+    # if settings.MEDIA_BUCKET:
+    #     ensure_query(dq)
     Q = entity.WQuery(dquery=dq, media_dir=settings.MEDIA_ROOT,visual_index=inception)
     exact = True # by default run exact search
     if dq.approximate:
@@ -299,6 +301,8 @@ def facenet_query_by_image(query_id):
     start.operation = facenet_query_by_image.name
     start.save()
     start_time = time.time()
+    # if settings.MEDIA_BUCKET:
+    #     ensure_query(dq)
     facenet = facenet_query_by_image.visual_indexer['facenet']
     Q = entity.WQuery(dquery=dq, media_dir=settings.MEDIA_ROOT,visual_index=facenet)
     exact = True

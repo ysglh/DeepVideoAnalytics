@@ -238,7 +238,6 @@ def create_query(count,approximate,selected,excluded_pks,image_data_url):
     dv.query = True
     dv.parent_query = query
     dv.save()
-    create_video_folders(dv)
     query_path = "{}/queries/{}.png".format(settings.MEDIA_ROOT, query.pk)
     query_frame_path = "{}/{}/frames/0.png".format(settings.MEDIA_ROOT, dv.pk)
     if settings.HEROKU_DEPLOY:
@@ -246,6 +245,7 @@ def create_query(count,approximate,selected,excluded_pks,image_data_url):
         s3.Bucket(settings.MEDIA_BUCKET).put_object(Key=query_path, Body=image_data)
         s3.Bucket(settings.MEDIA_BUCKET).put_object(Key=query_frame_path, Body=image_data)
     else:
+        create_video_folders(dv)
         with open(query_path, 'w') as fh:
             fh.write(image_data)
         with open(query_frame_path, 'w') as fh:

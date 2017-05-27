@@ -57,7 +57,7 @@ class BaseIndexer(object):
         ranked = np.squeeze(dist.argsort())
         results = []
         for i, k in enumerate(ranked[:n]):
-            temp = {'rank':i+1,'algo':self.name,'dist':dist[0,k]}
+            temp = {'rank':i+1,'algo':self.name,'dist':float(dist[0,k])}
             temp.update(self.files[k])
             results.append(temp)
         return results

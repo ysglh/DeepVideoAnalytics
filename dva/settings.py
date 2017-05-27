@@ -51,6 +51,7 @@ else:
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
+CELERY_RESULT_BACKEND = 'django-db'
 WSGI_APPLICATION = 'dva.wsgi.application'
 ROOT_URLCONF = 'dva.urls'
 
@@ -64,7 +65,7 @@ INSTALLED_APPS = [
     'dvaapp',
     'django.contrib.humanize',
     'django.contrib.postgres',
-    'djcelery',
+    'django_celery_results',
     'corsheaders',
     'rest_framework',
     'vdnapp',

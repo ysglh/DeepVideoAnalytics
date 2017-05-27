@@ -3,6 +3,8 @@ import subprocess as sp
 import numpy as np
 import pyscenecustom
 from PIL import Image
+import tempfile
+import os
 
 
 class WQuery(object):
@@ -11,12 +13,19 @@ class WQuery(object):
         self.media_dir = media_dir
         self.dquery = dquery
         self.primary_key = self.dquery.pk
-        self.local_path = "{}/queries/{}.png".format(self.media_dir,self.primary_key)
+        if self.dquery.image_data:
+            self.local_path = "{}/queries/{}_{}.png".format(self.media_dir,self.visual_index.name, self.primary_key)
+            with open(self.local_path,'w') as fh:
+                fh.write(self.dquery.image_data)
+        else:
+            self.local_path = "{}/queries/{}.png".format(self.media_dir,self.primary_key)
         self.visual_index = visual_index
 
     def find(self,n):
         results = {}
         results[self.visual_index.name] = self.visual_index.nearest(image_path=self.local_path,n=n)
+        if self.dquery.image_data:
+            os.rename(self.local_path,"{}/queries/{}.png".format(self.media_dir,self.primary_key))
         return results
 
 

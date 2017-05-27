@@ -13,13 +13,13 @@ class WQuery(object):
         self.media_dir = media_dir
         self.dquery = dquery
         self.primary_key = self.dquery.pk
+        self.visual_index = visual_index
         if self.dquery.image_data:
             self.local_path = "{}/queries/{}_{}.png".format(self.media_dir,self.visual_index.name, self.primary_key)
             with open(self.local_path,'w') as fh:
                 fh.write(self.dquery.image_data)
         else:
             self.local_path = "{}/queries/{}.png".format(self.media_dir,self.primary_key)
-        self.visual_index = visual_index
 
     def find(self,n):
         results = {}

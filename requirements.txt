@@ -7,7 +7,7 @@ djangorestframework
 markdown
 django-filter
 celery
-django-celery==3.1.17
+django-celery-results
 dj-database-url==0.4.0
 raven
 psycopg2

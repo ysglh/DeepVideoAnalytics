@@ -17,7 +17,7 @@ class WQuery(object):
         if self.dquery.image_data:
             self.local_path = "{}/queries/{}_{}.png".format(self.media_dir,self.visual_index.name, self.primary_key)
             with open(self.local_path,'w') as fh:
-                fh.write(self.dquery.image_data)
+                fh.write(str(self.dquery.image_data))
         else:
             self.local_path = "{}/queries/{}.png".format(self.media_dir,self.primary_key)
 

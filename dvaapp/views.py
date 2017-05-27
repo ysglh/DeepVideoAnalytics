@@ -301,6 +301,8 @@ def search(request):
                         r['detection'] = [{'pk': d.pk, 'name': d.object_name, 'confidence': d.confidence},]
                         results_detections.append(r)
             elif entries:
+                print entries
+                entries = json.loads(entries) if type(entries) is unicode else entries
                 for algo, rlist in entries.iteritems():
                     for r in rlist:
                         r['url'] = '{}{}/frames/{}.jpg'.format(settings.MEDIA_URL,r['video_primary_key'], r['frame_index'])

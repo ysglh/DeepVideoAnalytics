@@ -19,7 +19,7 @@ from shared import create_video_folders,handle_uploaded_file,create_annotation,c
     create_query,create_root_vdn_dataset,handle_youtube_video,pull_vdn_dataset_list,import_vdn_dataset_url
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.mixins import UserPassesTestMixin
-
+import logging
 
 def user_check(user):
     return user.is_authenticated or settings.AUTH_DISABLED
@@ -274,20 +274,18 @@ def search(request):
         selected_indexers = json.loads(request.POST.get('selected_indexers'))
         approximate = True if request.POST.get('approximate') == 'true' else False
         image_data_url = request.POST.get('image_url')
-        query, dv = create_query(count,approximate,selected_indexers,excluded_index_entries_pk,image_data_url)
+        query, dv = create_query(count,approximate,selected_indexers,excluded_index_entries_pk,image_data_url,request.user if request.user.is_authenticated else None)
         task_results = {}
-        user = request.user if request.user.is_authenticated() else None
         for visual_index_name,visual_index in settings.VISUAL_INDEXES.iteritems():
             task_name = visual_index['retriever_task']
             if visual_index_name in selected_indexers:
                 task_results[visual_index_name] = app.send_task(task_name, args=[query.pk,],queue=settings.TASK_NAMES_TO_QUEUE[task_name])
-        query.user = user
-        query.save()
         results = []
         results_detections = []
         time_out = False
         for visual_index_name,result in task_results.iteritems():
             try:
+                logging.info("Waiting for {}".format(visual_index_name))
                 entries = result.get(timeout=120)
             except TimeoutError:
                 time_out = True
@@ -321,7 +319,7 @@ def home(request):
 def index(request,query_pk=None,frame_pk=None,detection_pk=None):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
-        user = request.user if request.user.is_authenticated() else None
+        user = request.user if request.user.is_authenticated else None
         if form.is_valid():
             handle_uploaded_file(request.FILES['file'],form.cleaned_data['name'],user=user,
                                  perform_scene_detection=form.cleaned_data['scene'],
@@ -448,7 +446,7 @@ def annotate_entire_frame(request,frame_pk):
 def yt(request):
     if request.method == 'POST':
         form = YTVideoForm(request.POST, request.FILES)
-        user = request.user if request.user.is_authenticated() else None
+        user = request.user if request.user.is_authenticated else None
         if form.is_valid():
             handle_youtube_video(form.cleaned_data['name'],form.cleaned_data['url'],user=user,
                                  perform_scene_detection=form.cleaned_data['scene'],
@@ -686,7 +684,7 @@ def import_dataset(request):
     if request.method == 'POST':
         url = request.POST.get('dataset_url')
         server = VDNServer.objects.get(pk=request.POST.get('server_pk'))
-        user = request.user if request.user.is_authenticated() else None
+        user = request.user if request.user.is_authenticated else None
         import_vdn_dataset_url(server, url, user)
     else:
         raise NotImplementedError
@@ -707,7 +705,7 @@ def import_s3(request):
                 s3import.region = region
                 s3import.bucket = bucket
                 video = Video()
-                user = request.user if request.user.is_authenticated() else None
+                user = request.user if request.user.is_authenticated else None
                 if user:
                     video.uploader = user
                 video.name = "pending S3 import {} s3://{}/{}".format(region,bucket,key)

@@ -221,13 +221,15 @@ def pull_vdn_dataset_list(pk):
     return server,datasets
 
 
-def create_query(count,approximate,selected,excluded_pks,image_data_url):
+def create_query(count,approximate,selected,excluded_pks,image_data_url,user=None):
     query = Query()
     query.count = count
     if excluded_pks:
         query.excluded_index_entries_pk = [int(k) for k in excluded_pks]
     query.selected_indexers = selected
     query.approximate = approximate
+    if not (user is None):
+        query.user = user
     image_data = base64.decodestring(image_data_url[22:])
     if settings.HEROKU_DEPLOY:
         query.image_data = image_data

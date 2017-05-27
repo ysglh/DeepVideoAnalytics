@@ -291,8 +291,12 @@ def search(request):
             try:
                 logging.info("Waiting for {}".format(visual_index_name))
                 entries = result.get(timeout=120)
+                print entries
                 if entries:
-                    entries = entries if type(entries) is dict else pickle.loads(base64.b64decode(entries))
+                    if type(entries) is dict:
+                        entries = entries
+                    else:
+                        entries = pickle.loads(base64.b64decode(entries))
             except TimeoutError:
                 time_out = True
             except Exception, e:

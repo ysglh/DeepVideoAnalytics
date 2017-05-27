@@ -6,7 +6,7 @@ jinja2
 djangorestframework
 markdown
 django-filter
-celery
+celery==4.0.2
 django-celery-results
 dj-database-url==0.4.0
 raven

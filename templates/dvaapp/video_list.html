@@ -13,7 +13,7 @@
                         {% if page_obj.has_previous %}
                             <a class="btn btn-info" style="float:left" href=".?page={{ page_obj.previous_page_number }}"><i class="fa fa-backward"></i>  Go back</a>
                         {% endif %}
-                        <span class="page-current ">
+                        <span class="page-current " style="font-size:24pt;font-weight:bold">
                             {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
                         </span>
                         {% if page_obj.has_next %}

@@ -20,6 +20,9 @@ from shared import create_video_folders,handle_uploaded_file,create_annotation,c
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.mixins import UserPassesTestMixin
 import logging
+import base64
+import pickle
+
 
 def user_check(user):
     return user.is_authenticated or settings.AUTH_DISABLED
@@ -288,7 +291,8 @@ def search(request):
             try:
                 logging.info("Waiting for {}".format(visual_index_name))
                 entries = result.get(timeout=120)
-                print entries
+                if entries:
+                    entries = entries if type(entries) is dict else pickle.loads(base64.b64decode(entries))
             except TimeoutError:
                 time_out = True
             except Exception, e:
@@ -304,8 +308,6 @@ def search(request):
                         r['detection'] = [{'pk': d.pk, 'name': d.object_name, 'confidence': d.confidence},]
                         results_detections.append(r)
             elif entries:
-                print entries
-                entries = json.loads(entries) if type(entries) is unicode else entries
                 for algo, rlist in entries.iteritems():
                     for r in rlist:
                         r['url'] = '{}{}/frames/{}.jpg'.format(settings.MEDIA_URL,r['video_primary_key'], r['frame_index'])

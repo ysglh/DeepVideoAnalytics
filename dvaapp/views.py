@@ -284,12 +284,15 @@ def search(request):
         results_detections = []
         time_out = False
         for visual_index_name,result in task_results.iteritems():
+            entries = {}
             try:
                 logging.info("Waiting for {}".format(visual_index_name))
                 entries = result.get(timeout=120)
+                print entries
             except TimeoutError:
                 time_out = True
-                entries = {}
+            except Exception, e:
+                raise ValueError(e)
             if entries and settings.VISUAL_INDEXES[visual_index_name]['detection_specific']:
                 for algo,rlist in entries.iteritems():
                     for r in rlist:

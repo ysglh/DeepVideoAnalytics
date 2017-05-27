@@ -42,7 +42,7 @@ class Query(models.Model):
 
 
 class Video(models.Model):
-    name = models.CharField(max_length=100,default="")
+    name = models.CharField(max_length=500,default="")
     length_in_seconds = models.IntegerField(default=0)
     height = models.IntegerField(default=0)
     width = models.IntegerField(default=0)

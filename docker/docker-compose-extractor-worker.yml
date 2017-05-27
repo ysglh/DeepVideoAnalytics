@@ -1,0 +1,24 @@
+# specify using docker-compose -f docker-compose-deploy.yml up
+ version: '3'
+ services:
+   dva:
+     build: .
+     image: akshayubhat/dva-auto:latest
+     container_name: dva-server
+     environment:
+       - DOCKER_MODE=true
+       - LAUNCH_SERVER_NGINX=1
+       - BROKER_URL=${BROKER_URL}
+       - DATABASE_URL=${DATABASE_URL}
+       - SECRET_KEY=${SECRET_KEY}
+       - MEDIA_BUCKET=${MEDIA_BUCKET}
+       - LAUNCH_Q_qextract=8
+       - CELERY_MUTE=1
+     command: bash -c "youtube-dl -U && git pull && fab start_container"
+     ports:
+       - "127.0.0.1:8500:80" # Since Docker messes up iptables, ufw has no effect as a result bind to localhost and tunnel / Port forward through SSH
+     volumes:
+       - dvadata:/root/DVA/dva/media
+ volumes:
+  dvadata:
+    external: true

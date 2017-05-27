@@ -277,8 +277,12 @@ def launch_queues_env():
     from dvaapp.models import Video,VDNServer
     for k in os.environ:
         if k.startswith('LAUNCH_Q_'):
-            queue_name = k.split('_')[-1]
-            local('fab startq:{} &'.format(queue_name))
+            if k.strip() == 'LAUNCH_Q_qextract':
+                queue_name = k.split('_')[-1]
+                local('fab startq:{},{} &'.format(queue_name,os.environ['LAUNCH_Q_qextract']))
+            else:
+                queue_name = k.split('_')[-1]
+                local('fab startq:{} &'.format(queue_name))
     if not ('DISABLE_VDN' in os.environ):
         if VDNServer.objects.count() == 0:
             server = VDNServer()
@@ -308,11 +312,12 @@ def add_default_vdn_server():
 
 
 @task
-def startq(queue_name):
+def startq(queue_name,conc=1):
     """
     Start worker to handle a queue, Usage: fab startq:indexer
     Concurrency is set to 1 but you can edit code to change.
     :param queue_name: indexer, extractor, retriever, detector
+    :param conc:conccurency only for extractor
     :return:
     """
     import django, os
@@ -323,7 +328,7 @@ def startq(queue_name):
     mute = '--without-gossip --without-mingle --without-heartbeat' if 'CELERY_MUTE' in os.environ else ''
     if queue_name in settings.QUEUES:
         if queue_name == settings.Q_EXTRACTOR:
-            command = 'celery -A dva worker -l info {} -c {} -Q {} -n {}.%h -f logs/{}.log'.format(mute,1, queue_name,queue_name,queue_name)
+            command = 'celery -A dva worker -l info {} -c {} -Q {} -n {}.%h -f logs/{}.log'.format(mute,int(conc), queue_name,queue_name,queue_name)
         else:
             command = 'celery -A dva worker -l info {} -P solo -c {} -Q {} -n {}.%h -f logs/{}.log'.format(mute,1, queue_name,queue_name,queue_name)
         logging.info(command)

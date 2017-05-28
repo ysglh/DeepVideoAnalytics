@@ -10,14 +10,14 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
-import os,dj_database_url,sys
+import os, dj_database_url, sys
 from .worker_config import *
 
 VDN_ENABLE = 'VDN_ENABLE' in os.environ
 DVA_PRIVATE_ENABLE = 'DVA_PRIVATE_ENABLE' in os.environ
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MEDIA_BUCKET = os.environ.get('MEDIA_BUCKET','')
+MEDIA_BUCKET = os.environ.get('MEDIA_BUCKET', '')
 HEROKU_DEPLOY = 'HEROKU_DEPLOY' in os.environ
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
@@ -27,8 +27,8 @@ if 'SECRET_KEY' in os.environ or HEROKU_DEPLOY:
     SECRET_KEY = os.environ['SECRET_KEY']
     AUTH_DISABLED = False
 else:
-    SECRET_KEY = 'changemeabblasdasbdbrp2$j&^' # change this in prod
-    AUTH_DISABLED = os.environ.get('AUTH_DISABLED',False)
+    SECRET_KEY = 'changemeabblasdasbdbrp2$j&^'  # change this in prod
+    AUTH_DISABLED = os.environ.get('AUTH_DISABLED', False)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 if 'DISABLE_DEBUG' in os.environ or HEROKU_DEPLOY:
@@ -44,7 +44,7 @@ if HEROKU_DEPLOY:
     # SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https') # Confirm this cannot be spoofed for heroku
     # SECURE_REDIRECT_EXEMPT = [r'^vdn/.']
 else:
-    ALLOWED_HOSTS = ["*"] # Dont use this in prod
+    ALLOWED_HOSTS = ["*"]  # Dont use this in prod
 
 #: Only add pickle to this list if your broker is secured
 #: from unwanted access (see userguide/security.html)
@@ -56,23 +56,22 @@ WSGI_APPLICATION = 'dva.wsgi.application'
 ROOT_URLCONF = 'dva.urls'
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'dvaapp',
-    'django.contrib.humanize',
-    'django.contrib.postgres',
-    'django_celery_results',
-    'corsheaders',
-    'rest_framework',
-    'vdnapp',
-    'crispy_forms',
-    'rest_framework.authtoken'
-] + (['dvap',] if DVA_PRIVATE_ENABLE else [])
-
+                     'django.contrib.admin',
+                     'django.contrib.auth',
+                     'django.contrib.contenttypes',
+                     'django.contrib.sessions',
+                     'django.contrib.messages',
+                     'django.contrib.staticfiles',
+                     'dvaapp',
+                     'django.contrib.humanize',
+                     'django.contrib.postgres',
+                     'django_celery_results',
+                     'corsheaders',
+                     'rest_framework',
+                     'vdnapp',
+                     'crispy_forms',
+                     'rest_framework.authtoken'
+                 ] + (['dvap', ] if DVA_PRIVATE_ENABLE else [])
 
 if VDN_ENABLE:
     MIDDLEWARE_CLASSES = [
@@ -122,7 +121,7 @@ PATH_PROJECT = os.path.realpath(os.path.dirname(__file__))
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR,'templates/'),],
+        'DIRS': [os.path.join(BASE_DIR, 'templates/'), ],
         'APP_DIRS': True,
         'OPTIONS': {
             'debug': True,
@@ -137,8 +136,6 @@ TEMPLATES = [
     },
 ]
 
-
-
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 if HEROKU_DEPLOY:
@@ -147,7 +144,7 @@ if HEROKU_DEPLOY:
     DATABASES['default'] = db_from_env
     BROKER_URL = os.environ['CLOUDAMQP_URL']
 elif sys.platform == 'darwin':
-    BROKER_URL = 'amqp://{}:{}@localhost//'.format('dvauser','localpass')
+    BROKER_URL = 'amqp://{}:{}@localhost//'.format('dvauser', 'localpass')
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -169,12 +166,14 @@ elif 'CONTINUOUS_INTEGRATION' in os.environ:
             'PORT': '',
         }
     }
-    BROKER_URL = 'amqp://{}:{}@localhost//'.format('guest','guest')
+    BROKER_URL = 'amqp://{}:{}@localhost//'.format('guest', 'guest')
 elif 'DOCKER_MODE' in os.environ:
     if 'BROKER_URL' in os.environ:
         BROKER_URL = os.environ['BROKER_URL']
     else:
-        BROKER_URL = 'amqp://{}:{}@{}//'.format(os.environ.get('RABBIT_USER','dvauser'),os.environ.get('RABBIT_PASS','localpass'),os.environ.get('RABBIT_HOST','rabbit'))
+        BROKER_URL = 'amqp://{}:{}@{}//'.format(os.environ.get('RABBIT_USER', 'dvauser'),
+                                                os.environ.get('RABBIT_PASS', 'localpass'),
+                                                os.environ.get('RABBIT_HOST', 'rabbit'))
     if 'DATABASE_URL' in os.environ:
         DATABASES = {}
         db_from_env = dj_database_url.config(conn_max_age=500)
@@ -183,15 +182,13 @@ elif 'DOCKER_MODE' in os.environ:
         DATABASES = {
             'default': {
                 'ENGINE': 'django.db.backends.postgresql_psycopg2',
-                'NAME': os.environ.get('DB_NAME','postgres'),
-                'USER': os.environ.get('DB_USER','postgres'),
-                'PASSWORD': os.environ.get('DB_PASS','postgres'),
-                'HOST': os.environ.get('DB_HOST','db'),
+                'NAME': os.environ.get('DB_NAME', 'postgres'),
+                'USER': os.environ.get('DB_USER', 'postgres'),
+                'PASSWORD': os.environ.get('DB_PASS', 'postgres'),
+                'HOST': os.environ.get('DB_HOST', 'db'),
                 'PORT': 5432,
             }
         }
-
-
 
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
@@ -211,7 +208,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
 
@@ -230,8 +226,8 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 if HEROKU_DEPLOY:
-    STATIC_URL = os.environ['STATIC_URL'] # ENV to set static URL on cloud UI platform
-    MEDIA_URL = os.environ.get('MEDIA_URL','') # ENV to set static URL on cloud UI platform
+    STATIC_URL = os.environ['STATIC_URL']  # ENV to set static URL on cloud UI platform
+    MEDIA_URL = os.environ.get('MEDIA_URL', '')  # ENV to set static URL on cloud UI platform
     MEDIA_ROOT = '/tmp/'
 else:
     STATIC_URL = '/static/'
@@ -244,17 +240,15 @@ else:
             except:
                 pass
 
-DATA_UPLOAD_MAX_MEMORY_SIZE=26214400
+DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400
 
 STATIC_ROOT = os.path.join(PROJECT_ROOT, 'staticfiles')
 STATICFILES_DIRS = (
     os.path.join(PROJECT_ROOT, 'static'),
 )
 
-
 STATICFILES_FINDERS = (
-'django.contrib.staticfiles.finders.FileSystemFinder',
-'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-#'django.contrib.staticfiles.finders.DefaultStorageFinder',
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    # 'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
-

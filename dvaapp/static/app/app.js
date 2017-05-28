@@ -58,7 +58,7 @@ initialize_ui = function () {
     if (initial_url)
     {
         if (annotation_mode){
-            fabric.Image.fromURL(initial_url, function(oImg){
+            fabric.Image.fromURL(initial_url+'?timestamp='+Math.floor(Date.now() / 1000), function(oImg){
                 oImg.lockMovementX = true;
                 oImg.lockMovementY = true;
                 oImg.lockScalingX = true;
@@ -70,7 +70,7 @@ initialize_ui = function () {
             },load_options = {crossOrigin:"Anonymous"});
         }
         else{
-            fabric.Image.fromURL(initial_url, function(oImg){canvas.add(oImg);},load_options = {crossOrigin:"Anonymous"});
+            fabric.Image.fromURL(initial_url+'?timestamp='+Math.floor(Date.now() / 1000), function(oImg){canvas.add(oImg);},load_options = {crossOrigin:"Anonymous"});
         }
 
     }

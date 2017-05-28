@@ -654,8 +654,8 @@ def import_video_by_id(task_id):
 def import_vdn_file(task_id):
     start = TEvent.objects.get(pk=task_id)
     start.started = True
-    start.task_id = import_video_from_s3.request.id
-    start.operation = import_video_from_s3.name
+    start.task_id = import_vdn_file.request.id
+    start.operation = import_vdn_file.name
     start.save()
     start_time = time.time()
     dv = start.video
@@ -688,9 +688,7 @@ def import_vdn_file(task_id):
     os.remove(source_zip)
     dv.uploaded = True
     dv.save()
-    logging.info("Processing next")
     process_next(task_id)
-    logging.info("Finished processing next")
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()

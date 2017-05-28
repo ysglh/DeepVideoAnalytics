@@ -50,7 +50,7 @@
      volumes:
        - dvadata:/root/DVA/dva/media
    dva-worker:
-     build: .
+     build: ..
      image: akshayubhat/dva-auto:latest
      container_name: dva-worker
      environment:

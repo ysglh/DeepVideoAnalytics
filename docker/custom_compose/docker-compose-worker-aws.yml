@@ -2,7 +2,7 @@
  version: '3'
  services:
    dva:
-     build: .
+     build: ..
      image: akshayubhat/dva:gpu
      container_name: dva-server
      environment:

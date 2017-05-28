@@ -15,7 +15,7 @@ TASK_NAMES_TO_QUEUE = {
     "inception_index_regions_by_id":Q_INDEXER,
     "inception_query_by_image":Q_RETRIEVER,
     "facenet_query_by_image":Q_FACE_RETRIEVER,
-    "extract_frames_by_id":Q_EXTRACTOR,
+    "extract_frames_by_id":Q_DETECTOR,
     "perform_ssd_detection_by_id":Q_DETECTOR,
     "perform_yolo_detection_by_id":Q_DETECTOR,
     "perform_face_detection_indexing_by_id":Q_FACE_DETECTOR,

@@ -18,7 +18,6 @@
      volumes:
        - dvarabbit:/var/lib/rabbitmq
    dva:
-     build: ..
      image: akshayubhat/dva-auto:latest
      container_name: dva-server
      environment:
@@ -50,7 +49,6 @@
      volumes:
        - dvadata:/root/DVA/dva/media
    dva-worker:
-     build: ..
      image: akshayubhat/dva-auto:latest
      container_name: dva-worker
      environment:

@@ -17,7 +17,6 @@
      volumes:
        - dvarabbit:/var/lib/rabbitmq
    dva:
-     build: ..
      image: akshayubhat/dva:gpu
      container_name: dva-server
      environment:
@@ -40,7 +39,6 @@
        - dvadata:/root/DVA/dva/media
   {% for i in range(3) %}
    dvae{{i}}:
-     build: .
      image: akshayubhat/dva:gpu
      container_name: dva-extractor-{{i}}
      environment:
@@ -64,7 +62,6 @@
  {% endfor %}
  {% for i in range(4) %}
    dvawd{{i}}:
-     build: .
      image: akshayubhat/dva:gpu
      container_name: dva-detector-{{i}}
      environment:
@@ -86,7 +83,6 @@
  {% endfor %}
  {% for i in range(3) %}
    dvai{{i}}:
-     build: .
      image: akshayubhat/dva:gpu
      container_name: dva-indexer-{{i}}
      environment:

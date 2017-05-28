@@ -601,12 +601,49 @@ def export_video_by_id(task_id):
     return start.file_name
 
 
-def import_zip(video_obj):
-    video_id = video_obj.pk
+@app.task(name="import_video_by_id")
+def import_video_by_id(task_id):
+    start = TEvent.objects.get(pk=task_id)
+    start.task_id = import_video_by_id.request.id
+    start.started = True
+    start.operation = import_video_by_id.name
+    start.save()
+    start_time = time.time()
+    video_id = start.video_id
+    video_obj = Video.objects.get(pk=video_id)
+    if video_obj.vdn_dataset and not video_obj.uploaded:
+        output_filename = "{}/{}/{}.zip".format(settings.MEDIA_ROOT,video_obj.pk,video_obj.pk)
+        if video_obj.vdn_dataset.aws_requester_pays:
+            s3import = TEvent()
+            s3import.video = video_obj
+            s3import.key = video_obj.vdn_dataset.aws_key
+            s3import.region = video_obj.vdn_dataset.aws_region
+            s3import.bucket = video_obj.vdn_dataset.aws_bucket
+            s3import.requester_pays = True
+            s3import.operation = "import_video_from_s3"
+            s3import.save()
+            app.send_task(s3import.operation, args=[s3import.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[s3import.operation])
+            start.completed = True
+            start.seconds = time.time() - start_time
+            start.save()
+            return 0
+        else:
+            if 'www.dropbox.com' in video_obj.vdn_dataset.download_url and not video_obj.vdn_dataset.download_url.endswith('?dl=1'):
+                r = requests.get(video_obj.vdn_dataset.download_url+'?dl=1')
+            else:
+                r = requests.get(video_obj.vdn_dataset.download_url)
+            with open(output_filename, 'wb') as f:
+                for chunk in r.iter_content(chunk_size=1024):
+                    if chunk:
+                        f.write(chunk)
+            r.close()
+        video_obj.uploaded = True
+        video_obj.save()
     zipf = zipfile.ZipFile("{}/{}/{}.zip".format(settings.MEDIA_ROOT, video_id, video_id), 'r')
     zipf.extractall("{}/{}/".format(settings.MEDIA_ROOT, video_id))
     zipf.close()
     video_root_dir = "{}/{}/".format(settings.MEDIA_ROOT, video_id)
+    old_key = None
     for k in os.listdir(video_root_dir):
         unzipped_dir = "{}{}".format(video_root_dir, k)
         if os.path.isdir(unzipped_dir):
@@ -619,53 +656,10 @@ def import_zip(video_obj):
     serializers.import_video_json(video_obj,video_json,video_root_dir)
     source_zip = "{}/{}.zip".format(video_root_dir, video_obj.pk)
     os.remove(source_zip)
-
-
-@app.task(name="import_video_by_id")
-def import_video_by_id(task_id):
-    start = TEvent.objects.get(pk=task_id)
-    start.task_id = import_video_by_id.request.id
-    start.started = True
-    start.operation = import_video_by_id.name
-    start.save()
-    start_time = time.time()
-    video_id = start.video_id
-    video_obj = Video.objects.get(pk=video_id)
-    if video_obj.vdn_dataset and not video_obj.uploaded:
-        if video_obj.vdn_dataset.aws_requester_pays:
-            path = "{}/{}/".format(settings.MEDIA_ROOT, start.video.pk)
-            create_video_folders(start.video, create_subdirs=False)
-            client = boto3.client('s3')
-            resource = boto3.resource('s3')
-            download_dir(client, resource, video_obj.vdn_dataset.aws_key, path, video_obj.vdn_dataset.aws_bucket)
-            for filename in os.listdir(os.path.join(path, start.key)):
-                shutil.move(os.path.join(path, start.key, filename), os.path.join(path, filename))
-            os.rmdir(os.path.join(path, start.key))
-            with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, start.video.pk)) as input_json:
-                video_json = json.load(input_json)
-            serializers.import_video_json(start.video, video_json, path)
-            start.completed = True
-            start.seconds = time.time() - start_time
-            start.save()
-            return 0
-        else:
-            output_filename = "{}/{}/{}.zip".format(settings.MEDIA_ROOT, video_obj.pk, video_obj.pk)
-            if 'www.dropbox.com' in video_obj.vdn_dataset.download_url and not video_obj.vdn_dataset.download_url.endswith('?dl=1'):
-                r = requests.get(video_obj.vdn_dataset.download_url+'?dl=1')
-            else:
-                r = requests.get(video_obj.vdn_dataset.download_url)
-            with open(output_filename, 'wb') as f:
-                for chunk in r.iter_content(chunk_size=1024):
-                    if chunk:
-                        f.write(chunk)
-            r.close()
-        video_obj.uploaded = True
-        video_obj.save()
-    import_zip(video_obj)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
-    return 0
+
 
 def perform_export(s3_export):
     s3 = boto3.resource('s3')
@@ -783,6 +777,17 @@ def import_video_from_s3(s3_import_id):
         start.seconds = time.time() - start_time
         start.save()
         return
+    elif start.requester_pays:
+        create_video_folders(start.video, create_subdirs=False)
+        client = boto3.client('s3')
+        resource = boto3.resource('s3')
+        download_dir(client, resource,start.key,path,start.bucket)
+        for filename in os.listdir(os.path.join(path,start.key)):
+            shutil.move(os.path.join(path,start.key, filename), os.path.join(path, filename))
+        os.rmdir(os.path.join(path,start.key))
+        with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, start.video.pk)) as input_json:
+            video_json = json.load(input_json)
+        serializers.import_video_json(start.video,video_json,path)
     else:
         create_video_folders(start.video, create_subdirs=False)
         command = ["aws", "s3", "cp", "s3://{}/{}/".format(start.bucket,start.key),'.','--recursive']

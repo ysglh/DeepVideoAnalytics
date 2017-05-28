@@ -1,27 +1,26 @@
-from django.shortcuts import render,redirect
+from django.shortcuts import render, redirect
 from django.conf import settings
 from django.http import JsonResponse
 import requests
 import json
-from django.views.generic import ListView,DetailView
-from .forms import UploadFileForm,YTVideoForm,AnnotationForm
-from .models import Video,Frame,Query,QueryResults,TEvent,IndexEntries,VDNDataset, Region, VDNServer, ClusterCodes, Clusters, AppliedLabel, Scene
+from django.views.generic import ListView, DetailView
+from .forms import UploadFileForm, YTVideoForm, AnnotationForm
+from .models import Video, Frame, Query, QueryResults, TEvent, IndexEntries, VDNDataset, Region, VDNServer, \
+    ClusterCodes, Clusters, AppliedLabel, Scene
 from dva.celery import app
 import serializers
-from rest_framework import viewsets,mixins
+from rest_framework import viewsets, mixins
 from django.contrib.auth.models import User
-from rest_framework.permissions import IsAuthenticatedOrReadOnly,IsAuthenticated
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from django.db.models import Count
 from celery.exceptions import TimeoutError
 import math
 from django.db.models import Max
-from shared import create_video_folders,handle_uploaded_file,create_annotation,create_child_vdn_dataset,\
-    create_query,create_root_vdn_dataset,handle_youtube_video,pull_vdn_dataset_list,import_vdn_dataset_url
+from shared import handle_uploaded_file, create_annotation, create_child_vdn_dataset, \
+    create_query, create_root_vdn_dataset, handle_youtube_video, pull_vdn_dataset_list, import_vdn_dataset_url
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.mixins import UserPassesTestMixin
 import logging
-import base64
-import pickle
 
 
 def user_check(user):
@@ -41,13 +40,14 @@ class VideoViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class FrameViewSet(viewsets.ReadOnlyModelViewSet):
-    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,) 
+    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
     queryset = Frame.objects.all()
     serializer_class = serializers.FrameSerializer
     filter_fields = ('frame_index', 'subdir', 'name', 'video')
 
 
-class RegionViewSet(mixins.ListModelMixin,mixins.RetrieveModelMixin,mixins.CreateModelMixin,mixins.DestroyModelMixin,viewsets.GenericViewSet):
+class RegionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin, mixins.DestroyModelMixin,
+                    viewsets.GenericViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
     queryset = Region.objects.all()
     serializer_class = serializers.RegionSerializer
@@ -71,14 +71,14 @@ class TEventViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
     queryset = TEvent.objects.all()
     serializer_class = serializers.TEventSerializer
-    filter_fields = ('video','operation')
+    filter_fields = ('video', 'operation')
 
 
 class IndexEntriesViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
     queryset = IndexEntries.objects.all()
     serializer_class = serializers.IndexEntriesSerializer
-    filter_fields = ('video','algorithm','detection_name')
+    filter_fields = ('video', 'algorithm', 'detection_name')
 
 
 class AppliedLabelViewSet(viewsets.ModelViewSet):
@@ -117,7 +117,7 @@ class ClusterCodesViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ClusterCodesSerializer
 
 
-class VideoList(UserPassesTestMixin,ListView):
+class VideoList(UserPassesTestMixin, ListView):
     model = Video
     paginate_by = 100
 
@@ -131,20 +131,24 @@ class VideoList(UserPassesTestMixin,ListView):
         return user_check(self.request.user)
 
 
-class VideoDetail(UserPassesTestMixin,DetailView):
+class VideoDetail(UserPassesTestMixin, DetailView):
     model = Video
 
     def get_context_data(self, **kwargs):
         context = super(VideoDetail, self).get_context_data(**kwargs)
-        max_frame_index = Frame.objects.all().filter(video=self.object).aggregate(Max('frame_index'))['frame_index__max']
-        context['exports'] = TEvent.objects.all().filter(event_type=TEvent.EXPORT,video=self.object)
-        context['s3_exports'] = TEvent.objects.all().filter(event_type=TEvent.S3EXPORT,video=self.object)
-        context['annotation_count'] = Region.objects.all().filter(video=self.object,region_type=Region.ANNOTATION).count()
+        max_frame_index = Frame.objects.all().filter(video=self.object).aggregate(Max('frame_index'))[
+            'frame_index__max']
+        context['exports'] = TEvent.objects.all().filter(event_type=TEvent.EXPORT, video=self.object)
+        context['s3_exports'] = TEvent.objects.all().filter(event_type=TEvent.S3EXPORT, video=self.object)
+        context['annotation_count'] = Region.objects.all().filter(video=self.object,
+                                                                  region_type=Region.ANNOTATION).count()
         if self.object.vdn_dataset:
-            context['exportable_annotation_count'] = Region.objects.all().filter(video=self.object,vdn_dataset__isnull=True,region_type=Region.ANNOTATION).count()
+            context['exportable_annotation_count'] = Region.objects.all().filter(video=self.object,
+                                                                                 vdn_dataset__isnull=True,
+                                                                                 region_type=Region.ANNOTATION).count()
         else:
             context['exportable_annotation_count'] = 0
-        context['url'] = '{}{}/video/{}.mp4'.format(settings.MEDIA_URL,self.object.pk,self.object.pk)
+        context['url'] = '{}{}/video/{}.mp4'.format(settings.MEDIA_URL, self.object.pk, self.object.pk)
         label_list = []
         show_all = self.request.GET.get('show_all_labels', False)
         context['label_list'] = label_list
@@ -153,8 +157,8 @@ class VideoDetail(UserPassesTestMixin,DetailView):
             delta = 500
         if max_frame_index <= delta:
             context['frame_list'] = Frame.objects.all().filter(video=self.object).order_by('frame_index')
-            context['detection_list'] = Region.objects.all().filter(video=self.object,region_type=Region.DETECTION)
-            context['annotation_list'] = Region.objects.all().filter(video=self.object,region_type=Region.ANNOTATION)
+            context['detection_list'] = Region.objects.all().filter(video=self.object, region_type=Region.DETECTION)
+            context['annotation_list'] = Region.objects.all().filter(video=self.object, region_type=Region.ANNOTATION)
             context['offset'] = 0
             context['limit'] = max_frame_index
         else:
@@ -165,10 +169,16 @@ class VideoDetail(UserPassesTestMixin,DetailView):
             limit = offset + delta
             context['offset'] = offset
             context['limit'] = limit
-            context['frame_list'] = Frame.objects.all().filter(video=self.object,frame_index__gte=offset,frame_index__lte=limit).order_by('frame_index')
-            context['detection_list'] = Region.objects.all().filter(video=self.object,parent_frame_index__gte=offset,parent_frame_index__lte=limit,region_type=Region.DETECTION)
-            context['annotation_list'] = Region.objects.all().filter(video=self.object,parent_frame_index__gte=offset,parent_frame_index__lte=limit,region_type=Region.ANNOTATION)
-            context['frame_index_offsets'] = [(k*delta,(k*delta)+delta) for k in range(int(math.ceil(max_frame_index / float(delta))))]
+            context['frame_list'] = Frame.objects.all().filter(video=self.object, frame_index__gte=offset,
+                                                               frame_index__lte=limit).order_by('frame_index')
+            context['detection_list'] = Region.objects.all().filter(video=self.object, parent_frame_index__gte=offset,
+                                                                    parent_frame_index__lte=limit,
+                                                                    region_type=Region.DETECTION)
+            context['annotation_list'] = Region.objects.all().filter(video=self.object, parent_frame_index__gte=offset,
+                                                                     parent_frame_index__lte=limit,
+                                                                     region_type=Region.ANNOTATION)
+            context['frame_index_offsets'] = [(k * delta, (k * delta) + delta) for k in
+                                              range(int(math.ceil(max_frame_index / float(delta))))]
         context['frame_first'] = context['frame_list'].first()
         context['frame_last'] = context['frame_list'].last()
         if context['limit'] > max_frame_index:
@@ -180,21 +190,22 @@ class VideoDetail(UserPassesTestMixin,DetailView):
         return user_check(self.request.user)
 
 
-class ClustersDetails(UserPassesTestMixin,DetailView):
-
+class ClustersDetails(UserPassesTestMixin, DetailView):
     model = Clusters
 
     def get_context_data(self, **kwargs):
         context = super(ClustersDetails, self).get_context_data(**kwargs)
         context['coarse'] = []
         context['index_entries'] = [IndexEntries.objects.get(pk=k) for k in self.object.included_index_entries_pk]
-        for k in ClusterCodes.objects.filter(clusters_id=self.object.pk).values('coarse_text').annotate(count=Count('coarse_text')):
-            context['coarse'].append({'coarse_text':k['coarse_text'].replace(' ','_'),
-                                      'count':k['count'],
-                                      'first':ClusterCodes.objects.all().filter(clusters_id=self.object.pk,coarse_text=k['coarse_text']).first(),
-                                      'last':ClusterCodes.objects.all().filter(clusters_id=self.object.pk,coarse_text=k['coarse_text']).last()
+        for k in ClusterCodes.objects.filter(clusters_id=self.object.pk).values('coarse_text').annotate(
+                count=Count('coarse_text')):
+            context['coarse'].append({'coarse_text': k['coarse_text'].replace(' ', '_'),
+                                      'count': k['count'],
+                                      'first': ClusterCodes.objects.all().filter(clusters_id=self.object.pk,
+                                                                                 coarse_text=k['coarse_text']).first(),
+                                      'last': ClusterCodes.objects.all().filter(clusters_id=self.object.pk,
+                                                                                coarse_text=k['coarse_text']).last()
                                       })
-
 
         return context
 
@@ -202,38 +213,42 @@ class ClustersDetails(UserPassesTestMixin,DetailView):
         return user_check(self.request.user)
 
 
-class FrameList(UserPassesTestMixin,ListView):
+class FrameList(UserPassesTestMixin, ListView):
     model = Frame
 
     def test_func(self):
         return user_check(self.request.user)
 
 
-class FrameDetail(UserPassesTestMixin,DetailView):
+class FrameDetail(UserPassesTestMixin, DetailView):
     model = Frame
 
     def get_context_data(self, **kwargs):
         context = super(FrameDetail, self).get_context_data(**kwargs)
-        context['detection_list'] = Region.objects.all().filter(frame=self.object,region_type=Region.DETECTION)
-        context['annotation_list'] = Region.objects.all().filter(frame=self.object,region_type=Region.ANNOTATION)
+        context['detection_list'] = Region.objects.all().filter(frame=self.object, region_type=Region.DETECTION)
+        context['annotation_list'] = Region.objects.all().filter(frame=self.object, region_type=Region.ANNOTATION)
         context['video'] = self.object.video
-        context['url'] = '{}{}/frames/{}.jpg'.format(settings.MEDIA_URL,self.object.video.pk,self.object.frame_index)
-        context['previous_frame'] = Frame.objects.filter(video=self.object.video,frame_index__lt=self.object.frame_index).order_by('-frame_index')[0:1]
-        context['next_frame'] = Frame.objects.filter(video=self.object.video,frame_index__gt=self.object.frame_index).order_by('frame_index')[0:1]
+        context['url'] = '{}{}/frames/{}.jpg'.format(settings.MEDIA_URL, self.object.video.pk, self.object.frame_index)
+        context['previous_frame'] = Frame.objects.filter(video=self.object.video,
+                                                         frame_index__lt=self.object.frame_index).order_by(
+            '-frame_index')[0:1]
+        context['next_frame'] = Frame.objects.filter(video=self.object.video,
+                                                     frame_index__gt=self.object.frame_index).order_by('frame_index')[
+                                0:1]
         return context
 
     def test_func(self):
         return user_check(self.request.user)
 
 
-class QueryList(UserPassesTestMixin,ListView):
+class QueryList(UserPassesTestMixin, ListView):
     model = Query
 
     def test_func(self):
         return user_check(self.request.user)
 
 
-class QueryDetail(UserPassesTestMixin,DetailView):
+class QueryDetail(UserPassesTestMixin, DetailView):
     model = Query
 
     def get_context_data(self, **kwargs):
@@ -242,23 +257,23 @@ class QueryDetail(UserPassesTestMixin,DetailView):
         context['facenet'] = []
         for r in QueryResults.objects.all().filter(query=self.object):
             if r.algorithm == 'facenet':
-                context['facenet'].append((r.rank,r))
+                context['facenet'].append((r.rank, r))
             else:
-                context['inception'].append((r.rank,r))
+                context['inception'].append((r.rank, r))
         context['facenet'].sort()
         context['inception'].sort()
         if context['inception']:
             context['inception'] = zip(*context['inception'])[1]
         if context['facenet']:
             context['facenet'] = zip(*context['facenet'])[1]
-        context['url'] = '{}queries/{}.png'.format(settings.MEDIA_URL,self.object.pk,self.object.pk)
+        context['url'] = '{}queries/{}.png'.format(settings.MEDIA_URL, self.object.pk, self.object.pk)
         return context
 
     def test_func(self):
         return user_check(self.request.user)
 
 
-class VDNDatasetDetail(UserPassesTestMixin,DetailView):
+class VDNDatasetDetail(UserPassesTestMixin, DetailView):
     model = VDNDataset
 
     def get_context_data(self, **kwargs):
@@ -277,49 +292,52 @@ def search(request):
         selected_indexers = json.loads(request.POST.get('selected_indexers'))
         approximate = True if request.POST.get('approximate') == 'true' else False
         image_data_url = request.POST.get('image_url')
-        query, dv = create_query(count,approximate,selected_indexers,excluded_index_entries_pk,image_data_url,request.user if request.user.is_authenticated else None)
+        query, dv = create_query(count, approximate, selected_indexers, excluded_index_entries_pk, image_data_url,
+                                 request.user if request.user.is_authenticated else None)
         task_results = {}
-        for visual_index_name,visual_index in settings.VISUAL_INDEXES.iteritems():
+        for visual_index_name, visual_index in settings.VISUAL_INDEXES.iteritems():
             task_name = visual_index['retriever_task']
             if visual_index_name in selected_indexers:
-                task_results[visual_index_name] = app.send_task(task_name, args=[query.pk,],queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+                task_results[visual_index_name] = app.send_task(task_name, args=[query.pk, ],
+                                                                queue=settings.TASK_NAMES_TO_QUEUE[task_name])
         results = []
         results_detections = []
         time_out = False
-        for visual_index_name,result in task_results.iteritems():
+        for visual_index_name, result in task_results.iteritems():
             entries = {}
             try:
                 logging.info("Waiting for {}".format(visual_index_name))
                 entries = result.get(timeout=120)
-                print entries
                 if entries:
-                    if type(entries) is dict:
-                        entries = entries
-                    else:
-                        entries = pickle.loads(base64.b64decode(entries))
+                    if not (type(entries) is dict):
+                        print type(entries), entries
+                        raise ValueError, entries
             except TimeoutError:
                 time_out = True
             except Exception, e:
                 raise ValueError(e)
             if entries and settings.VISUAL_INDEXES[visual_index_name]['detection_specific']:
-                for algo,rlist in entries.iteritems():
+                for algo, rlist in entries.iteritems():
                     for r in rlist:
-                        r['url'] = '{}{}/detections/{}.jpg'.format(settings.MEDIA_URL,r['video_primary_key'],r['detection_primary_key'])
+                        r['url'] = '{}{}/detections/{}.jpg'.format(settings.MEDIA_URL, r['video_primary_key'],
+                                                                   r['detection_primary_key'])
                         d = Region.objects.get(pk=r['detection_primary_key'])
                         r['result_detect'] = True
                         r['frame_primary_key'] = d.frame_id
                         r['result_type'] = 'detection'
-                        r['detection'] = [{'pk': d.pk, 'name': d.object_name, 'confidence': d.confidence},]
+                        r['detection'] = [{'pk': d.pk, 'name': d.object_name, 'confidence': d.confidence}, ]
                         results_detections.append(r)
             elif entries:
                 for algo, rlist in entries.iteritems():
                     for r in rlist:
-                        r['url'] = '{}{}/frames/{}.jpg'.format(settings.MEDIA_URL,r['video_primary_key'], r['frame_index'])
+                        r['url'] = '{}{}/frames/{}.jpg'.format(settings.MEDIA_URL, r['video_primary_key'],
+                                                               r['frame_index'])
                         r['detections'] = [{'pk': d.pk, 'name': d.object_name, 'confidence': d.confidence} for d in
                                            Region.objects.filter(frame_id=r['frame_primary_key'])]
                         r['result_type'] = 'frame'
                         results.append(r)
-        return JsonResponse(data={'task_id':"",'time_out':time_out,'primary_key':query.pk,'results':results,'results_detections':results_detections})
+        return JsonResponse(data={'task_id': "", 'time_out': time_out, 'primary_key': query.pk, 'results': results,
+                                  'results_detections': results_detections})
 
 
 def home(request):
@@ -327,12 +345,12 @@ def home(request):
 
 
 @user_passes_test(user_check)
-def index(request,query_pk=None,frame_pk=None,detection_pk=None):
+def index(request, query_pk=None, frame_pk=None, detection_pk=None):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         user = request.user if request.user.is_authenticated else None
         if form.is_valid():
-            handle_uploaded_file(request.FILES['file'],form.cleaned_data['name'],user=user,
+            handle_uploaded_file(request.FILES['file'], form.cleaned_data['name'], user=user,
                                  perform_scene_detection=form.cleaned_data['scene'],
                                  rate=form.cleaned_data['nth'],
                                  rescale=form.cleaned_data['rescale'] if 'rescale' in form.cleaned_data else 0)
@@ -341,17 +359,17 @@ def index(request,query_pk=None,frame_pk=None,detection_pk=None):
             raise ValueError
     else:
         form = UploadFileForm()
-    context = { 'form' : form }
+    context = {'form': form}
     context['indexes'] = settings.VISUAL_INDEXES
     if query_pk:
         previous_query = Query.objects.get(pk=query_pk)
-        context['initial_url'] = '{}queries/{}.png'.format(settings.MEDIA_URL,query_pk)
+        context['initial_url'] = '{}queries/{}.png'.format(settings.MEDIA_URL, query_pk)
     elif frame_pk:
         frame = Frame.objects.get(pk=frame_pk)
-        context['initial_url'] = '{}{}/frames/{}.jpg'.format(settings.MEDIA_URL,frame.video.pk,frame.frame_index)
+        context['initial_url'] = '{}{}/frames/{}.jpg'.format(settings.MEDIA_URL, frame.video.pk, frame.frame_index)
     elif detection_pk:
         detection = Region.objects.get(pk=detection_pk)
-        context['initial_url'] = '{}{}/detections/{}.jpg'.format(settings.MEDIA_URL,detection.video.pk, detection.pk)
+        context['initial_url'] = '{}{}/detections/{}.jpg'.format(settings.MEDIA_URL, detection.video.pk, detection.pk)
     context['frame_count'] = Frame.objects.count()
     context['query_count'] = Query.objects.count()
     context['index_entries_count'] = IndexEntries.objects.count()
@@ -359,14 +377,15 @@ def index(request,query_pk=None,frame_pk=None,detection_pk=None):
     context['external_servers_count'] = VDNServer.objects.count()
     context['task_events_count'] = TEvent.objects.count()
     context['pending_tasks'] = TEvent.objects.all().filter(started=False).count()
-    context['running_tasks'] = TEvent.objects.all().filter(started=True,completed=False).count()
-    context['successful_tasks'] = TEvent.objects.all().filter(started=True,completed=True).count()
+    context['running_tasks'] = TEvent.objects.all().filter(started=True, completed=False).count()
+    context['successful_tasks'] = TEvent.objects.all().filter(started=True, completed=True).count()
     context['errored_tasks'] = TEvent.objects.all().filter(errored=True).count()
     context['video_count'] = Video.objects.count() - context['query_count']
     context['index_entries'] = IndexEntries.objects.all()
     context['detection_count'] = Region.objects.all().filter(region_type=Region.DETECTION).count()
     context['annotation_count'] = Region.objects.all().filter(region_type=Region.ANNOTATION).count()
     return render(request, 'dashboard.html', context)
+
 
 @user_passes_test(user_check)
 def assign_video_labels(request):
@@ -379,32 +398,34 @@ def assign_video_labels(request):
                 dl.label_name = k.strip()
                 dl.source = dl.UI
                 dl.save()
-        return redirect('video_detail',pk=video.pk)
+        return redirect('video_detail', pk=video.pk)
     else:
         raise NotImplementedError
 
 
 @user_passes_test(user_check)
-def annotate(request,frame_pk):
-    context = {'frame':None, 'detection':None ,'existing':[]}
+def annotate(request, frame_pk):
+    context = {'frame': None, 'detection': None, 'existing': []}
     frame = None
     frame = Frame.objects.get(pk=frame_pk)
     context['frame'] = frame
-    context['initial_url'] = '{}{}/frames/{}.jpg'.format(settings.MEDIA_URL,frame.video.pk,frame.frame_index)
-    context['previous_frame'] = Frame.objects.filter(video=frame.video,frame_index__lt=frame.frame_index).order_by('-frame_index')[0:1]
-    context['next_frame'] = Frame.objects.filter(video=frame.video,frame_index__gt=frame.frame_index).order_by('frame_index')[0:1]
-    context['detections'] = Region.objects.filter(frame=frame,region_type=Region.DETECTION)
+    context['initial_url'] = '{}{}/frames/{}.jpg'.format(settings.MEDIA_URL, frame.video.pk, frame.frame_index)
+    context['previous_frame'] = Frame.objects.filter(video=frame.video, frame_index__lt=frame.frame_index).order_by(
+        '-frame_index')[0:1]
+    context['next_frame'] = Frame.objects.filter(video=frame.video, frame_index__gt=frame.frame_index).order_by(
+        'frame_index')[0:1]
+    context['detections'] = Region.objects.filter(frame=frame, region_type=Region.DETECTION)
     for d in Region.objects.filter(frame=frame):
         temp = {
-            'x':d.x,
-            'y':d.y,
-            'h':d.h,
-            'w':d.w,
-            'pk':d.pk,
-            'box_type':"detection" if d.region_type == d.DETECTION else 'annotation',
+            'x': d.x,
+            'y': d.y,
+            'h': d.h,
+            'w': d.w,
+            'pk': d.pk,
+            'box_type': "detection" if d.region_type == d.DETECTION else 'annotation',
             'label': d.object_name,
             'full_frame': d.full_frame,
-            'detection_pk':None
+            'detection_pk': None
         }
         context['existing'].append(temp)
     context['existing'] = json.dumps(context['existing'])
@@ -415,18 +436,18 @@ def annotate(request,frame_pk):
             create_annotation(form, form.cleaned_data['object_name'], applied_tags, frame)
             return JsonResponse({'status': True})
         else:
-            raise ValueError,form.errors
+            raise ValueError, form.errors
     return render(request, 'annotate.html', context)
 
 
 @user_passes_test(user_check)
-def annotate_entire_frame(request,frame_pk):
+def annotate_entire_frame(request, frame_pk):
     frame = Frame.objects.get(pk=frame_pk)
     annotation = None
     if request.method == 'POST':
         if request.POST.get('metadata_text').strip() \
                 or request.POST.get('metadata_json').strip() \
-                or request.POST.get('object_name',None):
+                or request.POST.get('object_name', None):
             annotation = Region()
             annotation.region_type = Region.ANNOTATION
             annotation.x = 0
@@ -436,7 +457,7 @@ def annotate_entire_frame(request,frame_pk):
             annotation.full_frame = True
             annotation.metadata_text = request.POST.get('metadata_text')
             annotation.metadata_json = request.POST.get('metadata_json')
-            annotation.object_name = request.POST.get('object_name','frame_metadata')
+            annotation.object_name = request.POST.get('object_name', 'frame_metadata')
             annotation.frame = frame
             annotation.video = frame.video
             annotation.save()
@@ -450,7 +471,7 @@ def annotate_entire_frame(request,frame_pk):
                     dl.region = annotation
                 dl.source = dl.UI
                 dl.save()
-    return redirect("frame_detail",pk=frame.pk)
+    return redirect("frame_detail", pk=frame.pk)
 
 
 @user_passes_test(user_check)
@@ -459,7 +480,7 @@ def yt(request):
         form = YTVideoForm(request.POST, request.FILES)
         user = request.user if request.user.is_authenticated else None
         if form.is_valid():
-            handle_youtube_video(form.cleaned_data['name'],form.cleaned_data['url'],user=user,
+            handle_youtube_video(form.cleaned_data['name'], form.cleaned_data['url'], user=user,
                                  perform_scene_detection=form.cleaned_data['scene'],
                                  rate=form.cleaned_data['nth'],
                                  rescale=form.cleaned_data['rescale'] if 'rescale' in form.cleaned_data else 0)
@@ -489,7 +510,7 @@ def export_video(request):
                 s3export.bucket = bucket
                 s3export.save()
                 task_name = 'backup_video_to_s3'
-                app.send_task(task_name, args=[s3export.pk,], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+                app.send_task(task_name, args=[s3export.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
             else:
                 task_name = 'export_video_by_id'
                 export_video_task = TEvent()
@@ -497,24 +518,24 @@ def export_video(request):
                 export_video_task.video = video
                 export_video_task.operation = task_name
                 export_video_task.save()
-                app.send_task(task_name, args=[export_video_task.pk,], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+                app.send_task(task_name, args=[export_video_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
         return redirect('video_list')
     else:
         raise NotImplementedError
 
 
 @user_passes_test(user_check)
-def coarse_code_detail(request,pk,coarse_code):
-    coarse_code = coarse_code.replace('_',' ')
+def coarse_code_detail(request, pk, coarse_code):
+    coarse_code = coarse_code.replace('_', ' ')
     context = {
-               'code':coarse_code,
-               'objects': ClusterCodes.objects.all().filter(coarse_text=coarse_code,clusters_id=pk)
-               }
-    return render(request,'coarse_code_details.html',context)
+        'code': coarse_code,
+        'objects': ClusterCodes.objects.all().filter(coarse_text=coarse_code, clusters_id=pk)
+    }
+    return render(request, 'coarse_code_details.html', context)
 
 
 @user_passes_test(user_check)
-def push(request,video_id):
+def push(request, video_id):
     video = Video.objects.get(pk=video_id)
     if request.method == 'POST':
         push_type = request.POST.get('push_type')
@@ -532,17 +553,17 @@ def push(request,video_id):
                 if key.startswith('annotation_') and request.POST[key]:
                     annotation = Region.objects.get(pk=int(key.split('annotation_')[1]))
                     data = {
-                        'label':annotation.label,
-                        'metadata_text':annotation.metadata_text,
-                        'x':annotation.x,
-                        'y':annotation.y,
-                        'w':annotation.w,
-                        'h':annotation.h,
-                        'full_frame':annotation.full_frame,
-                        'parent_frame_index':annotation.parent_frame_index,
-                        'dataset_id':int(new_vdn_dataset.url.split('/')[-2]),
+                        'label': annotation.label,
+                        'metadata_text': annotation.metadata_text,
+                        'x': annotation.x,
+                        'y': annotation.y,
+                        'w': annotation.w,
+                        'h': annotation.h,
+                        'full_frame': annotation.full_frame,
+                        'parent_frame_index': annotation.parent_frame_index,
+                        'dataset_id': int(new_vdn_dataset.url.split('/')[-2]),
                     }
-                    r = requests.post("{}/api/annotations/".format(server_url),data=data,headers=headers)
+                    r = requests.post("{}/api/annotations/".format(server_url), data=data, headers=headers)
                     if r.status_code == 201:
                         annotation.vdn_dataset = new_vdn_dataset
                         annotation.save()
@@ -561,31 +582,32 @@ def push(request,video_id):
             s3export.region = region
             s3export.bucket = bucket
             s3export.save()
-            create_root_vdn_dataset(s3export,server,headers,name,description)
+            create_root_vdn_dataset(s3export, server, headers, name, description)
             task_name = 'push_video_to_vdn_s3'
             app.send_task(task_name, args=[s3export.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
         else:
             raise NotImplementedError
 
     servers = VDNServer.objects.all()
-    context = {'video':video, 'servers':servers}
+    context = {'video': video, 'servers': servers}
     if video.vdn_dataset:
-        context['annotations'] = Region.objects.all().filter(video=video, vdn_dataset__isnull=True,region_type=Region.ANNOTATION)
+        context['annotations'] = Region.objects.all().filter(video=video, vdn_dataset__isnull=True,
+                                                             region_type=Region.ANNOTATION)
     else:
-        context['annotations'] = Region.objects.all().filter(video=video,region_type=Region.ANNOTATION)
-    return render(request,'push.html',context)
+        context['annotations'] = Region.objects.all().filter(video=video, region_type=Region.ANNOTATION)
+    return render(request, 'push.html', context)
 
 
 @user_passes_test(user_check)
-def render_tasks(request,context):
+def render_tasks(request, context):
     context['events'] = TEvent.objects.all()
     context['settings_queues'] = set(settings.TASK_NAMES_TO_QUEUE.values())
     task_list = []
-    for k,v in settings.TASK_NAMES_TO_TYPE.iteritems():
-        task_list.append({'name':k,
-                          'type':v,
-                          'queue':settings.TASK_NAMES_TO_QUEUE[k],
-                          'edges':settings.POST_OPERATION_TASKS[k] if k in settings.POST_OPERATION_TASKS else []
+    for k, v in settings.TASK_NAMES_TO_TYPE.iteritems():
+        task_list.append({'name': k,
+                          'type': v,
+                          'queue': settings.TASK_NAMES_TO_QUEUE[k],
+                          'edges': settings.POST_OPERATION_TASKS[k] if k in settings.POST_OPERATION_TASKS else []
                           })
     context['task_list'] = task_list
     context["videos"] = Video.objects.all().filter(parent_query__count__isnull=True)
@@ -595,43 +617,44 @@ def render_tasks(request,context):
 
 @user_passes_test(user_check)
 def status(request):
-    context = { }
-    return render_status(request,context)
+    context = {}
+    return render_status(request, context)
 
 
 @user_passes_test(user_check)
 def tasks(request):
-    context = { }
-    return render_tasks(request,context)
+    context = {}
+    return render_tasks(request, context)
 
 
 @user_passes_test(user_check)
 def indexes(request):
     context = {
-        'visual_index_list':settings.VISUAL_INDEXES.items(),
-        'index_entries':IndexEntries.objects.all(),
-        "videos" : Video.objects.all().filter(parent_query__count__isnull=True),
-        "region_types" : Region.REGION_TYPES
+        'visual_index_list': settings.VISUAL_INDEXES.items(),
+        'index_entries': IndexEntries.objects.all(),
+        "videos": Video.objects.all().filter(parent_query__count__isnull=True),
+        "region_types": Region.REGION_TYPES
     }
     if request.method == 'POST':
         if request.POST.get('visual_index_name') == 'inception':
             index_event = TEvent()
             index_event.operation = 'inception_index_regions_by_id'
-            arguments ={
+            arguments = {
                 'region_type__in': request.POST.getlist('region_type__in', []),
                 'w__gte': int(request.POST.get('w__gte')),
                 'h__gte': int(request.POST.get('h__gte'))
             }
-            for optional_key in ['metadata_text__contains','object_name__contains','object_name']:
-                if request.POST.get(optional_key,None):
+            for optional_key in ['metadata_text__contains', 'object_name__contains', 'object_name']:
+                if request.POST.get(optional_key, None):
                     arguments[optional_key] = request.POST.get(optional_key)
-            for optional_key in ['h__lte','w__lte']:
-                if request.POST.get(optional_key,None):
+            for optional_key in ['h__lte', 'w__lte']:
+                if request.POST.get(optional_key, None):
                     arguments[optional_key] = int(request.POST.get(optional_key))
             index_event.arguments_json = json.dumps(arguments)
             index_event.video_id = request.POST.get('video_id')
             index_event.save()
-            app.send_task(name=index_event.operation, args=[index_event.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[index_event.operation])
+            app.send_task(name=index_event.operation, args=[index_event.pk, ],
+                          queue=settings.TASK_NAMES_TO_QUEUE[index_event.operation])
         else:
             raise NotImplementedError
     return render(request, 'indexes.html', context)
@@ -687,7 +710,7 @@ def delete_object(request):
             annotation = Region.objects.get(pk=pk)
             if annotation.region_type == Region.ANNOTATION:
                 annotation.delete()
-    return JsonResponse({'status':True})
+    return JsonResponse({'status': True})
 
 
 @user_passes_test(user_check)
@@ -719,7 +742,7 @@ def import_s3(request):
                 user = request.user if request.user.is_authenticated else None
                 if user:
                     video.uploader = user
-                video.name = "pending S3 import {} s3://{}/{}".format(region,bucket,key)
+                video.name = "pending S3 import {} s3://{}/{}".format(region, bucket, key)
                 video.save()
                 s3import.video = video
                 s3import.save()
@@ -750,15 +773,15 @@ def external(request):
         pk = request.POST.get('server_pk')
         pull_vdn_dataset_list(pk)
     context = {
-        'servers':VDNServer.objects.all(),
-        'available':{ server:json.loads(server.last_response_datasets) for server in VDNServer.objects.all()},
+        'servers': VDNServer.objects.all(),
+        'available': {server: json.loads(server.last_response_datasets) for server in VDNServer.objects.all()},
         'vdn_datasets': VDNDataset.objects.all(),
     }
     return render(request, 'external_data.html', context)
 
 
 @user_passes_test(user_check)
-def retry_task(request,pk):
+def retry_task(request, pk):
     event = TEvent.objects.get(pk=int(pk))
     context = {}
     if settings.TASK_NAMES_TO_TYPE[event.operation] == settings.VIDEO_TASK:
@@ -766,8 +789,10 @@ def retry_task(request,pk):
         new_event.video_id = event.video_id
         new_event.arguments_json = event.arguments_json
         new_event.save()
-        result = app.send_task(name=event.operation, args=[new_event.pk],queue=settings.TASK_NAMES_TO_QUEUE[event.operation])
-        context['alert'] = "Operation {} on {} submitted".format(event.operation,event.video.name,queue=settings.TASK_NAMES_TO_QUEUE[event.operation])
+        result = app.send_task(name=event.operation, args=[new_event.pk],
+                               queue=settings.TASK_NAMES_TO_QUEUE[event.operation])
+        context['alert'] = "Operation {} on {} submitted".format(event.operation, event.video.name,
+                                                                 queue=settings.TASK_NAMES_TO_QUEUE[event.operation])
         return render_tasks(request, context)
     elif settings.TASK_NAMES_TO_TYPE[event.operation] == settings.QUERY_TASK:
         return redirect("/requery/{}/".format(event.video.parent_query_id))
@@ -776,7 +801,7 @@ def retry_task(request,pk):
 
 
 @user_passes_test(user_check)
-def render_status(request,context):
+def render_status(request, context):
     context['video_count'] = Video.objects.count()
     context['frame_count'] = Frame.objects.count()
     context['query_count'] = Query.objects.count()
@@ -816,5 +841,3 @@ def render_status(request,context):
     except:
         context['fab_log'] = ""
     return render(request, 'status.html', context)
-
-

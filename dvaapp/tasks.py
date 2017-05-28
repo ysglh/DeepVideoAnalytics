@@ -35,6 +35,16 @@ def process_next(task_id):
             app.send_task(k['task_name'],args=[next_task.pk,],queue=settings.TASK_NAMES_TO_QUEUE[k['task_name']])
 
 
+def celery_40_bug_hack(start):
+    """
+    Celery 4.0.2 retries tasks due to ACK issues when running in solo mode,
+    Since Tensorflow ncessiates use of solo mode, we can manually check if the task is has already run and quickly finis it
+    Since the code never uses Celery results except for querying and retries are handled at application level this solves the
+    issue
+    :param start:
+    :return:
+    """
+    return start.started
 
 
 class IndexerTask(celery.Task):
@@ -90,9 +100,11 @@ class IndexerTask(celery.Task):
             logging.warning("No clusterer found switching to exact search for {}".format(algorithm))
 
 
-@app.task(name="inception_index_by_id",base=IndexerTask)
+@app.task(track_started=True,name="inception_index_by_id",base=IndexerTask)
 def inception_index_by_id(task_id):
     start = TEvent.objects.get(pk=task_id)
+    if celery_40_bug_hack(start):
+        return 0
     start.task_id = inception_index_by_id.request.id
     start.started = True
     start.operation = inception_index_by_id.name
@@ -120,9 +132,11 @@ def inception_index_by_id(task_id):
     start.save()
 
 
-@app.task(name="inception_index_regions_by_id",base=IndexerTask)
+@app.task(track_started=True,name="inception_index_regions_by_id",base=IndexerTask)
 def inception_index_regions_by_id(task_id):
     start = TEvent.objects.get(pk=task_id)
+    if celery_40_bug_hack(start):
+        return 0
     start.task_id = inception_index_regions_by_id.request.id
     start.started = True
     start.operation = inception_index_regions_by_id.name
@@ -154,9 +168,11 @@ def inception_index_regions_by_id(task_id):
     process_next(task_id)
 
 
-@app.task(name="alexnet_index_by_id",base=IndexerTask)
+@app.task(track_started=True,name="alexnet_index_by_id",base=IndexerTask)
 def alexnet_index_by_id(task_id):
     start = TEvent.objects.get(pk=task_id)
+    if celery_40_bug_hack(start):
+        return 0
     start.task_id = alexnet_index_by_id.request.id
     start.started = True
     start.operation = alexnet_index_by_id.name
@@ -214,7 +230,7 @@ def query_approximate(q,n,visual_index,clusterer):
     return results
 
 
-@app.task(name="inception_query_by_image",base=IndexerTask)
+@app.task(track_started=True,name="inception_query_by_image",base=IndexerTask)
 def inception_query_by_image(query_id):
     dq = Query.objects.get(id=query_id)
     start = TEvent()
@@ -258,7 +274,7 @@ def inception_query_by_image(query_id):
     return results
 
 
-@app.task(name="alexnet_query_by_image",base=IndexerTask)
+@app.task(track_started=True,name="alexnet_query_by_image",base=IndexerTask)
 def alexnet_query_by_image(query_id):
     dq = Query.objects.get(id=query_id)
     start = TEvent()
@@ -291,7 +307,7 @@ def alexnet_query_by_image(query_id):
     return results
 
 
-@app.task(name="facenet_query_by_image",base=IndexerTask)
+@app.task(track_started=True,name="facenet_query_by_image",base=IndexerTask)
 def facenet_query_by_image(query_id):
     dq = Query.objects.get(id=query_id)
     start = TEvent()
@@ -354,9 +370,11 @@ def set_directory_labels(frames,dv):
 
 
 
-@app.task(name="extract_frames_by_id")
+@app.task(track_started=True,name="extract_frames_by_id")
 def extract_frames(task_id):
     start = TEvent.objects.get(pk=task_id)
+    if celery_40_bug_hack(start):
+        return 0
     start.task_id = extract_frames.request.id
     start.started = True
     start.operation = extract_frames.name
@@ -418,9 +436,11 @@ def extract_frames(task_id):
     return 0
 
 
-@app.task(name="perform_yolo_detection_by_id")
+@app.task(track_started=True,name="perform_yolo_detection_by_id")
 def perform_yolo_detection_by_id(task_id):
     start = TEvent.objects.get(pk=task_id)
+    if celery_40_bug_hack(start):
+        return 0
     start.task_id = perform_yolo_detection_by_id.request.id
     start.started = True
     start.operation = perform_yolo_detection_by_id.name
@@ -442,9 +462,11 @@ def perform_yolo_detection_by_id(task_id):
     return 0
 
 
-@app.task(name="assign_open_images_text_tags_by_id")
+@app.task(track_started=True,name="assign_open_images_text_tags_by_id")
 def assign_open_images_text_tags_by_id(task_id):
     start = TEvent.objects.get(pk=task_id)
+    if celery_40_bug_hack(start):
+        return 0
     start.task_id = assign_open_images_text_tags_by_id.request.id
     start.started = True
     start.operation = assign_open_images_text_tags_by_id.name
@@ -466,9 +488,11 @@ def assign_open_images_text_tags_by_id(task_id):
     return 0
 
 
-@app.task(name="perform_ssd_detection_by_id")
+@app.task(track_started=True,name="perform_ssd_detection_by_id")
 def perform_ssd_detection_by_id(task_id):
     start = TEvent.objects.get(pk=task_id)
+    if celery_40_bug_hack(start):
+        return 0
     start.task_id = perform_ssd_detection_by_id.request.id
     start.started = True
     start.operation = perform_ssd_detection_by_id.name
@@ -490,9 +514,11 @@ def perform_ssd_detection_by_id(task_id):
     return 0
 
 
-@app.task(name="perform_face_detection_indexing_by_id")
+@app.task(track_started=True,name="perform_face_detection_indexing_by_id")
 def perform_face_detection_indexing_by_id(task_id):
     start = TEvent.objects.get(pk=task_id)
+    if celery_40_bug_hack(start):
+        return 0
     start.task_id = perform_face_detection_indexing_by_id.request.id
     start.started = True
     start.operation = perform_face_detection_indexing_by_id.name
@@ -565,9 +591,11 @@ def perform_face_indexing(video_id):
     i.save()
 
 
-@app.task(name="export_video_by_id")
+@app.task(track_started=True,name="export_video_by_id")
 def export_video_by_id(task_id):
     start = TEvent.objects.get(pk=task_id)
+    if celery_40_bug_hack(start):
+        return 0
     start.task_id = export_video_by_id.request.id
     start.started = True
     start.operation = export_video_by_id.name
@@ -603,9 +631,11 @@ def export_video_by_id(task_id):
     return start.file_name
 
 
-@app.task(name="import_video_by_id")
+@app.task(track_started=True,name="import_video_by_id")
 def import_video_by_id(task_id):
     start = TEvent.objects.get(pk=task_id)
+    if celery_40_bug_hack(start):
+        return 0
     start.task_id = import_video_by_id.request.id
     start.started = True
     start.operation = import_video_by_id.name
@@ -650,9 +680,11 @@ def import_video_by_id(task_id):
     start.save()
 
 
-@app.task(name="import_vdn_file")
+@app.task(track_started=True,name="import_vdn_file")
 def import_vdn_file(task_id):
     start = TEvent.objects.get(pk=task_id)
+    if celery_40_bug_hack(start):
+        return 0
     start.started = True
     start.task_id = import_vdn_file.request.id
     start.operation = import_vdn_file.name
@@ -723,9 +755,11 @@ def perform_export(s3_export):
     return upload.returncode,""
 
 
-@app.task(name="backup_video_to_s3")
+@app.task(track_started=True,name="backup_video_to_s3")
 def backup_video_to_s3(s3_export_id):
     start = TEvent.objects.get(pk=s3_export_id)
+    if celery_40_bug_hack(start):
+        return 0
     start.started = True
     start.task_id = backup_video_to_s3.request.id
     start.operation = backup_video_to_s3.name
@@ -741,9 +775,11 @@ def backup_video_to_s3(s3_export_id):
     start.save()
 
 
-@app.task(name="push_video_to_vdn_s3")
+@app.task(track_started=True,name="push_video_to_vdn_s3")
 def push_video_to_vdn_s3(s3_export_id):
     start = TEvent.objects.get(pk=s3_export_id)
+    if celery_40_bug_hack(start):
+        return 0
     start.task_id = push_video_to_vdn_s3.request.id
     start.started = True
     start.operation = push_video_to_vdn_s3.name
@@ -782,9 +818,11 @@ def download_dir(client, resource, dist, local, bucket):
                                                    ExtraArgs={'RequestPayer':'requester'})
 
 
-@app.task(name="import_video_from_s3")
+@app.task(track_started=True,name="import_video_from_s3")
 def import_video_from_s3(s3_import_id):
     start = TEvent.objects.get(pk=s3_import_id)
+    if celery_40_bug_hack(start):
+        return 0
     start.started = True
     start.task_id = import_video_from_s3.request.id
     start.operation = import_video_from_s3.name
@@ -844,9 +882,11 @@ def import_video_from_s3(s3_import_id):
     start.save()
 
 
-@app.task(name="perform_clustering")
+@app.task(track_started=True,name="perform_clustering")
 def perform_clustering(cluster_task_id,test=False):
     start = TEvent.objects.get(pk=cluster_task_id)
+    if celery_40_bug_hack(start):
+        return 0
     start.task_id = perform_clustering.request.id
     start.started = True
     start.operation = perform_clustering.name
@@ -888,9 +928,11 @@ def perform_clustering(cluster_task_id,test=False):
     start.save()
 
 
-@app.task(name="sync_bucket_video_by_id")
+@app.task(track_started=True,name="sync_bucket_video_by_id")
 def sync_bucket_video_by_id(task_id):
     start = TEvent.objects.get(pk=task_id)
+    if celery_40_bug_hack(start):
+        return 0
     start.task_id = sync_bucket_video_by_id.request.id
     start.started = True
     start.operation = sync_bucket_video_by_id.name

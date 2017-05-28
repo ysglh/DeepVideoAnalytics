@@ -22,6 +22,7 @@ TASK_NAMES_TO_QUEUE = {
     "alexnet_index_by_id":Q_INDEXER,
     "alexnet_query_by_image":Q_RETRIEVER,
     "export_video_by_id":Q_EXTRACTOR,
+    "import_vdn_file":Q_EXTRACTOR,
     "backup_video_to_s3":Q_EXTRACTOR,
     "sync_bucket_video_by_id":Q_EXTRACTOR,
     "push_video_to_vdn_s3":Q_EXTRACTOR,
@@ -44,6 +45,7 @@ TASK_NAMES_TO_TYPE = {
     "inception_query_by_image":QUERY_TASK,
     "facenet_query_by_image":QUERY_TASK,
     "extract_frames_by_id":VIDEO_TASK,
+    "import_vdn_file":VIDEO_TASK,
     "perform_ssd_detection_by_id":VIDEO_TASK,
     "perform_yolo_detection_by_id":VIDEO_TASK,
     "perform_face_detection_indexing_by_id":VIDEO_TASK,
@@ -69,9 +71,7 @@ MANUAL_VIDEO_TASKS = ['inception_index_by_id',
                       ]
 
 
-
 POST_OPERATION_TASKS = {
-
     "extract_frames_by_id":[
         {'task_name':'perform_ssd_detection_by_id','arguments':{}},
         {'task_name':'inception_index_by_id','arguments':{}},
@@ -91,8 +91,12 @@ POST_OPERATION_TASKS = {
     ],
     'inception_index_regions_by_id':[
         {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'indexes'}},
+    ],
+    'import_vdn_file':[
+        {'task_name': 'sync_bucket_video_by_id', 'arguments': {}},
     ]
 }
+
 
 VISUAL_INDEXES = {
     'inception':

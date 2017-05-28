@@ -612,7 +612,6 @@ def import_video_by_id(task_id):
     video_id = start.video_id
     video_obj = Video.objects.get(pk=video_id)
     if video_obj.vdn_dataset and not video_obj.uploaded:
-        output_filename = "{}/{}/{}.zip".format(settings.MEDIA_ROOT,video_obj.pk,video_obj.pk)
         if video_obj.vdn_dataset.aws_requester_pays:
             s3import = TEvent()
             s3import.video = video_obj
@@ -627,18 +626,6 @@ def import_video_by_id(task_id):
             start.seconds = time.time() - start_time
             start.save()
             return 0
-        else:
-            if 'www.dropbox.com' in video_obj.vdn_dataset.download_url and not video_obj.vdn_dataset.download_url.endswith('?dl=1'):
-                r = requests.get(video_obj.vdn_dataset.download_url+'?dl=1')
-            else:
-                r = requests.get(video_obj.vdn_dataset.download_url)
-            with open(output_filename, 'wb') as f:
-                for chunk in r.iter_content(chunk_size=1024):
-                    if chunk:
-                        f.write(chunk)
-            r.close()
-        video_obj.uploaded = True
-        video_obj.save()
     zipf = zipfile.ZipFile("{}/{}/{}.zip".format(settings.MEDIA_ROOT, video_id, video_id), 'r')
     zipf.extractall("{}/{}/".format(settings.MEDIA_ROOT, video_id))
     zipf.close()
@@ -656,6 +643,50 @@ def import_video_by_id(task_id):
     serializers.import_video_json(video_obj,video_json,video_root_dir)
     source_zip = "{}/{}.zip".format(video_root_dir, video_obj.pk)
     os.remove(source_zip)
+    start.completed = True
+    start.seconds = time.time() - start_time
+    start.save()
+
+
+@app.task(name="import_vdn_file")
+def import_vdn_file(task_id):
+    start = TEvent.objects.get(pk=task_id)
+    start.started = True
+    start.task_id = import_video_from_s3.request.id
+    start.operation = import_video_from_s3.name
+    start.save()
+    start_time = time.time()
+    dv = start.video
+    create_video_folders(dv, create_subdirs=False)
+    if 'www.dropbox.com' in dv.vdn_dataset.download_url and not dv.vdn_dataset.download_url.endswith('?dl=1'):
+        r = requests.get(dv.vdn_dataset.download_url + '?dl=1')
+    else:
+        r = requests.get(dv.vdn_dataset.download_url)
+    output_filename = "{}/{}/{}.zip".format(settings.MEDIA_ROOT,dv.pk,dv.pk)
+    with open(output_filename, 'wb') as f:
+        for chunk in r.iter_content(chunk_size=1024):
+            if chunk:
+                f.write(chunk)
+    r.close()
+    zipf = zipfile.ZipFile("{}/{}/{}.zip".format(settings.MEDIA_ROOT, dv.pk, dv.pk), 'r')
+    zipf.extractall("{}/{}/".format(settings.MEDIA_ROOT, dv.pk))
+    zipf.close()
+    video_root_dir = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
+    for k in os.listdir(video_root_dir):
+        unzipped_dir = "{}{}".format(video_root_dir, k)
+        if os.path.isdir(unzipped_dir):
+            for subdir in os.listdir(unzipped_dir):
+                shutil.move("{}/{}".format(unzipped_dir,subdir),"{}".format(video_root_dir))
+            shutil.rmtree(unzipped_dir)
+            break
+    with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, dv.pk)) as input_json:
+        video_json = json.load(input_json)
+    serializers.import_video_json(dv,video_json,video_root_dir)
+    source_zip = "{}/{}.zip".format(video_root_dir, dv.pk)
+    os.remove(source_zip)
+    dv.uploaded = True
+    dv.save()
+    process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()

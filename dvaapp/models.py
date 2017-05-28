@@ -41,6 +41,7 @@ class Query(models.Model):
     user = models.ForeignKey(User, null=True)
     image_data = models.BinaryField(null=True)
 
+
 class Video(models.Model):
     name = models.CharField(max_length=500,default="")
     length_in_seconds = models.IntegerField(default=0)

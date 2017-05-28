@@ -27,8 +27,10 @@ from .shared import handle_downloaded_file,create_video_folders
 
 def process_next(task_id):
     dt = TEvent.objects.get(pk=task_id)
+    logging.info("next tasks for {}".format(dt.operation))
     if dt.operation in settings.POST_OPERATION_TASKS:
         for k in settings.POST_OPERATION_TASKS[dt.operation]:
+            logging.info("launching for {} : {}".format(dt.operation,k))
             next_task = TEvent.objects.create(video=dt.video,operation=k['task_name'],arguments_json=json.dumps(k['arguments']))
             app.send_task(k['task_name'],args=[next_task.pk,],queue=settings.TASK_NAMES_TO_QUEUE[k['task_name']])
 
@@ -686,7 +688,9 @@ def import_vdn_file(task_id):
     os.remove(source_zip)
     dv.uploaded = True
     dv.save()
+    logging.info("Processing next")
     process_next(task_id)
+    logging.info("Finished processing next")
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()

@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y postgresql-client-9.6 zip
 RUN apt-get update -q && apt-get install -y pkg-config python-dev python-opencv unzip libopencv-dev python-pip libav-tools libjpeg-dev  libpng-dev  libtiff-dev  libjasper-dev  python-numpy python-scipy  python-pycurl  python-opencv git nginx supervisor libpq-dev python-cffi build-essential libssl-dev libffi-dev python-dev
 RUN dpkg -L python-opencv
 RUN pip install --upgrade matplotlib
-RUN pip install https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.0.0a0-cp27-none-linux_x86_64.whl
+RUN pip install https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.1.0-cp27-none-linux_x86_64.whl
 RUN wget https://yt-dl.org/downloads/latest/youtube-dl -O /bin/youtube-dl
 RUN chmod a+rx /bin/youtube-dl
 RUN youtube-dl -U

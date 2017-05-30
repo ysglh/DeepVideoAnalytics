@@ -25,14 +25,15 @@ before_install:
   - sudo add-apt-repository ppa:mc3man/trusty-media -y
   - sudo apt-get update -q
   - sudo apt-get install -y ffmpeg
-  - sudo apt-get install -y pkg-config python-dev python-opencv unzip swig3.0 libopencv-dev python-pip libav-tools libjpeg-dev  libpng-dev  libtiff-dev  libjasper-dev  python-numpy python-scipy  python-pycurl  python-opencv
+  - sudo apt-get install -y pkg-config python-dev python-opencv unzip swig3.0 libopencv-dev libhdf5-dev python-pip libav-tools libjpeg-dev  libpng-dev  libtiff-dev  libjasper-dev  python-numpy python-scipy  python-pycurl  python-opencv
   - sudo dpkg -L python-opencv
   - sudo wget https://yt-dl.org/downloads/latest/youtube-dl -O /bin/youtube-dl
   - sudo chmod a+rx /bin/youtube-dl
   - youtube-dl -U
   - pip install --only-binary=numpy,scipy numpy
   - pip install https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.0.0a0-cp27-none-linux_x86_64.whl
-  - pip install --upgrade keras h5py
+  - pip install keras
+  - pip install h5py
 install: "pip install -r requirements.txt > /dev/null"
 
 

@@ -3,8 +3,10 @@ MAINTAINER Akshay Bhat <akshayubhat@gmail.com>
 RUN youtube-dl -U
 RUN git clone https://github.com/akshayubhat/DeepVideoAnalytics /root/DVA
 WORKDIR "/root/DVA"
-RUN pip install --upgrade cffi keras h5py
+RUN pip install --upgrade cffi keras
 RUN pip install -r requirements.txt
+RUN apt-get install -y libhdf5-dev
+RUN pip install --upgrade h5py
 WORKDIR "/root/DVA"
 RUN cd dvalib/ssd/checkpoints && unzip ssd_300_vgg.ckpt.zip
 RUN cd dvalib/facenet/facenet_model && wget https://www.dropbox.com/s/2unad9skmc7msel/model-20170306-150500.ckpt-250000.data-00000-of-00001 && cd ../../..

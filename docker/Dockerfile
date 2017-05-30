@@ -14,6 +14,7 @@ RUN cd dvalib/facenet/facenet_model && wget https://www.dropbox.com/s/2unad9skmc
 RUN cd dvalib/facenet/facenet_model && wget https://www.dropbox.com/s/j8ky6bl0jgpygp6/model-20170306-150500.ckpt-250000.index && cd ../../..
 RUN cd dvalib/facenet/facenet_model && wget https://www.dropbox.com/s/tnebmpku7xtzwnv/model-20170306-150500.meta && cd ../../..
 RUN cd dvalib/data/2016_08 && wget https://www.dropbox.com/s/umo0xtljm9an90x/model.ckpt && wget https://www.dropbox.com/s/f93axdtlb3ltj40/model.ckpt.meta && cd ../../..
+RUN cd dvalib/yolo && cd model_data && wget https://www.dropbox.com/s/zbff2rkoejx5k5r/yolo.h5
 WORKDIR "/root/DVA/repos/lopq/python"
 RUN python setup.py install
 WORKDIR "/root/DVA"

@@ -775,6 +775,7 @@ def import_vdn_s3(task_id):
         source_zip = "{}/{}.zip".format(video_root_dir, dv.pk)
         os.remove(source_zip)
     else:
+        video_root_dir = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
         path = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
         download_dir(client, resource, key, path, bucket)
         for filename in os.listdir(os.path.join(path, key)):

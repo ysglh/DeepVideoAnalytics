@@ -292,5 +292,12 @@ def import_vdn_dataset_url(server,url,user):
         import_video_task.operation = task_name
         import_video_task.save()
         app.send_task(name=task_name, args=[import_video_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+    elif vdn_dataset.aws_key and vdn_dataset.aws_bucket:
+        task_name = 'import_vdn_s3'
+        import_video_task = TEvent()
+        import_video_task.video = video
+        import_video_task.operation = task_name
+        import_video_task.save()
+        app.send_task(name=task_name, args=[import_video_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
     else:
         raise NotImplementedError

@@ -742,6 +742,64 @@ def import_vdn_file(task_id):
     start.save()
 
 
+@app.task(track_started=True, name="import_vdn_s3")
+def import_vdn_s3(task_id):
+    start = TEvent.objects.get(pk=task_id)
+    if celery_40_bug_hack(start):
+        return 0
+    start.started = True
+    start.task_id = import_vdn_s3.request.id
+    start.operation = import_vdn_s3.name
+    start.save()
+    start_time = time.time()
+    dv = start.video
+    create_video_folders(dv, create_subdirs=False)
+    client = boto3.client('s3')
+    resource = boto3.resource('s3')
+    key = dv.vdn_dataset.aws_key
+    bucket = dv.vdn_dataset.aws_bucket
+    if dv.vdn_dataset.aws_key.endswith('.dva_export.zip'):
+        ofname = "{}/{}/{}.zip".format(settings.MEDIA_ROOT, dv.pk, dv.pk)
+        resource.meta.client.download_file(bucket, key, ofname,ExtraArgs={'RequestPayer': 'requester'})
+        # args = ['aws','s3api','get-object','--request-payer','"requester"','s3://{}/{}'.format(dv.vdn_dataset.aws_bucket,dv.vdn_dataset.aws_key),ofname]
+        # downloader = subprocess.Popen(args=args)
+        # downloader.communicate()
+        # downloader.wait()
+        # if downloader.returncode != 0:
+        #     start.errored = True
+        #     start.error_message = "Non zero returncode"
+        #     start.save()
+        #     return 0
+        zipf = zipfile.ZipFile(ofname, 'r')
+        zipf.extractall("{}/{}/".format(settings.MEDIA_ROOT, dv.pk))
+        zipf.close()
+        video_root_dir = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
+        for k in os.listdir(video_root_dir):
+            unzipped_dir = "{}{}".format(video_root_dir, k)
+            if os.path.isdir(unzipped_dir):
+                for subdir in os.listdir(unzipped_dir):
+                    shutil.move("{}/{}".format(unzipped_dir, subdir), "{}".format(video_root_dir))
+                shutil.rmtree(unzipped_dir)
+                break
+        source_zip = "{}/{}.zip".format(video_root_dir, dv.pk)
+        os.remove(source_zip)
+    else:
+        path = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
+        download_dir(client, resource, key, path, bucket)
+        for filename in os.listdir(os.path.join(path, key)):
+            shutil.move(os.path.join(path, key, filename), os.path.join(path, filename))
+        os.rmdir(os.path.join(path, key))
+    with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, dv.pk)) as input_json:
+        video_json = json.load(input_json)
+    serializers.import_video_json(dv, video_json, video_root_dir)
+    dv.uploaded = True
+    dv.save()
+    process_next(task_id)
+    start.completed = True
+    start.seconds = time.time() - start_time
+    start.save()
+
+
 def perform_export(s3_export):
     s3 = boto3.resource('s3')
     if s3_export.region == 'us-east-1':
@@ -866,17 +924,6 @@ def import_video_from_s3(s3_import_id):
         start.seconds = time.time() - start_time
         start.save()
         return
-    elif start.requester_pays:
-        create_video_folders(start.video, create_subdirs=False)
-        client = boto3.client('s3')
-        resource = boto3.resource('s3')
-        download_dir(client, resource, start.key, path, start.bucket)
-        for filename in os.listdir(os.path.join(path, start.key)):
-            shutil.move(os.path.join(path, start.key, filename), os.path.join(path, filename))
-        os.rmdir(os.path.join(path, start.key))
-        with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, start.video.pk)) as input_json:
-            video_json = json.load(input_json)
-        serializers.import_video_json(start.video, video_json, path)
     else:
         create_video_folders(start.video, create_subdirs=False)
         command = ["aws", "s3", "cp", "s3://{}/{}/".format(start.bucket, start.key), '.', '--recursive']

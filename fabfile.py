@@ -183,7 +183,7 @@ def ci():
         inception_index_by_id(TEvent.objects.create(video=v).pk)
         if i ==0: # save travis time by just running detection on first video
             perform_ssd_detection_by_id(TEvent.objects.create(video=v).pk)
-            perform_yolo_detection_by_id(TEvent.objects.create(video=v).pk)
+            # perform_yolo_detection_by_id(TEvent.objects.create(video=v).pk)
             perform_face_indexing(v.pk)
             inception_index_regions_by_id(TEvent.objects.create(video=v).pk)
             assign_open_images_text_tags_by_id(TEvent.objects.create(video=v).pk)

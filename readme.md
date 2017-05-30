@@ -17,7 +17,7 @@
 #### Libraries used and their licenses
 
 - Pytorch [License](https://github.com/pytorch/pytorch/blob/master/LICENSE)
-- Darknet [License](https://github.com/pjreddie/darknet/blob/master/LICENSE)
+- YAD2K: Yet Another Darknet 2 Keras [License](https://github.com/allanzelener/YAD2K)
 - AdminLTE2 [License](https://github.com/almasaeed2010/AdminLTE/blob/master/LICENSE)
 - FabricJS [License](https://github.com/kangax/fabric.js/blob/master/LICENSE)
 - Modified PySceneDetect [License](https://github.com/Breakthrough/PySceneDetect)

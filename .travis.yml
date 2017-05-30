@@ -32,13 +32,12 @@ before_install:
   - youtube-dl -U
   - pip install --only-binary=numpy,scipy numpy
   - pip install https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.0.0a0-cp27-none-linux_x86_64.whl
-
+  - pip install --upgrade keras h5py
 install: "pip install -r requirements.txt > /dev/null"
 
 
 before_script:
   - cd repos/lopq/python && python setup.py install && cd ../../..
-  - cd darknet && wget https://www.dropbox.com/s/0zopjpswug5rjqy/yolo9000.weights && make && cd ..
   - python manage.py migrate
   - python manage.py runserver 8000 &
   - cd dvalib/data/2016_08 && wget https://www.dropbox.com/s/umo0xtljm9an90x/model.ckpt && wget https://www.dropbox.com/s/f93axdtlb3ltj40/model.ckpt.meta && cd ../../..

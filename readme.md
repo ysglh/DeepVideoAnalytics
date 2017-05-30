@@ -30,11 +30,11 @@
 - Segment annotator [Not used but inclued](https://github.com/kyamagu/js-segment-annotator/blob/master/LICENSE)
 - FFmpeg [Not linked, used only through a command line interface.](https://www.ffmpeg.org/legal.html)
 - Tensorflow [License](https://github.com/tensorflow/tensorflow/blob/master/LICENSE)
-- FAISS [License (CC-BY-NC) will likely be removed from release candidate](https://github.com/facebookresearch/faiss)
 - Nvidia-docker
 - Docker
 - OpenCV
 - Numpy
+
 
 # License & Copyright
 

@@ -3,7 +3,7 @@ MAINTAINER Akshay Bhat <akshayubhat@gmail.com>
 RUN youtube-dl -U
 RUN git clone https://github.com/akshayubhat/DeepVideoAnalytics /root/DVA
 WORKDIR "/root/DVA"
-RUN pip install --upgrade cffi keras
+RUN pip install --upgrade cffi
 RUN pip install --no-deps keras
 RUN pip install -r requirements.txt
 RUN apt-get install -y libhdf5-dev

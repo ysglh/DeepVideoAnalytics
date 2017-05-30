@@ -758,18 +758,9 @@ def import_vdn_s3(task_id):
     resource = boto3.resource('s3')
     key = dv.vdn_dataset.aws_key
     bucket = dv.vdn_dataset.aws_bucket
-    if dv.vdn_dataset.aws_key.endswith('.dva_export.zip'):
+    if key.endswith('.dva_export.zip'):
         ofname = "{}/{}/{}.zip".format(settings.MEDIA_ROOT, dv.pk, dv.pk)
         resource.meta.client.download_file(bucket, key, ofname,ExtraArgs={'RequestPayer': 'requester'})
-        # args = ['aws','s3api','get-object','--request-payer','"requester"','s3://{}/{}'.format(dv.vdn_dataset.aws_bucket,dv.vdn_dataset.aws_key),ofname]
-        # downloader = subprocess.Popen(args=args)
-        # downloader.communicate()
-        # downloader.wait()
-        # if downloader.returncode != 0:
-        #     start.errored = True
-        #     start.error_message = "Non zero returncode"
-        #     start.save()
-        #     return 0
         zipf = zipfile.ZipFile(ofname, 'r')
         zipf.extractall("{}/{}/".format(settings.MEDIA_ROOT, dv.pk))
         zipf.close()

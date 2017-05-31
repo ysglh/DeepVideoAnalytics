@@ -11,7 +11,7 @@ from keras import backend as K
 from keras.models import load_model
 from PIL import Image
 
-from yad2k.models.keras_yolo import yolo_eval, yolo_head
+from keras_yolo import yolo_eval, yolo_head
 
 
 def _main():

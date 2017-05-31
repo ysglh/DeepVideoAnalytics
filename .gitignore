@@ -68,3 +68,4 @@ notes/*.mov
 /shared/ctpn_trained_model.caffemodel
 /dvalib/yolo/yolo.weights
 /dvalib/yolo/model_data/yolo.h5
+/dvalib/yolo/images/out/

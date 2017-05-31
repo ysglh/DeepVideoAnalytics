@@ -14,13 +14,11 @@ from keras.layers import Input, Lambda, Conv2D
 from keras.models import load_model, Model
 from keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping
 
-from yad2k.models.keras_yolo import (preprocess_true_boxes, yolo_body,
-                                     yolo_eval, yolo_head, yolo_loss)
-from yad2k.utils.draw_boxes import draw_boxes
+from .keras_yolo import preprocess_true_boxes, yolo_body,yolo_eval, yolo_head, yolo_loss
+from .draw_boxes import draw_boxes
 
 # Args
-argparser = argparse.ArgumentParser(
-    description="Retrain or 'fine-tune' a pretrained YOLOv2 model for your own data.")
+argparser = argparse.ArgumentParser(description="Retrain or 'fine-tune' a pretrained YOLOv2 model for your own data.")
 
 argparser.add_argument(
     '-d',

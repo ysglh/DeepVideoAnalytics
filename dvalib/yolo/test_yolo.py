@@ -13,72 +13,33 @@ from PIL import Image
 
 from yad2k.models.keras_yolo import yolo_eval, yolo_head
 
-parser = argparse.ArgumentParser(
-    description='Run a YOLO_v2 style detection model on test images..')
-parser.add_argument(
-    'model_path',
-    help='path to h5 model file containing body'
-    'of a YOLO_v2 model')
-parser.add_argument(
-    '-a',
-    '--anchors_path',
-    help='path to anchors file, defaults to yolo_anchors.txt',
-    default='model_data/yolo_anchors.txt')
-parser.add_argument(
-    '-c',
-    '--classes_path',
-    help='path to classes file, defaults to coco_classes.txt',
-    default='model_data/coco_classes.txt')
-parser.add_argument(
-    '-t',
-    '--test_path',
-    help='path to directory of test images, defaults to images/',
-    default='images')
-parser.add_argument(
-    '-o',
-    '--output_path',
-    help='path to output test images, defaults to images/out',
-    default='images/out')
-parser.add_argument(
-    '-s',
-    '--score_threshold',
-    type=float,
-    help='threshold for bounding box scores, default .3',
-    default=.3)
-parser.add_argument(
-    '-iou',
-    '--iou_threshold',
-    type=float,
-    help='threshold for non max suppression IOU, default .5',
-    default=.5)
 
-
-def _main(args):
-    model_path = os.path.expanduser(args.model_path)
-    assert model_path.endswith('.h5'), 'Keras model must be a .h5 file.'
-    anchors_path = os.path.expanduser(args.anchors_path)
-    classes_path = os.path.expanduser(args.classes_path)
-    test_path = os.path.expanduser(args.test_path)
-    output_path = os.path.expanduser(args.output_path)
-
+def _main():
+    args = {
+        'anchors_path': 'model_data/yolo_anchors.txt',
+        'classes_path': 'model_data/coco_classes.txt',
+        'test_path': 'images',
+        'output_path': 'images/out',
+        'score_threshold': 0.3,
+        'iou': 0.5,
+    }
+    model_path = os.path.expanduser(args['model_path'])
+    anchors_path = os.path.expanduser(args['anchors_path'])
+    classes_path = os.path.expanduser(args['classes_path'])
+    test_path = os.path.expanduser(args['test_path'])
+    output_path = os.path.expanduser(args['output_path'])
     if not os.path.exists(output_path):
         print('Creating output path {}'.format(output_path))
         os.mkdir(output_path)
-
-    sess = K.get_session()  # TODO: Remove dependence on Tensorflow session.
-
+    sess = K.get_session()
     with open(classes_path) as f:
         class_names = f.readlines()
     class_names = [c.strip() for c in class_names]
-
     with open(anchors_path) as f:
         anchors = f.readline()
         anchors = [float(x) for x in anchors.split(',')]
         anchors = np.array(anchors).reshape(-1, 2)
-
     yolo_model = load_model(model_path)
-
-    # Verify model, anchors, and classes are compatible
     num_classes = len(class_names)
     num_anchors = len(anchors)
     # TODO: Assumes dim ordering is channel last
@@ -92,28 +53,15 @@ def _main(args):
     # Check if model is fully convolutional, assuming channel last order.
     model_image_size = yolo_model.layers[0].input_shape[1:3]
     is_fixed_size = model_image_size != (None, None)
-
-    # Generate colors for drawing bounding boxes.
-    hsv_tuples = [(x / len(class_names), 1., 1.)
-                  for x in range(len(class_names))]
+    hsv_tuples = [(x / len(class_names), 1., 1.)for x in range(len(class_names))]
     colors = list(map(lambda x: colorsys.hsv_to_rgb(*x), hsv_tuples))
-    colors = list(
-        map(lambda x: (int(x[0] * 255), int(x[1] * 255), int(x[2] * 255)),
-            colors))
+    colors = list(map(lambda x: (int(x[0] * 255), int(x[1] * 255), int(x[2] * 255)),colors))
     random.seed(10101)  # Fixed seed for consistent colors across runs.
     random.shuffle(colors)  # Shuffle colors to decorrelate adjacent classes.
     random.seed(None)  # Reset seed to default.
-
-    # Generate output tensor targets for filtered bounding boxes.
-    # TODO: Wrap these backend operations with Keras layers.
     yolo_outputs = yolo_head(yolo_model.output, anchors, len(class_names))
     input_image_shape = K.placeholder(shape=(2, ))
-    boxes, scores, classes = yolo_eval(
-        yolo_outputs,
-        input_image_shape,
-        score_threshold=args.score_threshold,
-        iou_threshold=args.iou_threshold)
-
+    boxes, scores, classes = yolo_eval(yolo_outputs,input_image_shape,score_threshold=args['score_threshold'],iou_threshold=args['iou_threshold'])
     for image_file in os.listdir(test_path):
         try:
             image_type = imghdr.what(os.path.join(test_path, image_file))

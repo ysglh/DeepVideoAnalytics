@@ -1064,3 +1064,31 @@ def sync_efs_to_s3():
         e.operation = 'sync_bucket_video_by_id'
         e.save()
         sync_bucket_video_by_id(e.pk)
+
+
+@task
+def train_yolo():
+    import numpy as np
+    from dvalib.yolo import trainer
+    anchors_path = "model_data/yolo_anchors.txt"
+    data = np.load('/home/aub3/Desktop/underwater_data.npz')
+    YOLO_ANCHORS = np.array(((0.57273, 0.677385), (1.87446, 2.06253), (3.33843, 5.47434), (7.88282, 3.52778), (9.77052, 9.16828)))
+    class_names = ["red_buoy", "green_buoy", "yellow_buoy", "path_marker", "start_gate", "channel"]
+    # anchors = np.array([float(x) for x in file(anchors_path).readline().split(',')]).reshape(-1, 2)
+    anchors = YOLO_ANCHORS
+    train = trainer.YOLOTrainer()
+    print len(data['images'])
+    print data['boxes'][10]
+    image_data, boxes = train.process_data(data['images'][:1000], data['boxes'][:1000])
+    print len(image_data), len(boxes)
+    print boxes[10].shape
+    print boxes[10]
+    detectors_mask, matching_true_boxes = train.get_detector_mask(boxes, anchors)
+    print detectors_mask[10].max()
+    print detectors_mask.shape
+    print matching_true_boxes.shape
+    model_body, model = train.create_model(anchors, class_names)
+    train.train(model, class_names, anchors, image_data, boxes, detectors_mask, matching_true_boxes)
+    image_set = 'val'
+    weights_name = 'trained_stage_3_best.h5'
+    train.draw(model_body, class_names, anchors, image_data, image_set=image_set, weights_name=weights_name,save_all=0)

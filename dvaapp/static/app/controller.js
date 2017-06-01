@@ -523,9 +523,9 @@ $scope.submit_annotation = function(box_id){
         data: {
             'csrfmiddlewaretoken': $(csrf_token).val(),
             'h': box.height * box.scaleY,
-            'y': box.top,
+            'y': box.top - canvas.getObjects()[0].top,
             'w': box.width * box.scaleX,
-            'x': box.left,
+            'x': box.left - canvas.getObjects()[0].left,
             'high_level':false,
             'tags': $('#' + box.id + '_tags').val(),
             'object_name': $('#' + box.id + '_object_name').val(),

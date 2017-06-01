@@ -59,8 +59,8 @@ initialize_ui = function () {
     {
         if (annotation_mode){
             fabric.Image.fromURL(initial_url+'?timestamp='+Math.floor(Date.now() / 1000), function(oImg){
-                oImg.lockMovementX = true;
-                oImg.lockMovementY = true;
+                // oImg.lockMovementX = true;
+                // oImg.lockMovementY = true;
                 oImg.lockScalingX = true;
                 oImg.lockScalingY = true;
                 oImg.lockRotation = true;

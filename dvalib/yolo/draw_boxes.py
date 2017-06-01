@@ -4,7 +4,7 @@ import colorsys
 import random
 
 import numpy as np
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 
 def get_colors_for_classes(num_classes):
@@ -28,9 +28,7 @@ def get_colors_for_classes(num_classes):
 
 def draw_boxes(image, boxes, box_classes, class_names, scores=None):
     """Draw bounding boxes on image.
-
     Draw bounding boxes with class name and optional box score on image.
-
     Args:
         image: An `array` of shape (width, height, 3) with values in [0, 1].
         boxes: An `array` of shape (num_boxes, 4) containing box corners as
@@ -38,12 +36,12 @@ def draw_boxes(image, boxes, box_classes, class_names, scores=None):
         box_classes: A `list` of indicies into `class_names`.
         class_names: A `list` of `string` class names.
         `scores`: A `list` of scores for each box.
-
     Returns:
         A copy of `image` modified with given bounding boxes.
     """
     image = Image.fromarray(np.floor(image * 255 + 0.5).astype('uint8'))
 
+    font = ImageFont.load_default()
     thickness = (image.size[0] + image.size[1]) // 300
 
     colors = get_colors_for_classes(len(class_names))
@@ -58,7 +56,7 @@ def draw_boxes(image, boxes, box_classes, class_names, scores=None):
             label = '{}'.format(box_class)
 
         draw = ImageDraw.Draw(image)
-        label_size = draw.textsize(label)
+        label_size = draw.textsize(label, font)
 
         top, left, bottom, right = box
         top = max(0, np.floor(top + 0.5).astype('int32'))
@@ -79,7 +77,7 @@ def draw_boxes(image, boxes, box_classes, class_names, scores=None):
         draw.rectangle(
             [tuple(text_origin), tuple(text_origin + label_size)],
             fill=colors[c])
-        draw.text(text_origin, label, fill=(0, 0, 0))
+        # draw.text(text_origin, label, fill=(0, 0, 0), font=font)
         del draw
 
     return np.array(image)

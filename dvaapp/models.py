@@ -210,16 +210,12 @@ class IndexEntries(models.Model):
         return "{} in {} index by {}".format(self.detection_name, self.algorithm, self.video.name)
 
 
-            # class CustomDetector(models.Model):
-#     algorithm = models.CharField(max_length=100)
-#     object_name = models.CharField(max_length=100)
-#     min_width = models.IntegerField(default=0)
-#     min_height = models.IntegerField(default=0)
-#     width = models.IntegerField(default=0)
-#     height = models.IntegerField(default=0)
-#     dimensions = models.IntegerField(default=0)
-#     tfgraph_filename = models.CharField(max_length=200)
-#     vdn_parent = models.TextField(default="")
+class CustomDetector(models.Model):
+    algorithm = models.CharField(max_length=100)
+    model_filename = models.CharField(max_length=200)
+    vdn_parent = models.TextField(default="")
+    arguments = models.TextField(default="")
+
 #
 #
 # class CustomAnnotator(models.Model):

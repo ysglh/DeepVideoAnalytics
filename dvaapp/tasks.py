@@ -1018,3 +1018,21 @@ def sync_bucket_video_by_id(task_id):
     start.seconds = time.time() - start_time
     start.save()
     return
+
+
+@app.task(track_started=True, name="prepare_dataset")
+def prepare_dataset(task_id):
+    """
+    :param task_id:
+    :return:
+    """
+    pass
+
+
+@app.task(track_started=True, name="train_detector")
+def train_detector(task_id):
+    """
+    :param task_id:
+    :return:
+    """
+    pass

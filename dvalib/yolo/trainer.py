@@ -8,7 +8,7 @@ from keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping
 from .keras_yolo import preprocess_true_boxes, yolo_body, yolo_eval, yolo_head, yolo_loss
 import draw_boxes
 import os
-
+from PIL import Image
 
 class YOLOTrainer(object):
 
@@ -26,16 +26,14 @@ class YOLOTrainer(object):
         self.root_dir = root_dir
         self.base_model = base_model
         self.get_detector_mask()
-        self.create_model(anchors, class_names)
-
-
+        self.create_model()
 
     def process_data(self):
-        images = [PIL.Image.fromarray(i) for i in self.images]
+        images = [Image.open(i) for i in self.images]
         orig_size = np.array([float(images[0].width), float(images[0].height)])
         orig_size = np.expand_dims(orig_size, axis=0)
         print orig_size
-        processed_images = [i.resize((416, 416), PIL.Image.BICUBIC) for i in images]
+        processed_images = [i.resize((416, 416), Image.BICUBIC) for i in images]
         processed_images = [np.array(image, dtype=np.float) for image in processed_images]
         processed_images = [image/255. for image in processed_images]
         boxes = [box.reshape((-1, 5)) for box in self.boxes]
@@ -134,23 +132,14 @@ class YOLOTrainer(object):
         logging = TensorBoard()
         checkpoint = ModelCheckpoint("trained_stage_3_best.h5", monitor='val_loss',save_weights_only=True, save_best_only=True)
         early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=15, verbose=1, mode='auto')
-        self.model.fit([image_data, boxes, detectors_mask, matching_true_boxes],
-                  np.zeros(len(image_data)),
-                  validation_split=validation_split,
-                  batch_size=32,
-                  epochs=20,
-                  callbacks=[logging])
+        self.model.fit([image_data, boxes, detectors_mask, matching_true_boxes],np.zeros(len(image_data)),
+                       validation_split=validation_split,batch_size=32,epochs=20,callbacks=[logging])
         self.model.save_weights('{}/trained_stage_1.h5'.format(self.root_dir))
         self.create_model(load_pretrained=False, freeze_body=False)
         self.model.load_weights('{}/trained_stage_1.h5'.format(self.root_dir))
         self.model.compile(optimizer='adam', loss={'yolo_loss': lambda y_true, y_pred: y_pred})
-
         self.model.fit([image_data, boxes, detectors_mask, matching_true_boxes],np.zeros(len(image_data)),
-                  validation_split=validation_split,
-                  batch_size=8,
-                  epochs=50,
-                  callbacks=[logging, checkpoint, early_stopping])
-
+                  validation_split=validation_split,batch_size=8,epochs=50,callbacks=[logging, checkpoint, early_stopping])
         self.model.save_weights('{}/trained_stage_3.h5'.format(self.root_dir))
 
     def draw(self,model_body, class_names, anchors, image_data, image_set='val',save_all=True):

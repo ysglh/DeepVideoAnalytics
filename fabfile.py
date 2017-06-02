@@ -1067,7 +1067,15 @@ def sync_efs_to_s3():
 
 
 @task
-def train_yolo():
+def train_yolo(task_id):
+    """
+    [
+        [ <class_index>  x1 y1 x2 y2],
+        [ <class_index>  x1 y1 x2 y2],
+    ]
+    :return:
+    """
+
     setup_django()
     import os
     from django.conf import settings
@@ -1078,15 +1086,24 @@ def train_yolo():
         os.mkdir(root_dir)
     except:
         pass
-    data = np.load('/home/aub3/Desktop/underwater_data.npz')
-    YOLO_ANCHORS = np.array(((0.57273, 0.677385), (1.87446, 2.06253), (3.33843, 5.47434), (7.88282, 3.52778), (9.77052, 9.16828)))
-    class_names = ["red_buoy", "green_buoy", "yellow_buoy", "path_marker", "start_gate", "channel"]
-    anchors = YOLO_ANCHORS
-    train = trainer.YOLOTrainer(images=data['images'][:50],
-                                boxes=data['boxes'][:1000],
-                                class_names=class_names,
-                                anchors=anchors,
-                                root_dir = root_dir,
-                                base_model = "dvalib/yolo/model_data/yolo.h5")
+    train = trainer.YOLOTrainer(config=config,root_dir = root_dir,base_model = "dvalib/yolo/model_data/yolo.h5")
     train.train(0.1)
     # train.draw(model_body, class_names, anchors, image_data, image_set=image_set, weights_name=weights_name,save_all=0)
+
+
+@task
+def create_yolo_test_data():
+    import json
+    import numpy as np
+    data = np.load('/Users/aub3/Desktop/underwater_data.npz')
+    from PIL import Image
+    json_test = {}
+    json_test['anchors'] = [(0.57273, 0.677385), (1.87446, 2.06253), (3.33843, 5.47434), (7.88282, 3.52778), (9.77052, 9.16828)]
+    json_test['data'] = []
+    json_test['class_names'] = ["red_buoy", "green_buoy", "yellow_buoy", "path_marker", "start_gate", "channel"]
+    for i,image in enumerate(data['images'][:40]):
+        path = "tests/yolo_test/{}.jpg".format(i)
+        Image.fromarray(image).save(path)
+        json_test['data'].append({'image':path,'boxes':data['boxes'][i].tolist()})
+    with open('tests/yolo_test.json','w') as out:
+        json.dump(json_test,out,indent=True)

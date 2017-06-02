@@ -173,6 +173,10 @@ def ci():
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")
         handle_uploaded_file(f, name, False)
+    for fname in glob.glob('tests/*.mp4'):
+        name = fname.split('/')[-1].split('.')[0]
+        f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")
+        handle_uploaded_file(f, name, False)
     for fname in glob.glob('tests/*.zip'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")

@@ -1094,16 +1094,61 @@ def train_yolo(task_id):
 @task
 def create_yolo_test_data():
     import json
+    import shutil
     import numpy as np
-    data = np.load('/Users/aub3/Desktop/underwater_data.npz')
+    import os
     from PIL import Image
+    setup_django()
+    from dvaapp.shared import handle_uploaded_file
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    from dvaapp.models import Region,TEvent,Frame, AppliedLabel
+    from dvaapp.tasks import extract_frames
+    try:
+        shutil.rmtree('tests/yolo_test')
+    except:
+        pass
+    try:
+        os.mkdir('tests/yolo_test')
+    except:
+        pass
+    data = np.load('shared/underwater_data.npz')
     json_test = {}
     json_test['anchors'] = [(0.57273, 0.677385), (1.87446, 2.06253), (3.33843, 5.47434), (7.88282, 3.52778), (9.77052, 9.16828)]
-    json_test['data'] = []
-    json_test['class_names'] = ["red_buoy", "green_buoy", "yellow_buoy", "path_marker", "start_gate", "channel"]
+    id_2_boxes = {}
+    class_names = {
+        0:"red_buoy",
+        1:"green_buoy",
+        2:"yellow_buoy",
+        3:"path_marker",
+        4:"start_gate",
+        5:"channel"
+    }
     for i,image in enumerate(data['images'][:40]):
         path = "tests/yolo_test/{}.jpg".format(i)
         Image.fromarray(image).save(path)
-        json_test['data'].append({'image':path,'boxes':data['boxes'][i].tolist()})
-    with open('tests/yolo_test.json','w') as out:
-        json.dump(json_test,out,indent=True)
+        id_2_boxes[path.split('/')[-1]] = data['boxes'][i].tolist()
+    local('zip tests/yolo_test.zip -r tests/yolo_test/* ')
+    fname = "tests/yolo_test.zip"
+    name = "yolo_test"
+    f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
+    dv = handle_uploaded_file(f, name)
+    extract_frames(TEvent.objects.create(video=dv).pk)
+    for df in Frame.objects.filter(video=dv):
+        for box in id_2_boxes[df.name]:
+            r = Region()
+            r.video = dv
+            r.frame = df
+            c , top_x, top_y, bottom_x, bottom_y = box
+            r.object_name = class_names[c]
+            r.region_type = Region.ANNOTATION
+            r.x = top_x
+            r.y = top_y
+            r.w = bottom_x - top_x
+            r.h = bottom_y - top_y
+            r.save()
+            l = AppliedLabel()
+            l.frame = df
+            l.video = dv
+            l.label_name = class_names[c]
+            l.region = r
+            l.save()

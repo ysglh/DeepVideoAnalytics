@@ -69,3 +69,5 @@ notes/*.mov
 /dvalib/yolo/yolo.weights
 /dvalib/yolo/model_data/yolo.h5
 /dvalib/yolo/images/out/
+/shared/underwater_data.npz
+/tests/yolo_test.zip

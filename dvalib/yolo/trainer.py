@@ -12,21 +12,24 @@ from PIL import Image
 
 DEFAULT_ANCHORS = [(0.57273, 0.677385), (1.87446, 2.06253), (3.33843, 5.47434), (7.88282, 3.52778), (9.77052, 9.16828)]
 
+
 class YOLOTrainer(object):
 
-    def __init__(self,images,boxes,class_names,anchors,root_dir,base_model):
+    def __init__(self,images,boxes,class_names,args):
         self.images = images
+        self.args = args
         self.boxes = boxes
         self.processed_boxes = None
         self.processed_images = None
         self.detectors_mask, self.matching_true_boxes = None, None
         self.class_names = class_names
-        self.anchors = anchors
+        self.anchors = args['anchors'] if 'anchors' in args else DEFAULT_ANCHORS
+        self.validation_split = args['validation_split'] if 'validation_split' in args else 0.1
         self.model_body = None
         self.model = None
         self.process_data()
-        self.root_dir = root_dir
-        self.base_model = base_model
+        self.root_dir = args['root_dir']
+        self.base_model = args['base_model'] if 'base_model' in args else "dvalib/yolo/model_data/yolo.h5"
         self.get_detector_mask()
         self.create_model()
 
@@ -123,7 +126,8 @@ class YOLOTrainer(object):
 
         self.model = Model([self.model_body.input, boxes_input, detectors_mask_input, matching_boxes_input], model_loss)
 
-    def train(self, validation_split=0.1):
+    def train(self):
+        validation_split = self.validation_split
         image_data = self.processed_images
         class_names = self.class_names
         anchors = self.anchors

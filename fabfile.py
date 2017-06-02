@@ -1085,12 +1085,11 @@ def train_yolo(task_id):
     # from django.conf import settings
     # import numpy as np
     # from dvalib.yolo import trainer
-    # root_dir = "{}/models/{}/".format(settings.MEDIA_ROOT,1)
     # try:
     #     os.mkdir(root_dir)
     # except:
     #     pass
-    # train = trainer.YOLOTrainer(config=config,root_dir = root_dir,base_model = "dvalib/yolo/model_data/yolo.h5")
+    # train = trainer.YOLOTrainer(config=config,root_dir = root_dir,)
     # train.train(0.1)
     # train.draw(model_body, class_names, anchors, image_data, image_set=image_set, weights_name=weights_name,save_all=0)
 

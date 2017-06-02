@@ -3,7 +3,7 @@ import subprocess, sys, shutil, os, glob, time, logging
 from django.conf import settings
 from dva.celery import app
 from .models import Video, Frame, TEvent, Query, IndexEntries, QueryResults, AppliedLabel, VDNDataset, Clusters, \
-    ClusterCodes, Region, Scene
+    ClusterCodes, Region, Scene, CustomDetector
 
 try:
     from dvalib import entity
@@ -1047,11 +1047,8 @@ def train_yolo_detector(task_id):
     args = json.loads(start.arguments_json)
     labels = set(args['labels'])
     object_names = set(args['object_names'])
-    if 'anchors' in args:
-        anchors = set(args['anchors'])
-    else:
-        anchors = trainer.DEFAULT_ANCHORS
-    class_names = { k:i for i,k in enumerate(labels.union(object_names))}
+    detector = CustomDetector.objects.get(args['detector_pk'])
+    class_names = {k:i for i,k in enumerate(labels.union(object_names))}
     rboxes = defaultdict(list)
     frames = {}
     for r in Region.objects.all().filter(object_name__in=object_names):
@@ -1062,12 +1059,12 @@ def train_yolo_detector(task_id):
         if l.region:
             r = l.region
             rboxes[l.frame_id].append((class_names[l.label_name], r.x, r.y, r.x + r.w, r.y + r.h))
-    images = []
-    boxes = []
+    images, boxes = [], []
     for k,f in frames.iteritems():
         images.append("{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,f.video_id,f.frame_index))
         boxes.append(rboxes[k])
-    train_task = trainer.YOLOTrainer(boxes=boxes,images=images,class_names=class_names,anchors=anchors)
+    train_task = trainer.YOLOTrainer(boxes=boxes,images=images,class_names=class_names,args=args)
+    train_task.train()
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()

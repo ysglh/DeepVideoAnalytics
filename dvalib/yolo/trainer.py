@@ -12,7 +12,7 @@ import os
 
 class YOLOTrainer(object):
 
-    def __init__(self,images,boxes,class_names,anchors):
+    def __init__(self,images,boxes,class_names,anchors,root_dir,base_model):
         self.images = images
         self.boxes = boxes
         self.processed_boxes = None
@@ -23,6 +23,8 @@ class YOLOTrainer(object):
         self.model_body = None
         self.model = None
         self.process_data()
+        self.root_dir = root_dir
+        self.base_model = base_model
         self.get_detector_mask()
         self.create_model(anchors, class_names)
 
@@ -85,10 +87,10 @@ class YOLOTrainer(object):
 
         if load_pretrained:
             # Save topless yolo:
-            topless_yolo_path = os.path.join('/home/aub3/repos/DeepVideoAnalytics/dvalib/yolo/model_data/', 'yolo_topless.h5')
+            topless_yolo_path = os.path.join('{}/'.format(self.root_dir), 'yolo_topless.h5')
             if not os.path.exists(topless_yolo_path):
                 print("CREATING TOPLESS WEIGHTS FILE")
-                yolo_path = '/home/aub3/repos/DeepVideoAnalytics/dvalib/yolo/model_data/yolo.h5'
+                yolo_path = self.base_model
                 model_body = load_model(yolo_path)
                 model_body = Model(model_body.inputs, model_body.layers[-2].output)
                 model_body.save_weights(topless_yolo_path)
@@ -138,9 +140,9 @@ class YOLOTrainer(object):
                   batch_size=32,
                   epochs=20,
                   callbacks=[logging])
-        self.model.save_weights('trained_stage_1.h5')
+        self.model.save_weights('{}/trained_stage_1.h5'.format(self.root_dir))
         self.create_model(load_pretrained=False, freeze_body=False)
-        self.model.load_weights('trained_stage_1.h5')
+        self.model.load_weights('{}/trained_stage_1.h5'.format(self.root_dir))
         self.model.compile(optimizer='adam', loss={'yolo_loss': lambda y_true, y_pred: y_pred})
 
         self.model.fit([image_data, boxes, detectors_mask, matching_true_boxes],np.zeros(len(image_data)),
@@ -149,13 +151,11 @@ class YOLOTrainer(object):
                   epochs=50,
                   callbacks=[logging, checkpoint, early_stopping])
 
-        self.model.save_weights('trained_stage_3.h5')
+        self.model.save_weights('{}/trained_stage_3.h5'.format(self.root_dir))
 
-    def draw(self,model_body, class_names, anchors, image_data, image_set='val',
-             weights_name='trained_stage_3_best.h5', out_path="output_images", save_all=True):
-        '''
-        Draw bounding boxes on image data
-        '''
+    def draw(self,model_body, class_names, anchors, image_data, image_set='val',save_all=True):
+        weights_name = '{}/trained_stage_3_best.h5'.format(self.root_dir)
+        out_path = "{}/output_images".format(self.root_dir)
         if image_set == 'train':
             image_data = np.array([np.expand_dims(image, axis=0)
                                    for image in image_data[:int(len(image_data) * .9)]])

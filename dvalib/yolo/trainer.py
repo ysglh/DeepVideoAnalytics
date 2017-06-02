@@ -1,4 +1,3 @@
-# import matplotlib.pyplot as plt
 import numpy as np
 import PIL
 import tensorflow as tf
@@ -13,34 +12,31 @@ import os
 
 class YOLOTrainer(object):
 
-    def __init__(self):
-        pass
-
-    def get_detector_mask(self,boxes, anchors):
-        '''
-        Precompute detectors_mask and matching_true_boxes for training.
-        Detectors mask is 1 for each spatial position in the final conv layer and
-        anchor that should be active for the given boxes and 0 otherwise.
-        Matching true boxes gives the regression targets for the ground truth box
-        that caused a detector to be active or 0 otherwise.
-        '''
-        detectors_mask = [0 for i in range(len(boxes))]
-        matching_true_boxes = [0 for i in range(len(boxes))]
-        for i, box in enumerate(boxes):
-            detectors_mask[i], matching_true_boxes[i] = preprocess_true_boxes(box, anchors, [416, 416])
-
-        return np.array(detectors_mask), np.array(matching_true_boxes)
+    def __init__(self,images,boxes,class_names,anchors):
+        self.images = images
+        self.boxes = boxes
+        self.processed_boxes = None
+        self.processed_images = None
+        self.detectors_mask, self.matching_true_boxes = None, None
+        self.class_names = class_names
+        self.anchors = anchors
+        self.model_body = None
+        self.model = None
+        self.process_data()
+        self.get_detector_mask()
+        self.create_model(anchors, class_names)
 
 
-    def process_data(self,images, boxes):
-        images = [PIL.Image.fromarray(i) for i in images]
+
+    def process_data(self):
+        images = [PIL.Image.fromarray(i) for i in self.images]
         orig_size = np.array([float(images[0].width), float(images[0].height)])
         orig_size = np.expand_dims(orig_size, axis=0)
         print orig_size
         processed_images = [i.resize((416, 416), PIL.Image.BICUBIC) for i in images]
         processed_images = [np.array(image, dtype=np.float) for image in processed_images]
         processed_images = [image/255. for image in processed_images]
-        boxes = [box.reshape((-1, 5)) for box in boxes]
+        boxes = [box.reshape((-1, 5)) for box in self.boxes]
         boxes_extents = [box[:, [2, 1, 4, 3, 0]] for box in boxes]
         boxes_xy = [0.5 * (box[:, 3:5] + box[:, 1:3]) for box in boxes]
         boxes_wh = [box[:, 3:5] - box[:, 1:3] for box in boxes]
@@ -55,20 +51,25 @@ class YOLOTrainer(object):
                 max_boxes = boxz.shape[0]
         print "max_boxes",max_boxes
         for i, boxz in enumerate(boxes):
-            if boxz.shape[0]  < max_boxes:
+            if boxz.shape[0] < max_boxes:
                 zero_padding = np.zeros( (max_boxes-boxz.shape[0], 5), dtype=np.float32)
                 boxes[i] = np.vstack((boxz, zero_padding))
-        return np.array(processed_images), np.array(boxes)
+        self.processed_images =  np.array(processed_images)
+        self.processed_boxes = np.array(boxes)
+        self.get_detector_mask()
 
+    def get_detector_mask(self):
+        boxes = self.processed_boxes
+        anchors = self.anchors
+        detectors_mask = [0 for i in range(len(boxes))]
+        matching_true_boxes = [0 for i in range(len(boxes))]
+        for i, box in enumerate(boxes):
+            detectors_mask[i], matching_true_boxes[i] = preprocess_true_boxes(box, anchors, [416, 416])
+        self.detectors_mask = np.array(detectors_mask)
+        self.matching_true_boxes = np.array(matching_true_boxes)
 
-    def create_model(self,anchors, class_names, load_pretrained=True, freeze_body=True):
-        '''
-        returns the body of the model and the model
-        load_pretrained: whether or not to load the pretrained model or initialize all weights
-        freeze_body: whether or not to freeze all weights except for the last layer's
-        model_body: YOLOv2 with new output layer
-        model: YOLOv2 with custom loss Lambda layer
-        '''
+    def create_model(self, load_pretrained=True, freeze_body=True):
+        anchors, class_names = self.anchors, self.class_names
         detectors_mask_shape = (13, 13, 5, 1)
         matching_boxes_shape = (13, 13, 5, 5)
 
@@ -103,7 +104,7 @@ class YOLOTrainer(object):
 
         final_layer = Conv2D(len(anchors)*(5+len(class_names)), (1, 1), activation='linear')(topless_yolo.output)
 
-        model_body = Model(image_input, final_layer)
+        self.model_body = Model(image_input, final_layer)
 
         # Place model loss on CPU to reduce GPU memory usage.
         with tf.device('/cpu:0'):
@@ -114,62 +115,41 @@ class YOLOTrainer(object):
                 name='yolo_loss',
                 arguments={'anchors': anchors,
                            'num_classes': len(class_names)})([
-                               model_body.output, boxes_input,
+                               self.model_body.output, boxes_input,
                                detectors_mask_input, matching_boxes_input
                            ])
 
-        model = Model(
-            [model_body.input, boxes_input, detectors_mask_input,
-             matching_boxes_input], model_loss)
+        self.model = Model([self.model_body.input, boxes_input, detectors_mask_input, matching_boxes_input], model_loss)
 
-        return model_body, model
-
-    def train(self, model, class_names, anchors, image_data, boxes, detectors_mask, matching_true_boxes,
-              validation_split=0.1):
-        '''
-        retrain/fine-tune the model
-
-        logs training with tensorboard
-
-        saves training weights in current directory
-
-        best weights according to val_loss is saved as trained_stage_3_best.h5
-        '''
-        model.compile(
-            optimizer='adam', loss={
-                'yolo_loss': lambda y_true, y_pred: y_pred
-            })  # This is a hack to use the custom loss function in the last layer.
-
+    def train(self, validation_split=0.1):
+        image_data = self.processed_images
+        class_names = self.class_names
+        anchors = self.anchors
+        detectors_mask = self.detectors_mask
+        matching_true_boxes = self.matching_true_boxes
+        boxes = self.processed_boxes
+        self.model.compile(optimizer='adam', loss={'yolo_loss': lambda y_true, y_pred: y_pred})
         logging = TensorBoard()
-        checkpoint = ModelCheckpoint("trained_stage_3_best.h5", monitor='val_loss',
-                                     save_weights_only=True, save_best_only=True)
+        checkpoint = ModelCheckpoint("trained_stage_3_best.h5", monitor='val_loss',save_weights_only=True, save_best_only=True)
         early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=15, verbose=1, mode='auto')
-
-        model.fit([image_data, boxes, detectors_mask, matching_true_boxes],
+        self.model.fit([image_data, boxes, detectors_mask, matching_true_boxes],
                   np.zeros(len(image_data)),
                   validation_split=validation_split,
                   batch_size=32,
                   epochs=20,
                   callbacks=[logging])
-        model.save_weights('trained_stage_1.h5')
+        self.model.save_weights('trained_stage_1.h5')
+        self.create_model(load_pretrained=False, freeze_body=False)
+        self.model.load_weights('trained_stage_1.h5')
+        self.model.compile(optimizer='adam', loss={'yolo_loss': lambda y_true, y_pred: y_pred})
 
-        model_body, model = self.create_model(anchors, class_names, load_pretrained=False, freeze_body=False)
-
-        model.load_weights('trained_stage_1.h5')
-
-        model.compile(
-            optimizer='adam', loss={
-                'yolo_loss': lambda y_true, y_pred: y_pred
-            })  # This is a hack to use the custom loss function in the last layer.
-
-        model.fit([image_data, boxes, detectors_mask, matching_true_boxes],
-                  np.zeros(len(image_data)),
-                  validation_split=0.1,
+        self.model.fit([image_data, boxes, detectors_mask, matching_true_boxes],np.zeros(len(image_data)),
+                  validation_split=validation_split,
                   batch_size=8,
                   epochs=50,
                   callbacks=[logging, checkpoint, early_stopping])
 
-        model.save_weights('trained_stage_3.h5')
+        self.model.save_weights('trained_stage_3.h5')
 
     def draw(self,model_body, class_names, anchors, image_data, image_set='val',
              weights_name='trained_stage_3_best.h5', out_path="output_images", save_all=True):

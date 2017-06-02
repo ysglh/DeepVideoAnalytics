@@ -177,7 +177,7 @@ def ci():
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
         handle_uploaded_file(f, name)
-    handle_youtube_video('world is not enough', 'https://www.youtube.com/watch?v=P-oNz3Nf50Q') # Temporarily disabled due error in travis
+    # handle_youtube_video('world is not enough', 'https://www.youtube.com/watch?v=P-oNz3Nf50Q') # Temporarily disabled due error in travis
     for i,v in enumerate(Video.objects.all()):
         extract_frames(TEvent.objects.create(video=v).pk)
         inception_index_by_id(TEvent.objects.create(video=v).pk)

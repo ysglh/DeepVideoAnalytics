@@ -10,6 +10,7 @@ try:
     from dvalib import detector
     from dvalib import indexer
     from dvalib import clustering
+    from dvalib.yolo import trainer
     from PIL import Image
     from scipy import misc
 except ImportError:
@@ -1029,10 +1030,45 @@ def prepare_dataset(task_id):
     pass
 
 
-@app.task(track_started=True, name="train_detector")
-def train_detector(task_id):
+@app.task(track_started=True, name="train_yolo_detector")
+def train_yolo_detector(task_id):
     """
     :param task_id:
     :return:
     """
-    pass
+    start = TEvent.objects.get(pk=task_id)
+    if celery_40_bug_hack(start):
+        return 0
+    start.task_id = train_yolo_detector.request.id
+    start.started = True
+    start.operation = train_yolo_detector.name
+    start.save()
+    start_time = time.time()
+    args = json.loads(start.arguments_json)
+    labels = set(args['labels'])
+    object_names = set(args['object_names'])
+    if 'anchors' in args:
+        anchors = set(args['anchors'])
+    else:
+        anchors = trainer.DEFAULT_ANCHORS
+    class_names = { k:i for i,k in enumerate(labels.union(object_names))}
+    rboxes = defaultdict(list)
+    frames = {}
+    for r in Region.objects.all().filter(object_name__in=object_names):
+        frames[r.frame_id] = r.frame
+        rboxes[r.frame_id].append((class_names[r.object_name],r.x,r.y,r.x+r.w,r.y+r.h))
+    for l in AppliedLabel.objects.all().filter(label_name__in=labels):
+        frames[l.frame_id] = l.frame
+        if l.region:
+            r = l.region
+            rboxes[l.frame_id].append((class_names[l.label_name], r.x, r.y, r.x + r.w, r.y + r.h))
+    images = []
+    boxes = []
+    for k,f in frames.iteritems():
+        images.append("{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,f.video_id,f.frame_index))
+        boxes.append(rboxes[k])
+    train_task = trainer.YOLOTrainer(boxes=boxes,images=images,class_names=class_names,anchors=anchors)
+    start.completed = True
+    start.seconds = time.time() - start_time
+    start.save()
+    return 0

@@ -10,6 +10,8 @@ import draw_boxes
 import os
 from PIL import Image
 
+DEFAULT_ANCHORS = [(0.57273, 0.677385), (1.87446, 2.06253), (3.33843, 5.47434), (7.88282, 3.52778), (9.77052, 9.16828)]
+
 class YOLOTrainer(object):
 
     def __init__(self,images,boxes,class_names,anchors,root_dir,base_model):

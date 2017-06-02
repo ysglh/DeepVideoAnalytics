@@ -177,7 +177,7 @@ def ci():
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
         handle_uploaded_file(f, name)
-    handle_youtube_video('tomorrow never dies', 'https://www.youtube.com/watch?v=gYtz5sw98Bc')
+    # handle_youtube_video('tomorrow never dies', 'https://www.youtube.com/watch?v=gYtz5sw98Bc') # Temporarily disabled due error in travis
     for i,v in enumerate(Video.objects.all()):
         extract_frames(TEvent.objects.create(video=v).pk)
         inception_index_by_id(TEvent.objects.create(video=v).pk)
@@ -1075,19 +1075,19 @@ def train_yolo(task_id):
     ]
     :return:
     """
-
-    setup_django()
-    import os
-    from django.conf import settings
-    import numpy as np
-    from dvalib.yolo import trainer
-    root_dir = "{}/models/{}/".format(settings.MEDIA_ROOT,1)
-    try:
-        os.mkdir(root_dir)
-    except:
-        pass
-    train = trainer.YOLOTrainer(config=config,root_dir = root_dir,base_model = "dvalib/yolo/model_data/yolo.h5")
-    train.train(0.1)
+    pass
+    # setup_django()
+    # import os
+    # from django.conf import settings
+    # import numpy as np
+    # from dvalib.yolo import trainer
+    # root_dir = "{}/models/{}/".format(settings.MEDIA_ROOT,1)
+    # try:
+    #     os.mkdir(root_dir)
+    # except:
+    #     pass
+    # train = trainer.YOLOTrainer(config=config,root_dir = root_dir,base_model = "dvalib/yolo/model_data/yolo.h5")
+    # train.train(0.1)
     # train.draw(model_body, class_names, anchors, image_data, image_set=image_set, weights_name=weights_name,save_all=0)
 
 
@@ -1102,7 +1102,7 @@ def create_yolo_test_data():
     from dvaapp.shared import handle_uploaded_file
     from django.core.files.uploadedfile import SimpleUploadedFile
     from dvaapp.models import Region,TEvent,Frame, AppliedLabel
-    from dvaapp.tasks import extract_frames
+    from dvaapp.tasks import extract_frames,export_video_by_id
     try:
         shutil.rmtree('tests/yolo_test')
     except:
@@ -1123,7 +1123,7 @@ def create_yolo_test_data():
         4:"start_gate",
         5:"channel"
     }
-    for i,image in enumerate(data['images'][:40]):
+    for i,image in enumerate(data['images'][:200]):
         path = "tests/yolo_test/{}.jpg".format(i)
         Image.fromarray(image).save(path)
         id_2_boxes[path.split('/')[-1]] = data['boxes'][i].tolist()
@@ -1152,3 +1152,4 @@ def create_yolo_test_data():
             l.label_name = class_names[c]
             l.region = r
             l.save()
+    export_video_by_id(TEvent.objects.create(video=dv).pk)

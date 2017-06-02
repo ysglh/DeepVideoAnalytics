@@ -1123,7 +1123,7 @@ def create_yolo_test_data():
         4:"start_gate",
         5:"channel"
     }
-    for i,image in enumerate(data['images'][:200]):
+    for i,image in enumerate(data['images'][:500]):
         path = "tests/yolo_test/{}.jpg".format(i)
         Image.fromarray(image).save(path)
         id_2_boxes[path.split('/')[-1]] = data['boxes'][i].tolist()
@@ -1153,3 +1153,7 @@ def create_yolo_test_data():
             l.region = r
             l.save()
     export_video_by_id(TEvent.objects.create(video=dv).pk)
+    try:
+        shutil.rmtree('tests/yolo_test')
+    except:
+        pass

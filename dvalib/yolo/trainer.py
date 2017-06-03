@@ -139,61 +139,32 @@ class YOLOTrainer(object):
         checkpoint = ModelCheckpoint("trained_stage_3_best.h5", monitor='val_loss',save_weights_only=True, save_best_only=True)
         early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=15, verbose=1, mode='auto')
         self.model.fit([image_data, boxes, detectors_mask, matching_true_boxes],np.zeros(len(image_data)),
-                       validation_split=validation_split,batch_size=32,epochs=20,callbacks=[logging])
+                       validation_split=validation_split,batch_size=32,epochs=5,callbacks=[logging])
         self.model.save_weights('{}/trained_stage_1.h5'.format(self.root_dir))
         self.create_model(load_pretrained=False, freeze_body=False)
         self.model.load_weights('{}/trained_stage_1.h5'.format(self.root_dir))
         self.model.compile(optimizer='adam', loss={'yolo_loss': lambda y_true, y_pred: y_pred})
         self.model.fit([image_data, boxes, detectors_mask, matching_true_boxes],np.zeros(len(image_data)),
-                  validation_split=validation_split,batch_size=8,epochs=50,callbacks=[logging, checkpoint, early_stopping])
+                  validation_split=validation_split,batch_size=8,epochs=5,callbacks=[logging, checkpoint, early_stopping])
         self.model.save_weights('{}/trained_stage_3.h5'.format(self.root_dir))
 
-    def draw(self,model_body, class_names, anchors, image_data, image_set='val',save_all=True):
+    def predict(self):
         weights_name = '{}/trained_stage_3_best.h5'.format(self.root_dir)
         out_path = "{}/output_images".format(self.root_dir)
-        if image_set == 'train':
-            image_data = np.array([np.expand_dims(image, axis=0)
-                                   for image in image_data[:int(len(image_data) * .9)]])
-        elif image_set == 'val':
-            image_data = np.array([np.expand_dims(image, axis=0)
-                                   for image in image_data[int(len(image_data) * .9):]])
-        elif image_set == 'all':
-            image_data = np.array([np.expand_dims(image, axis=0)
-                                   for image in image_data])
-        else:
-            ValueError("draw argument image_set must be 'train', 'val', or 'all'")
-        # model.load_weights(weights_name)
-        print(image_data.shape)
-        model_body.load_weights(weights_name)
-
-        # Create output variables for prediction.
-        yolo_outputs = yolo_head(model_body.output, anchors, len(class_names))
+        self.model_body.load_weights(weights_name)
+        yolo_outputs = yolo_head(self.model_body.output, self.anchors, len(self.class_names))
         input_image_shape = K.placeholder(shape=(2,))
-        boxes, scores, classes = yolo_eval(
-            yolo_outputs, input_image_shape, score_threshold=0.5, iou_threshold=0)
-
-        # Run prediction on overfit image.
-        sess = K.get_session()  # TODO: Remove dependence on Tensorflow session.
-
+        boxes, scores, classes = yolo_eval(yolo_outputs, input_image_shape, score_threshold=0.5, iou_threshold=0)
+        sess = K.get_session()
+        results = []
         if not os.path.exists(out_path):
             os.makedirs(out_path)
-        for i in range(len(image_data)):
-            out_boxes, out_scores, out_classes = sess.run(
-                [boxes, scores, classes],
-                feed_dict={
-                    model_body.input: image_data[i],
-                    input_image_shape: [image_data.shape[2], image_data.shape[3]],
-                    K.learning_phase(): 0
-                })
+        for i_path in self.images:
+            i = Image.open(i_path)
+            image_data = np.array(i.resize((416, 416), Image.BICUBIC), dtype=np.float) / 255.
+            feed_dict = {self.model_body.input: image_data,input_image_shape: [image_data.shape[2], image_data.shape[3]], K.learning_phase(): 0}
+            out_boxes, out_scores, out_classes = sess.run([boxes, scores, classes],feed_dict=feed_dict)
             print('Found {} boxes for image.'.format(len(out_boxes)))
             print(out_boxes)
-
-            # Plot image with predicted boxes.
-            image_with_boxes = draw_boxes.draw_boxes(image_data[i][0], out_boxes, out_classes,
-                                                     class_names, out_scores)
-            # Save the image:
-            if save_all or (len(out_boxes) > 0):
-                image = PIL.Image.fromarray(image_with_boxes)
-                image.save(os.path.join(out_path, str(i) + '.png'))
-            # plt.imshow(image_with_boxes, interpolation='nearest')
-            # plt.show()
+            results.append((i_path,out_boxes))
+        return results

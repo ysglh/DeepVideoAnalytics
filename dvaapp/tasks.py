@@ -1068,6 +1068,7 @@ def train_yolo_detector(task_id):
 
     train_task = trainer.YOLOTrainer(boxes=boxes,images=images,class_names=class_names,args=args)
     train_task.train()
+    results = train_task.predict()
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()

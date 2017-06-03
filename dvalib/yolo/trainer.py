@@ -160,9 +160,10 @@ class YOLOTrainer(object):
         if not os.path.exists(out_path):
             os.makedirs(out_path)
         for i_path in self.images:
-            i = Image.open(i_path)
-            image_data = np.array(i.resize((416, 416), Image.BICUBIC), dtype=np.float) / 255.
+            im = Image.open(i_path)
+            image_data = np.array(im.resize((416, 416), Image.BICUBIC), dtype=np.float) / 255.
             image_data = np.expand_dims(image_data, 0)
+            print image_data.shape
             feed_dict = {self.model_body.input: image_data,input_image_shape: [image_data.shape[1], image_data.shape[0]], K.learning_phase(): 0}
             out_boxes, out_scores, out_classes = sess.run([boxes, scores, classes],feed_dict=feed_dict)
             print out_boxes, out_scores, out_classes
@@ -174,8 +175,8 @@ class YOLOTrainer(object):
                 top, left, bottom, right = box
                 top = max(0, np.floor(top + 0.5).astype('int32'))
                 left = max(0, np.floor(left + 0.5).astype('int32'))
-                bottom = min(i.size[1], np.floor(bottom + 0.5).astype('int32'))
-                right = min(i.size[0], np.floor(right + 0.5).astype('int32'))
+                bottom = min(im.size[1], np.floor(bottom + 0.5).astype('int32'))
+                right = min(im.size[0], np.floor(right + 0.5).astype('int32'))
                 print(label, (left, top), (right, bottom))
                 results.append((i_path,box_class,score,top,left,right,bottom))
         return results

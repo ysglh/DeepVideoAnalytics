@@ -71,3 +71,4 @@ notes/*.mov
 /dvalib/yolo/images/out/
 /shared/underwater_data.npz
 /tests/yolo_test.zip
+/logs/*.edu

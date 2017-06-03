@@ -92,9 +92,8 @@ class YOLOTrainer(object):
 
         if load_pretrained:
             # Save topless yolo:
-            topless_yolo_path = os.path.join('{}/'.format(self.root_dir), 'yolo_topless.h5')
+            topless_yolo_path = os.path.join('{}/'.format(self.root_dir), 'yolo_headless.h5')
             if not os.path.exists(topless_yolo_path):
-                print("CREATING TOPLESS WEIGHTS FILE")
                 yolo_path = self.base_model
                 model_body = load_model(yolo_path)
                 model_body = Model(model_body.inputs, model_body.layers[-2].output)

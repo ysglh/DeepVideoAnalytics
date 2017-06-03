@@ -25,7 +25,7 @@ from . import serializers
 import boto3
 import random
 from botocore.exceptions import ClientError
-from .shared import handle_downloaded_file, create_video_folders
+from .shared import handle_downloaded_file, create_video_folders, create_detector_folders
 
 
 def process_next(task_id):
@@ -1045,9 +1045,10 @@ def train_yolo_detector(task_id):
     start.save()
     start_time = time.time()
     args = json.loads(start.arguments_json)
-    labels = set(args['labels'])
-    object_names = set(args['object_names'])
-    detector = CustomDetector.objects.get(args['detector_pk'])
+    labels = set(args['labels']) if 'labels' in args else set()
+    object_names = set(args['object_names']) if 'object_names' in args else set()
+    detector = CustomDetector.objects.get(pk=args['detector_pk'])
+    create_detector_folders(detector)
     class_names = {k:i for i,k in enumerate(labels.union(object_names))}
     rboxes = defaultdict(list)
     frames = {}
@@ -1063,6 +1064,8 @@ def train_yolo_detector(task_id):
     for k,f in frames.iteritems():
         images.append("{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,f.video_id,f.frame_index))
         boxes.append(rboxes[k])
+        print k,rboxes[k]
+
     train_task = trainer.YOLOTrainer(boxes=boxes,images=images,class_names=class_names,args=args)
     train_task.train()
     start.completed = True

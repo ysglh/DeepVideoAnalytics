@@ -1069,9 +1069,8 @@ def sync_efs_to_s3():
         e.save()
         sync_bucket_video_by_id(e.pk)
 
-
 @task
-def train_yolo(task_id):
+def test_train_yolo():
     """
     [
         [ <class_index>  x1 y1 x2 y2],
@@ -1079,19 +1078,16 @@ def train_yolo(task_id):
     ]
     :return:
     """
-    pass
-    # setup_django()
-    # import os
-    # from django.conf import settings
-    # import numpy as np
-    # from dvalib.yolo import trainer
-    # try:
-    #     os.mkdir(root_dir)
-    # except:
-    #     pass
-    # train = trainer.YOLOTrainer(config=config,root_dir = root_dir,)
-    # train.train(0.1)
-    # train.draw(model_body, class_names, anchors, image_data, image_set=image_set, weights_name=weights_name,save_all=0)
+    # pass
+    setup_django()
+    from dvaapp.models import TEvent,CustomDetector
+    from dvaapp.tasks import train_yolo_detector
+    args = {}
+    detector = CustomDetector()
+    detector.save()
+    args['detector_pk'] = detector.pk
+    args['object_names'] = ["red_buoy","green_buoy","yellow_buoy","path_marker","start_gate","channel"]
+    train_yolo_detector(TEvent.objects.create(arguments_json=json.dumps(args)).pk)
 
 
 @task

@@ -23,6 +23,13 @@ def create_video_folders(video,create_subdirs=True):
         os.mkdir('{}/{}/audio/'.format(settings.MEDIA_ROOT, video.pk))
 
 
+def create_detector_folders(detector,create_subdirs=True):
+    try:
+        os.mkdir('{}/models/{}'.format(settings.MEDIA_ROOT, detector.pk))
+    except:
+        pass
+
+
 def handle_uploaded_file(f,name,extract=True,user=None,perform_scene_detection=True,rate=30,rescale=0):
     video = Video()
     if user:

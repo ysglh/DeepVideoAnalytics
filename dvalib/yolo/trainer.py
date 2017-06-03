@@ -163,8 +163,7 @@ class YOLOTrainer(object):
             im = Image.open(i_path)
             image_data = np.array(im.resize((416, 416), Image.BICUBIC), dtype=np.float) / 255.
             image_data = np.expand_dims(image_data, 0)
-            print image_data.shape
-            feed_dict = {self.model_body.input: image_data,input_image_shape: [image_data.shape[1], image_data.shape[0]], K.learning_phase(): 0}
+            feed_dict = {self.model_body.input: image_data,input_image_shape: [im.size[1], im.size[0]], K.learning_phase(): 0}
             out_boxes, out_scores, out_classes = sess.run([boxes, scores, classes],feed_dict=feed_dict)
             print out_boxes, out_scores, out_classes
             for i, c in list(enumerate(out_classes)):

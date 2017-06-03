@@ -23,7 +23,7 @@ class YOLOTrainer(object):
         self.processed_images = None
         self.detectors_mask, self.matching_true_boxes = None, None
         self.class_names = class_names
-        self.anchors = args['anchors'] if 'anchors' in args else DEFAULT_ANCHORS
+        self.anchors = np.array(args['anchors'] if 'anchors' in args else DEFAULT_ANCHORS)
         self.validation_split = args['validation_split'] if 'validation_split' in args else 0.1
         self.model_body = None
         self.model = None
@@ -41,7 +41,7 @@ class YOLOTrainer(object):
         processed_images = [i.resize((416, 416), Image.BICUBIC) for i in images]
         processed_images = [np.array(image, dtype=np.float) for image in processed_images]
         processed_images = [image/255. for image in processed_images]
-        boxes = [box.reshape((-1, 5)) for box in self.boxes]
+        boxes = [np.array(box,dtype=np.uint16).reshape((-1, 5)) for box in self.boxes]
         boxes_extents = [box[:, [2, 1, 4, 3, 0]] for box in boxes]
         boxes_xy = [0.5 * (box[:, 3:5] + box[:, 1:3]) for box in boxes]
         boxes_wh = [box[:, 3:5] - box[:, 1:3] for box in boxes]

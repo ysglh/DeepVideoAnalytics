@@ -136,7 +136,7 @@ class YOLOTrainer(object):
         boxes = self.processed_boxes
         self.model.compile(optimizer='adam', loss={'yolo_loss': lambda y_true, y_pred: y_pred})
         logging = TensorBoard()
-        checkpoint = ModelCheckpoint("trained_stage_3_best.h5", monitor='val_loss',save_weights_only=True, save_best_only=True)
+        checkpoint = ModelCheckpoint("{}/trained_stage_3_best.h5".format(self.root_dir), monitor='val_loss',save_weights_only=True, save_best_only=True)
         early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=15, verbose=1, mode='auto')
         self.model.fit([image_data, boxes, detectors_mask, matching_true_boxes],np.zeros(len(image_data)),
                        validation_split=validation_split,batch_size=32,epochs=10,callbacks=[logging])

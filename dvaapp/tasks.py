@@ -1050,6 +1050,7 @@ def train_yolo_detector(task_id):
     detector = CustomDetector.objects.get(pk=args['detector_pk'])
     create_detector_folders(detector)
     class_names = {k:i for i,k in enumerate(labels.union(object_names))}
+    i_class_names = {i:k for k,i in class_names.items()}
     rboxes = defaultdict(list)
     frames = {}
     for r in Region.objects.all().filter(object_name__in=object_names):
@@ -1065,8 +1066,7 @@ def train_yolo_detector(task_id):
         images.append("{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,f.video_id,f.frame_index))
         boxes.append(rboxes[k])
         print k,rboxes[k]
-
-    train_task = trainer.YOLOTrainer(boxes=boxes,images=images,class_names=class_names,args=args)
+    train_task = trainer.YOLOTrainer(boxes=boxes,images=images,class_names=i_class_names,args=args)
     train_task.train()
     results = train_task.predict()
     start.completed = True

@@ -166,5 +166,16 @@ class YOLOTrainer(object):
             feed_dict = {self.model_body.input: image_data,input_image_shape: [image_data.shape[1], image_data.shape[0]], K.learning_phase(): 0}
             out_boxes, out_scores, out_classes = sess.run([boxes, scores, classes],feed_dict=feed_dict)
             print out_boxes, out_scores, out_classes
-            results.append((i_path,(out_boxes, out_scores, out_classes)))
+            for i, c in list(enumerate(out_classes)):
+                box_class = self.class_names[c]
+                box = out_boxes[i]
+                score = out_scores[i]
+                label = '{}'.format(box_class)
+                top, left, bottom, right = box
+                top = max(0, np.floor(top + 0.5).astype('int32'))
+                left = max(0, np.floor(left + 0.5).astype('int32'))
+                bottom = min(i.size[1], np.floor(bottom + 0.5).astype('int32'))
+                right = min(i.size[0], np.floor(right + 0.5).astype('int32'))
+                print(label, (left, top), (right, bottom))
+                results.append((i_path,box_class,score,top,left,right,bottom))
         return results

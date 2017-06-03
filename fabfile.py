@@ -1072,21 +1072,18 @@ def sync_efs_to_s3():
 @task
 def test_train_yolo():
     """
-    [
-        [ <class_index>  x1 y1 x2 y2],
-        [ <class_index>  x1 y1 x2 y2],
-    ]
     :return:
     """
-    # pass
     setup_django()
     from dvaapp.models import TEvent,CustomDetector
     from dvaapp.tasks import train_yolo_detector
+    from django.conf import settings
     args = {}
     detector = CustomDetector()
     detector.save()
     args['detector_pk'] = detector.pk
     args['object_names'] = ["red_buoy","green_buoy","yellow_buoy","path_marker","start_gate","channel"]
+    args['root_dir'] = "{}/models/{}/".format(settings.MEDIA_ROOT,detector.pk)
     train_yolo_detector(TEvent.objects.create(arguments_json=json.dumps(args)).pk)
 
 

@@ -139,13 +139,13 @@ class YOLOTrainer(object):
         checkpoint = ModelCheckpoint("trained_stage_3_best.h5", monitor='val_loss',save_weights_only=True, save_best_only=True)
         early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=15, verbose=1, mode='auto')
         self.model.fit([image_data, boxes, detectors_mask, matching_true_boxes],np.zeros(len(image_data)),
-                       validation_split=validation_split,batch_size=32,epochs=5,callbacks=[logging])
+                       validation_split=validation_split,batch_size=32,epochs=10,callbacks=[logging])
         self.model.save_weights('{}/trained_stage_1.h5'.format(self.root_dir))
         self.create_model(load_pretrained=False, freeze_body=False)
         self.model.load_weights('{}/trained_stage_1.h5'.format(self.root_dir))
         self.model.compile(optimizer='adam', loss={'yolo_loss': lambda y_true, y_pred: y_pred})
         self.model.fit([image_data, boxes, detectors_mask, matching_true_boxes],np.zeros(len(image_data)),
-                  validation_split=validation_split,batch_size=8,epochs=5,callbacks=[logging, checkpoint, early_stopping])
+                  validation_split=validation_split,batch_size=8,epochs=10,callbacks=[logging, checkpoint, early_stopping])
         self.model.save_weights('{}/trained_stage_3.h5'.format(self.root_dir))
 
     def predict(self):
@@ -164,7 +164,6 @@ class YOLOTrainer(object):
             image_data = np.array(i.resize((416, 416), Image.BICUBIC), dtype=np.float) / 255.
             feed_dict = {self.model_body.input: image_data,input_image_shape: [image_data.shape[2], image_data.shape[3]], K.learning_phase(): 0}
             out_boxes, out_scores, out_classes = sess.run([boxes, scores, classes],feed_dict=feed_dict)
-            print('Found {} boxes for image.'.format(len(out_boxes)))
-            print(out_boxes)
-            results.append((i_path,out_boxes))
+            print out_boxes, out_scores, out_classes
+            results.append((i_path,(out_boxes, out_scores, out_classes)))
         return results

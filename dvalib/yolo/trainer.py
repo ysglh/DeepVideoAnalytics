@@ -104,7 +104,6 @@ class YOLOTrainer(object):
                 layer.trainable = False
         else:
             for layer in topless_yolo.layers[:8]:
-                print layer
                 layer.trainable = False
 
         final_layer = Conv2D(len(anchors)*(5+len(class_names)), (1, 1), activation='linear')(topless_yolo.output)
@@ -150,22 +149,18 @@ class YOLOTrainer(object):
 
     def predict(self):
         weights_name = '{}/trained_stage_3_best.h5'.format(self.root_dir)
-        out_path = "{}/output_images".format(self.root_dir)
         self.model_body.load_weights(weights_name)
         yolo_outputs = yolo_head(self.model_body.output, self.anchors, len(self.class_names))
         input_image_shape = K.placeholder(shape=(2,))
         boxes, scores, classes = yolo_eval(yolo_outputs, input_image_shape, score_threshold=0.5, iou_threshold=0)
         sess = K.get_session()
         results = []
-        if not os.path.exists(out_path):
-            os.makedirs(out_path)
         for i_path in self.images:
             im = Image.open(i_path)
             image_data = np.array(im.resize((416, 416), Image.BICUBIC), dtype=np.float) / 255.
             image_data = np.expand_dims(image_data, 0)
             feed_dict = {self.model_body.input: image_data,input_image_shape: [im.size[1], im.size[0]], K.learning_phase(): 0}
             out_boxes, out_scores, out_classes = sess.run([boxes, scores, classes],feed_dict=feed_dict)
-            print out_boxes, out_scores, out_classes
             for i, c in list(enumerate(out_classes)):
                 box_class = self.class_names[c]
                 box = out_boxes[i]
@@ -176,6 +171,5 @@ class YOLOTrainer(object):
                 left = max(0, np.floor(left + 0.5).astype('int32'))
                 bottom = min(im.size[1], np.floor(bottom + 0.5).astype('int32'))
                 right = min(im.size[0], np.floor(right + 0.5).astype('int32'))
-                print(label, (left, top), (right, bottom))
-                results.append((i_path,box_class,score,top,left,right,bottom))
+                results.append((i_path,box_class,score,top, left, bottom, right))
         return results

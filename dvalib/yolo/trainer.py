@@ -135,19 +135,20 @@ class YOLOTrainer(object):
         matching_true_boxes = self.matching_true_boxes
         boxes = self.processed_boxes
         self.model.compile(optimizer='adam', loss={'yolo_loss': lambda y_true, y_pred: y_pred})
-        logging = TensorBoard(log_dir="{}/tensorboard_logs".format(self.root_dir))
+        logging_1 = TensorBoard(log_dir="{}/tensorboard_logs_1".format(self.root_dir))
+        logging_2 = TensorBoard(log_dir="{}/tensorboard_logs_2".format(self.root_dir))
         csv_logger_1 = CSVLogger('{}/phase_1.log'.format(self.root_dir))
         csv_logger_2 = CSVLogger('{}/phase_2.log'.format(self.root_dir))
         checkpoint = ModelCheckpoint("{}/phase_2_best.h5".format(self.root_dir), monitor='val_loss',save_weights_only=True, save_best_only=True)
         early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=15, verbose=1, mode='auto')
         self.model.fit([image_data, boxes, detectors_mask, matching_true_boxes],np.zeros(len(image_data)),
-                       validation_split=validation_split,batch_size=32,epochs=self.phase_1_epochs,callbacks=[logging,csv_logger_1])
+                       validation_split=validation_split,batch_size=32,epochs=self.phase_1_epochs,callbacks=[logging_1,csv_logger_1])
         self.model.save_weights('{}/phase_1.h5'.format(self.root_dir))
         self.create_model(load_pretrained=False, freeze_body=False)
         self.model.load_weights('{}/phase_1.h5'.format(self.root_dir))
         self.model.compile(optimizer='adam', loss={'yolo_loss': lambda y_true, y_pred: y_pred})
         self.model.fit([image_data, boxes, detectors_mask, matching_true_boxes],np.zeros(len(image_data)),
-                  validation_split=validation_split,batch_size=8,epochs=self.phase_2_epochs,callbacks=[logging, checkpoint, early_stopping,csv_logger_2])
+                  validation_split=validation_split,batch_size=8,epochs=self.phase_2_epochs,callbacks=[logging_2, checkpoint, early_stopping,csv_logger_2])
         self.model.save_weights('{}/phase_2.h5'.format(self.root_dir))
 
     def predict(self):

@@ -4,7 +4,7 @@ import tensorflow as tf
 from keras import backend as K
 from keras.layers import Input, Lambda, Conv2D
 from keras.models import load_model, Model
-from keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping
+from keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping, CSVLogger
 from .keras_yolo import preprocess_true_boxes, yolo_body, yolo_eval, yolo_head, yolo_loss
 import draw_boxes
 import os
@@ -28,6 +28,8 @@ class YOLOTrainer(object):
         self.model_body = None
         self.model = None
         self.process_data()
+        self.phase_1_epochs = args['phase_1_epochs'] if 'phase_1_epochs' in args else 10
+        self.phase_2_epochs = args['phase_2_epochs'] if 'phase_2_epochs' in args else 10
         self.root_dir = args['root_dir']
         self.base_model = args['base_model'] if 'base_model' in args else "dvalib/yolo/model_data/yolo.h5"
         self.get_detector_mask()
@@ -134,21 +136,23 @@ class YOLOTrainer(object):
         matching_true_boxes = self.matching_true_boxes
         boxes = self.processed_boxes
         self.model.compile(optimizer='adam', loss={'yolo_loss': lambda y_true, y_pred: y_pred})
-        logging = TensorBoard()
-        checkpoint = ModelCheckpoint("{}/trained_stage_3_best.h5".format(self.root_dir), monitor='val_loss',save_weights_only=True, save_best_only=True)
+        logging = TensorBoard(log_dir="{}/tensorboard_logs".format(self.root_dir))
+        csv_logger_1 = CSVLogger('{}/phase_1.log'.format(self.root_dir))
+        csv_logger_2 = CSVLogger('{}/phase_2.log'.format(self.root_dir))
+        checkpoint = ModelCheckpoint("{}/phase_2_best.h5".format(self.root_dir), monitor='val_loss',save_weights_only=True, save_best_only=True)
         early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=15, verbose=1, mode='auto')
         self.model.fit([image_data, boxes, detectors_mask, matching_true_boxes],np.zeros(len(image_data)),
-                       validation_split=validation_split,batch_size=32,epochs=10,callbacks=[logging])
-        self.model.save_weights('{}/trained_stage_1.h5'.format(self.root_dir))
+                       validation_split=validation_split,batch_size=32,epochs=self.phase_1_epochs,callbacks=[logging,csv_logger_1])
+        self.model.save_weights('{}/phase_1.h5'.format(self.root_dir))
         self.create_model(load_pretrained=False, freeze_body=False)
-        self.model.load_weights('{}/trained_stage_1.h5'.format(self.root_dir))
+        self.model.load_weights('{}/phase_1.h5'.format(self.root_dir))
         self.model.compile(optimizer='adam', loss={'yolo_loss': lambda y_true, y_pred: y_pred})
         self.model.fit([image_data, boxes, detectors_mask, matching_true_boxes],np.zeros(len(image_data)),
-                  validation_split=validation_split,batch_size=8,epochs=10,callbacks=[logging, checkpoint, early_stopping])
-        self.model.save_weights('{}/trained_stage_3.h5'.format(self.root_dir))
+                  validation_split=validation_split,batch_size=8,epochs=self.phase_2_epochs,callbacks=[logging, checkpoint, early_stopping,csv_logger_2])
+        self.model.save_weights('{}/phase_2.h5'.format(self.root_dir))
 
     def predict(self):
-        weights_name = '{}/trained_stage_3_best.h5'.format(self.root_dir)
+        weights_name = '{}/phase_2_best.h5'.format(self.root_dir)
         self.model_body.load_weights(weights_name)
         yolo_outputs = yolo_head(self.model_body.output, self.anchors, len(self.class_names))
         input_image_shape = K.placeholder(shape=(2,))

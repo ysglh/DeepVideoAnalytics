@@ -1069,6 +1069,8 @@ def train_yolo_detector(task_id):
         images.append(path)
         boxes.append(rboxes[k])
         # print k,rboxes[k]
+    with open("{}/input.json".format(args['root_dir']),'w') as input_data:
+        json.dump({'boxes':boxes,'images':images,'args':args,'class_names':class_names.items()},input_data)
     train_task = trainer.YOLOTrainer(boxes=boxes,images=images,class_names=i_class_names,args=args)
     train_task.train()
     results = train_task.predict()

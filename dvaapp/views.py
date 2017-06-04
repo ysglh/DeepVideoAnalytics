@@ -663,6 +663,7 @@ def indexes(request):
 @user_passes_test(user_check)
 def detections(request):
     context = {}
+    context["videos"] = Video.objects.all().filter(parent_query__count__isnull=True)
     return render(request, 'detections.html', context)
 
 

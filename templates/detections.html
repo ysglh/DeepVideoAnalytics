@@ -19,14 +19,39 @@
                     <h4>Train custom YOLO detector</h4>
                 </div>
                 <div class="box-body">
-                    <form target="/train_yolo/" method="POST">
-                        <div class="form-group">
-                            <input type="text" placeholder="name" id="name" />
-                            <input type="text" placeholder="comma seperated list of regions to detect by their object_name" id="object_names" />
-                            <input type="text" placeholder="comma seperated list of regions to by applied labels" id="labels" />
-                            <textarea placeholder="Additional args as JSON"></textarea>
-                            <button type="submit" class="btn btn-success">Submit</button>
-                        </div>
+                    <form role="form"  method="post" >
+                            <div class="row">
+                            <div class="col-lg-6"><div class="form-group">
+                                <label for="name">Detector name</label>
+                                <input id="id_name" name="name" class="form-control" type="text" required="" placeholder="provide a name">
+                            </div></div>
+                            <div class="col-lg-6">
+                                <div class="form-group">
+                                    <label for="excluded_videos">Exclude video/dataset</label>
+                                    <select class="js-example-basic-multiple" multiple="multiple" id="excluded_videos" name="excluded_videos" style="width:100%">
+                                    {% for v in videos %}
+                                        <option value="{{ v.pk }}">{{ v.name }}</option>
+                                    {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            </div>
+                            <div class="row">
+                            <div class="col-lg-6"><div class="form-group">
+                                <input id="object_names" name="object_names" class="form-control" type="text" placeholder="comma separated list of regions to by object_names">
+                            </div></div>
+                            <div class="col-lg-6"><div class="form-group">
+                                <input id="labels" name="labels" class="form-control" type="text" placeholder="comma separated list of regions to by applied labels">
+                            </div></div>
+                            </div>
+                            <div class="form-group">
+                                <textarea class="form-control" rows="2" placeholder="Additional arguments as JSON"></textarea>
+                            </div>
+                            {% csrf_token %}
+                            <div style="text-align: center">
+                                <button type="submit" formaction="/yolo_estimate/" class="pull-left btn btn-info"><i class="fa fa-list"></i> Estimate training set</button>
+                                <button type="submit" formaction="/yolo_train/" class="pull-right btn btn-primary"><i class="fa fa-gears"></i> Train detector</button>
+                            </div>
                     </form>
                 </div>
             </div>
@@ -45,9 +70,10 @@
         <div class="col-lg-12">
             <div class="box box-primary">
                 <div class="box-header with-border">
-                    <h4></h4>
+                    <h4>Trained custom detectors</h4>
                 </div>
                 <div class="box-body">
+
                 </div>
             </div>
         </div>
@@ -58,6 +84,8 @@
 <script>
     $(document).ready(function() {
         InitializeTables();
+        var excluded_videos_ids = $("#excluded_videos");
+        excluded_videos_ids.select2({theme: "bootstrap"});
     })
 </script>
 {% endblock %}

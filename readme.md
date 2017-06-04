@@ -18,6 +18,8 @@
 
 - Pytorch [License](https://github.com/pytorch/pytorch/blob/master/LICENSE)
 - YAD2K: Yet Another Darknet 2 Keras [License](https://github.com/allanzelener/YAD2K)
+- CRNN.pytorch [License](https://github.com/meijieru/crnn.pytorch/blob/master/LICENSE.md) [License original by Baoguang Shi
+](https://github.com/bgshih/crnn)
 - AdminLTE2 [License](https://github.com/almasaeed2010/AdminLTE/blob/master/LICENSE)
 - FabricJS [License](https://github.com/kangax/fabric.js/blob/master/LICENSE)
 - Modified PySceneDetect [License](https://github.com/Breakthrough/PySceneDetect)

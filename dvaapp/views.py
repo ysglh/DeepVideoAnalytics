@@ -755,6 +755,39 @@ def import_s3(request):
 
 
 @user_passes_test(user_check)
+def yolo_train(request):
+    if request.method == 'POST':
+        keys = request.POST.get('key')
+        region = request.POST.get('region')
+        bucket = request.POST.get('bucket')
+    else:
+        raise NotImplementedError
+    return redirect('detections')
+
+
+@user_passes_test(user_check)
+def yolo_estimate(request):
+    if request.method == 'POST':
+        keys = request.POST.get('key')
+        region = request.POST.get('region')
+        bucket = request.POST.get('bucket')
+    else:
+        raise NotImplementedError
+    return redirect('detections')
+
+
+@user_passes_test(user_check)
+def yolo_detect(request):
+    if request.method == 'POST':
+        keys = request.POST.get('key')
+        region = request.POST.get('region')
+        bucket = request.POST.get('bucket')
+    else:
+        raise NotImplementedError
+    return redirect('detections')
+
+
+@user_passes_test(user_check)
 def video_send_task(request):
     if request.method == 'POST':
         video_id = int(request.POST.get('video_id'))

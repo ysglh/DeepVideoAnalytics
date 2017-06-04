@@ -37,6 +37,7 @@
        - LAUNCH_Q_qfaceretriever=1
        - LAUNCH_Q_qfacedetector=1
        - LAUNCH_Q_qclusterer=1
+       - LAUNCH_Q_qtrainer=1
        - TEST=1
        - AUTH_DISABLED=1
      command: bash -c "youtube-dl -U && git pull && fab start_container"

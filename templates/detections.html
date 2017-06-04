@@ -13,7 +13,7 @@
 </section>
 <section class="content">
     <div class="row">
-        <div class="col-lg-8">
+        <div class="col-lg-6">
             <div class="box box-primary">
                 <div class="box-header with-border">
                     <h4>Train custom YOLO detector</h4>
@@ -49,19 +49,45 @@
                             </div>
                             {% csrf_token %}
                             <div style="text-align: center">
-                                <button type="submit" formaction="/yolo_estimate/" class="pull-left btn btn-info"><i class="fa fa-list"></i> Estimate training set</button>
-                                <button type="submit" formaction="/yolo_train/" class="pull-right btn btn-primary"><i class="fa fa-gears"></i> Train detector</button>
+                                <button type="submit" formaction="/yolo_estimate" class="pull-left btn btn-info"><i class="fa fa-list"></i> Estimate training set</button>
+                                <button type="submit" formaction="/yolo_train" class="pull-right btn btn-primary"><i class="fa fa-gears"></i> Train detector</button>
                             </div>
                     </form>
                 </div>
             </div>
         </div>
-        <div class="col-lg-4">
+        <div class="col-lg-6">
             <div class="box box-primary">
                 <div class="box-header with-border">
-                    <h4>Default detectors</h4>
+                    <h4>Detect objects using custom detector</h4>
                 </div>
                 <div class="box-body">
+                                        <form role="form"  method="post" >
+                            <div class="row">
+                            <div class="col-lg-6"><div class="form-group">
+                                    <label for="excluded_videos">Select detector</label>
+                                    <select class="js-example-basic-single" id="selected_detector" name="selected_detector" style="width:100%">
+                                    {% for v in videos %}
+                                        <option value="{{ v.pk }}">{{ v.name }}</option>
+                                    {% endfor %}
+                                    </select>
+                            </div></div>
+                            <div class="col-lg-6">
+                                <div class="form-group">
+                                    <label for="excluded_videos">Select video/dataset</label>
+                                    <select class="js-example-basic-single" id="selected_video" name="selected_video" style="width:100%">
+                                    {% for v in videos %}
+                                        <option value="{{ v.pk }}">{{ v.name }}</option>
+                                    {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            </div>
+                            {% csrf_token %}
+                            <div style="text-align: center">
+                                <button type="submit" style="margin: auto" formaction="/yolo_predict" class="btn btn-info"><i class="fa fa-list"></i> Estimate training set</button>
+                            </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -86,6 +112,10 @@
         InitializeTables();
         var excluded_videos_ids = $("#excluded_videos");
         excluded_videos_ids.select2({theme: "bootstrap"});
+        var selected_video_id = $("#selected_video");
+        selected_video_id.select2({theme: "bootstrap"});
+        var selected_detector_id = $("#selected_detector");
+        selected_detector_id.select2({theme: "bootstrap"});
     })
 </script>
 {% endblock %}

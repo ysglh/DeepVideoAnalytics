@@ -1050,6 +1050,7 @@ def train_yolo_detector(task_id):
     detector = CustomDetector.objects.get(pk=args['detector_pk'])
     create_detector_folders(detector)
     class_names = {k:i for i,k in enumerate(labels.union(object_names))}
+    i_class_names = {i:k for k,i in class_names.items()}
     rboxes = defaultdict(list)
     frames = {}
     for r in Region.objects.all().filter(object_name__in=object_names):
@@ -1061,14 +1062,30 @@ def train_yolo_detector(task_id):
             r = l.region
             rboxes[l.frame_id].append((class_names[l.label_name], r.x, r.y, r.x + r.w, r.y + r.h))
     images, boxes = [], []
+    path_to_f = {}
     for k,f in frames.iteritems():
-        images.append("{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,f.video_id,f.frame_index))
+        path = "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,f.video_id,f.frame_index)
+        path_to_f[path] = f
+        images.append(path)
         boxes.append(rboxes[k])
-        print k,rboxes[k]
-
-    train_task = trainer.YOLOTrainer(boxes=boxes,images=images,class_names=class_names,args=args)
+        # print k,rboxes[k]
+    with open("{}/input.json".format(args['root_dir']),'w') as input_data:
+        json.dump({'boxes':boxes,'images':images,'args':args,'class_names':class_names.items()},input_data)
+    train_task = trainer.YOLOTrainer(boxes=boxes,images=images,class_names=i_class_names,args=args)
     train_task.train()
     results = train_task.predict()
+    for path, box_class, score, top, left, bottom, right in results:
+        r = Region()
+        r.region_type = r.DETECTION
+        r.confidence = int(100.0 * score)
+        r.object_name = "YOLO_{}_{}".format(detector.pk,box_class)
+        r.y = top
+        r.x = left
+        r.w = right - left
+        r.h = bottom - top
+        r.frame_id = path_to_f[path].pk
+        r.video_id = path_to_f[path].video_id
+        r.save()
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()

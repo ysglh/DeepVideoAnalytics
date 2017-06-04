@@ -38,14 +38,17 @@
                             </div>
                             <div class="row">
                             <div class="col-lg-6"><div class="form-group">
+                                <label for="object_names">Object names</label>
                                 <input id="object_names" name="object_names" class="form-control" type="text" placeholder="comma separated list of regions to by object_names">
                             </div></div>
                             <div class="col-lg-6"><div class="form-group">
+                                <label for="labels">Labels</label>
                                 <input id="labels" name="labels" class="form-control" type="text" placeholder="comma separated list of regions to by applied labels">
                             </div></div>
                             </div>
                             <div class="form-group">
-                                <textarea class="form-control" rows="2" placeholder="Additional arguments as JSON"></textarea>
+                                <label for="excluded_videos">Additional JSON arguments for customizing options such as number of phase 1/2 epochs, etc.</label>
+                                <textarea class="form-control" name="args" rows="2" placeholder="Additional arguments as JSON"></textarea>
                             </div>
                             {% csrf_token %}
                             <div style="text-align: center">

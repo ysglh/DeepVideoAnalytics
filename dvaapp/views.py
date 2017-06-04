@@ -757,9 +757,18 @@ def import_s3(request):
 @user_passes_test(user_check)
 def yolo_train(request):
     if request.method == 'POST':
-        keys = request.POST.get('key')
-        region = request.POST.get('region')
-        bucket = request.POST.get('bucket')
+        args = request.POST.get('args')
+        args = json.loads(args) if args.strip() else {}
+        args['name'] = request.POST.get('name')
+        args['labels'] = request.POST.get('labels')
+        args['object_names'] = request.POST.get('object_names')
+        args['excluded_videos'] = request.POST.get('object_names')
+        task_name = "train_yolo_detector"
+        train_event = TEvent()
+        train_event.operation = task_name
+        train_event.arguments_json = json.dumps(args)
+        train_event.save()
+        app.send_task(name=task_name, args=[train_event.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
     else:
         raise NotImplementedError
     return redirect('detections')

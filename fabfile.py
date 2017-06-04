@@ -699,18 +699,6 @@ def get_coco_dirname():
     return dirname
 
 
-def get_visual_genome_dirname():
-    if sys.platform == 'darwin':
-        dirname = '/Users/aub3/visual_genome/'
-    else:
-        dirname = 'visual_genome'
-    try:
-        os.mkdir(dirname)
-    except:
-        pass
-    return dirname
-
-
 @task
 def download_coco(size=500):
     dirname = get_coco_dirname()
@@ -762,52 +750,48 @@ def download_coco(size=500):
 
 
 @task
-def generate_visual_genome(fast=False):
+def subset_visual_genome(object_name,dirname="visual_genome"):
     kill()
     import django
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from django.core.files.uploadedfile import SimpleUploadedFile
-    from dvaapp.views import handle_uploaded_file, handle_youtube_video
+    from dvaapp.shared import handle_uploaded_file
     from dvaapp import models
     from dvaapp.models import TEvent
     import gzip
-    from dvaapp.tasks import extract_frames, perform_face_detection_indexing_by_id, inception_index_by_id, \
-        perform_ssd_detection_by_id, inception_index_regions_by_id, \
-        export_video_by_id
-    dirname = get_visual_genome_dirname()
-    with lcd(dirname):
-        if not os.path.isfile("{}/vg.zip".format(dirname)):
-            local('wget https://www.dropbox.com/s/7g2c1j5n318eovr/visual_genome_sample.zip?dl=1 -O vg.zip')
-            local('wget https://www.dropbox.com/s/589tyg6vn3uxqcc/visual_genome_objects.txt.gz?dl=1 -O visual_genome_objects.txt.gz')
+    from dvaapp.tasks import extract_frames, export_video_by_id
+    os.mkdir('temp')
     data = defaultdict(list)
     with gzip.open('{}/visual_genome_objects.txt.gz'.format(dirname)) as metadata:
         for line in metadata:
             entries = line.strip().split('\t')
-            data[entries[1]].append({
-                'x':int(entries[2]),
-                'y':int(entries[3]),
-                'w':int(entries[4]),
-                'h':int(entries[5]),
-                'object_id':entries[0],
-                'object_name':entries[6],
-                'metadata_text':' '.join(entries[6:]),
-            })
-    f = SimpleUploadedFile("vg.zip", file('{}/vg.zip'.format(dirname)).read(), content_type="application/zip")
-    v = handle_uploaded_file(f, 'visual genome sample')
+            if object_name in entries[6:]:
+                data[entries[1]].append({
+                    'x':int(entries[2]),
+                    'y':int(entries[3]),
+                    'w':int(entries[4]),
+                    'h':int(entries[5]),
+                    'object_id':entries[0],
+                    'object_name':entries[6],
+                    'metadata_text':' '.join(entries[6:]),
+                })
+                shutil.copy('{}/{}.jpg'.format(dirname,entries[1]),'temp/{}.jpg'.format(entries[1]))
+    local("zip vg.zip -r temp/")
+    f = SimpleUploadedFile("vg.zip", file("vg.zip").read(), content_type="application/zip")
+    v = handle_uploaded_file(f, 'visual genome subset for {}'.format(object_name))
     extract_frames(TEvent.objects.create(video=v).pk)
     video = v
     models.Region.objects.all().filter(video=video).delete()
     buffer = []
     for frame in models.Frame.objects.all().filter(video=video):
-        frame_id = str(int(frame.name.split('_')[-1].split('.')[0]))
+        frame_id = str(int(frame.name.split('/')[-1].split('.')[0]))
         for o in data[frame_id]:
             annotation = models.Region()
             annotation.region_type = models.Region.ANNOTATION
             annotation.video = v
             annotation.frame = frame
-            annotation.full_frame = False
             annotation.x = o['x']
             annotation.y = o['y']
             annotation.h = o['h']
@@ -821,11 +805,6 @@ def generate_visual_genome(fast=False):
                 print "saving"
                 buffer = []
     models.Region.objects.bulk_create(buffer)
-    print "saving final"
-    if not fast:
-        inception_index_by_id(TEvent.objects.create(video=v).pk)
-        default_args = {'region_type':'A','w__gte':50,'h__gte':50}
-        inception_index_regions_by_id(TEvent.objects.create(video=v,arguments_json=json.dumps(default_args)).pk)
     export_video_by_id(TEvent.objects.create(video=v).pk)
 
 

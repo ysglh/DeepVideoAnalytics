@@ -72,5 +72,5 @@ notes/*.mov
 /shared/underwater_data.npz
 /tests/yolo_test.zip
 /logs/*.edu
-/dvalib/crnn/data/
+/dvalib/crnn/data/crnn.pth
 /shared/crnn.pth

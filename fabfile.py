@@ -2,6 +2,7 @@ import os,logging,time,boto3, glob,subprocess,calendar,sys
 from fabric.api import task,local,run,put,get,lcd,cd,sudo,env,puts
 import json
 import random
+import gzip
 import shutil
 from urllib import urlretrieve
 from collections import defaultdict
@@ -749,63 +750,56 @@ def download_coco(size=500):
         json.dump(data, output)
 
 
-@task
-def subset_visual_genome(object_name,dirname="visual_genome"):
-    kill()
-    import django
-    sys.path.append(os.path.dirname(__file__))
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
-    django.setup()
-    from django.core.files.uploadedfile import SimpleUploadedFile
-    from dvaapp.shared import handle_uploaded_file
-    from dvaapp import models
-    from dvaapp.models import TEvent
-    import gzip
-    from dvaapp.tasks import extract_frames, export_video_by_id
-    os.mkdir('temp')
+def get_visual_genome():
+    local('aws s3 cp s3://aub3temp/visual_genome.zip .')
+    local('aws s3 cp s3://aub3temp/visual_genome_objects.txt.gz .')
     data = defaultdict(list)
-    with gzip.open('{}/visual_genome_objects.txt.gz'.format(dirname)) as metadata:
+    with gzip.open('visual_genome_objects.txt.gz') as metadata:
         for line in metadata:
             entries = line.strip().split('\t')
-            if object_name in entries[6:]:
-                data[entries[1]].append({
-                    'x':int(entries[2]),
-                    'y':int(entries[3]),
-                    'w':int(entries[4]),
-                    'h':int(entries[5]),
-                    'object_id':entries[0],
-                    'object_name':entries[6],
-                    'metadata_text':' '.join(entries[6:]),
-                })
-                shutil.copy('{}/{}.jpg'.format(dirname,entries[1]),'temp/{}.jpg'.format(entries[1]))
-    local("zip vg.zip -r temp/")
-    f = SimpleUploadedFile("vg.zip", file("vg.zip").read(), content_type="application/zip")
-    v = handle_uploaded_file(f, 'visual genome subset for {}'.format(object_name))
-    extract_frames(TEvent.objects.create(video=v).pk)
-    video = v
-    models.Region.objects.all().filter(video=video).delete()
-    buffer = []
-    for frame in models.Frame.objects.all().filter(video=video):
-        frame_id = str(int(frame.name.split('/')[-1].split('.')[0]))
-        for o in data[frame_id]:
-            annotation = models.Region()
-            annotation.region_type = models.Region.ANNOTATION
-            annotation.video = v
-            annotation.frame = frame
-            annotation.x = o['x']
-            annotation.y = o['y']
-            annotation.h = o['h']
-            annotation.w = o['w']
-            annotation.object_name = o['object_name']
-            annotation.metadata_json = json.dumps(o)
-            annotation.metadata_text = o['metadata_text']
-            buffer.append(annotation)
-            if len(buffer) == 1000:
-                models.Region.objects.bulk_create(buffer)
-                print "saving"
-                buffer = []
-    models.Region.objects.bulk_create(buffer)
-    export_video_by_id(TEvent.objects.create(video=v).pk)
+            data[entries[1]].append({
+                'x':int(entries[2]),
+                'y':int(entries[3]),
+                'w':int(entries[4]),
+                'h':int(entries[5]),
+                'object_id':entries[0],
+                'object_name':entries[6],
+                'metadata_text':' '.join(entries[6:]),})
+    return data
+
+# @task
+# def build_visual_genome(object_name,dirname="visual_genome"):
+#     setup_django()
+#     from django.core.files.uploadedfile import SimpleUploadedFile
+#     from dvaapp.shared import handle_uploaded_file
+#     from dvaapp import models
+#     from dvaapp.models import TEvent
+#     from dvaapp.tasks import extract_frames, export_video_by_id
+#     extract_frames(TEvent.objects.create(video=v).pk)
+#     video = v
+#     models.Region.objects.all().filter(video=video).delete()
+#     buffer = []
+#     for frame in models.Frame.objects.all().filter(video=video):
+#         frame_id = str(int(frame.name.split('/')[-1].split('.')[0]))
+#         for o in data[frame_id]:
+#             annotation = models.Region()
+#             annotation.region_type = models.Region.ANNOTATION
+#             annotation.video = v
+#             annotation.frame = frame
+#             annotation.x = o['x']
+#             annotation.y = o['y']
+#             annotation.h = o['h']
+#             annotation.w = o['w']
+#             annotation.object_name = o['object_name']
+#             annotation.metadata_json = json.dumps(o)
+#             annotation.metadata_text = o['metadata_text']
+#             buffer.append(annotation)
+#             if len(buffer) == 1000:
+#                 models.Region.objects.bulk_create(buffer)
+#                 print "saving"
+#                 buffer = []
+#     models.Region.objects.bulk_create(buffer)
+#     export_video_by_id(TEvent.objects.create(video=v).pk)
 
 
 @task

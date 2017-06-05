@@ -163,7 +163,7 @@ class YOLOTrainer(object):
         for i_path in self.images:
             im = Image.open(i_path)
             image_data = np.array(im.resize((416, 416), Image.BICUBIC), dtype=np.float) / 255.
-            if len(image_data.shape) < 3:
+            if len(image_data.shape) >= 3:
                 image_data = np.expand_dims(image_data, 0)
                 feed_dict = {self.model_body.input: image_data,input_image_shape: [im.size[1], im.size[0]], K.learning_phase(): 0}
                 out_boxes, out_scores, out_classes = sess.run([boxes, scores, classes],feed_dict=feed_dict)

@@ -58,4 +58,13 @@ class Indexer(models.Model):
 class Detector(models.Model):
     name = models.CharField(max_length=100,default="")
     created = models.DateTimeField('date created', auto_now_add=True)
-    tfgraph_url = models.TextField(default="",blank=True)
+    description = models.TextField(default="")
+    organization = models.ForeignKey(Organization,null=True)
+    download_url = models.TextField(default="",blank=True)
+    aws_requester_pays = models.BooleanField(default=False)
+    aws_region = models.TextField(default="",blank=True)
+    aws_bucket = models.TextField(default="",blank=True)
+    aws_key = models.TextField(default="",blank=True)
+
+    def __unicode__(self):
+        return u'{}'.format(self.name)

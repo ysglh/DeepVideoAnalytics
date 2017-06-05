@@ -1096,9 +1096,7 @@ def detect_custom_objects(detector_pk,video_pk):
     video_pk = int(video_pk)
     detector = CustomDetector.objects.get(pk=args['detector_pk'])
     args['root_dir'] = "{}/models/{}/".format(settings.MEDIA_ROOT, detector.pk)
-    with open("{}/input.json".format(args['root_dir'])) as input_data:
-        data = json.load(input_data)
-    class_names = {k:v for k,v in data['class_names']}
+    class_names = {k:v for k,v in json.loads(detector.class_names)}
     i_class_names = {i: k for k, i in class_names.items()}
     frames = {}
     for f in Frame.objects.all().filter(video_id=video_pk):
@@ -1128,3 +1126,30 @@ def detect_custom_objects(detector_pk,video_pk):
         img = Image.open(path)
         img2 = img.crop((r.x,r.y,right, bottom))
         img2.save("{}/{}/detections/{}.jpg".format(settings.MEDIA_ROOT, video_pk, r.pk))
+
+
+@task
+def temp_import_detector(path="/Users/aub3/tempd"):
+    """
+    For testing pre-developed detectors
+    :param path:
+    :return:
+    """
+    setup_django()
+    from dvaapp.shared import create_detector_folders
+    import json
+    from django.conf import settings
+    from dvaapp.models import CustomDetector
+    d = CustomDetector()
+    with open("{}/input.json".format(path)) as infile:
+        data = json.load(infile)
+    d.name = "test detector"
+    d.class_names = json.dumps(data['class_names'])
+    d.phase_1_log = file("{}/phase_1.log".format(path)).read
+    d.phase_2_log = file("{}/phase_2.log".format(path)).read
+    d.frames_count = 500
+    d.boxes_count = 500
+    d.class_distribution = json.dumps(data['class_names'])
+    d.save()
+    create_detector_folders(d)
+    shutil.copy("{}/phase_2_best.h5".format(path),"{}/models/{}/phase_2_best.h5 ".format(settings.MEDIA_ROOT,d.pk))

@@ -665,6 +665,18 @@ def detections(request):
     context = {}
     context["videos"] = Video.objects.all().filter(parent_query__count__isnull=True)
     context["detectors"] = CustomDetector.objects.all()
+    detector_stats = []
+    for d in CustomDetector.objects.all():
+        class_dist = json.loads(d.class_distribution).keys() if d.class_distribution.strip() else {}
+        detector_stats.append(
+            {
+                'name':d.name,
+                'classes': class_dist,
+                'frames_count':d.frames_count,
+                'boxes_count':d.boxes_count,
+            }
+        )
+    context["detector_stats"] = detector_stats
     return render(request, 'detections.html', context)
 
 

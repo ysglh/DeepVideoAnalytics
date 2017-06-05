@@ -1113,6 +1113,7 @@ def train_yolo_detector(task_id):
     detector.phase_1_log = file("{}/phase_1.log".format(args['root_dir']))
     detector.phase_2_log = file("{}/phase_2.log".format(args['root_dir']))
     detector.class_distribution = json.dumps(class_distribution.items())
+    detector.class_names = json.dumps(class_names.items())
     detector.save()
     results = train_task.predict()
     for path, box_class, score, top, left, bottom, right in results:

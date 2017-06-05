@@ -219,6 +219,7 @@ class CustomDetector(models.Model):
     phase_1_log = models.TextField(default="")
     phase_2_log = models.TextField(default="")
     class_distribution = models.TextField(default="")
+    class_names = models.TextField(default="")
     frames_count = models.IntegerField(default=0)
     boxes_count = models.IntegerField(default=0)
     source = models.ForeignKey(TEvent, null=True)

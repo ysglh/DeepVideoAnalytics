@@ -102,7 +102,28 @@
                     <h4>Trained custom detectors</h4>
                 </div>
                 <div class="box-body">
-
+                <table class="table dataTables">
+                <thead>
+                <tr>
+                    <th class="text-center">Name</th>
+                    <th class="text-center">Training frames</th>
+                    <th class="text-center">Training boxes</th>
+                    <th class="text-center">Objects</th>
+                    <th class="text-center">Details</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for d in detector_stats %}
+                    <tr>
+                        <td>{{ d.name }} </td>
+                        <td class="text-right">{{ d.frames_count }} </td>
+                        <td class="text-right">{{ d.boxes_count }} </td>
+                        <td>{{ d.classes }} </td>
+                        <td class="text-center">details</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+                </table>
                 </div>
             </div>
         </div>

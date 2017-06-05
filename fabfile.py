@@ -1152,4 +1152,4 @@ def temp_import_detector(path="/Users/aub3/tempd"):
     d.class_distribution = json.dumps(data['class_names'])
     d.save()
     create_detector_folders(d)
-    shutil.copy("{}/phase_2_best.h5".format(path),"{}/models/{}/phase_2_best.h5 ".format(settings.MEDIA_ROOT,d.pk))
+    shutil.copy("{}/phase_2_best.h5".format(path),"{}/models/{}/phase_2_best.h5".format(settings.MEDIA_ROOT,d.pk))

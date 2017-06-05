@@ -42,7 +42,7 @@
        - AUTH_DISABLED=1
      command: bash -c "youtube-dl -U && git pull && fab start_container"
      ports:
-       - "8000:80"
+       - "8500:80"
        - "8888:8888"
      depends_on:
        - db

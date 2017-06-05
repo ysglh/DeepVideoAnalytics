@@ -1096,7 +1096,7 @@ def detect_custom_objects(detector_pk,video_pk):
     video_pk = int(video_pk)
     detector = CustomDetector.objects.get(pk=args['detector_pk'])
     args['root_dir'] = "{}/models/{}/".format(settings.MEDIA_ROOT, detector.pk)
-    with open("{}/input.json".format(args['root_dir']), 'as') as input_data:
+    with open("{}/input.json".format(args['root_dir'])) as input_data:
         data = json.load(input_data)
     class_names = {k:v for k,v in data['class_names']}
     i_class_names = {i: k for k, i in class_names.items()}

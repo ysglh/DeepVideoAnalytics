@@ -43,7 +43,7 @@ class YOLOTrainer(object):
             sz = np.expand_dims(np.array([float(im.width), float(im.height)]), axis=0)
             image_array = np.array(im.resize((416, 416), Image.BICUBIC),dtype=np.float)/255.
             if len(image_array.shape) != 3:
-                logging.warning("skipping {} contains less than 3 channes".format(ipath))
+                logging.warning("skipping {} contains less than 3 channels".format(ipath))
             else:
                 boxes.append(np.array(self.boxes[iindex],dtype=np.uint16).reshape((-1, 5)))
                 processed_images.append(image_array)
@@ -163,18 +163,21 @@ class YOLOTrainer(object):
         for i_path in self.images:
             im = Image.open(i_path)
             image_data = np.array(im.resize((416, 416), Image.BICUBIC), dtype=np.float) / 255.
-            image_data = np.expand_dims(image_data, 0)
-            feed_dict = {self.model_body.input: image_data,input_image_shape: [im.size[1], im.size[0]], K.learning_phase(): 0}
-            out_boxes, out_scores, out_classes = sess.run([boxes, scores, classes],feed_dict=feed_dict)
-            for i, c in list(enumerate(out_classes)):
-                box_class = self.class_names[c]
-                box = out_boxes[i]
-                score = out_scores[i]
-                label = '{}'.format(box_class)
-                top, left, bottom, right = box
-                top = max(0, np.floor(top + 0.5).astype('int32'))
-                left = max(0, np.floor(left + 0.5).astype('int32'))
-                bottom = min(im.size[1], np.floor(bottom + 0.5).astype('int32'))
-                right = min(im.size[0], np.floor(right + 0.5).astype('int32'))
-                results.append((i_path,box_class,score,top, left, bottom, right))
+            if len(image_data.shape) < 3:
+                image_data = np.expand_dims(image_data, 0)
+                feed_dict = {self.model_body.input: image_data,input_image_shape: [im.size[1], im.size[0]], K.learning_phase(): 0}
+                out_boxes, out_scores, out_classes = sess.run([boxes, scores, classes],feed_dict=feed_dict)
+                for i, c in list(enumerate(out_classes)):
+                    box_class = self.class_names[c]
+                    box = out_boxes[i]
+                    score = out_scores[i]
+                    label = '{}'.format(box_class)
+                    top, left, bottom, right = box
+                    top = max(0, np.floor(top + 0.5).astype('int32'))
+                    left = max(0, np.floor(left + 0.5).astype('int32'))
+                    bottom = min(im.size[1], np.floor(bottom + 0.5).astype('int32'))
+                    right = min(im.size[0], np.floor(right + 0.5).astype('int32'))
+                    results.append((i_path,box_class,score,top, left, bottom, right))
+            else:
+                logging.warning("skipping {} contains less than 3 channels".format(i_path))
         return results

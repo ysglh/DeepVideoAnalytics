@@ -995,6 +995,7 @@ def sync_efs_to_s3():
 @task
 def test_train_yolo():
     """
+    red_buoy,green_buoy,yellow_buoy,path_marker,start_gate,channel
     :return:
     """
     setup_django()

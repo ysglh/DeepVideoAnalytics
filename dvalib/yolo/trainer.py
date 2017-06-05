@@ -39,7 +39,6 @@ class YOLOTrainer(object):
         images = [Image.open(i) for i in self.images]
         orig_size = np.array([float(images[0].width), float(images[0].height)])
         orig_size = np.expand_dims(orig_size, axis=0)
-        print orig_size
         processed_images = [i.resize((416, 416), Image.BICUBIC) for i in images]
         processed_images = [np.array(image, dtype=np.float) for image in processed_images]
         processed_images = [image/255. for image in processed_images]
@@ -47,16 +46,13 @@ class YOLOTrainer(object):
         boxes_extents = [box[:, [2, 1, 4, 3, 0]] for box in boxes]
         boxes_xy = [0.5 * (box[:, 3:5] + box[:, 1:3]) for box in boxes]
         boxes_wh = [box[:, 3:5] - box[:, 1:3] for box in boxes]
-        print boxes_wh[0]
         boxes_xy = [boxxy / orig_size for boxxy in boxes_xy]
         boxes_wh = [boxwh / orig_size for boxwh in boxes_wh]
-        print "width,height",boxes_wh[0]
         boxes = [np.concatenate((boxes_xy[i], boxes_wh[i], box[:, 0:1]), axis=1) for i, box in enumerate(boxes)]
         max_boxes = 0
         for boxz in boxes:
             if boxz.shape[0] > max_boxes:
                 max_boxes = boxz.shape[0]
-        print "max_boxes",max_boxes
         for i, boxz in enumerate(boxes):
             if boxz.shape[0] < max_boxes:
                 zero_padding = np.zeros( (max_boxes-boxz.shape[0], 5), dtype=np.float32)

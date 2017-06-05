@@ -667,7 +667,7 @@ def detections(request):
     context["detectors"] = CustomDetector.objects.all()
     detector_stats = []
     for d in CustomDetector.objects.all():
-        class_dist = json.loads(d.class_distribution).keys() if d.class_distribution.strip() else {}
+        class_dist = json.loads(d.class_distribution) if d.class_distribution.strip() else {}
         detector_stats.append(
             {
                 'name':d.name,

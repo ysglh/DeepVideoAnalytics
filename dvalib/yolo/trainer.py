@@ -26,15 +26,15 @@ class YOLOTrainer(object):
         self.validation_split = args['validation_split'] if 'validation_split' in args else 0.1
         self.model_body = None
         self.model = None
-        self.process_data()
         self.phase_1_epochs = args['phase_1_epochs'] if 'phase_1_epochs' in args else 10
         self.phase_2_epochs = args['phase_2_epochs'] if 'phase_2_epochs' in args else 10
         self.root_dir = args['root_dir']
-        self.base_model = args['base_model'] if 'base_model' in args else "dvalib/yolo/model_data/yolo.h5"
-        self.get_detector_mask()
         if test_mode:
             self.create_model(load_pretrained=False,freeze_body=False)
         else:
+            self.base_model = args['base_model'] if 'base_model' in args else "dvalib/yolo/model_data/yolo.h5"
+            self.process_data()
+            self.get_detector_mask()
             self.create_model()
 
     def process_data(self):

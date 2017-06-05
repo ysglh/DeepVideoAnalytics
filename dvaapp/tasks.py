@@ -1014,6 +1014,7 @@ def sync_bucket_video_by_id(task_id):
             start.save()
             return
     else:
+        logging.info("Media bucket name not specified, nothing was synced.")
         start.error_message = "Media bucket name is empty".format(settings.MEDIA_BUCKET)
     start.completed = True
     start.seconds = time.time() - start_time

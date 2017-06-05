@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Video,Frame,TEvent,IndexEntries,QueryResults,Query,AppliedLabel,VDNServer,VDNDataset, ClusterCodes, Clusters, Region, Scene
+from .models import Video,Frame,TEvent,IndexEntries,QueryResults,Query,AppliedLabel,VDNServer,VDNDataset, ClusterCodes, Clusters, Region, Scene, CustomDetector
 
 
 @admin.register(AppliedLabel)
@@ -63,5 +63,10 @@ class ClusterCodesAdmin(admin.ModelAdmin):
 
 @admin.register(Scene)
 class SceneAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(CustomDetector)
+class CustomDetectorAdmin(admin.ModelAdmin):
     pass
 

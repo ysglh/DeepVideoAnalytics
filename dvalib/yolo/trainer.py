@@ -40,7 +40,7 @@ class YOLOTrainer(object):
         for i in self.images:
             im = Image.open(i)
             sz = np.expand_dims(np.array([float(im.width), float(im.height)]), axis=0)
-            image_array = np.array(i.resize((416, 416), Image.BICUBIC),dtype=np.float)/255.
+            image_array = np.array(im.resize((416, 416), Image.BICUBIC),dtype=np.float)/255.
             if len(image_array.shape) != 3:
                 logging.warning("skipping {} contains less than 3 channes".format(i))
             else:

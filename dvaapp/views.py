@@ -760,9 +760,9 @@ def yolo_train(request):
         args = request.POST.get('args')
         args = json.loads(args) if args.strip() else {}
         args['name'] = request.POST.get('name')
-        args['labels'] = request.POST.get('labels')
-        args['object_names'] = request.POST.get('object_names')
-        args['excluded_videos'] = request.POST.get('object_names')
+        args['labels'] = [k.strip() for k in request.POST.get('labels').split(',') if k.strip()]
+        args['object_names'] = [k.strip() for k in request.POST.get('object_names').split(',') if k.strip()]
+        args['excluded_videos'] = request.POST.getlist('excluded_videos')
         detector = CustomDetector()
         detector.algorithm = "yolo"
         detector.arguments = json.dumps(args)

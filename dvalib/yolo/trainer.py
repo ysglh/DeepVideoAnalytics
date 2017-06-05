@@ -1,12 +1,11 @@
 import numpy as np
-import PIL
 import tensorflow as tf
 from keras import backend as K
 from keras.layers import Input, Lambda, Conv2D
 from keras.models import load_model, Model
 from keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping, CSVLogger
 from .keras_yolo import preprocess_true_boxes, yolo_body, yolo_eval, yolo_head, yolo_loss
-import draw_boxes
+import logging
 import os
 from PIL import Image
 
@@ -36,18 +35,23 @@ class YOLOTrainer(object):
         self.create_model()
 
     def process_data(self):
-        images = [Image.open(i) for i in self.images]
-        orig_size = np.array([float(images[0].width), float(images[0].height)])
-        orig_size = np.expand_dims(orig_size, axis=0)
-        processed_images = [i.resize((416, 416), Image.BICUBIC) for i in images]
-        processed_images = [np.array(image, dtype=np.float) for image in processed_images]
-        processed_images = [image/255. for image in processed_images]
+        orig_sizes = []
+        processed_images = []
+        for i in self.images:
+            im = Image.open(i)
+            sz = np.expand_dims(np.array([float(im.width), float(im.height)]), axis=0)
+            image_array = np.array(i.resize((416, 416), Image.BICUBIC),dtype=np.float)/255.
+            if len(image_array.shape) != 3:
+                logging.warning("skipping {} contains less than 3 channes".format(i))
+            else:
+                processed_images.append(image_array)
+                orig_sizes.append(sz)
         boxes = [np.array(box,dtype=np.uint16).reshape((-1, 5)) for box in self.boxes]
         boxes_extents = [box[:, [2, 1, 4, 3, 0]] for box in boxes]
         boxes_xy = [0.5 * (box[:, 3:5] + box[:, 1:3]) for box in boxes]
         boxes_wh = [box[:, 3:5] - box[:, 1:3] for box in boxes]
-        boxes_xy = [boxxy / orig_size for boxxy in boxes_xy]
-        boxes_wh = [boxwh / orig_size for boxwh in boxes_wh]
+        boxes_xy = [boxxy / orig_sizes[i] for i,boxxy in enumerate(boxes_xy)]
+        boxes_wh = [boxwh / orig_sizes[i] for i,boxwh in enumerate(boxes_wh)]
         boxes = [np.concatenate((boxes_xy[i], boxes_wh[i], box[:, 0:1]), axis=1) for i, box in enumerate(boxes)]
         max_boxes = 0
         for boxz in boxes:

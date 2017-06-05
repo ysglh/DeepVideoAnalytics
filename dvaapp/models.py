@@ -215,9 +215,15 @@ class CustomDetector(models.Model):
     model_filename = models.CharField(max_length=200,default="")
     vdn_parent = models.TextField(default="")
     arguments = models.TextField(default="")
+    phase_1_log = models.TextField(default="")
+    phase_2_log = models.TextField(default="")
+    class_distribution = models.TextField(default="")
+    frames_count = models.IntegerField(default=0)
+    boxes_count = models.IntegerField(default=0)
+    source = models.ForeignKey(TEvent, null=True)
+    created = models.DateTimeField('date created', auto_now_add=True)
 
-#
-#
+
 # class CustomAnnotator(models.Model):
 #     algorithm = models.CharField(max_length=100)
 #     object_name = models.CharField(max_length=100)

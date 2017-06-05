@@ -1021,15 +1021,6 @@ def sync_bucket_video_by_id(task_id):
     return
 
 
-@app.task(track_started=True, name="prepare_dataset")
-def prepare_dataset(task_id):
-    """
-    :param task_id:
-    :return:
-    """
-    pass
-
-
 @app.task(track_started=True, name="train_yolo_detector")
 def train_yolo_detector(task_id):
     """
@@ -1049,18 +1040,27 @@ def train_yolo_detector(task_id):
     object_names = set(args['object_names']) if 'object_names' in args else set()
     detector = CustomDetector.objects.get(pk=args['detector_pk'])
     create_detector_folders(detector)
+    args['root_dir'] = "{}/models/{}/".format(settings.MEDIA_ROOT,detector.pk)
     class_names = {k:i for i,k in enumerate(labels.union(object_names))}
+    class_distribution = defaultdict(int)
     i_class_names = {i:k for k,i in class_names.items()}
     rboxes = defaultdict(list)
+    rboxes_set = defaultdict(set)
     frames = {}
     for r in Region.objects.all().filter(object_name__in=object_names):
         frames[r.frame_id] = r.frame
-        rboxes[r.frame_id].append((class_names[r.object_name],r.x,r.y,r.x+r.w,r.y+r.h))
+        if r.pk not in rboxes_set[r.frame_id]:
+            rboxes[r.frame_id].append((class_names[r.object_name],r.x,r.y,r.x+r.w,r.y+r.h))
+            rboxes_set[r.frame_id].add(r.pk)
+            class_distribution[r.object_name] += 1
     for l in AppliedLabel.objects.all().filter(label_name__in=labels):
         frames[l.frame_id] = l.frame
         if l.region:
             r = l.region
-            rboxes[l.frame_id].append((class_names[l.label_name], r.x, r.y, r.x + r.w, r.y + r.h))
+            if r.pk not in rboxes_set[r.frame_id]:
+                rboxes[l.frame_id].append((class_names[l.label_name], r.x, r.y, r.x + r.w, r.y + r.h))
+                rboxes_set[r.frame_id].add(r.pk)
+                class_distribution[l.label_name] += 1
     images, boxes = [], []
     path_to_f = {}
     for k,f in frames.iteritems():
@@ -1071,8 +1071,16 @@ def train_yolo_detector(task_id):
         # print k,rboxes[k]
     with open("{}/input.json".format(args['root_dir']),'w') as input_data:
         json.dump({'boxes':boxes,'images':images,'args':args,'class_names':class_names.items()},input_data)
+    detector.boxes_count = sum([len(k) for k in boxes])
+    detector.frames_count = len(images)
+    detector.classes_count = len(class_names)
+    detector.save()
     train_task = trainer.YOLOTrainer(boxes=boxes,images=images,class_names=i_class_names,args=args)
     train_task.train()
+    detector.phase_1_log = file("{}/phase_1.log".format(args['root_dir']))
+    detector.phase_2_log = file("{}/phase_2.log".format(args['root_dir']))
+    detector.class_distribution = json.dumps(class_distribution.items())
+    detector.save()
     results = train_task.predict()
     for path, box_class, score, top, left, bottom, right in results:
         r = Region()

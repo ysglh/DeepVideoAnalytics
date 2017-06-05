@@ -6,7 +6,7 @@ import json
 from django.views.generic import ListView, DetailView
 from .forms import UploadFileForm, YTVideoForm, AnnotationForm
 from .models import Video, Frame, Query, QueryResults, TEvent, IndexEntries, VDNDataset, Region, VDNServer, \
-    ClusterCodes, Clusters, AppliedLabel, Scene
+    ClusterCodes, Clusters, AppliedLabel, Scene, CustomDetector
 from dva.celery import app
 import serializers
 from rest_framework import viewsets, mixins
@@ -763,11 +763,18 @@ def yolo_train(request):
         args['labels'] = request.POST.get('labels')
         args['object_names'] = request.POST.get('object_names')
         args['excluded_videos'] = request.POST.get('object_names')
+        detector = CustomDetector()
+        detector.algorithm = "yolo"
+        detector.arguments = json.dumps(args)
+        detector.save()
+        args['detector_pk'] = detector.pk
         task_name = "train_yolo_detector"
         train_event = TEvent()
         train_event.operation = task_name
         train_event.arguments_json = json.dumps(args)
         train_event.save()
+        detector.source = train_event
+        detector.save()
         app.send_task(name=task_name, args=[train_event.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
     else:
         raise NotImplementedError

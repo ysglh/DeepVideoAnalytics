@@ -38,7 +38,7 @@ class YOLOTrainer(object):
         orig_sizes = []
         processed_images = []
         boxes = []
-        for iindex,ipath in self.images:
+        for iindex,ipath in enumerate(self.images):
             im = Image.open(ipath)
             sz = np.expand_dims(np.array([float(im.width), float(im.height)]), axis=0)
             image_array = np.array(im.resize((416, 416), Image.BICUBIC),dtype=np.float)/255.

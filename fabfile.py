@@ -1079,6 +1079,7 @@ def create_yolo_test_data():
         pass
 
 
+@task
 def detect_custom_objects(detector_pk,video_pk):
     """
     Detection using customized trained YOLO detectors

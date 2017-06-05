@@ -1077,3 +1077,53 @@ def create_yolo_test_data():
         shutil.rmtree('tests/yolo_test')
     except:
         pass
+
+
+def detect_custom_objects(detector_pk,video_pk):
+    """
+    Detection using customized trained YOLO detectors
+    :param detector_pk:
+    :param video_pk:
+    :return:
+    """
+    setup_django()
+    from dvaapp.models import Region, Frame, CustomDetector
+    from django.conf import settings
+    from dvalib.yolo import trainer
+    from PIL import Image
+    args = {'detector_pk':int(detector_pk)}
+    video_pk = int(video_pk)
+    detector = CustomDetector.objects.get(pk=args['detector_pk'])
+    args['root_dir'] = "{}/models/{}/".format(settings.MEDIA_ROOT, detector.pk)
+    with open("{}/input.json".format(args['root_dir']), 'as') as input_data:
+        data = json.load(input_data)
+    class_names = {k:v for k,v in data['class_names']}
+    i_class_names = {i: k for k, i in class_names.items()}
+    frames = {}
+    for f in Frame.objects.all().filter(video_id=video_pk):
+        frames[f.pk] = f
+    images = []
+    path_to_f = {}
+    for k,f in frames.iteritems():
+        path = "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,f.video_id,f.frame_index)
+        path_to_f[path] = f
+        images.append(path)
+    train_task = trainer.YOLOTrainer(boxes=[], images=images, class_names=i_class_names, args=args,test_mode=True)
+    results = train_task.predict()
+    for path, box_class, score, top, left, bottom, right in results:
+        r = Region()
+        r.region_type = r.DETECTION
+        r.confidence = int(100.0 * score)
+        r.object_name = "YOLO_{}_{}".format(detector.pk, box_class)
+        r.y = top
+        r.x = left
+        r.w = right - left
+        r.h = bottom - top
+        r.frame_id = path_to_f[path].pk
+        r.video_id = path_to_f[path].video_id
+        r.save()
+        right = r.w + r.x
+        bottom = r.h + r.y
+        img = Image.open(path)
+        img2 = img.crop((r.x,r.y,right, bottom))
+        img2.save("{}/{}/detections/{}.jpg".format(settings.MEDIA_ROOT, video_pk, r.pk))

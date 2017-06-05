@@ -18,7 +18,7 @@ TASK_NAMES_TO_QUEUE = {
     "facenet_query_by_image":Q_FACE_RETRIEVER,
     "extract_frames_by_id":Q_EXTRACTOR,
     "perform_ssd_detection_by_id":Q_DETECTOR,
-    "perform_yolo_detection_by_id":Q_DETECTOR,
+    "detect_custom_objects":Q_DETECTOR,
     "perform_face_detection_indexing_by_id":Q_FACE_DETECTOR,
     "alexnet_index_by_id":Q_INDEXER,
     "alexnet_query_by_image":Q_RETRIEVER,
@@ -52,7 +52,7 @@ TASK_NAMES_TO_TYPE = {
     "import_vdn_file":VIDEO_TASK,
     "import_vdn_s3":VIDEO_TASK,
     "perform_ssd_detection_by_id":VIDEO_TASK,
-    "perform_yolo_detection_by_id":VIDEO_TASK,
+    "detect_custom_objects":VIDEO_TASK,
     "perform_face_detection_indexing_by_id":VIDEO_TASK,
     "alexnet_index_by_id":VIDEO_TASK,
     "alexnet_query_by_image":QUERY_TASK,
@@ -141,7 +141,3 @@ if 'ALEX_ENABLE' in os.environ:
     }
 
 
-if 'YOLO_ENABLE' in os.environ:
-    POST_OPERATION_TASKS['extract_frames_by_id'].append(
-        {'task_name': 'perform_yolo_detection_by_id', 'arguments': {}}
-    )

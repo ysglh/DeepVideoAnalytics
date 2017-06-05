@@ -1022,6 +1022,38 @@ def sync_bucket_video_by_id(task_id):
     return
 
 
+@app.task(track_started=True, name="detect_custom_objects")
+def detect_custom_objects(task_id):
+    """
+    :param task_id:
+    :return:
+    """
+    start = TEvent.objects.get(pk=task_id)
+    if celery_40_bug_hack(start):
+        return 0
+    start.task_id = detect_custom_objects.request.id
+    start.started = True
+    start.operation = detect_custom_objects.name
+    start.save()
+    start_time = time.time()
+    args = json.loads(start.arguments_json)
+    video_id = start.video_id
+    detector_id = args['detector_pk']
+    custom_detector = subprocess.Popen(['fab', 'detect_custom_objects:{},{}'.format(detector_id,video_id)],cwd=os.path.join(os.path.abspath(__file__).split('tasks.py')[0], '../'))
+    custom_detector.wait()
+    if custom_detector.returncode != 0:
+        start.errored = True
+        start.error_message = "fab detect_custom_objects failed with return code {}".format(custom_detector.returncode)
+        start.seconds = time.time() - start_time
+        start.save()
+        raise ValueError, start.error_message
+    process_next(task_id)
+    start.completed = True
+    start.seconds = time.time() - start_time
+    start.save()
+    return 0
+
+
 @app.task(track_started=True, name="train_yolo_detector")
 def train_yolo_detector(task_id):
     """

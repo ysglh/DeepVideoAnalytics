@@ -664,6 +664,7 @@ def indexes(request):
 def detections(request):
     context = {}
     context["videos"] = Video.objects.all().filter(parent_query__count__isnull=True)
+    context["detectors"] = CustomDetector.objects.all()
     return render(request, 'detections.html', context)
 
 
@@ -764,6 +765,7 @@ def yolo_train(request):
         args['object_names'] = [k.strip() for k in request.POST.get('object_names').split(',') if k.strip()]
         args['excluded_videos'] = request.POST.getlist('excluded_videos')
         detector = CustomDetector()
+        detector.name = args['name']
         detector.algorithm = "yolo"
         detector.arguments = json.dumps(args)
         detector.save()
@@ -795,9 +797,15 @@ def yolo_estimate(request):
 @user_passes_test(user_check)
 def yolo_detect(request):
     if request.method == 'POST':
-        keys = request.POST.get('key')
-        region = request.POST.get('region')
-        bucket = request.POST.get('bucket')
+        detector_pk = request.POST.get('detector_pk')
+        video_pk = request.POST.get('video_pk')
+        task_name = "detect_custom_objects"
+        apply_event = TEvent()
+        apply_event.video_id = video_pk
+        apply_event.operation = task_name
+        apply_event.arguments_json = json.dumps({'detector_pk':int(detector_pk)})
+        apply_event.save()
+        app.send_task(name=task_name, args=[apply_event.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
     else:
         raise NotImplementedError
     return redirect('detections')

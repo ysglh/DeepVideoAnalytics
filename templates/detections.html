@@ -69,16 +69,16 @@
                             <div class="row">
                             <div class="col-lg-6"><div class="form-group">
                                     <label for="excluded_videos">Select detector</label>
-                                    <select class="js-example-basic-single" id="selected_detector" name="selected_detector" style="width:100%">
-                                    {% for v in videos %}
-                                        <option value="{{ v.pk }}">{{ v.name }}</option>
+                                    <select class="js-example-basic-single" id="detector_pk" name="detector_pk" style="width:100%">
+                                    {% for k in detectors %}
+                                        <option value="{{ k.pk }}">{{ k.name }}</option>
                                     {% endfor %}
                                     </select>
                             </div></div>
                             <div class="col-lg-6">
                                 <div class="form-group">
                                     <label for="excluded_videos">Select video/dataset</label>
-                                    <select class="js-example-basic-single" id="selected_video" name="selected_video" style="width:100%">
+                                    <select class="js-example-basic-single" id="video_pk" name="video_pk" style="width:100%">
                                     {% for v in videos %}
                                         <option value="{{ v.pk }}">{{ v.name }}</option>
                                     {% endfor %}
@@ -115,9 +115,9 @@
         InitializeTables();
         var excluded_videos_ids = $("#excluded_videos");
         excluded_videos_ids.select2({theme: "bootstrap"});
-        var selected_video_id = $("#selected_video");
+        var selected_video_id = $("#video_pk");
         selected_video_id.select2({theme: "bootstrap"});
-        var selected_detector_id = $("#selected_detector");
+        var selected_detector_id = $("#detector_pk");
         selected_detector_id.select2({theme: "bootstrap"});
     })
 </script>

@@ -211,6 +211,7 @@ class IndexEntries(models.Model):
 
 
 class CustomDetector(models.Model):
+    name = models.CharField(max_length=100)
     algorithm = models.CharField(max_length=100,default="")
     model_filename = models.CharField(max_length=200,default="")
     vdn_parent = models.TextField(default="")

@@ -14,7 +14,7 @@ DEFAULT_ANCHORS = [(0.57273, 0.677385), (1.87446, 2.06253), (3.33843, 5.47434), 
 
 class YOLOTrainer(object):
 
-    def __init__(self,images,boxes,class_names,args):
+    def __init__(self,images,boxes,class_names,args,test_mode=False):
         self.images = images
         self.args = args
         self.boxes = boxes
@@ -32,7 +32,10 @@ class YOLOTrainer(object):
         self.root_dir = args['root_dir']
         self.base_model = args['base_model'] if 'base_model' in args else "dvalib/yolo/model_data/yolo.h5"
         self.get_detector_mask()
-        self.create_model()
+        if test_mode:
+            self.create_model(load_pretrained=False,freeze_body=False)
+        else:
+            self.create_model()
 
     def process_data(self):
         orig_sizes = []

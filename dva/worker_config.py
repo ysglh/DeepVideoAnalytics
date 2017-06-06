@@ -105,6 +105,9 @@ POST_OPERATION_TASKS = {
         {'task_name': 'sync_bucket_video_by_id', 'arguments': {}},
     ],
     'train_yolo_detector':[
+    ],
+    'detect_custom_objects':[
+        {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'detections'}},
     ]
 }
 

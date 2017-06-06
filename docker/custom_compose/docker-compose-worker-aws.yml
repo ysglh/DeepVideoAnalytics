@@ -18,6 +18,7 @@
        - LAUNCH_Q_qfaceretriever=1
        - LAUNCH_Q_qclusterer=1
        - LAUNCH_Q_qfacedetector=1
+       - LAUNCH_Q_qtrainer=1
        - CELERY_MUTE=1
        - MEDIA_BUCKET=${MEDIA_BUCKET}
        - GPU_AVAILABLE=1

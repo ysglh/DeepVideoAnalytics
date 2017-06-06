@@ -2,7 +2,7 @@ from rest_framework import serializers, viewsets
 from django.contrib.auth.models import User
 from models import Video, AppliedLabel, Frame, Region, Query, QueryResults, TEvent, IndexEntries, VDNDataset, VDNServer, Scene, Clusters, ClusterCodes
 import os, json, logging, glob
-
+from collections import defaultdict
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -152,7 +152,7 @@ class VideoExportSerializer(serializers.ModelSerializer):
                   'uploader','detections','url','youtube_video','frame_list','event_list','label_list','scene_list','index_entries_list')
 
 
-def import_region(a,video_obj,frame,detection_to_pk,vdn_dataset=None):
+def create_region(a,video_obj,vdn_dataset):
     da = Region()
     da.video = video_obj
     da.x = a['x']
@@ -168,6 +168,11 @@ def import_region(a,video_obj,frame,detection_to_pk,vdn_dataset=None):
     da.full_frame = a['full_frame']
     if vdn_dataset:
         da.vdn_dataset = vdn_dataset
+    return da
+
+
+def import_region(a,video_obj,frame,detection_to_pk,vdn_dataset=None):
+    da = create_region(a,video_obj,vdn_dataset)
     da.frame = frame
     da.save()
     if da.region_type == Region.DETECTION:
@@ -210,70 +215,58 @@ def transform_index_entries(di,detection_to_pk,frame_to_pk,video_id,video_root_d
         json.dump(transformed,output)
 
 
-def import_legacy_detection(d,video_obj,frame,vdn_dataset=None):
-    dd = Region()
-    dd.region_type = Region.DETECTION
-    dd.video = video_obj
-    dd.x = d['x']
-    dd.y = d['y']
-    dd.h = d['h']
-    dd.w = d['w']
-    dd.frame = frame
-    dd.confidence = d['confidence']
-    dd.object_name = d['object_name']
-    dd.metadata_json = d['metadata']
-    if vdn_dataset:
-        dd.vdn_dataset = dd.video.vdn_dataset
-    dd.vdn_key = d['id']
-    dd.save()
-    return dd
 
-
-def import_legacy_annotation(a,video_obj,frame,vdn_dataset=None):
-    da = Region()
-    da.region_type = Region.ANNOTATION
-    da.video = video_obj
-    da.x = a['x']
-    da.y = a['y']
-    da.h = a['h']
-    da.w = a['w']
-    da.vdn_key = a['id']
-    if vdn_dataset:
-        da.vdn_dataset = vdn_dataset
-    if a['label'].strip():
-        da.object_name = a['label']
-    da.frame = frame
-    da.full_frame = a['full_frame']
-    da.metadata_text = a['metadata_text']
-    da.metadata_json = a['metadata_json']
-    da.save()
-    if a['label'].strip():
-        dl = AppliedLabel()
-        dl.region = da
-        dl.label_name = a['label']
-        dl.video = da.video
-        dl.frame = da.frame
-        dl.save()
-    return da
-
-
-def import_frame(f,video_obj,detection_to_pk,vdn_dataset=None):
+def create_frame(f,video_obj):
     df = Frame()
     df.video = video_obj
     df.name = f['name']
     df.frame_index = f['frame_index']
     df.subdir = f['subdir']
+    return df
+
+
+def import_frame(f,video_obj,detection_to_pk,vdn_dataset=None):
+    df = create_frame(f, video_obj)
     df.save()
     if 'region_list' in f:
         for a in f['region_list']:
             da = import_region(a,video_obj,df,detection_to_pk,vdn_dataset)
-    else:
-        for d in f['detection_list']:
-            dd = import_legacy_detection(d, video_obj, df, vdn_dataset)
-            detection_to_pk[d['id']] = dd.pk
-        for a in f['annotation_list']:
-            da = import_legacy_annotation(a, video_obj, df, vdn_dataset)
+    elif 'detection_list' in f or 'annotation_list' in f:
+            raise NotImplementedError, "Older format no longer supported"
     return df
+
+
+def bulk_import_frames(flist, video_obj, frame_to_pk, detection_to_pk, vdn_dataset):
+    frame_regions = defaultdict(list)
+    frames = []
+    frame_index_to_fid = {}
+    for i,f in enumerate(flist):
+        frames.append(create_frame(f, video_obj))
+        frame_index_to_fid[i] = f['id']
+        if 'region_list' in f:
+            for a in f['region_list']:
+                ra = create_region(a, video_obj, vdn_dataset)
+                if ra.region_type == Region.DETECTION:
+                    frame_regions[i].append((ra,a['id']))
+                else:
+                    frame_regions[i].append((ra, None))
+        elif 'detection_list' in f or 'annotation_list' in f:
+            raise NotImplementedError,"Older format no longer supported"
+    bulk_frames = Frame.objects.bulk_create(frames)
+    regions = []
+    regions_index_to_rid = {}
+    region_index = 0
+    for i,k in enumerate(bulk_frames):
+        frame_to_pk[frame_index_to_fid[i]] = k.id
+        for r,rid in frame_regions[i]:
+            r.frame_id = k.id
+            regions.append(r)
+            regions_index_to_rid[region_index] = rid
+            region_index += 1
+    bulk_regions = Region.objects.bulk_create(regions)
+    for i,k in enumerate(bulk_regions):
+        if regions_index_to_rid[i]:
+            detection_to_pk[regions_index_to_rid[i]] = k.id
 
 
 def import_video_json(video_obj,video_json,video_root_dir):
@@ -294,11 +287,8 @@ def import_video_json(video_obj,video_json,video_root_dir):
         old_video_path = [fname for fname in glob.glob("{}/video/*.mp4".format(video_root_dir))][0]
         new_video_path = "{}/video/{}.mp4".format(video_root_dir,video_obj.pk)
         os.rename(old_video_path,new_video_path)
-    detection_to_pk = {}
-    frame_to_pk = {}
-    for f in video_json['frame_list']:
-        df = import_frame(f,video_obj,detection_to_pk,vdn_dataset)
-        frame_to_pk[f['id']] = df.pk
+    detection_to_pk, frame_to_pk = {}, {}
+    bulk_import_frames(video_json['frame_list'], video_obj, frame_to_pk, detection_to_pk, vdn_dataset)
     for k,v in detection_to_pk.iteritems():
         original = '{}/detections/{}.jpg'.format(video_root_dir, k)
         temp_file = "{}/detections/d_{}.jpg".format(video_root_dir,v)

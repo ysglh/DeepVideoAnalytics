@@ -28,7 +28,7 @@
 | Original CRNN code by Baoguang Shi  |  [MIT License](https://github.com/bgshih/crnn) |
 | Modified PySceneDetect  |  [BSD 2-Clause](https://github.com/Breakthrough/PySceneDetect)  |
 | Segment annotator  |   [BSD 3-clause](https://github.com/kyamagu/js-segment-annotator/blob/master/LICENSE) |
-| Modified SSD-Tensorflow  | [Individual files are marked as Apache License, Version 2.0](https://github.com/balancap/SSD-Tensorflow) |
+| Modified SSD-Tensorflow  | [Apache 2.0 License (Individual files)](https://github.com/balancap/SSD-Tensorflow) |
 | LOPQ   |  [Apache 2.0 License](https://github.com/yahoo/lopq/blob/master/LICENSE)  |
 | Open Images Pre-trained network |  [Apache 2.0 License](https://github.com/openimages/dataset/blob/master/LICENSE) |
 

@@ -67,9 +67,9 @@
                     <tr>
                         <td>{{ l.label_name }}</td>
                         <td>{{ l.video.name }}</td>
-                        <td>{{ l.video.name }}</td>
-                        <td>{{ l.video.name }}</td>
-                        <td class="text-center"><a href="/frames/{{ f.pk }}">details</a></td>
+                        <td> TODO </td>
+                        <td>{% if l.region %}{{ l.region.object_name }}{% endif %}</td>
+                        <td class="text-center"><a href="/frames/{{ l.frame.pk }}">details</a></td>
                     </tr>
                 {% endfor %}
                 </tbody>

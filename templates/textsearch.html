@@ -6,21 +6,100 @@
 <div class="row">
     <div class="box box-info">
         <div class="box-header">
-            <h2>Text annotations and search</h2>
+            <h2>Full text search & OCR annotations</h2>
         </div>
     </div>
 </div>
 </section>
 <section class="content">
     <div class="row">
+        <div class="col-lg-6 text-center col-lg-offset-3">
+            <form action="." method="post">
+                <div class="row">
+                    <div class="col-lg-9"><input class="form-control" id="q" name="q" /></div>
+                    <div class="col-lg-3"><button type="submit" class="btn btn-primary btn-block"><i class="fa fa-search"> Search</i></button></div>
+                </div>
+                {% csrf_token %}
+            </form>
+        </div>
+    </div>
+    <div class="row" style="margin-top:20px">
         <div class="col-lg-12">
-            <div class="box box-primary">
-                <div class="box-header with-border">
-                    <h4>Detections statistics</h4>
-                </div>
+            {% if results %}
+                <div class="box box-primary">
+                <div class="box-header"><h4>Results: regions</h4></div>
                 <div class="box-body">
+                <table class="table dataTables">
+                <thead>
+                <tr>
+                    <th class="text-center">Object name</th>
+                    <th class="text-center">Text</th>
+                    <th class="text-center">details</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for r in results.regions %}
+                    <tr>
+                        <td>{{ r.object_name }}</td>
+                        <td>{{ r.metadata_text }}</td>
+                        <td class="text-center"><a href="/frames/{{ r.frame.pk }}">details</a></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+                </table>
                 </div>
-            </div>
+                </div>
+                <div class="box box-primary">
+                <div class="box-header"><h4>Results: labels</h4></div>
+                <div class="box-body">
+                <table class="table dataTables">
+                <thead>
+                <tr>
+                    <th class="text-center">Label</th>
+                    <th class="text-center">Video</th>
+                    <th class="text-center">Clip</th>
+                    <th class="text-center">Region</th>
+                    <th class="text-center">Frame</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for l in results.labels %}
+                    <tr>
+                        <td>{{ l.label_name }}</td>
+                        <td>{{ l.video.name }}</td>
+                        <td>{{ l.video.name }}</td>
+                        <td>{{ l.video.name }}</td>
+                        <td class="text-center"><a href="/frames/{{ f.pk }}">details</a></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+                </table>
+                </div>
+                </div>
+                <div class="box box-primary">
+                <div class="box-header"><h4>Results: frames</h4></div>
+                <div class="box-body">
+                <table class="table dataTables">
+                <thead>
+                <tr>
+                    <th class="text-center">Name</th>
+                    <th class="text-center">Directory</th>
+                    <th class="text-center">details</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for f in results.frames %}
+                    <tr>
+                        <td>{{ f.name }}</td>
+                        <td>{{ f.subdir }}</td>
+                        <td class="text-center"><a href="/frames/{{ f.pk }}">details</a></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+                </table>
+                </div>
+                </div>
+            {% endif %}
         </div>
     </div>
 </section>

@@ -682,7 +682,12 @@ def detections(request):
 
 @user_passes_test(user_check)
 def textsearch(request):
-    context = {}
+    context = {'results':{}}
+    if request.method == 'POST':
+        q = request.POST.get('q')
+        context['results']['regions'] = Region.objects.all().filter(metadata_text__contains=q)
+        context['results']['frames'] = Frame.objects.all().filter(name__contains=q)
+        context['results']['labels'] = AppliedLabel.objects.all().filter(label_name__contains=q)
     return render(request, 'textsearch.html', context)
 
 

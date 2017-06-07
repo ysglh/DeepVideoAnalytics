@@ -18,12 +18,16 @@
                 <div class="box-body">
                 <form action="." method="post">
                     <div class="row">
-                        <div class="col-lg-12"><input class="form-control" id="q" name="q" placeholder="enter text to search" /></div>
+                        {% if q %}
+                            <div class="col-lg-12"><input class="form-control" id="q" name="q" required="required" placeholder="enter text to search" /></div>
+                        {% else %}
+                            <div class="col-lg-12"><input class="form-control" id="q" name="q" required="required" placeholder="enter text to search" />{{ q }}</div>
+                        {% endif %}
                     </div>
                     <div class="row" style="margin-top:10px">
-                        <div class="col-md-1 form-group"><label for="frames" class="form-group text-center">Frames<input type="checkbox" checked="checked"  class="" id="frames" name="frames"/></label></div>
                         <div class="col-md-1 form-group"><label for="regions" class="form-group text-center">Regions<input type="checkbox" checked="checked"  class=""  id="regions" name="regions"/></label></div>
                         <div class="col-md-1 form-group"><label for="labels" class="form-group text-center">Labels<input type="checkbox" checked="checked"  class=""  id="labels" name="labels"/></label></div>
+                        <div class="col-md-1 form-group"><label for="frames" class="form-group text-center">Frames<input type="checkbox" checked="checked"  class="" id="frames" name="frames"/></label></div>
                         <div class="col-md-6 form-group">
                             <select class="js-example-basic-single" id="video_pk" name="video_pk" style="width:100%">
                                 <option value="" selected="selected">Search all videos/datasets</option>

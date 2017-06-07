@@ -257,6 +257,7 @@ def bulk_import_frames(flist, video_obj, frame_to_pk, detection_to_pk, vdn_datas
     regions = []
     regions_index_to_rid = {}
     region_index = 0
+    bulk_regions = []
     for i,k in enumerate(bulk_frames):
         frame_to_pk[frame_index_to_fid[i]] = k.id
         for r,rid in frame_regions[i]:
@@ -264,7 +265,11 @@ def bulk_import_frames(flist, video_obj, frame_to_pk, detection_to_pk, vdn_datas
             regions.append(r)
             regions_index_to_rid[region_index] = rid
             region_index += 1
-    bulk_regions = Region.objects.bulk_create(regions)
+            if len(regions) == 1000:
+                bulk_regions.extend(Region.objects.bulk_create(regions))
+                regions = []
+    bulk_regions.extend(Region.objects.bulk_create(regions))
+    regions = []
     for i,k in enumerate(bulk_regions):
         if regions_index_to_rid[i]:
             detection_to_pk[regions_index_to_rid[i]] = k.id

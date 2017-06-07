@@ -19,9 +19,9 @@
                 <form action="." method="post">
                     <div class="row">
                         {% if q %}
-                            <div class="col-lg-12"><input class="form-control" id="q" name="q" required="required" placeholder="enter text to search" /></div>
+                            <div class="col-lg-12"><input class="form-control" id="q" name="q" required="required" value="{{ q }}" placeholder="enter text to search" /></div>
                         {% else %}
-                            <div class="col-lg-12"><input class="form-control" id="q" name="q" required="required" placeholder="enter text to search" />{{ q }}</div>
+                            <div class="col-lg-12"><input class="form-control" id="q" name="q" required="required" placeholder="enter text to search" /></div>
                         {% endif %}
                     </div>
                     <div class="row" style="margin-top:10px">

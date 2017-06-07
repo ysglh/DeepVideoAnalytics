@@ -1153,3 +1153,96 @@ def temp_import_detector(path="/Users/aub3/tempd"):
     d.save()
     create_detector_folders(d)
     shutil.copy("{}/phase_2_best.h5".format(path),"{}/models/{}/phase_2_best.h5".format(settings.MEDIA_ROOT,d.pk))
+
+
+def process_visual_genome():
+    setup_django()
+    import os, shutil, gzip, json
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    from dvaapp.shared import handle_uploaded_file
+    from dvaapp import models
+    from dvaapp.models import TEvent
+    from dvaapp.tasks import extract_frames, export_video_by_id
+    from collections import defaultdict
+    os.system('aws s3api get-object --request-payer "requester" --bucket visualdatanetwork --key visual_genome_objects.txt.gz  /root/DVA/visual_genome_objects.txt.gz')
+    data = defaultdict(list)
+    with gzip.open('/root/DVA/visual_genome_objects.txt.gz') as metadata:
+        for line in metadata:
+            entries = line.strip().split('\t')
+            data[entries[1]].append({
+                'x': int(entries[2]),
+                'y': int(entries[3]),
+                'w': int(entries[4]),
+                'h': int(entries[5]),
+                'object_id': entries[0],
+                'object_name': entries[6],
+                'metadata_text': ' '.join(entries[6:]), })
+    name = "visual_genome"
+    fname = "visual_genome.zip"
+    f = SimpleUploadedFile(fname, "", content_type="application/zip")
+    v = handle_uploaded_file(f, name)
+    outpath = "/root/DVA/dva/media/{}/video/{}.zip".format(v.p.pk, v.pk)
+    os.system('rm  {}'.format(outpath))
+    os.system(
+        'aws s3api get-object --request-payer "requester" --bucket visualdatanetwork --key visual_genome.zip  {}'.format(
+            outpath))
+    extract_frames(TEvent.objects.create(video=v).pk)
+    video = v
+    models.Region.objects.all().filter(video=video).delete()
+    buffer = []
+    batch_count = 0
+    for frame in models.Frame.objects.all().filter(video=video):
+        frame_id = str(int(frame.name.split('/')[-1].split('.')[0]))
+        for o in data[frame_id]:
+            annotation = models.Region()
+            annotation.region_type = models.Region.ANNOTATION
+            annotation.video = v
+            annotation.frame = frame
+            annotation.x = o['x']
+            annotation.y = o['y']
+            annotation.h = o['h']
+            annotation.w = o['w']
+            annotation.object_name = o['object_name']
+            annotation.metadata_json = json.dumps(o)
+            annotation.metadata_text = o['metadata_text']
+            buffer.append(annotation)
+            if len(buffer) == 1000:
+                try:
+                    models.Region.objects.bulk_create(buffer)
+                    batch_count += 1
+                    print "saved {}".format(batch_count)
+                except:
+                    print "encountered an error doing one by one"
+                    for k in buffer:
+                        try:
+                            k.save()
+                        except:
+                            print "skipping"
+                            print k.object_name
+                buffer = []
+    try:
+        models.Region.objects.bulk_create(buffer)
+        print "saved {}".format(batch_count)
+    except:
+        print "encountered an error doing one by one"
+        for k in buffer:
+            try:
+                k.save()
+            except:
+                print "skipping"
+                print k.object_name
+    print "exporting"
+    export_video_by_id(TEvent.objects.create(video=v).pk)
+
+
+@task
+def create_visual_genome():
+    """
+    Create Visual Genome dataset
+    :return:
+    """
+    kill()
+    prompt = "Note running this outside US-East-1 EC2 region will cost 1.5$ due to bandwidth consumed type 'yes' to proceed "
+    if raw_input(prompt) == 'yes':
+        process_visual_genome()
+

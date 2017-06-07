@@ -1181,7 +1181,7 @@ def process_visual_genome():
     fname = "visual_genome.zip"
     f = SimpleUploadedFile(fname, "", content_type="application/zip")
     v = handle_uploaded_file(f, name)
-    outpath = "/root/DVA/dva/media/{}/video/{}.zip".format(v.p.pk, v.pk)
+    outpath = "/root/DVA/dva/media/{}/video/{}.zip".format(v.pk, v.pk)
     os.system('rm  {}'.format(outpath))
     os.system(
         'aws s3api get-object --request-payer "requester" --bucket visualdatanetwork --key visual_genome.zip  {}'.format(

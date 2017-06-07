@@ -21,6 +21,12 @@ from shared import handle_uploaded_file, create_annotation, create_child_vdn_dat
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.mixins import UserPassesTestMixin
 import logging
+try:
+    from django.contrib.postgres.search import SearchVector
+except ImportError:
+    SearchVector = None
+    logging.warning("Could not load Postgres full text search")
+
 
 
 def user_check(user):
@@ -686,12 +692,20 @@ def textsearch(request):
     if request.method == 'POST':
         q = request.POST.get('q')
         context['q'] = q
-        if request.POST.get('regions'):
-            context['results']['regions'] = Region.objects.all().filter(metadata_text__contains=q)
-        if request.POST.get('frames'):
-            context['results']['frames'] = Frame.objects.all().filter(name__contains=q)
-        if request.POST.get('labels'):
-            context['results']['labels'] = AppliedLabel.objects.all().filter(label_name__contains=q)
+        if SearchVector:
+            if request.POST.get('regions'):
+                context['results']['regions'] = Region.objects.annotate(search=SearchVector('object_name','metadata_text')).filter(search=q)
+            if request.POST.get('frames'):
+                context['results']['frames'] = Frame.objects.annotate(search=SearchVector('name','subdir')).filter(search=q)
+            if request.POST.get('labels'):
+                context['results']['labels'] = AppliedLabel.objects.annotate(search=SearchVector('label_name')).filter(search=q)
+        else:
+            if request.POST.get('regions'):
+                context['results']['regions'] = Region.objects.all().filter(metadata_text__contains=q)
+            if request.POST.get('frames'):
+                context['results']['frames'] = Frame.objects.all().filter(name__contains=q)
+            if request.POST.get('labels'):
+                context['results']['labels'] = AppliedLabel.objects.all().filter(label_name__contains=q)
     return render(request, 'textsearch.html', context)
 
 

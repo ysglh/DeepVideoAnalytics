@@ -14,91 +14,124 @@
 <section class="content">
     <div class="row">
         <div class="col-lg-6 text-center col-lg-offset-3">
-            <form action="." method="post">
-                <div class="row">
-                    <div class="col-lg-9"><input class="form-control" id="q" name="q" /></div>
-                    <div class="col-lg-3"><button type="submit" class="btn btn-primary btn-block"><i class="fa fa-search"> Search</i></button></div>
+            <div class="box-primary box">
+                <div class="box-body">
+                <form action="." method="post">
+                    <div class="row">
+                        <div class="col-lg-12"><input class="form-control" id="q" name="q" placeholder="enter text to search" /></div>
+                    </div>
+                    <div class="row" style="margin-top:10px">
+                        <div class="col-md-1 form-group"><label for="frames" class="form-group text-center">Frames<input type="checkbox" checked="checked"  class="" id="frames" name="frames"/></label></div>
+                        <div class="col-md-1 form-group"><label for="regions" class="form-group text-center">Regions<input type="checkbox" checked="checked"  class=""  id="regions" name="regions"/></label></div>
+                        <div class="col-md-1 form-group"><label for="labels" class="form-group text-center">Labels<input type="checkbox" checked="checked"  class=""  id="labels" name="labels"/></label></div>
+                        <div class="col-md-6 form-group">
+                            <select class="js-example-basic-single" id="video_pk" name="video_pk" style="width:100%">
+                                <option value="" selected="selected">Search all videos/datasets</option>
+                            {% for v in videos %}
+                                <option value="{{ v.pk }}">{{ v.name }}</option>
+                            {% endfor %}
+                            </select>
+                        </div>
+                        <div class="text-center col-md-3 form-group"><button type="submit" class="btn btn-primary btn-block"><i class="fa fa-search"></i> Search</button></div>
+
+                    </div>
+                    {% csrf_token %}
+                </form>
                 </div>
-                {% csrf_token %}
-            </form>
+                {% if q %}
+                <div class="box-footer">
+                    <h4>Showing results for: {{ q }}</h4>
+                </div>
+                {% endif %}
+            </div>
         </div>
     </div>
     <div class="row" style="margin-top:20px">
         <div class="col-lg-12">
             {% if results %}
+                {% if results.regions %}
                 <div class="box box-primary">
-                <div class="box-header"><h4>Results: regions</h4></div>
-                <div class="box-body">
-                <table class="table dataTables">
-                <thead>
-                <tr>
-                    <th class="text-center">Object name</th>
-                    <th class="text-center">Text</th>
-                    <th class="text-center">details</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for r in results.regions %}
+                    <div class="box-header"><h4>Results: regions</h4></div>
+                    <div class="box-body">
+                    <table class="table dataTables">
+                    <thead>
                     <tr>
-                        <td>{{ r.object_name }}</td>
-                        <td>{{ r.metadata_text }}</td>
-                        <td class="text-center"><a href="/frames/{{ r.frame.pk }}">details</a></td>
+                        <th class="text-center">Video</th>
+                        <th class="text-center">Frame index</th>
+                        <th class="text-center">Object name</th>
+                        <th class="text-center">Text</th>
+                        <th class="text-center">details</th>
                     </tr>
-                {% endfor %}
-                </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                    {% for r in results.regions %}
+                        <tr>
+                            <td>{{ r.video.name }}</td>
+                            <td>{{ r.frame.frame_index }}</td>
+                            <td>{{ r.object_name }}</td>
+                            <td>{{ r.metadata_text }}</td>
+                            <td class="text-center"><a href="/frames/{{ r.frame.pk }}">details</a></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    </table>
+                    </div>
                 </div>
-                </div>
+                {% endif %}
+                {% if results.labels %}
                 <div class="box box-primary">
-                <div class="box-header"><h4>Results: labels</h4></div>
-                <div class="box-body">
-                <table class="table dataTables">
-                <thead>
-                <tr>
-                    <th class="text-center">Label</th>
-                    <th class="text-center">Video</th>
-                    <th class="text-center">Clip</th>
-                    <th class="text-center">Region</th>
-                    <th class="text-center">Frame</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for l in results.labels %}
+                    <div class="box-header"><h4>Results: labels</h4></div>
+                    <div class="box-body">
+                    <table class="table dataTables">
+                    <thead>
                     <tr>
-                        <td>{{ l.label_name }}</td>
-                        <td>{{ l.video.name }}</td>
-                        <td> TODO </td>
-                        <td>{% if l.region %}{{ l.region.object_name }}{% endif %}</td>
-                        <td class="text-center"><a href="/frames/{{ l.frame.pk }}">details</a></td>
+                        <th class="text-center">Label</th>
+                        <th class="text-center">Video</th>
+                        <th class="text-center">Clip</th>
+                        <th class="text-center">Region</th>
+                        <th class="text-center">Frame</th>
                     </tr>
-                {% endfor %}
-                </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                    {% for l in results.labels %}
+                        <tr>
+                            <td>{{ l.label_name }}</td>
+                            <td>{{ l.video.name }}</td>
+                            <td> TODO </td>
+                            <td>{% if l.region %}{{ l.region.object_name }}{% endif %}</td>
+                            <td class="text-center"><a href="/frames/{{ l.frame.pk }}">details</a></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    </table>
+                    </div>
                 </div>
-                </div>
+                {% endif %}
+                {% if results.frames %}
                 <div class="box box-primary">
-                <div class="box-header"><h4>Results: frames</h4></div>
-                <div class="box-body">
-                <table class="table dataTables">
-                <thead>
-                <tr>
-                    <th class="text-center">Name</th>
-                    <th class="text-center">Directory</th>
-                    <th class="text-center">details</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for f in results.frames %}
+                    <div class="box-header"><h4>Results: frames</h4></div>
+                    <div class="box-body">
+                    <table class="table dataTables">
+                    <thead>
                     <tr>
-                        <td>{{ f.name }}</td>
-                        <td>{{ f.subdir }}</td>
-                        <td class="text-center"><a href="/frames/{{ f.pk }}">details</a></td>
+                        <th class="text-center">Name</th>
+                        <th class="text-center">Directory</th>
+                        <th class="text-center">details</th>
                     </tr>
-                {% endfor %}
-                </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                    {% for f in results.frames %}
+                        <tr>
+                            <td>{{ f.name }}</td>
+                            <td>{{ f.subdir }}</td>
+                            <td class="text-center"><a href="/frames/{{ f.pk }}">details</a></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    </table>
+                    </div>
                 </div>
-                </div>
+                {% endif %}
             {% endif %}
         </div>
     </div>
@@ -108,6 +141,9 @@
 <script>
     $(document).ready(function() {
         InitializeTables();
+        var selected_video_id = $("#video_pk");
+        selected_video_id.select2({theme: "bootstrap"});
+
     })
 </script>
 {% endblock %}

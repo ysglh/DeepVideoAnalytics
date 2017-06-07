@@ -682,12 +682,16 @@ def detections(request):
 
 @user_passes_test(user_check)
 def textsearch(request):
-    context = {'results':{}}
+    context = {'results': {}, "videos": Video.objects.all().filter(parent_query__count__isnull=True)}
     if request.method == 'POST':
         q = request.POST.get('q')
-        context['results']['regions'] = Region.objects.all().filter(metadata_text__contains=q)
-        context['results']['frames'] = Frame.objects.all().filter(name__contains=q)
-        context['results']['labels'] = AppliedLabel.objects.all().filter(label_name__contains=q)
+        context['q'] = q
+        if request.POST.get('regions'):
+            context['results']['regions'] = Region.objects.all().filter(metadata_text__contains=q)
+        if request.POST.get('frames'):
+            context['results']['frames'] = Frame.objects.all().filter(name__contains=q)
+        if request.POST.get('labels'):
+            context['results']['labels'] = AppliedLabel.objects.all().filter(label_name__contains=q)
     return render(request, 'textsearch.html', context)
 
 

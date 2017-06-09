@@ -219,7 +219,7 @@ def pull_vdn_dataset_list(pk):
     for d in response['results']:
         datasets.append(d)
     while response['next']:
-        r = requests.get("{}vdn/api/datasets/".format(server))
+        r = requests.get("{}vdn/api/datasets/".format(server.url))
         response = r.json()
         for d in response['results']:
             datasets.append(d)

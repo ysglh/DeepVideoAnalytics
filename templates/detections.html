@@ -19,7 +19,7 @@
                     <h4>Train custom YOLO detector</h4>
                 </div>
                 <div class="box-body">
-                    <form role="form"  method="post" >
+                    <form role="form" action="/detections/"  method="post" >
                             <div class="row">
                             <div class="col-lg-6"><div class="form-group">
                                 <label for="name">Detector name</label>
@@ -52,8 +52,8 @@
                             </div>
                             {% csrf_token %}
                             <div style="text-align: center">
-                                <button type="submit" formaction="/detections/" class="pull-left btn btn-info"><i class="fa fa-list"></i> Estimate training set</button>
-                                <button type="submit" formaction="/yolo_train" class="pull-right btn btn-primary"><i class="fa fa-gears"></i> Train detector</button>
+                                <button type="submit" name="action" value="estimate" class="pull-left btn btn-info"><i class="fa fa-list"></i> Estimate training set</button>
+                                <button type="submit" name="action" value="train" class="pull-right btn btn-primary"><i class="fa fa-gears"></i> Train detector</button>
                             </div>
                     </form>
                 </div>
@@ -65,7 +65,7 @@
                     <h4>Detect objects using custom detector</h4>
                 </div>
                 <div class="box-body">
-                                        <form role="form"  method="post" >
+                            <form role="form" action="/detections/"  method="post" >
                             <div class="row">
                             <div class="col-lg-6"><div class="form-group">
                                     <label for="excluded_videos">Select detector</label>
@@ -88,7 +88,7 @@
                             </div>
                             {% csrf_token %}
                             <div style="text-align: center">
-                                <button type="submit" style="margin: auto" formaction="/yolo_detect" class="btn btn-info"><i class="fa fa-play"></i> Apply detector</button>
+                                <button type="submit" style="margin: auto" name="action" value="detect" class="btn btn-info"><i class="fa fa-play"></i> Apply detector</button>
                             </div>
                     </form>
                 </div>

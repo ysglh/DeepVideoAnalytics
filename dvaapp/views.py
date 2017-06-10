@@ -698,24 +698,56 @@ def detections(request):
         )
     context["detector_stats"] = detector_stats
     if request.method == 'POST':
-        args = request.POST.get('args')
-        args = json.loads(args) if args.strip() else {}
-        args['name'] = request.POST.get('name')
-        args['labels'] = [k.strip() for k in request.POST.get('labels').split(',') if k.strip()]
-        args['object_names'] = [k.strip() for k in request.POST.get('object_names').split(',') if k.strip()]
-        args['excluded_videos'] = request.POST.getlist('excluded_videos')
-        labels = set(args['labels']) if 'labels' in args else set()
-        object_names = set(args['object_names']) if 'object_names' in args else set()
-        class_distribution, class_names, rboxes, rboxes_set, frames, i_class_names = create_detector_dataset(object_names, labels)
-        context["estimate"] = {
-            'args':args,
-            'class_distribution':class_distribution,
-            'class_names':class_names,
-            'rboxes':rboxes,
-            'rboxes_set':rboxes_set,
-            'frames':frames,
-            'i_class_names':i_class_names
-        }
+        if request.POST.get('action') == 'detect':
+            detector_pk = request.POST.get('detector_pk')
+            video_pk = request.POST.get('video_pk')
+            task_name = "detect_custom_objects"
+            apply_event = TEvent()
+            apply_event.video_id = video_pk
+            apply_event.operation = task_name
+            apply_event.arguments_json = json.dumps({'detector_pk': int(detector_pk)})
+            apply_event.save()
+            app.send_task(name=task_name, args=[apply_event.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+        elif request.POST.get('action') == 'estimate':
+            args = request.POST.get('args')
+            args = json.loads(args) if args.strip() else {}
+            args['name'] = request.POST.get('name')
+            args['labels'] = [k.strip() for k in request.POST.get('labels').split(',') if k.strip()]
+            args['object_names'] = [k.strip() for k in request.POST.get('object_names').split(',') if k.strip()]
+            args['excluded_videos'] = request.POST.getlist('excluded_videos')
+            labels = set(args['labels']) if 'labels' in args else set()
+            object_names = set(args['object_names']) if 'object_names' in args else set()
+            class_distribution, class_names, rboxes, rboxes_set, frames, i_class_names = create_detector_dataset(object_names, labels)
+            context["estimate"] = {
+                'args':args,
+                'class_distribution':class_distribution,
+                'class_names':class_names,
+                'rboxes':rboxes,
+                'rboxes_set':rboxes_set,
+                'frames':frames,
+                'i_class_names':i_class_names
+            }
+        else:
+            args = request.POST.get('args')
+            args = json.loads(args) if args.strip() else {}
+            args['name'] = request.POST.get('name')
+            args['labels'] = [k.strip() for k in request.POST.get('labels').split(',') if k.strip()]
+            args['object_names'] = [k.strip() for k in request.POST.get('object_names').split(',') if k.strip()]
+            args['excluded_videos'] = request.POST.getlist('excluded_videos')
+            detector = CustomDetector()
+            detector.name = args['name']
+            detector.algorithm = "yolo"
+            detector.arguments = json.dumps(args)
+            detector.save()
+            args['detector_pk'] = detector.pk
+            task_name = "train_yolo_detector"
+            train_event = TEvent()
+            train_event.operation = task_name
+            train_event.arguments_json = json.dumps(args)
+            train_event.save()
+            detector.source = train_event
+            detector.save()
+            app.send_task(name=task_name, args=[train_event.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
     return render(request, 'detections.html', context)
 
 
@@ -821,51 +853,6 @@ def import_s3(request):
     else:
         raise NotImplementedError
     return redirect('video_list')
-
-
-@user_passes_test(user_check)
-def yolo_train(request):
-    if request.method == 'POST':
-        args = request.POST.get('args')
-        args = json.loads(args) if args.strip() else {}
-        args['name'] = request.POST.get('name')
-        args['labels'] = [k.strip() for k in request.POST.get('labels').split(',') if k.strip()]
-        args['object_names'] = [k.strip() for k in request.POST.get('object_names').split(',') if k.strip()]
-        args['excluded_videos'] = request.POST.getlist('excluded_videos')
-        detector = CustomDetector()
-        detector.name = args['name']
-        detector.algorithm = "yolo"
-        detector.arguments = json.dumps(args)
-        detector.save()
-        args['detector_pk'] = detector.pk
-        task_name = "train_yolo_detector"
-        train_event = TEvent()
-        train_event.operation = task_name
-        train_event.arguments_json = json.dumps(args)
-        train_event.save()
-        detector.source = train_event
-        detector.save()
-        app.send_task(name=task_name, args=[train_event.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
-    else:
-        raise NotImplementedError
-    return redirect('detections')
-
-
-@user_passes_test(user_check)
-def yolo_detect(request):
-    if request.method == 'POST':
-        detector_pk = request.POST.get('detector_pk')
-        video_pk = request.POST.get('video_pk')
-        task_name = "detect_custom_objects"
-        apply_event = TEvent()
-        apply_event.video_id = video_pk
-        apply_event.operation = task_name
-        apply_event.arguments_json = json.dumps({'detector_pk':int(detector_pk)})
-        apply_event.save()
-        app.send_task(name=task_name, args=[apply_event.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
-    else:
-        raise NotImplementedError
-    return redirect('detections')
 
 
 @user_passes_test(user_check)

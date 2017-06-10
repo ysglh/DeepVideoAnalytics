@@ -17,7 +17,8 @@ from celery.exceptions import TimeoutError
 import math
 from django.db.models import Max
 from shared import handle_uploaded_file, create_annotation, create_child_vdn_dataset, \
-    create_query, create_root_vdn_dataset, handle_youtube_video, pull_vdn_dataset_list, import_vdn_dataset_url
+    create_query, create_root_vdn_dataset, handle_youtube_video, pull_vdn_dataset_list, \
+    import_vdn_dataset_url, create_detector_dataset
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.mixins import UserPassesTestMixin
 import logging
@@ -213,6 +214,18 @@ class ClustersDetails(UserPassesTestMixin, DetailView):
                                                                                 coarse_text=k['coarse_text']).last()
                                       })
 
+        return context
+
+    def test_func(self):
+        return user_check(self.request.user)
+
+
+class DetectionDetail(UserPassesTestMixin, DetailView):
+    model = CustomDetector
+
+    def get_context_data(self, **kwargs):
+        context = super(DetectionDetail, self).get_context_data(**kwargs)
+        # context['coarse'] = []
         return context
 
     def test_func(self):
@@ -680,9 +693,29 @@ def detections(request):
                 'classes': class_dist,
                 'frames_count':d.frames_count,
                 'boxes_count':d.boxes_count,
+                'pk':d.pk
             }
         )
     context["detector_stats"] = detector_stats
+    if request.method == 'POST':
+        args = request.POST.get('args')
+        args = json.loads(args) if args.strip() else {}
+        args['name'] = request.POST.get('name')
+        args['labels'] = [k.strip() for k in request.POST.get('labels').split(',') if k.strip()]
+        args['object_names'] = [k.strip() for k in request.POST.get('object_names').split(',') if k.strip()]
+        args['excluded_videos'] = request.POST.getlist('excluded_videos')
+        labels = set(args['labels']) if 'labels' in args else set()
+        object_names = set(args['object_names']) if 'object_names' in args else set()
+        class_distribution, class_names, rboxes, rboxes_set, frames, i_class_names = create_detector_dataset(object_names, labels)
+        context["estimate"] = {
+            'args':args,
+            'class_distribution':class_distribution,
+            'class_names':class_names,
+            'rboxes':rboxes,
+            'rboxes_set':rboxes_set,
+            'frames':frames,
+            'i_class_names':i_class_names
+        }
     return render(request, 'detections.html', context)
 
 
@@ -813,17 +846,6 @@ def yolo_train(request):
         detector.source = train_event
         detector.save()
         app.send_task(name=task_name, args=[train_event.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
-    else:
-        raise NotImplementedError
-    return redirect('detections')
-
-
-@user_passes_test(user_check)
-def yolo_estimate(request):
-    if request.method == 'POST':
-        keys = request.POST.get('key')
-        region = request.POST.get('region')
-        bucket = request.POST.get('bucket')
     else:
         raise NotImplementedError
     return redirect('detections')

@@ -3,6 +3,7 @@ from models import Video,TEvent,AppliedLabel,Region,Frame,VDNDataset,VDNServer,Q
 from django.conf import settings
 from dva.celery import app
 from celery.result import AsyncResult
+from collections import defaultdict
 import boto3
 
 
@@ -308,3 +309,27 @@ def import_vdn_dataset_url(server,url,user):
         app.send_task(name=task_name, args=[import_video_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
     else:
         raise NotImplementedError
+
+
+def create_detector_dataset(object_names,labels):
+    class_distribution = defaultdict(int)
+    rboxes = defaultdict(list)
+    rboxes_set = defaultdict(set)
+    frames = {}
+    class_names = {k: i for i, k in enumerate(labels.union(object_names))}
+    i_class_names = {i:k for k,i in class_names.items()}
+    for r in Region.objects.all().filter(object_name__in=object_names):
+        frames[r.frame_id] = r.frame
+        if r.pk not in rboxes_set[r.frame_id]:
+            rboxes[r.frame_id].append((class_names[r.object_name], r.x, r.y, r.x + r.w, r.y + r.h))
+            rboxes_set[r.frame_id].add(r.pk)
+            class_distribution[r.object_name] += 1
+    for l in AppliedLabel.objects.all().filter(label_name__in=labels):
+        frames[l.frame_id] = l.frame
+        if l.region:
+            r = l.region
+            if r.pk not in rboxes_set[r.frame_id]:
+                rboxes[l.frame_id].append((class_names[l.label_name], r.x, r.y, r.x + r.w, r.y + r.h))
+                rboxes_set[r.frame_id].add(r.pk)
+                class_distribution[l.label_name] += 1
+    return class_distribution,class_names,rboxes,rboxes_set,frames,i_class_names

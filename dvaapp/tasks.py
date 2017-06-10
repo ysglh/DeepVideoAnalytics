@@ -25,7 +25,7 @@ from . import serializers
 import boto3
 import random
 from botocore.exceptions import ClientError
-from .shared import handle_downloaded_file, create_video_folders, create_detector_folders
+from .shared import handle_downloaded_file, create_video_folders, create_detector_folders, create_detector_dataset
 
 
 def process_next(task_id):
@@ -1074,26 +1074,7 @@ def train_yolo_detector(task_id):
     detector = CustomDetector.objects.get(pk=args['detector_pk'])
     create_detector_folders(detector)
     args['root_dir'] = "{}/models/{}/".format(settings.MEDIA_ROOT,detector.pk)
-    class_names = {k:i for i,k in enumerate(labels.union(object_names))}
-    class_distribution = defaultdict(int)
-    i_class_names = {i:k for k,i in class_names.items()}
-    rboxes = defaultdict(list)
-    rboxes_set = defaultdict(set)
-    frames = {}
-    for r in Region.objects.all().filter(object_name__in=object_names):
-        frames[r.frame_id] = r.frame
-        if r.pk not in rboxes_set[r.frame_id]:
-            rboxes[r.frame_id].append((class_names[r.object_name],r.x,r.y,r.x+r.w,r.y+r.h))
-            rboxes_set[r.frame_id].add(r.pk)
-            class_distribution[r.object_name] += 1
-    for l in AppliedLabel.objects.all().filter(label_name__in=labels):
-        frames[l.frame_id] = l.frame
-        if l.region:
-            r = l.region
-            if r.pk not in rboxes_set[r.frame_id]:
-                rboxes[l.frame_id].append((class_names[l.label_name], r.x, r.y, r.x + r.w, r.y + r.h))
-                rboxes_set[r.frame_id].add(r.pk)
-                class_distribution[l.label_name] += 1
+    class_distribution, class_names, rboxes, rboxes_set, frames, i_class_names = create_detector_dataset(object_names,labels)
     images, boxes = [], []
     path_to_f = {}
     for k,f in frames.iteritems():

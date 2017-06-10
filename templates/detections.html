@@ -52,7 +52,7 @@
                             </div>
                             {% csrf_token %}
                             <div style="text-align: center">
-                                <button type="submit" formaction="/yolo_estimate" class="pull-left btn btn-info"><i class="fa fa-list"></i> Estimate training set</button>
+                                <button type="submit" formaction="/detections/" class="pull-left btn btn-info"><i class="fa fa-list"></i> Estimate training set</button>
                                 <button type="submit" formaction="/yolo_train" class="pull-right btn btn-primary"><i class="fa fa-gears"></i> Train detector</button>
                             </div>
                     </form>
@@ -96,6 +96,18 @@
         </div>
     </div>
     <div class="row">
+        {% if estimate %}
+        <div class="col-lg-12">
+            <h4>{{ estimate.args }}</h4>
+            <table class="table">
+
+            </table>
+        </div>
+
+        {% endif %}
+
+    </div>
+    <div class="row">
         <div class="col-lg-12">
             <div class="box box-primary">
                 <div class="box-header with-border">
@@ -119,7 +131,7 @@
                         <td class="text-right">{{ d.frames_count }} </td>
                         <td class="text-right">{{ d.boxes_count }} </td>
                         <td>{{ d.classes }} </td>
-                        <td class="text-center">details</td>
+                        <td class="text-center"><a href="/detections/{{ d.pk }}">details</a></td>
                     </tr>
                 {% endfor %}
                 </tbody>

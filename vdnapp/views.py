@@ -5,7 +5,7 @@ from django.core.exceptions import MultipleObjectsReturned
 from django.shortcuts import redirect
 from django.views.generic import ListView,DetailView
 from django.utils.decorators import method_decorator
-from .models import Dataset,User,Organization,Annotation
+from .models import Dataset,User,Organization,Annotation,Detector
 from collections import defaultdict
 from django.template.defaulttags import register
 import google
@@ -43,6 +43,12 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
         model = Dataset
         fields = '__all__'
 
+class DetectorSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        depth=1
+        model = Detector
+        fields = '__all__'
+
 
 class AnnotationSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -67,6 +73,32 @@ class DatasetViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = Dataset.objects.all()
     serializer_class = DatasetSerializer
+
+    def perform_create(self, serializer):
+        organization, created = Organization.objects.get_or_create(user=self.request.user)
+        if created:
+            organization.description = "created automatically "
+        serializer.save(organization=organization)
+
+    def perform_update(self, serializer):
+        """
+        Immutable Not allowed
+        :param serializer:
+        :return:
+        """
+        raise NotImplementedError
+
+    def perform_destroy(self, instance):
+        if instance.organization.user == self.request.user:
+            instance.delete()
+        else:
+            raise ValueError, "User not allowed to delete"
+
+
+class DetectorViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    queryset = Detector.objects.all()
+    serializer_class = DetectorSerializer
 
     def perform_create(self, serializer):
         organization, created = Organization.objects.get_or_create(user=self.request.user)
@@ -122,6 +154,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 router = routers.DefaultRouter()
 router.register(r'users', UserViewSet)
 router.register(r'datasets', DatasetViewSet)
+router.register(r'detectors', DetectorViewSet)
 router.register(r'organizations', OrganizationViewSet)
 router.register(r'annotations', AnnotationViewSet)
 
@@ -140,6 +173,7 @@ class LoginRequiredMixin(object):
 def marketing(request):
     context = {}
     context['dataset_list'] = Dataset.objects.all()
+    context['detector_list'] = Detector.objects.all()
     context['annotations'] = Annotation.objects.all()
     return render(request, 'vdnapp/vdn_index.html', context=context)
 

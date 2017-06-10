@@ -97,7 +97,40 @@
                 <div class="box-footer text-center">
                     <h4>Submit your own datasets. (Coming soon)</h4>
                 </div>
-            </div>
+                </div>
+
+
+                <div class="box box-primary m-t" style="margin-top:25px">
+                <div class="box-header with-border text-center">
+                    <h1>Available detectors</h1>
+                </div>
+                <div class="box-body text-center">
+                <table class="table table-bordered dataTables-dict">
+                <thead>
+                <tr>
+                    <th class="text-center">Name</th>
+                    <th class="text-center">User / Organization</th>
+                    <th class="text-center">AWS Requester pays region/bucket/key or Direct Download url</th>
+                    <th class="text-center">View details</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for v in detector_list %}
+                    <tr>
+                        <td>{{ v.name }} </td>
+                        <td>{{ v.organization.user.username }} at {{ v.organization.name }} </td>
+                        <td>{% if v.aws_requester_pays %}{{ v.aws_region }} / {{ v.aws_bucket }} / {{ v.aws_key }}{% else %}<a href="{{ v.download_url }}">Direct download</a>{% endif %}</td>
+                        <td class="text-center"><a href="/vdn/api/detectors/{{ v.pk }}">View details</a></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+                </table>
+                </div>
+                <div class="box-footer text-center">
+                    <h4>Submit your own detectors. (Coming soon)</h4>
+                </div>
+                </div>
+
         </div>
     </div>
     <div class="row">

@@ -3,6 +3,7 @@ import views
 from django.conf import settings
 from django.contrib.auth import views as auth_views
 from rest_framework import routers
+import sys
 
 router = routers.DefaultRouter()
 router.register(r'users', views.UserViewSet)
@@ -66,7 +67,7 @@ urlpatterns = [
     url(r'^accounts/profile/$', views.index, name='profile'),
 ]
 
-if settings.DVA_PRIVATE_ENABLE:
+if settings.DVA_PRIVATE_ENABLE and sys.platform != 'darwin':
     urlpatterns.append(url(r'^$', views.home, name='home'))
 else:
     urlpatterns.append(url(r'^$', views.index, name='app_home'))

@@ -750,11 +750,14 @@ def setup_vdn(password):
     o.description = "Default organization"
     o.name = "Akshay Bhat"
     o.save()
+    Dataset.objects.all().delete()
     datasets = [
         ('LFW_subset','https://www.dropbox.com/s/6nn84z4yzy47vuh/LFW.dva_export.zip'),
         ('MSCOCO_Sample_500','https://www.dropbox.com/s/qhzl9ig7yhems6j/MSCOCO_Sample.dva_export.zip'),
         ('Paris','https://www.dropbox.com/s/a7qf1f3j8vp4nuh/Paris.dva_export.zip'),
         ('Zelda','https://www.dropbox.com/s/oi71afelw5mbt8q/Zelda.dva_export.zip'),
+        ('yolo_test_train_dataset_medium', 'https://www.dropbox.com/s/u1djt5obccczmcj/license_plates.zip'),
+        ('yolo_test_train_dataset_small', 'https://www.dropbox.com/s/wilkuaywfrh29ps/underwater.zip')
     ]
     for name,url in datasets:
         d = Dataset()
@@ -763,6 +766,22 @@ def setup_vdn(password):
         d.name = name
         d.root = True
         d.aws_requester_pays = False
+        d.description = name
+        d.save()
+    aws_datasets = [
+        ('MSCOCO train ~14GB', 'us-east-1','visualdatanetwork','coco_train.dva_export.zip'),
+        ('Visual Genome objects ~16GB', 'us-east-1', 'visualdatanetwork', 'visual_genome.dva_export.zip'),
+        ('aws_test_dir', 'us-east-1', 'visualdatanetwork', '007'),
+    ]
+    for name, region, bucket, key in aws_datasets:
+        d = Dataset()
+        d.organization = o
+        d.name = name
+        d.aws_region = region
+        d.aws_bucket = bucket
+        d.aws_key = key
+        d.root = True
+        d.aws_requester_pays = True
         d.description = name
         d.save()
 

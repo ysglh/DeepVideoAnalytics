@@ -25,7 +25,7 @@ class Dataset(models.Model):
     created = models.DateTimeField('date created', auto_now_add=True)
     description = models.TextField(default="")
     organization = models.ForeignKey(Organization)
-    parent_url = models.CharField(max_length=300,default="")
+    parent_url = models.CharField(max_length=300,default="",blank=True)
     download_url = models.TextField(default="",blank=True)
     aws_requester_pays = models.BooleanField(default=False)
     aws_region = models.TextField(default="",blank=True)

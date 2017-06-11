@@ -227,8 +227,16 @@ class DetectionDetail(UserPassesTestMixin, DetailView):
         context = super(DetectionDetail, self).get_context_data(**kwargs)
         classdist = context['object'].class_distribution.strip()
         context['class_distribution'] = json.loads(classdist) if classdist else {}
-        context['phase_1_log'] = [ k.strip().split(',') for k in context['object'].phase_1_log.split('\n')[1:] if k.strip()]
-        context['phase_2_log'] = [ k.strip().split(',') for k in context['object'].phase_2_log.split('\n')[1:] if k.strip()]
+        context['phase_1_log'] = []
+        context['phase_2_log'] = []
+        for k in context['object'].phase_1_log.split('\n')[1:]:
+            if k.strip():
+                epoch,train_loss,val_loss = k.strip().split(',')
+                context['phase_1_log'].append((epoch,round(float(train_loss),2),round(float(val_loss),2)))
+        for k in context['object'].phase_2_log.split('\n')[1:]:
+            if k.strip():
+                epoch,train_loss,val_loss = k.strip().split(',')
+                context['phase_2_log'].append((epoch,round(float(train_loss),2),round(float(val_loss),2)))
         return context
 
     def test_func(self):

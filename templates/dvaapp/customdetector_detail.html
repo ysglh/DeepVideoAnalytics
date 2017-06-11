@@ -18,7 +18,7 @@
     <div class="row">
         <div class="col-md-6">
             <div class="box box-primary">
-            <div class="box-header with-border">Arguments</div>
+            <div class="box-header with-border"><h3>Arguments</h3></div>
             <div class="box-body">
                 <textarea class="form-control" readonly="readonly"  rows="10">{{ object.arguments }}</textarea>
             </div>
@@ -29,9 +29,9 @@
         </div>
         <div class="col-md-6">
             <div class="box box-primary">
-            <div class="box-header with-border">Class distribution</div>
+            <div class="box-header with-border"><h3>Class distribution</h3></div>
             <div class="box-body">
-                <table class="table dataTable-dict">
+                <table class="table dataTables-dict">
                     <thead>
                         <tr>
                             <th>Object</th>
@@ -54,17 +54,51 @@
     <div class="row">
         <div class="col-md-6">
             <div class="box box-primary">
-            <div class="box-header with-border">Phase 1 loss</div>
+            <div class="box-header with-border"><h3>Phase 1 loss</h3></div>
             <div class="box-body">
-                <textarea class="form-control" readonly="readonly" rows="20">{{ object.phase_1_log }}</textarea>
+                <table class="table dataTables-dict">
+                    <thead>
+                        <tr>
+                            <th>Epoch</th>
+                            <th>Train loss</th>
+                            <th>Validation loss loss</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for k in phase_1_log %}
+                            <tr>
+                                <td class="text-center">{{ k.0 }}</td>
+                                <td class="text-right">{{ k.1 }}</td>
+                                <td class="text-right">{{ k.2 }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
             </div>
         </div>
         <div class="col-md-6">
             <div class="box box-primary">
-            <div class="box-header with-border">Phase 2 loss</div>
+            <div class="box-header with-border"><h3>Phase 2 loss</h3></div>
             <div class="box-body">
-                <textarea class="form-control" readonly="readonly" rows="20">{{ object.phase_2_log }}</textarea>
+                    <table class="table dataTables-dict">
+                    <thead>
+                        <tr>
+                            <th>Epoch</th>
+                            <th>Train loss</th>
+                            <th>Validation loss loss</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for k in phase_2_log %}
+                            <tr>
+                                <td class="text-center">{{ k.0 }}</td>
+                                <td class="text-right">{{ k.1 }}</td>
+                                <td class="text-right">{{ k.2 }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
             </div>
         </div>

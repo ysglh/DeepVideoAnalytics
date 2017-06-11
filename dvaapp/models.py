@@ -9,6 +9,7 @@ class VDNServer(models.Model):
     url = models.URLField()
     name = models.CharField(max_length=200)
     last_response_datasets = models.TextField(default='[]')
+    last_response_detectors = models.TextField(default='[]')
     last_token = models.CharField(max_length=300, default="")
 
 
@@ -27,6 +28,22 @@ class VDNDataset(models.Model):
     aws_key = models.TextField(default="")
     root = models.BooleanField(default=True)
     parent_local = models.ForeignKey('self',null=True)
+    organization_url = models.TextField()
+
+
+class VDNDetector(models.Model):
+    server = models.ForeignKey(VDNServer)
+    response = models.TextField(default="")
+    date_imported = models.DateTimeField('date created', auto_now_add=True)
+    name = models.CharField(max_length=100,default="")
+    created = models.DateTimeField('date created', auto_now_add=True)
+    description = models.TextField(default="")
+    download_url = models.TextField(default="")
+    url = models.TextField(default="")
+    aws_requester_pays = models.BooleanField(default=False)
+    aws_region = models.TextField(default="")
+    aws_bucket = models.TextField(default="")
+    aws_key = models.TextField(default="")
     organization_url = models.TextField()
 
 

@@ -6,7 +6,7 @@ import json
 from django.views.generic import ListView, DetailView
 from .forms import UploadFileForm, YTVideoForm, AnnotationForm
 from .models import Video, Frame, Query, QueryResults, TEvent, IndexEntries, VDNDataset, Region, VDNServer, \
-    ClusterCodes, Clusters, AppliedLabel, Scene, CustomDetector
+    ClusterCodes, Clusters, AppliedLabel, Scene, CustomDetector, VDNDetector
 from dva.celery import app
 import serializers
 from rest_framework import viewsets, mixins
@@ -17,7 +17,7 @@ from celery.exceptions import TimeoutError
 import math
 from django.db.models import Max
 from shared import handle_uploaded_file, create_annotation, create_child_vdn_dataset, \
-    create_query, create_root_vdn_dataset, handle_youtube_video, pull_vdn_dataset_list, \
+    create_query, create_root_vdn_dataset, handle_youtube_video, pull_vdn_list, \
     import_vdn_dataset_url, create_detector_dataset
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.mixins import UserPassesTestMixin
@@ -875,11 +875,13 @@ def video_send_task(request):
 def external(request):
     if request.method == 'POST':
         pk = request.POST.get('server_pk')
-        pull_vdn_dataset_list(pk)
+        pull_vdn_list(pk)
     context = {
         'servers': VDNServer.objects.all(),
-        'available': {server: json.loads(server.last_response_datasets) for server in VDNServer.objects.all()},
+        'available_detatsets': {server: json.loads(server.last_response_datasets) for server in VDNServer.objects.all()},
+        'available_detectors': {server: json.loads(server.last_response_detectors) for server in VDNServer.objects.all()},
         'vdn_datasets': VDNDataset.objects.all(),
+        'vdn_detectors': VDNDetector.objects.all()
     }
     return render(request, 'external_data.html', context)
 

@@ -209,14 +209,15 @@ def create_root_vdn_dataset(s3export,server,headers,name,description):
         raise ValueError,"Could not crated dataset"
 
 
-def pull_vdn_dataset_list(pk):
+def pull_vdn_list(pk):
     """
     Pull list of datasets from configured VDN servers
     """
     server = VDNServer.objects.get(pk=pk)
+    datasets = []
+    detectors = []
     r = requests.get("{}vdn/api/datasets/".format(server.url))
     response = r.json()
-    datasets = []
     for d in response['results']:
         datasets.append(d)
     while response['next']:
@@ -224,9 +225,19 @@ def pull_vdn_dataset_list(pk):
         response = r.json()
         for d in response['results']:
             datasets.append(d)
+    r = requests.get("{}vdn/api/detectors/".format(server.url))
+    response = r.json()
+    for d in response['results']:
+        detectors.append(d)
+    while response['next']:
+        r = requests.get(response['next'])
+        response = r.json()
+        for d in response['results']:
+            detectors.append(d)
     server.last_response_datasets = json.dumps(datasets)
+    server.last_response_detectors = json.dumps(detectors)
     server.save()
-    return server,datasets
+    return server,datasets,detectors
 
 
 def create_query(count,approximate,selected,excluded_pks,image_data_url,user=None):

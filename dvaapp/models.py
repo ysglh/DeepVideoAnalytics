@@ -233,7 +233,7 @@ class CustomDetector(models.Model):
     name = models.CharField(max_length=100)
     algorithm = models.CharField(max_length=100,default="")
     model_filename = models.CharField(max_length=200,default="")
-    vdn_parent = models.TextField(default="")
+    vdn_detector = models.ForeignKey(VDNDetector,null=True)
     arguments = models.TextField(default="")
     phase_1_log = models.TextField(default="")
     phase_2_log = models.TextField(default="")

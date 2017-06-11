@@ -742,6 +742,39 @@ def import_vdn_file(task_id):
     start.save()
 
 
+@app.task(track_started=True, name="import_vdn_detector_file")
+def import_vdn_detector_file(task_id):
+    start = TEvent.objects.get(pk=task_id)
+    if celery_40_bug_hack(start):
+        return 0
+    start.started = True
+    start.task_id = import_vdn_detector_file.request.id
+    start.operation = import_vdn_detector_file.name
+    start.save()
+    start_time = time.time()
+    dd = CustomDetector.objects.get(pk=json.loads(start.arguments_json)['detector_pk'])
+    create_detector_folders(dd, create_subdirs=False)
+    if 'www.dropbox.com' in dd.vdn_detector.download_url and not dd.vdn_detector.download_url.endswith('?dl=1'):
+        r = requests.get(dd.vdn_detector.download_url + '?dl=1')
+    else:
+        r = requests.get(dd.vdn_detector.download_url)
+    output_filename = "{}/models/{}.zip".format(settings.MEDIA_ROOT, dd.pk)
+    with open(output_filename, 'wb') as f:
+        for chunk in r.iter_content(chunk_size=1024):
+            if chunk:
+                f.write(chunk)
+    r.close()
+    source_zip = "{}/models/{}.zip".format(settings.MEDIA_ROOT, dd.pk)
+    zipf = zipfile.ZipFile(source_zip, 'r')
+    zipf.extractall("{}/models/{}/".format(settings.MEDIA_ROOT, dd.pk))
+    zipf.close()
+    os.remove(source_zip)
+    process_next(task_id)
+    start.completed = True
+    start.seconds = time.time() - start_time
+    start.save()
+
+
 @app.task(track_started=True, name="import_vdn_s3")
 def import_vdn_s3(task_id):
     start = TEvent.objects.get(pk=task_id)

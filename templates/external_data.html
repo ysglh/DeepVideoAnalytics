@@ -57,7 +57,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                        {% for server,datasets in available.iteritems %}
+                        {% for server,datasets in available_datasets.iteritems %}
                             {% for dataset in datasets %}
                             <tr>
                                 <td>{{ dataset.name }}</td>
@@ -100,7 +100,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                        {% for server,detectors in available.iteritems %}
+                        {% for server,detectors in available_detectors.iteritems %}
                             {% for detector in detectors %}
                             <tr>
                                 <td>{{ detector.name }}</td>

@@ -1,5 +1,5 @@
 import os,json,requests,base64
-from models import Video,TEvent,AppliedLabel,Region,Frame,VDNDataset,VDNServer,Query
+from models import Video,TEvent,AppliedLabel,Region,Frame,VDNDataset,VDNServer,Query, VDNDetector, CustomDetector
 from django.conf import settings
 from dva.celery import app
 from celery.result import AsyncResult
@@ -318,6 +318,44 @@ def import_vdn_dataset_url(server,url,user):
         import_video_task.operation = task_name
         import_video_task.save()
         app.send_task(name=task_name, args=[import_video_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+    else:
+        raise NotImplementedError
+
+
+def create_vdn_detector(d, server):
+    vdn_detector = VDNDetector()
+    vdn_detector.server = server
+    vdn_detector.name = d['name']
+    vdn_detector.description = d['description']
+    vdn_detector.download_url = d['download_url']
+    vdn_detector.url = d['url']
+    vdn_detector.aws_bucket = d['aws_bucket']
+    vdn_detector.aws_key = d['aws_key']
+    vdn_detector.aws_region = d['aws_region']
+    vdn_detector.aws_requester_pays = d['aws_requester_pays']
+    vdn_detector.organization_url = d['organization']['url']
+    vdn_detector.response = json.dumps(d)
+    vdn_detector.save()
+    return vdn_detector
+
+
+def import_vdn_detector_url(server,url,user):
+    r = requests.get(url)
+    response = r.json()
+    vdn_detector = create_vdn_detector(response, server)
+    detector = CustomDetector()
+    detector.name = vdn_detector.name
+    detector.vdn_detector = vdn_detector
+    detector.save()
+    if vdn_detector.download_url:
+        task_name = 'import_vdn_detector_file'
+        import_vdn_detector_task = TEvent()
+        import_vdn_detector_task.operation = task_name
+        import_vdn_detector_task.arguments_json = json.dumps({'detector_pk':detector.pk})
+        import_vdn_detector_task.save()
+        app.send_task(name=task_name, args=[import_vdn_detector_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[import_vdn_detector_task])
+    elif vdn_detector.aws_key and vdn_detector.aws_bucket:
+        raise NotImplementedError
     else:
         raise NotImplementedError
 

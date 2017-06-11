@@ -27,6 +27,7 @@ TASK_NAMES_TO_QUEUE = {
     "import_vdn_s3":Q_EXTRACTOR,
     "backup_video_to_s3":Q_EXTRACTOR,
     "sync_bucket_video_by_id":Q_EXTRACTOR,
+    "import_vdn_detector_file":Q_EXTRACTOR,
     "push_video_to_vdn_s3":Q_EXTRACTOR,
     "import_video_by_id":Q_EXTRACTOR,
     "import_video_from_s3":Q_EXTRACTOR,
@@ -42,6 +43,7 @@ QUERY_TASK = 'query'
 S3_TASK = 's3task'
 CLUSTER_TASK = 'cluster'
 TRAIN_TASK = 'trainining'
+IMPORT_TASK = 'import'
 
 TASK_NAMES_TO_TYPE = {
     "inception_index_by_id":VIDEO_TASK,
@@ -50,6 +52,7 @@ TASK_NAMES_TO_TYPE = {
     "facenet_query_by_image":QUERY_TASK,
     "extract_frames_by_id":VIDEO_TASK,
     "import_vdn_file":VIDEO_TASK,
+    "import_vdn_detector_file":IMPORT_TASK,
     "import_vdn_s3":VIDEO_TASK,
     "perform_ssd_detection_by_id":VIDEO_TASK,
     "detect_custom_objects":VIDEO_TASK,
@@ -105,6 +108,8 @@ POST_OPERATION_TASKS = {
         {'task_name': 'sync_bucket_video_by_id', 'arguments': {}},
     ],
     'train_yolo_detector':[
+    ],
+    'import_vdn_detector_file':[
     ],
     'detect_custom_objects':[
         {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'detections'}},

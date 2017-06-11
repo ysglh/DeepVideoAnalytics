@@ -18,7 +18,7 @@ import math
 from django.db.models import Max
 from shared import handle_uploaded_file, create_annotation, create_child_vdn_dataset, \
     create_query, create_root_vdn_dataset, handle_youtube_video, pull_vdn_list, \
-    import_vdn_dataset_url, create_detector_dataset
+    import_vdn_dataset_url, create_detector_dataset, import_vdn_detector_url
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.mixins import UserPassesTestMixin
 import logging
@@ -830,6 +830,18 @@ def import_dataset(request):
 
 
 @user_passes_test(user_check)
+def import_detector(request):
+    if request.method == 'POST':
+        url = request.POST.get('detector_url')
+        server = VDNServer.objects.get(pk=request.POST.get('server_pk'))
+        user = request.user if request.user.is_authenticated else None
+        import_vdn_detector_url(server, url, user)
+    else:
+        raise NotImplementedError
+    return redirect('detections')
+
+
+@user_passes_test(user_check)
 def import_s3(request):
     if request.method == 'POST':
         keys = request.POST.get('key')
@@ -878,7 +890,7 @@ def external(request):
         pull_vdn_list(pk)
     context = {
         'servers': VDNServer.objects.all(),
-        'available_detatsets': {server: json.loads(server.last_response_datasets) for server in VDNServer.objects.all()},
+        'available_datasets': {server: json.loads(server.last_response_datasets) for server in VDNServer.objects.all()},
         'available_detectors': {server: json.loads(server.last_response_detectors) for server in VDNServer.objects.all()},
         'vdn_datasets': VDNDataset.objects.all(),
         'vdn_detectors': VDNDetector.objects.all()

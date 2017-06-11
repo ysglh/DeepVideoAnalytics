@@ -233,7 +233,7 @@ else:
     STATIC_URL = '/static/'
     MEDIA_ROOT = '/Users/aub3/media/' if sys.platform == 'darwin' else os.path.join(PROJECT_ROOT, 'media')
     MEDIA_URL = '/media/'
-    for create_dirname in ['queries', 'external', 'models']:
+    for create_dirname in ['queries', 'exports', 'models']:
         if not os.path.isdir("{}/{}".format(MEDIA_ROOT, create_dirname)):
             try:
                 os.mkdir("{}/{}".format(MEDIA_ROOT, create_dirname))

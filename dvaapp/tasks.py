@@ -1070,7 +1070,7 @@ def train_yolo_detector(task_id):
     train_detector.wait()
     if train_detector.returncode != 0:
         start.errored = True
-        start.error_message = "fab train_yolo failed with return code {}".format(train_detector.returncode)
+        start.error_message = "fab train_yolo:{} failed with return code {}".format(start.pk,train_detector.returncode)
         start.seconds = time.time() - start_time
         start.save()
         raise ValueError, start.error_message

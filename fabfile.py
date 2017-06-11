@@ -915,6 +915,7 @@ def detect_custom_objects(detector_pk,video_pk):
         img2.save("{}/{}/detections/{}.jpg".format(settings.MEDIA_ROOT, video_pk, r.pk))
 
 
+@task
 def train_yolo(start_pk):
     """
     Train a yolo model specified in a TaskEvent.

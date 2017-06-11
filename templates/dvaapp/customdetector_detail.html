@@ -6,25 +6,61 @@
 <div class="row">
     <div class="box box-info">
         <div class="box-header">
-            <h2>Custom Detector {{ object.pk }}</h2>
+            <h2>Custom Detector {{ object.name }} trained using {{ object.algorithm }} with {{ object.boxes_count }} boxes on {{ object.frames_count }} images </h2>
         </div>
     </div>
 </div>
 </section>
+
+{#        name = models.CharField(max_length=100)#}
+{#    algorithm = models.CharField(max_length=100,default="")#}
+{#    model_filename = models.CharField(max_length=200,default="")#}
+{#    vdn_parent = models.TextField(default="")#}
+{#    arguments = models.TextField(default="")#}
+{#    phase_1_log = models.TextField(default="")#}
+{#    phase_2_log = models.TextField(default="")#}
+{#    class_distribution = models.TextField(default="")#}
+{#    class_names = models.TextField(default="")#}
+{#    frames_count = models.IntegerField(default=0)#}
+{#    boxes_count = models.IntegerField(default=0)#}
+{#    source = models.ForeignKey(TEvent, null=True)#}
+{#    created = models.DateTimeField('date created', auto_now_add=True)#}
+
+
 <section class="content">
     <div class="row">
-        <div class="col-sm-6">
+        <div class="col-md-6">
             <div class="box box-primary">
+            <div class="box-header with-border">Arguments</div>
+            <div class="box-body">
+                <textarea class="form-control" contenteditable="false">{{ object.arguments }}</textarea>
+            </div>
+            <div class="box-footer">
+                <a href="{{ MEDIA_URL }}exports/{{ object.pk }}.dva_detector.zip" class="btn btn-primary" ><i class="fa fa-download"></i> Download trained model</a>
+            </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="box box-primary">
+            <div class="box-header with-border">Class distribution</div>
             <div class="box-body">
             </div>
             </div>
         </div>
     </div>
     <div class="row">
-        <div class="col-lg-12">
-            <div class="box">
-                <div class="box-body">
-                </div>
+        <div class="col-md-6">
+            <div class="box box-primary">
+            <div class="box-header with-border">Phase 1 loss</div>
+            <div class="box-body">
+            </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="box box-primary">
+            <div class="box-header with-border">Phase 2 loss</div>
+            <div class="box-body">
+            </div>
             </div>
         </div>
     </div>

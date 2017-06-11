@@ -20,7 +20,7 @@
             <div class="box box-primary">
             <div class="box-header with-border">Arguments</div>
             <div class="box-body">
-                <textarea class="form-control" contenteditable="false">{{ object.arguments }}</textarea>
+                <textarea class="form-control" contenteditable="false"  rows="20">{{ object.arguments }}</textarea>
             </div>
             <div class="box-footer">
                 <a href="{{ MEDIA_URL }}exports/{{ object.pk }}.dva_detector.zip" class="btn btn-primary" ><i class="fa fa-download"></i> Download trained model</a>
@@ -56,7 +56,7 @@
             <div class="box box-primary">
             <div class="box-header with-border">Phase 1 loss</div>
             <div class="box-body">
-                <textarea class="form-control" contenteditable="false">{{ object.phase_1_log }}</textarea>
+                <textarea class="form-control" contenteditable="false"  rows="20">{{ object.phase_1_log }}</textarea>
             </div>
             </div>
         </div>
@@ -64,7 +64,7 @@
             <div class="box box-primary">
             <div class="box-header with-border">Phase 2 loss</div>
             <div class="box-body">
-                <textarea class="form-control" contenteditable="false">{{ object.phase_2_log }}</textarea>
+                <textarea class="form-control" contenteditable="false" rows="20">{{ object.phase_2_log }}</textarea>
             </div>
             </div>
         </div>

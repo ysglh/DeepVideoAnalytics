@@ -951,10 +951,11 @@ def train_yolo(start_pk):
     detector.save()
     train_task = trainer.YOLOTrainer(boxes=boxes,images=images,class_names=i_class_names,args=args)
     train_task.train()
-    detector.phase_1_log = file("{}/phase_1.log".format(args['root_dir']))
-    detector.phase_2_log = file("{}/phase_2.log".format(args['root_dir']))
+    detector.phase_1_log = file("{}/phase_1.log".format(args['root_dir'])).read()
+    detector.phase_2_log = file("{}/phase_2.log".format(args['root_dir'])).read()
     detector.class_distribution = json.dumps(class_distribution.items())
     detector.class_names = json.dumps(class_names.items())
+    detector.trained = True
     detector.save()
     results = train_task.predict()
     bulk_regions = []

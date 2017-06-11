@@ -34,8 +34,7 @@ def process_next(task_id):
     if dt.operation in settings.POST_OPERATION_TASKS:
         for k in settings.POST_OPERATION_TASKS[dt.operation]:
             logging.info("launching for {} : {}".format(dt.operation, k))
-            next_task = TEvent.objects.create(video=dt.video, operation=k['task_name'],
-                                              arguments_json=json.dumps(k['arguments']))
+            next_task = TEvent.objects.create(video=dt.video, operation=k['task_name'],arguments_json=json.dumps(k['arguments']),parent=dt)
             app.send_task(k['task_name'], args=[next_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[k['task_name']])
 
 

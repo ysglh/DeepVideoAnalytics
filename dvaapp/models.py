@@ -189,6 +189,8 @@ class TEvent(models.Model):
     clustering = models.ForeignKey(Clusters,null=True)
     arguments_json = models.TextField(default="{}")
     task_id = models.TextField(null=True)
+    parent = models.ForeignKey('self',null=True)
+
 
 class IndexEntries(models.Model):
     video = models.ForeignKey(Video)
@@ -223,6 +225,7 @@ class CustomDetector(models.Model):
     frames_count = models.IntegerField(default=0)
     boxes_count = models.IntegerField(default=0)
     source = models.ForeignKey(TEvent, null=True)
+    trained = models.BooleanField(default=False)
     created = models.DateTimeField('date created', auto_now_add=True)
 
 

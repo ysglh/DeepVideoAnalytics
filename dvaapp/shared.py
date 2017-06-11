@@ -353,7 +353,7 @@ def import_vdn_detector_url(server,url,user):
         import_vdn_detector_task.operation = task_name
         import_vdn_detector_task.arguments_json = json.dumps({'detector_pk':detector.pk})
         import_vdn_detector_task.save()
-        app.send_task(name=task_name, args=[import_vdn_detector_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[import_vdn_detector_task])
+        app.send_task(name=task_name, args=[import_vdn_detector_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
     elif vdn_detector.aws_key and vdn_detector.aws_bucket:
         raise NotImplementedError
     else:

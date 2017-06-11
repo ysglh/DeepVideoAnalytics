@@ -1113,17 +1113,3 @@ def train_yolo_detector(task_id):
     return 0
 
 
-@app.task(track_started=True, name="import_vdn_detector")
-def import_vdn_detector(task_id):
-    start = TEvent.objects.get(pk=task_id)
-    if celery_40_bug_hack(start):
-        return 0
-    start.started = True
-    start.task_id = import_vdn_detector.request.id
-    start.operation = import_vdn_detector.name
-    start.save()
-    start_time = time.time()
-    process_next(task_id)
-    start.completed = True
-    start.seconds = time.time() - start_time
-    start.save()

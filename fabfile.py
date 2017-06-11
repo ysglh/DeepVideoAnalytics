@@ -975,7 +975,7 @@ def train_yolo(start_pk):
     Region.objects.bulk_create(bulk_regions,batch_size=1000)
     folder_name = "{}/models/{}".format(settings.MEDIA_ROOT,detector.pk)
     file_name = '{}/exports/{}.dva_detector.zip'.format(settings.MEDIA_ROOT,detector.pk)
-    zipper = subprocess.Popen(['zip', file_name, '-r', folder_name])
+    zipper = subprocess.Popen(['zip', file_name, '-r', '.'],cwd=folder_name)
     zipper.wait()
     return 0
 

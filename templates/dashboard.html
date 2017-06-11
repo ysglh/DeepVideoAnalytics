@@ -266,18 +266,18 @@
                                     <td class="text-center"><a href="/videos/">view</a></td>
                                 </tr>
                                 <tr>
+                                    <td>Scenes</td>
+                                    <td class="text-right">{{scene_count}}</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
                                     <td>Frames</td>
                                     <td class="text-right">{{frame_count}}</td>
                                     <td></td>
                                 </tr>
                                 <tr>
-                                    <td>Detections</td>
-                                    <td class="text-right">{{detection_count}}</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>Annotations</td>
-                                    <td class="text-right">{{annotation_count}}</td>
+                                    <td>Regions</td>
+                                    <td class="text-right">{{region_count}}</td>
                                     <td></td>
                                 </tr>
                                 <tr>
@@ -289,6 +289,11 @@
                                     <td>Index entries</td>
                                     <td class="text-right">{{ index_entries_count }}</td>
                                     <td class="text-center"><a href="/indexes/">view</a></td>
+                                </tr>
+                                <tr>
+                                    <td>Trained detectors</td>
+                                    <td class="text-right">{{ custom_detector_count }}</td>
+                                    <td class="text-center"><a href="/detections/">view</a></td>
                                 </tr>
                                 <tr>
                                     <td>Task events</td>

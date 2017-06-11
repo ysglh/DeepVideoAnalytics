@@ -401,8 +401,9 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
     context['errored_tasks'] = TEvent.objects.all().filter(errored=True).count()
     context['video_count'] = Video.objects.count() - context['query_count']
     context['index_entries'] = IndexEntries.objects.all()
-    context['detection_count'] = Region.objects.all().filter(region_type=Region.DETECTION).count()
-    context['annotation_count'] = Region.objects.all().filter(region_type=Region.ANNOTATION).count()
+    context['region_count'] = Region.objects.all().count()
+    context['scene_count'] = Scene.objects.all().count()
+    context['custom_detector_count'] = CustomDetector.objects.all().count()
     return render(request, 'dashboard.html', context)
 
 

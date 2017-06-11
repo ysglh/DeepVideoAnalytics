@@ -768,6 +768,8 @@ def import_vdn_detector_file(task_id):
     zipf = zipfile.ZipFile(source_zip, 'r')
     zipf.extractall("{}/models/{}/".format(settings.MEDIA_ROOT, dd.pk))
     zipf.close()
+    serializers.import_detector(dd)
+    dd.save()
     os.remove(source_zip)
     process_next(task_id)
     start.completed = True

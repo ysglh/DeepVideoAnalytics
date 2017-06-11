@@ -162,7 +162,7 @@ def ci():
     django.setup()
     import base64
     from django.core.files.uploadedfile import SimpleUploadedFile
-    from dvaapp.views import handle_uploaded_file, handle_youtube_video, create_query, pull_vdn_dataset_list\
+    from dvaapp.views import handle_uploaded_file, handle_youtube_video, create_query, pull_vdn_list\
         ,import_vdn_dataset_url
     from dvaapp.models import Video, Clusters,IndexEntries,TEvent,VDNServer
     from django.conf import settings
@@ -210,7 +210,7 @@ def ci():
     inception_query_by_image(query.pk)
     query,dv = create_query(10,True,['inception',],[],'data:image/png;base64,'+base64.encodestring(file('tests/query.png').read()))
     inception_query_by_image(query.pk)
-    server, datasets = pull_vdn_dataset_list(1)
+    server, datasets, detectors = pull_vdn_list(1)
     for k in datasets:
         if k['name'] == 'MSCOCO_Sample_500':
             print 'FOUND MSCOCO SAMPLE'
@@ -945,7 +945,12 @@ def train_yolo(start_pk):
         boxes.append(rboxes[k])
         # print k,rboxes[k]
     with open("{}/input.json".format(args['root_dir']),'w') as input_data:
-        json.dump({'boxes':boxes,'images':images,'args':args,'class_names':class_names.items()},input_data)
+        json.dump({'boxes':boxes,
+                   'images':images,
+                   'args':args,
+                   'class_names':class_names.items(),
+                   'class_distribution':class_distribution.items()},
+                  input_data)
     detector.boxes_count = sum([len(k) for k in boxes])
     detector.frames_count = len(images)
     detector.classes_count = len(class_names)

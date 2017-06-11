@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from models import Video, AppliedLabel, Frame, Region, Query, QueryResults, TEvent, IndexEntries, VDNDataset, VDNServer, Scene, Clusters, ClusterCodes
 import os, json, logging, glob
 from collections import defaultdict
+from django.conf import settings
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -306,3 +307,15 @@ def import_video_json(video_obj,video_json,video_root_dir):
     previous_transformed = set()
     for i in video_json['index_entries_list']:
         import_index_entries(i, video_obj, previous_transformed, detection_to_pk, frame_to_pk, video_root_dir)
+
+
+def import_detector(dd):
+    dd.phase_1_log = file("{}/models/{}/phase_1.log".format(settings.MEDIA_ROOT, dd.pk)).read()
+    dd.phase_2_log = file("{}/models/{}/phase_2.log".format(settings.MEDIA_ROOT, dd.pk)).read()
+    with open("{}/models/{}/input.json".format(settings.MEDIA_ROOT, dd.pk)) as fh:
+        metadata = json.load(fh)
+    if 'class_distribution' in metadata:
+        dd.class_distribution = json.dumps(metadata['class_distribution'])
+    else:
+        dd.class_distribution = json.dumps(metadata['class_names'])
+    dd.class_names = json.dumps(metadata['class_names'])

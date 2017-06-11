@@ -814,8 +814,7 @@ def perform_export(s3_export):
         return -1, "Error key already exists"
     with file("{}/{}/table_data.json".format(settings.MEDIA_ROOT, s3_export.video.pk), 'w') as output:
         json.dump(a.data, output)
-    upload = subprocess.Popen(args=["aws", "s3", "sync", ".", "s3://{}/{}/".format(s3_export.bucket, s3_export.key)],
-                              cwd=path)
+    upload = subprocess.Popen(args=["aws", "s3", "sync",'--quiet', ".", "s3://{}/{}/".format(s3_export.bucket, s3_export.key)],cwd=path)
     upload.communicate()
     upload.wait()
     s3_export.completed = True
@@ -901,7 +900,7 @@ def import_video_from_s3(s3_import_id):
     if start.key.strip() and (start.key.endswith('.zip') or start.key.endswith('.mp4')):
         fname = 'temp_' + str(time.time()).replace('.', '_') + '_' + str(random.randint(0, 100)) + '.' + \
                 start.key.split('.')[-1]
-        command = ["aws", "s3", "cp", "s3://{}/{}".format(start.bucket, start.key), fname]
+        command = ["aws", "s3", "cp",'--quiet', "s3://{}/{}".format(start.bucket, start.key), fname]
         path = "{}/".format(settings.MEDIA_ROOT)
         download = subprocess.Popen(args=command, cwd=path)
         download.communicate()
@@ -919,7 +918,7 @@ def import_video_from_s3(s3_import_id):
         return
     else:
         create_video_folders(start.video, create_subdirs=False)
-        command = ["aws", "s3", "cp", "s3://{}/{}/".format(start.bucket, start.key), '.', '--recursive']
+        command = ["aws", "s3", "cp",'--quiet', "s3://{}/{}/".format(start.bucket, start.key), '.', '--recursive']
         command_exec = " ".join(command)
         download = subprocess.Popen(args=command, cwd=path)
         download.communicate()
@@ -1005,8 +1004,8 @@ def sync_bucket_video_by_id(task_id):
         else:
             src = '{}/{}/'.format(settings.MEDIA_ROOT, video_id)
             dest = 's3://{}/{}/'.format(settings.MEDIA_BUCKET, video_id)
-        command = " ".join(['aws', 's3', 'sync', src, dest])
-        syncer = subprocess.Popen(['aws', 's3', 'sync', '--size-only', src, dest])
+        command = " ".join(['aws', 's3', 'sync','--quiet', src, dest])
+        syncer = subprocess.Popen(['aws', 's3', 'sync','--quiet', '--size-only', src, dest])
         syncer.wait()
         if syncer.returncode != 0:
             start.errored = True

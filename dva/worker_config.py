@@ -63,7 +63,7 @@ TASK_NAMES_TO_TYPE = {
     "import_video_from_s3": S3_TASK,
     "perform_clustering": CLUSTER_TASK,
     "assign_open_images_text_tags_by_id": VIDEO_TASK,
-    "train_yolo_detector": Q_TRAINER,
+    "train_yolo_detector": TRAIN_TASK,
 }
 
 # List of tasks which can be called manually

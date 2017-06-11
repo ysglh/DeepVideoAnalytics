@@ -1096,9 +1096,10 @@ def train_yolo_detector(task_id):
     detector.class_names = json.dumps(class_names.items())
     detector.save()
     results = train_task.predict()
+    bulk_regions = []
     for path, box_class, score, top, left, bottom, right in results:
         r = Region()
-        r.region_type = r.DETECTION
+        r.region_type = r.ANNOTATION
         r.confidence = int(100.0 * score)
         r.object_name = "YOLO_{}_{}".format(detector.pk,box_class)
         r.y = top
@@ -1107,7 +1108,12 @@ def train_yolo_detector(task_id):
         r.h = bottom - top
         r.frame_id = path_to_f[path].pk
         r.video_id = path_to_f[path].video_id
-        r.save()
+        bulk_regions.append(r)
+    Region.objects.bulk_create(bulk_regions,batch_size=1000)
+    folder_name = "{}/models/{}".format(settings.MEDIA_ROOT,detector.pk)
+    file_name = '{}/exports/{}.dva_detector.zip'.format(settings.MEDIA_ROOT,detector.pk)
+    zipper = subprocess.Popen(['zip', file_name, '-r', folder_name])
+    zipper.wait()
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()

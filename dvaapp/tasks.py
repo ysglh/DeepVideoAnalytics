@@ -1067,53 +1067,14 @@ def train_yolo_detector(task_id):
     start.operation = train_yolo_detector.name
     start.save()
     start_time = time.time()
-    args = json.loads(start.arguments_json)
-    labels = set(args['labels']) if 'labels' in args else set()
-    object_names = set(args['object_names']) if 'object_names' in args else set()
-    detector = CustomDetector.objects.get(pk=args['detector_pk'])
-    create_detector_folders(detector)
-    args['root_dir'] = "{}/models/{}/".format(settings.MEDIA_ROOT,detector.pk)
-    class_distribution, class_names, rboxes, rboxes_set, frames, i_class_names = create_detector_dataset(object_names,labels)
-    images, boxes = [], []
-    path_to_f = {}
-    for k,f in frames.iteritems():
-        path = "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,f.video_id,f.frame_index)
-        path_to_f[path] = f
-        images.append(path)
-        boxes.append(rboxes[k])
-        # print k,rboxes[k]
-    with open("{}/input.json".format(args['root_dir']),'w') as input_data:
-        json.dump({'boxes':boxes,'images':images,'args':args,'class_names':class_names.items()},input_data)
-    detector.boxes_count = sum([len(k) for k in boxes])
-    detector.frames_count = len(images)
-    detector.classes_count = len(class_names)
-    detector.save()
-    train_task = trainer.YOLOTrainer(boxes=boxes,images=images,class_names=i_class_names,args=args)
-    train_task.train()
-    detector.phase_1_log = file("{}/phase_1.log".format(args['root_dir']))
-    detector.phase_2_log = file("{}/phase_2.log".format(args['root_dir']))
-    detector.class_distribution = json.dumps(class_distribution.items())
-    detector.class_names = json.dumps(class_names.items())
-    detector.save()
-    results = train_task.predict()
-    bulk_regions = []
-    for path, box_class, score, top, left, bottom, right in results:
-        r = Region()
-        r.region_type = r.ANNOTATION
-        r.confidence = int(100.0 * score)
-        r.object_name = "YOLO_{}_{}".format(detector.pk,box_class)
-        r.y = top
-        r.x = left
-        r.w = right - left
-        r.h = bottom - top
-        r.frame_id = path_to_f[path].pk
-        r.video_id = path_to_f[path].video_id
-        bulk_regions.append(r)
-    Region.objects.bulk_create(bulk_regions,batch_size=1000)
-    folder_name = "{}/models/{}".format(settings.MEDIA_ROOT,detector.pk)
-    file_name = '{}/exports/{}.dva_detector.zip'.format(settings.MEDIA_ROOT,detector.pk)
-    zipper = subprocess.Popen(['zip', file_name, '-r', folder_name])
-    zipper.wait()
+    train_detector = subprocess.Popen(['fab', 'train_yolo:{}'.format(start.pk)],cwd=os.path.join(os.path.abspath(__file__).split('tasks.py')[0], '../'))
+    train_detector.wait()
+    if train_detector.returncode != 0:
+        start.errored = True
+        start.error_message = "fab train_yolo failed with return code {}".format(train_detector.returncode)
+        start.seconds = time.time() - start_time
+        start.save()
+        raise ValueError, start.error_message
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()

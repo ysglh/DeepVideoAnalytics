@@ -80,7 +80,7 @@ class WVideo(object):
             extract = sp.Popen(shlex.split(command))
             extract.wait()
             segments_dir = "{}/{}/{}/".format(self.media_dir,self.primary_key,'segments')
-            command = 'ffmpeg -i {}  -acodec copy -f segment -vcodec copy -segment_times 1 -reset_timestamps 1 -map 0 ' \
+            command = 'ffmpeg -i {} -c copy -map 0 -segment_time 1 -f segment -reset_timestamps 1 ' \
                       '-segment_list_type csv -segment_list {}/segments.csv ' \
                       '{}/%d.mp4'.format(self.local_path,segments_dir,segments_dir)
             logging.info(command)

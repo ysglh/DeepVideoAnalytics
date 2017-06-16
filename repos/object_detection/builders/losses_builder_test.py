@@ -24,9 +24,8 @@ from object_detection.protos import losses_pb2
 
 
 class LocalizationLossBuilderTest(tf.test.TestCase):
-
-  def test_build_weighted_l2_localization_loss(self):
-    losses_text_proto = """
+    def test_build_weighted_l2_localization_loss(self):
+        losses_text_proto = """
       localization_loss {
         weighted_l2 {
         }
@@ -36,14 +35,14 @@ class LocalizationLossBuilderTest(tf.test.TestCase):
         }
       }
     """
-    losses_proto = losses_pb2.Loss()
-    text_format.Merge(losses_text_proto, losses_proto)
-    _, localization_loss, _, _, _ = losses_builder.build(losses_proto)
-    self.assertTrue(isinstance(localization_loss,
-                               losses.WeightedL2LocalizationLoss))
+        losses_proto = losses_pb2.Loss()
+        text_format.Merge(losses_text_proto, losses_proto)
+        _, localization_loss, _, _, _ = losses_builder.build(losses_proto)
+        self.assertTrue(isinstance(localization_loss,
+                                   losses.WeightedL2LocalizationLoss))
 
-  def test_build_weighted_smooth_l1_localization_loss(self):
-    losses_text_proto = """
+    def test_build_weighted_smooth_l1_localization_loss(self):
+        losses_text_proto = """
       localization_loss {
         weighted_smooth_l1 {
         }
@@ -53,14 +52,14 @@ class LocalizationLossBuilderTest(tf.test.TestCase):
         }
       }
     """
-    losses_proto = losses_pb2.Loss()
-    text_format.Merge(losses_text_proto, losses_proto)
-    _, localization_loss, _, _, _ = losses_builder.build(losses_proto)
-    self.assertTrue(isinstance(localization_loss,
-                               losses.WeightedSmoothL1LocalizationLoss))
+        losses_proto = losses_pb2.Loss()
+        text_format.Merge(losses_text_proto, losses_proto)
+        _, localization_loss, _, _, _ = losses_builder.build(losses_proto)
+        self.assertTrue(isinstance(localization_loss,
+                                   losses.WeightedSmoothL1LocalizationLoss))
 
-  def test_build_weighted_iou_localization_loss(self):
-    losses_text_proto = """
+    def test_build_weighted_iou_localization_loss(self):
+        losses_text_proto = """
       localization_loss {
         weighted_iou {
         }
@@ -70,14 +69,14 @@ class LocalizationLossBuilderTest(tf.test.TestCase):
         }
       }
     """
-    losses_proto = losses_pb2.Loss()
-    text_format.Merge(losses_text_proto, losses_proto)
-    _, localization_loss, _, _, _ = losses_builder.build(losses_proto)
-    self.assertTrue(isinstance(localization_loss,
-                               losses.WeightedIOULocalizationLoss))
+        losses_proto = losses_pb2.Loss()
+        text_format.Merge(losses_text_proto, losses_proto)
+        _, localization_loss, _, _, _ = losses_builder.build(losses_proto)
+        self.assertTrue(isinstance(localization_loss,
+                                   losses.WeightedIOULocalizationLoss))
 
-  def test_anchorwise_output(self):
-    losses_text_proto = """
+    def test_anchorwise_output(self):
+        losses_text_proto = """
       localization_loss {
         weighted_smooth_l1 {
           anchorwise_output: true
@@ -88,34 +87,33 @@ class LocalizationLossBuilderTest(tf.test.TestCase):
         }
       }
     """
-    losses_proto = losses_pb2.Loss()
-    text_format.Merge(losses_text_proto, losses_proto)
-    _, localization_loss, _, _, _ = losses_builder.build(losses_proto)
-    self.assertTrue(isinstance(localization_loss,
-                               losses.WeightedSmoothL1LocalizationLoss))
-    predictions = tf.constant([[[0.0, 0.0, 1.0, 1.0], [0.0, 0.0, 1.0, 1.0]]])
-    targets = tf.constant([[[0.0, 0.0, 1.0, 1.0], [0.0, 0.0, 1.0, 1.0]]])
-    weights = tf.constant([[1.0, 1.0]])
-    loss = localization_loss(predictions, targets, weights=weights)
-    self.assertEqual(loss.shape, [1, 2])
+        losses_proto = losses_pb2.Loss()
+        text_format.Merge(losses_text_proto, losses_proto)
+        _, localization_loss, _, _, _ = losses_builder.build(losses_proto)
+        self.assertTrue(isinstance(localization_loss,
+                                   losses.WeightedSmoothL1LocalizationLoss))
+        predictions = tf.constant([[[0.0, 0.0, 1.0, 1.0], [0.0, 0.0, 1.0, 1.0]]])
+        targets = tf.constant([[[0.0, 0.0, 1.0, 1.0], [0.0, 0.0, 1.0, 1.0]]])
+        weights = tf.constant([[1.0, 1.0]])
+        loss = localization_loss(predictions, targets, weights=weights)
+        self.assertEqual(loss.shape, [1, 2])
 
-  def test_raise_error_on_empty_localization_config(self):
-    losses_text_proto = """
+    def test_raise_error_on_empty_localization_config(self):
+        losses_text_proto = """
       classification_loss {
         weighted_softmax {
         }
       }
     """
-    losses_proto = losses_pb2.Loss()
-    text_format.Merge(losses_text_proto, losses_proto)
-    with self.assertRaises(ValueError):
-      losses_builder._build_localization_loss(losses_proto)
+        losses_proto = losses_pb2.Loss()
+        text_format.Merge(losses_text_proto, losses_proto)
+        with self.assertRaises(ValueError):
+            losses_builder._build_localization_loss(losses_proto)
 
 
 class ClassificationLossBuilderTest(tf.test.TestCase):
-
-  def test_build_weighted_sigmoid_classification_loss(self):
-    losses_text_proto = """
+    def test_build_weighted_sigmoid_classification_loss(self):
+        losses_text_proto = """
       classification_loss {
         weighted_sigmoid {
         }
@@ -125,14 +123,14 @@ class ClassificationLossBuilderTest(tf.test.TestCase):
         }
       }
     """
-    losses_proto = losses_pb2.Loss()
-    text_format.Merge(losses_text_proto, losses_proto)
-    classification_loss, _, _, _, _ = losses_builder.build(losses_proto)
-    self.assertTrue(isinstance(classification_loss,
-                               losses.WeightedSigmoidClassificationLoss))
+        losses_proto = losses_pb2.Loss()
+        text_format.Merge(losses_text_proto, losses_proto)
+        classification_loss, _, _, _, _ = losses_builder.build(losses_proto)
+        self.assertTrue(isinstance(classification_loss,
+                                   losses.WeightedSigmoidClassificationLoss))
 
-  def test_build_weighted_softmax_classification_loss(self):
-    losses_text_proto = """
+    def test_build_weighted_softmax_classification_loss(self):
+        losses_text_proto = """
       classification_loss {
         weighted_softmax {
         }
@@ -142,14 +140,14 @@ class ClassificationLossBuilderTest(tf.test.TestCase):
         }
       }
     """
-    losses_proto = losses_pb2.Loss()
-    text_format.Merge(losses_text_proto, losses_proto)
-    classification_loss, _, _, _, _ = losses_builder.build(losses_proto)
-    self.assertTrue(isinstance(classification_loss,
-                               losses.WeightedSoftmaxClassificationLoss))
+        losses_proto = losses_pb2.Loss()
+        text_format.Merge(losses_text_proto, losses_proto)
+        classification_loss, _, _, _, _ = losses_builder.build(losses_proto)
+        self.assertTrue(isinstance(classification_loss,
+                                   losses.WeightedSoftmaxClassificationLoss))
 
-  def test_build_bootstrapped_sigmoid_classification_loss(self):
-    losses_text_proto = """
+    def test_build_bootstrapped_sigmoid_classification_loss(self):
+        losses_text_proto = """
       classification_loss {
         bootstrapped_sigmoid {
           alpha: 0.5
@@ -160,14 +158,14 @@ class ClassificationLossBuilderTest(tf.test.TestCase):
         }
       }
     """
-    losses_proto = losses_pb2.Loss()
-    text_format.Merge(losses_text_proto, losses_proto)
-    classification_loss, _, _, _, _ = losses_builder.build(losses_proto)
-    self.assertTrue(isinstance(classification_loss,
-                               losses.BootstrappedSigmoidClassificationLoss))
+        losses_proto = losses_pb2.Loss()
+        text_format.Merge(losses_text_proto, losses_proto)
+        classification_loss, _, _, _, _ = losses_builder.build(losses_proto)
+        self.assertTrue(isinstance(classification_loss,
+                                   losses.BootstrappedSigmoidClassificationLoss))
 
-  def test_anchorwise_output(self):
-    losses_text_proto = """
+    def test_anchorwise_output(self):
+        losses_text_proto = """
       classification_loss {
         weighted_sigmoid {
           anchorwise_output: true
@@ -178,34 +176,33 @@ class ClassificationLossBuilderTest(tf.test.TestCase):
         }
       }
     """
-    losses_proto = losses_pb2.Loss()
-    text_format.Merge(losses_text_proto, losses_proto)
-    classification_loss, _, _, _, _ = losses_builder.build(losses_proto)
-    self.assertTrue(isinstance(classification_loss,
-                               losses.WeightedSigmoidClassificationLoss))
-    predictions = tf.constant([[[0.0, 1.0, 0.0], [0.0, 0.5, 0.5]]])
-    targets = tf.constant([[[0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]])
-    weights = tf.constant([[1.0, 1.0]])
-    loss = classification_loss(predictions, targets, weights=weights)
-    self.assertEqual(loss.shape, [1, 2])
+        losses_proto = losses_pb2.Loss()
+        text_format.Merge(losses_text_proto, losses_proto)
+        classification_loss, _, _, _, _ = losses_builder.build(losses_proto)
+        self.assertTrue(isinstance(classification_loss,
+                                   losses.WeightedSigmoidClassificationLoss))
+        predictions = tf.constant([[[0.0, 1.0, 0.0], [0.0, 0.5, 0.5]]])
+        targets = tf.constant([[[0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]])
+        weights = tf.constant([[1.0, 1.0]])
+        loss = classification_loss(predictions, targets, weights=weights)
+        self.assertEqual(loss.shape, [1, 2])
 
-  def test_raise_error_on_empty_config(self):
-    losses_text_proto = """
+    def test_raise_error_on_empty_config(self):
+        losses_text_proto = """
       localization_loss {
         weighted_l2 {
         }
       }
     """
-    losses_proto = losses_pb2.Loss()
-    text_format.Merge(losses_text_proto, losses_proto)
-    with self.assertRaises(ValueError):
-      losses_builder.build(losses_proto)
+        losses_proto = losses_pb2.Loss()
+        text_format.Merge(losses_text_proto, losses_proto)
+        with self.assertRaises(ValueError):
+            losses_builder.build(losses_proto)
 
 
 class HardExampleMinerBuilderTest(tf.test.TestCase):
-
-  def test_do_not_build_hard_example_miner_by_default(self):
-    losses_text_proto = """
+    def test_do_not_build_hard_example_miner_by_default(self):
+        losses_text_proto = """
       localization_loss {
         weighted_l2 {
         }
@@ -215,13 +212,13 @@ class HardExampleMinerBuilderTest(tf.test.TestCase):
         }
       }
     """
-    losses_proto = losses_pb2.Loss()
-    text_format.Merge(losses_text_proto, losses_proto)
-    _, _, _, _, hard_example_miner = losses_builder.build(losses_proto)
-    self.assertEqual(hard_example_miner, None)
+        losses_proto = losses_pb2.Loss()
+        text_format.Merge(losses_text_proto, losses_proto)
+        _, _, _, _, hard_example_miner = losses_builder.build(losses_proto)
+        self.assertEqual(hard_example_miner, None)
 
-  def test_build_hard_example_miner_for_classification_loss(self):
-    losses_text_proto = """
+    def test_build_hard_example_miner_for_classification_loss(self):
+        losses_text_proto = """
       localization_loss {
         weighted_l2 {
         }
@@ -234,14 +231,14 @@ class HardExampleMinerBuilderTest(tf.test.TestCase):
         loss_type: CLASSIFICATION
       }
     """
-    losses_proto = losses_pb2.Loss()
-    text_format.Merge(losses_text_proto, losses_proto)
-    _, _, _, _, hard_example_miner = losses_builder.build(losses_proto)
-    self.assertTrue(isinstance(hard_example_miner, losses.HardExampleMiner))
-    self.assertEqual(hard_example_miner._loss_type, 'cls')
+        losses_proto = losses_pb2.Loss()
+        text_format.Merge(losses_text_proto, losses_proto)
+        _, _, _, _, hard_example_miner = losses_builder.build(losses_proto)
+        self.assertTrue(isinstance(hard_example_miner, losses.HardExampleMiner))
+        self.assertEqual(hard_example_miner._loss_type, 'cls')
 
-  def test_build_hard_example_miner_for_localization_loss(self):
-    losses_text_proto = """
+    def test_build_hard_example_miner_for_localization_loss(self):
+        losses_text_proto = """
       localization_loss {
         weighted_l2 {
         }
@@ -254,14 +251,14 @@ class HardExampleMinerBuilderTest(tf.test.TestCase):
         loss_type: LOCALIZATION
       }
     """
-    losses_proto = losses_pb2.Loss()
-    text_format.Merge(losses_text_proto, losses_proto)
-    _, _, _, _, hard_example_miner = losses_builder.build(losses_proto)
-    self.assertTrue(isinstance(hard_example_miner, losses.HardExampleMiner))
-    self.assertEqual(hard_example_miner._loss_type, 'loc')
+        losses_proto = losses_pb2.Loss()
+        text_format.Merge(losses_text_proto, losses_proto)
+        _, _, _, _, hard_example_miner = losses_builder.build(losses_proto)
+        self.assertTrue(isinstance(hard_example_miner, losses.HardExampleMiner))
+        self.assertEqual(hard_example_miner._loss_type, 'loc')
 
-  def test_build_hard_example_miner_with_non_default_values(self):
-    losses_text_proto = """
+    def test_build_hard_example_miner_with_non_default_values(self):
+        losses_text_proto = """
       localization_loss {
         weighted_l2 {
         }
@@ -278,20 +275,19 @@ class HardExampleMinerBuilderTest(tf.test.TestCase):
         min_negatives_per_image: 3
       }
     """
-    losses_proto = losses_pb2.Loss()
-    text_format.Merge(losses_text_proto, losses_proto)
-    _, _, _, _, hard_example_miner = losses_builder.build(losses_proto)
-    self.assertTrue(isinstance(hard_example_miner, losses.HardExampleMiner))
-    self.assertEqual(hard_example_miner._num_hard_examples, 32)
-    self.assertAlmostEqual(hard_example_miner._iou_threshold, 0.5)
-    self.assertEqual(hard_example_miner._max_negatives_per_positive, 10)
-    self.assertEqual(hard_example_miner._min_negatives_per_image, 3)
+        losses_proto = losses_pb2.Loss()
+        text_format.Merge(losses_text_proto, losses_proto)
+        _, _, _, _, hard_example_miner = losses_builder.build(losses_proto)
+        self.assertTrue(isinstance(hard_example_miner, losses.HardExampleMiner))
+        self.assertEqual(hard_example_miner._num_hard_examples, 32)
+        self.assertAlmostEqual(hard_example_miner._iou_threshold, 0.5)
+        self.assertEqual(hard_example_miner._max_negatives_per_positive, 10)
+        self.assertEqual(hard_example_miner._min_negatives_per_image, 3)
 
 
 class LossBuilderTest(tf.test.TestCase):
-
-  def test_build_all_loss_parameters(self):
-    losses_text_proto = """
+    def test_build_all_loss_parameters(self):
+        losses_text_proto = """
       localization_loss {
         weighted_l2 {
         }
@@ -305,19 +301,19 @@ class LossBuilderTest(tf.test.TestCase):
       classification_weight: 0.8
       localization_weight: 0.2
     """
-    losses_proto = losses_pb2.Loss()
-    text_format.Merge(losses_text_proto, losses_proto)
-    (classification_loss, localization_loss,
-     classification_weight, localization_weight,
-     hard_example_miner) = losses_builder.build(losses_proto)
-    self.assertTrue(isinstance(hard_example_miner, losses.HardExampleMiner))
-    self.assertTrue(isinstance(classification_loss,
-                               losses.WeightedSoftmaxClassificationLoss))
-    self.assertTrue(isinstance(localization_loss,
-                               losses.WeightedL2LocalizationLoss))
-    self.assertAlmostEqual(classification_weight, 0.8)
-    self.assertAlmostEqual(localization_weight, 0.2)
+        losses_proto = losses_pb2.Loss()
+        text_format.Merge(losses_text_proto, losses_proto)
+        (classification_loss, localization_loss,
+         classification_weight, localization_weight,
+         hard_example_miner) = losses_builder.build(losses_proto)
+        self.assertTrue(isinstance(hard_example_miner, losses.HardExampleMiner))
+        self.assertTrue(isinstance(classification_loss,
+                                   losses.WeightedSoftmaxClassificationLoss))
+        self.assertTrue(isinstance(localization_loss,
+                                   losses.WeightedL2LocalizationLoss))
+        self.assertAlmostEqual(classification_weight, 0.8)
+        self.assertAlmostEqual(localization_weight, 0.2)
 
 
 if __name__ == '__main__':
-  tf.test.main()
+    tf.test.main()

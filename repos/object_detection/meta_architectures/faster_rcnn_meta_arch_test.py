@@ -22,63 +22,62 @@ from object_detection.meta_architectures import faster_rcnn_meta_arch_test_lib
 
 class FasterRCNNMetaArchTest(
     faster_rcnn_meta_arch_test_lib.FasterRCNNMetaArchTestBase):
+    def test_postprocess_second_stage_only_inference_mode_with_masks(self):
+        model = self._build_model(
+            is_training=False, first_stage_only=False, second_stage_batch_size=6)
 
-  def test_postprocess_second_stage_only_inference_mode_with_masks(self):
-    model = self._build_model(
-        is_training=False, first_stage_only=False, second_stage_batch_size=6)
+        batch_size = 2
+        total_num_padded_proposals = batch_size * model.max_num_proposals
+        proposal_boxes = tf.constant(
+            [[[1, 1, 2, 3],
+              [0, 0, 1, 1],
+              [.5, .5, .6, .6],
+              4 * [0], 4 * [0], 4 * [0], 4 * [0], 4 * [0]],
+             [[2, 3, 6, 8],
+              [1, 2, 5, 3],
+              4 * [0], 4 * [0], 4 * [0], 4 * [0], 4 * [0], 4 * [0]]], dtype=tf.float32)
+        num_proposals = tf.constant([3, 2], dtype=tf.int32)
+        refined_box_encodings = tf.zeros(
+            [total_num_padded_proposals, model.num_classes, 4], dtype=tf.float32)
+        class_predictions_with_background = tf.ones(
+            [total_num_padded_proposals, model.num_classes + 1], dtype=tf.float32)
+        image_shape = tf.constant([batch_size, 36, 48, 3], dtype=tf.int32)
 
-    batch_size = 2
-    total_num_padded_proposals = batch_size * model.max_num_proposals
-    proposal_boxes = tf.constant(
-        [[[1, 1, 2, 3],
-          [0, 0, 1, 1],
-          [.5, .5, .6, .6],
-          4*[0], 4*[0], 4*[0], 4*[0], 4*[0]],
-         [[2, 3, 6, 8],
-          [1, 2, 5, 3],
-          4*[0], 4*[0], 4*[0], 4*[0], 4*[0], 4*[0]]], dtype=tf.float32)
-    num_proposals = tf.constant([3, 2], dtype=tf.int32)
-    refined_box_encodings = tf.zeros(
-        [total_num_padded_proposals, model.num_classes, 4], dtype=tf.float32)
-    class_predictions_with_background = tf.ones(
-        [total_num_padded_proposals, model.num_classes+1], dtype=tf.float32)
-    image_shape = tf.constant([batch_size, 36, 48, 3], dtype=tf.int32)
+        mask_height = 2
+        mask_width = 2
+        mask_predictions = .6 * tf.ones(
+            [total_num_padded_proposals, model.num_classes,
+             mask_height, mask_width], dtype=tf.float32)
+        exp_detection_masks = [[[[1, 1], [1, 1]],
+                                [[1, 1], [1, 1]],
+                                [[1, 1], [1, 1]],
+                                [[1, 1], [1, 1]],
+                                [[1, 1], [1, 1]]],
+                               [[[1, 1], [1, 1]],
+                                [[1, 1], [1, 1]],
+                                [[1, 1], [1, 1]],
+                                [[1, 1], [1, 1]],
+                                [[0, 0], [0, 0]]]]
 
-    mask_height = 2
-    mask_width = 2
-    mask_predictions = .6 * tf.ones(
-        [total_num_padded_proposals, model.num_classes,
-         mask_height, mask_width], dtype=tf.float32)
-    exp_detection_masks = [[[[1, 1], [1, 1]],
-                            [[1, 1], [1, 1]],
-                            [[1, 1], [1, 1]],
-                            [[1, 1], [1, 1]],
-                            [[1, 1], [1, 1]]],
-                           [[[1, 1], [1, 1]],
-                            [[1, 1], [1, 1]],
-                            [[1, 1], [1, 1]],
-                            [[1, 1], [1, 1]],
-                            [[0, 0], [0, 0]]]]
-
-    detections = model.postprocess({
-        'refined_box_encodings': refined_box_encodings,
-        'class_predictions_with_background': class_predictions_with_background,
-        'num_proposals': num_proposals,
-        'proposal_boxes': proposal_boxes,
-        'image_shape': image_shape,
-        'mask_predictions': mask_predictions
-    })
-    with self.test_session() as sess:
-      detections_out = sess.run(detections)
-      self.assertAllEqual(detections_out['detection_boxes'].shape, [2, 5, 4])
-      self.assertAllClose(detections_out['detection_scores'],
-                          [[1, 1, 1, 1, 1], [1, 1, 1, 1, 0]])
-      self.assertAllClose(detections_out['detection_classes'],
-                          [[0, 0, 0, 1, 1], [0, 0, 1, 1, 0]])
-      self.assertAllClose(detections_out['num_detections'], [5, 4])
-      self.assertAllClose(detections_out['detection_masks'],
-                          exp_detection_masks)
+        detections = model.postprocess({
+            'refined_box_encodings': refined_box_encodings,
+            'class_predictions_with_background': class_predictions_with_background,
+            'num_proposals': num_proposals,
+            'proposal_boxes': proposal_boxes,
+            'image_shape': image_shape,
+            'mask_predictions': mask_predictions
+        })
+        with self.test_session() as sess:
+            detections_out = sess.run(detections)
+            self.assertAllEqual(detections_out['detection_boxes'].shape, [2, 5, 4])
+            self.assertAllClose(detections_out['detection_scores'],
+                                [[1, 1, 1, 1, 1], [1, 1, 1, 1, 0]])
+            self.assertAllClose(detections_out['detection_classes'],
+                                [[0, 0, 0, 1, 1], [0, 0, 1, 1, 0]])
+            self.assertAllClose(detections_out['num_detections'], [5, 4])
+            self.assertAllClose(detections_out['detection_masks'],
+                                exp_detection_masks)
 
 
 if __name__ == '__main__':
-  tf.test.main()
+    tf.test.main()

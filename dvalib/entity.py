@@ -79,7 +79,14 @@ class WVideo(object):
                 command = 'ffmpeg -i {} -vf "select=not(mod(n\,{}))" -vsync vfr  {}/%d_b.jpg'.format(self.local_path,denominator,output_dir)
             extract = sp.Popen(shlex.split(command))
             extract.wait()
-            if extract.returncode != 0:
+            segments_dir = "{}/{}/{}/".format(self.media_dir,self.primary_key,'segments')
+            command = 'ffmpeg -i {}  -acodec copy -f segment -vcodec copy -segment_time 1 -reset_timestamps 1 -map 0 ' \
+                      '-segment_list_type csv -segment_list {}/segments.csv ' \
+                      '{}/%d.mp4'.format(self.local_path,segments_dir,segments_dir)
+            logging.info(command)
+            segmentor = sp.Popen(shlex.split(command))
+            segmentor.wait()
+            if segmentor.returncode != 0:
                 raise ValueError
             for fname in glob.glob(output_dir+'*_b.jpg'):
                 ind = int(fname.split('/')[-1].replace('_b.jpg', ''))

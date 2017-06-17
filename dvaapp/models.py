@@ -97,6 +97,19 @@ class Frame(models.Model):
         return u'{}:{}'.format(self.video_id, self.frame_index)
 
 
+class Segment(models.Model):
+    video = models.ForeignKey(Video,null=True)
+    segment_index = models.IntegerField()
+    start_time = models.FloatField(default=0.0)
+    end_time = models.FloatField(default=0.0)
+    metadata = models.TextField(default="{}")
+    frame_count = models.IntegerField(default=0)
+
+    class Meta:
+        unique_together = (("video", "segment_index"),)
+
+    def __unicode__(self):
+        return u'{}:{}'.format(self.video_id, self.segment_index)
 
 
 class Region(models.Model):

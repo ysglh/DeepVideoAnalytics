@@ -3,7 +3,7 @@ import subprocess, sys, shutil, os, glob, time, logging
 from django.conf import settings
 from dva.celery import app
 from .models import Video, Frame, TEvent, Query, IndexEntries, QueryResults, AppliedLabel, VDNDataset, Clusters, \
-    ClusterCodes, Region, Scene, CustomDetector
+    ClusterCodes, Region, Scene, CustomDetector, Segment
 
 try:
     from dvalib import entity
@@ -406,14 +406,15 @@ def extract_frames(task_id):
         dv.height = v.height
         dv.width = v.width
         dv.save()
-    frames, cuts = v.extract_frames(args)
+    frames, cuts, segments = v.extract_frames(args)
     dv.frames = len(frames)
     index_to_df = {}
     dv.save()
+    df_list = []
     for f in frames:
         df = Frame()
         df.frame_index = f.frame_index
-        df.video = dv
+        df.video_id = dv.pk
         if f.h:
             df.h = f.h
         if f.w:
@@ -421,18 +422,29 @@ def extract_frames(task_id):
         if f.name:
             df.name = f.name[:150]
             df.subdir = f.subdir.replace('/', ' ')
-        df.save()
-        index_to_df[df.frame_index] = df
-        f.primary_key = df.pk
-    for start_frame_index, end_frame_index in [(cuts[cutindex], cuts[cutindex + 1]) for cutindex, cut in
-                                               enumerate(sorted(cuts)[:-1])]:
+        df_list.append(df)
+    df_ids = Frame.objects.bulk_create(df_list)
+    for i,k in enumerate(df_ids):
+        index_to_df[df_list[i].frame_index] = k.id
+    for start_frame_index, end_frame_index in [(cuts[cutindex], cuts[cutindex + 1]) for cutindex, cut in enumerate(sorted(cuts)[:-1])]:
         ds = Scene()
         ds.video = dv
         ds.start_frame_index = start_frame_index
         ds.end_frame_index = end_frame_index
-        ds.start_frame = index_to_df[start_frame_index]
-        ds.end_frame = index_to_df[end_frame_index]
+        ds.start_frame_id = index_to_df[start_frame_index]
+        ds.end_frame_id = index_to_df[end_frame_index]
         ds.source = start
+        ds.save()
+    for s in segments:
+        segment_id,start_time,end_time,metadata = s
+        ds = Segment()
+        ds.segment_index = segment_id
+        ds.start_time = start_time
+        ds.end_time = end_time
+        ds.video_id = dv.pk
+        ds.metadata = metadata
+        metadata_json = json.loads(metadata)
+        ds.frame_count = int(metadata_json["streams"][0]["nb_frames"])
         ds.save()
     set_directory_labels(frames, dv)
     process_next(task_id)

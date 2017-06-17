@@ -67,6 +67,7 @@ class WVideo(object):
     def extract_frames(self,args):
         frames = []
         cuts = []
+        segments = []
         if args['rate']:
             denominator = int(args['rate'])
         else:
@@ -79,6 +80,9 @@ class WVideo(object):
                 command = 'ffmpeg -i {} -vf "select=not(mod(n\,{}))" -vsync vfr  {}/%d_b.jpg'.format(self.local_path,denominator,output_dir)
             extract = sp.Popen(shlex.split(command))
             extract.wait()
+            key_frame_extract = 'ffmpeg -i {} -vf select="eq(pict_type\,PICT_TYPE_I)" -vsync vfr {}/%02d.jpg -loglevel debug 2>&1| grep "pict_type:I" > {}/keyframe_list.txt'\
+                .format(output_dir,output_dir,output_dir)
+
             segments_dir = "{}/{}/{}/".format(self.media_dir,self.primary_key,'segments')
             command = 'ffmpeg -i {} -c copy -map 0 -segment_time 1 -f segment -reset_timestamps 1 ' \
                       '-segment_list_type csv -segment_list {}/segments.csv ' \
@@ -88,6 +92,14 @@ class WVideo(object):
             segmentor.wait()
             if segmentor.returncode != 0:
                 raise ValueError
+            else:
+                for line in file('{}/segments.csv'.format(segments_dir)):
+                    segment_file_name,start_time,end_time = line.strip().split(',')
+                    command = 'ffprobe -select_streams v -show_streams -print_format json {}  '.format(segment_file_name) # -show_frames for frame specific metadata
+                    logging.info(command)
+                    segment_json = sp.check_output(shlex.split(command),cwd=segments_dir)
+                    segments.append((int(segment_file_name.split('.')[0]),float(start_time),float(end_time),segment_json))
+                segments.sort()
             for fname in glob.glob(output_dir+'*_b.jpg'):
                 ind = int(fname.split('/')[-1].replace('_b.jpg', ''))
                 os.rename(fname,fname.replace('{}_b.jpg'.format(ind),'{}.jpg'.format((ind-1)*denominator)))
@@ -137,7 +149,7 @@ class WVideo(object):
                             logging.warning("skipping {} not a jpeg file".format(fname))
                 else:
                     logging.warning("skipping {} ".format(subdir))
-        return frames, cuts
+        return frames, cuts, segments
 
     def index_frames(self,frames,visual_index):
         results = {}

@@ -64,83 +64,97 @@ class WVideo(object):
         except:
             raise ValueError,str(self.metadata)
 
-    def extract_frames(self,args):
-        frames = []
-        cuts = []
-        segments = []
+    def perform_video_processing(self,args,frames,cuts,segments):
         if args['rate']:
             denominator = int(args['rate'])
         else:
             denominator = 30
+
+        output_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'frames')
+        if args['rescale']:
+            command = 'ffmpeg -i {} -vf "select=not(mod(n\,{})),scale={}:-1" -vsync 0  {}/%d_b.jpg'.format(
+                self.local_path, denominator, int(args['rescale']), output_dir)
+            kf_commmand = 'ffmpeg -i {} -vf "select=eq(pict_type\,PICT_TYPE_I),scale={}:-1" -vsync 0 {}/k_%d.jpg -loglevel debug'.format(
+                self.local_path, int(args['rescale']), output_dir)
+        else:
+            command = 'ffmpeg -i {} -vf "select=not(mod(n\,{}))" -vsync 0  {}/%d_b.jpg'.format(self.local_path,
+                                                                                               denominator, output_dir)
+            kf_commmand = 'ffmpeg -i {} -vf "select=eq(pict_type\,PICT_TYPE_I)" -vsync 0 {}/k_%d.jpg -loglevel debug'.format(
+                self.local_path, output_dir)
+        extract = sp.Popen(shlex.split(command))
+        extract.wait()
+        key_frame_extract = sp.check_output(shlex.split(kf_commmand), stderr=sp.STDOUT)
+        count = None
+        key_frames = defaultdict(dict)
+        for line in key_frame_extract.split('\n'):
+            if "pict_type:I" in line:
+                if count is None:
+                    count = 0
+                for l in line.strip().split(' '):
+                    if ':' in l:
+                        ka, va = l.split(':')
+                        if ka == 'n':
+                            if int(float(va)) != count:
+                                logging.warning("{} != {} is not frame index".format(va,count))
+                        key_frames[count][ka] = va
+                src, dst = '{}/k_{}.jpg'.format(output_dir, len(key_frames)), '{}/{}.jpg'.format(output_dir, count)
+                os.rename(src, dst)
+            if "pict_type" in line and not (count is None):
+                count += 1
+        segments_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'segments')
+        command = 'ffmpeg -i {} -c copy -map 0 -segment_time 1 -f segment -reset_timestamps 1 ' \
+                  '-segment_list_type csv -segment_list {}/segments.csv ' \
+                  '{}/%d.mp4'.format(self.local_path, segments_dir, segments_dir)
+        logging.info(command)
+        segmentor = sp.Popen(shlex.split(command))
+        segmentor.wait()
+        if segmentor.returncode != 0:
+            raise ValueError
+        else:
+            for line in file('{}/segments.csv'.format(segments_dir)):
+                segment_file_name, start_time, end_time = line.strip().split(',')
+                command = 'ffprobe -select_streams v -show_streams -print_format json {}  '.format(
+                    segment_file_name)  # -show_frames for frame specific metadata
+                logging.info(command)
+                segment_json = sp.check_output(shlex.split(command), cwd=segments_dir)
+                segments.append(
+                    (int(segment_file_name.split('.')[0]), float(start_time), float(end_time), segment_json))
+            segments.sort()
+        for fname in glob.glob(output_dir + '*_b.jpg'):
+            ind = int(fname.split('/')[-1].replace('_b.jpg', ''))
+            os.rename(fname, fname.replace('{}_b.jpg'.format(ind), '{}.jpg'.format((ind - 1) * denominator)))
+        if not args['perform_scene_detection']:
+            logging.warning("Scene detection is disabled")
+        else:
+            if not args['rescale']:
+                args['rescale'] = 0
+            scencedetect = sp.Popen(['fab', 'pyscenedetect:{},{}'.format(self.primary_key, args['rescale'])],
+                                    cwd=os.path.join(os.path.abspath(__file__).split('entity.py')[0], '../'))
+            scencedetect.wait()
+            if scencedetect.returncode != 0:
+                logging.info(
+                    "pyscene detect failed with {} check fab.log for the reason".format(scencedetect.returncode))
+            else:
+                with open('{}/{}/frames/scenes.json'.format(self.media_dir, self.primary_key)) as fh:
+                    cuts = json.load(fh)
+                os.remove('{}/{}/frames/scenes.json'.format(self.media_dir, self.primary_key))
+        frame_width, frame_height = 0, 0
+        for i, fname in enumerate(glob.glob(output_dir + '*.jpg')):
+            frame_name = fname.split('/')[-1].split('.')[0]
+            if not frame_name.startswith('k'):
+                ind = int(frame_name)
+                if i == 0:
+                    im = Image.open(fname)
+                    frame_width, frame_height = im.size  # this remains constant for all frames
+                f = WFrame(frame_index=int(ind), video=self, w=frame_width, h=frame_height)
+                frames.append(f)
+
+    def extract_frames(self,args):
+        frames = []
+        cuts = []
+        segments = []
         if not self.dvideo.dataset:
-            output_dir = "{}/{}/{}/".format(self.media_dir,self.primary_key,'frames')
-            if args['rescale']:
-                command = 'ffmpeg -i {} -vf "select=not(mod(n\,{})),scale={}:-1" -vsync 0  {}/%d_b.jpg'.format(self.local_path,denominator,int(args['rescale']),output_dir)
-                kf_commmand = 'ffmpeg -i {} -vf "select=eq(pict_type\,PICT_TYPE_I),scale={}:-1" -vsync 0 {}/k_%02d.jpg -loglevel debug'.format(self.local_path,int(args['rescale']),output_dir)
-            else:
-                command = 'ffmpeg -i {} -vf "select=not(mod(n\,{}))" -vsync 0  {}/%d_b.jpg'.format(self.local_path,denominator,output_dir)
-                kf_commmand = 'ffmpeg -i {} -vf "select=eq(pict_type\,PICT_TYPE_I)" -vsync 0 {}/k_%02d.jpg -loglevel debug'.format(self.local_path,output_dir)
-            extract = sp.Popen(shlex.split(command))
-            extract.wait()
-            key_frame_extract = sp.check_output(shlex.split(kf_commmand),stderr=sp.STDOUT)
-            count = None
-            key_frames = defaultdict(dict)
-            for line in key_frame_extract.split('\n'):
-                if "pict_type:I" in line:
-                    if count is None:
-                        count = 0
-                    for l in line.strip().split(' '):
-                        if ':' in l:
-                            ka,va =l.split(':')
-                            if ka == 'n':
-                                assert int(va) == count,"n is frame index"
-                            key_frames[count][ka] = va
-                    os.rename('{}/k_{}.jpg'.format(output_dir,len(key_frames)),'{}/{}.jpg'.format(output_dir,count))
-                if "pict_type" in line and count:
-                    count += 1
-            segments_dir = "{}/{}/{}/".format(self.media_dir,self.primary_key,'segments')
-            command = 'ffmpeg -i {} -c copy -map 0 -segment_time 1 -f segment -reset_timestamps 1 ' \
-                      '-segment_list_type csv -segment_list {}/segments.csv ' \
-                      '{}/%d.mp4'.format(self.local_path,segments_dir,segments_dir)
-            logging.info(command)
-            segmentor = sp.Popen(shlex.split(command))
-            segmentor.wait()
-            if segmentor.returncode != 0:
-                raise ValueError
-            else:
-                for line in file('{}/segments.csv'.format(segments_dir)):
-                    segment_file_name,start_time,end_time = line.strip().split(',')
-                    command = 'ffprobe -select_streams v -show_streams -print_format json {}  '.format(segment_file_name) # -show_frames for frame specific metadata
-                    logging.info(command)
-                    segment_json = sp.check_output(shlex.split(command),cwd=segments_dir)
-                    segments.append((int(segment_file_name.split('.')[0]),float(start_time),float(end_time),segment_json))
-                segments.sort()
-            for fname in glob.glob(output_dir+'*_b.jpg'):
-                ind = int(fname.split('/')[-1].replace('_b.jpg', ''))
-                os.rename(fname,fname.replace('{}_b.jpg'.format(ind),'{}.jpg'.format((ind-1)*denominator)))
-            if not args['perform_scene_detection']:
-                logging.warning("Scene detection is disabled")
-            else:
-                if not args['rescale']:
-                    args['rescale'] = 0
-                scencedetect = sp.Popen(['fab','pyscenedetect:{},{}'.format(self.primary_key,args['rescale'])],cwd=os.path.join(os.path.abspath(__file__).split('entity.py')[0],'../'))
-                scencedetect.wait()
-                if scencedetect.returncode != 0:
-                    logging.info("pyscene detect failed with {} check fab.log for the reason".format(scencedetect.returncode))
-                else:
-                    with open('{}/{}/frames/scenes.json'.format(self.media_dir,self.primary_key)) as fh:
-                        cuts = json.load(fh)
-                    os.remove('{}/{}/frames/scenes.json'.format(self.media_dir,self.primary_key))
-            frame_width, frame_height = 0, 0
-            for i,fname in enumerate(glob.glob(output_dir+'*.jpg')):
-                frame_name = fname.split('/')[-1].split('.')[0]
-                if not frame_name.startswith('k'):
-                    ind = int(frame_name)
-                    if i == 0:
-                        im = Image.open(fname)
-                        frame_width, frame_height = im.size # this remains constant for all frames
-                    f = WFrame(frame_index=int(ind),video=self,w=frame_width,h=frame_height)
-                    frames.append(f)
+            self.perform_video_processing(args,frames=frames,cuts=cuts,segments=segments)
         else:
             zipf = zipfile.ZipFile("{}/{}/video/{}.zip".format(self.media_dir, self.primary_key, self.primary_key), 'r')
             zipf.extractall("{}/{}/frames/".format(self.media_dir, self.primary_key))

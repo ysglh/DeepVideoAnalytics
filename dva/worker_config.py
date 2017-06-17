@@ -86,6 +86,7 @@ POST_OPERATION_TASKS = {
         {'task_name':'inception_index_by_id','arguments':{}},
         {'task_name':'perform_face_detection_indexing_by_id','arguments':{}},
         {'task_name':'sync_bucket_video_by_id','arguments':{'dirname':'frames'}},
+        {'task_name':'sync_bucket_video_by_id','arguments':{'dirname':'segments'}},
     ],
     'perform_ssd_detection_by_id':[
         {'task_name':'inception_index_regions_by_id','arguments':{'region_type':'D','object_name__startswith':'SSD_', 'w__gte':50,'h__gte':50}},

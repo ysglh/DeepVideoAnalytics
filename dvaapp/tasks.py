@@ -411,14 +411,12 @@ def extract_frames(task_id):
     index_to_df = {}
     dv.save()
     df_list = []
-    time_to_findex = {}
     for f in frames:
         df = Frame()
         df.frame_index = f.frame_index
         if f.frame_index in key_frames:
             t = float(key_frames[f.frame_index]['t'])
             df.t = t
-            time_to_findex[str(round(t,3))] = f.frame_index
             df.keyframe = True
         df.video_id = dv.pk
         if f.h:
@@ -441,26 +439,24 @@ def extract_frames(task_id):
         ds.end_frame_id = index_to_df[end_frame_index]
         ds.source = start
         ds.save()
+    total_frames = 0
     for s in segments:
         segment_id,start_time,end_time,metadata = s
         ds = Segment()
         ds.segment_index = segment_id
         ds.start_time = start_time
-        if str(round(ds.start_time,3)) in time_to_findex:
-            ds.start_frame_index = time_to_findex[str(round(ds.start_time,3)) ]
-            ds.start_frame_id = index_to_df[ds.start_frame_index]
-        else:
-            logging.info("Could not find keyframe for start of segment at ".format(ds.start_time))
-        if str(round(ds.end_time,3)) in time_to_findex:
-            ds.end_frame_index = time_to_findex[str(round(ds.end_time,3)) ]
-            ds.end_frame_id = index_to_df[ds.end_frame_index]
-        else:
-            logging.info("Could not find keyframe for end of segment at ".format(ds.end_time))
         ds.end_time = end_time
         ds.video_id = dv.pk
         ds.metadata = metadata
         metadata_json = json.loads(metadata)
         ds.frame_count = int(metadata_json["streams"][0]["nb_frames"])
+        ds.start_frame_index = total_frames
+        if ds.start_frame_index in index_to_df:
+            ds.start_frame_id = index_to_df[ds.start_frame_index]
+        else:
+            logging.info("Could not find find keyframe for index {}".format(ds.start_frame_index))
+        total_frames += ds.frame_count
+        ds.end_frame_index = total_frames - 1
         ds.save()
     set_directory_labels(frames, dv)
     process_next(task_id)

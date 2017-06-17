@@ -5,7 +5,7 @@ import pyscenecustom
 from PIL import Image
 import tempfile
 import os
-
+from collections import defaultdict
 
 class WQuery(object):
 
@@ -75,17 +75,29 @@ class WVideo(object):
         if not self.dvideo.dataset:
             output_dir = "{}/{}/{}/".format(self.media_dir,self.primary_key,'frames')
             if args['rescale']:
-                command = 'ffmpeg -i {} -vf "select=not(mod(n\,{})),scale={}:-1" -vsync vfr  {}/%d_b.jpg'.format(self.local_path,denominator,int(args['rescale']),output_dir)
-                kf_commmand = 'ffmpeg -i {} -vf "select=eq(pict_type\,PICT_TYPE_I),scale={}:-1" -vsync vfr {}/k_%02d.jpg -loglevel debug'.format(self.local_path,int(args['rescale']),output_dir)
+                command = 'ffmpeg -i {} -vf "select=not(mod(n\,{})),scale={}:-1" -vsync 0  {}/%d_b.jpg'.format(self.local_path,denominator,int(args['rescale']),output_dir)
+                kf_commmand = 'ffmpeg -i {} -vf "select=eq(pict_type\,PICT_TYPE_I),scale={}:-1" -vsync 0 {}/k_%02d.jpg -loglevel debug'.format(self.local_path,int(args['rescale']),output_dir)
             else:
-                command = 'ffmpeg -i {} -vf "select=not(mod(n\,{}))" -vsync vfr  {}/%d_b.jpg'.format(self.local_path,denominator,output_dir)
-                kf_commmand = 'ffmpeg -i {} -vf "select=eq(pict_type\,PICT_TYPE_I)" -vsync vfr {}/k_%02d.jpg -loglevel debug'.format(self.local_path,output_dir)
+                command = 'ffmpeg -i {} -vf "select=not(mod(n\,{}))" -vsync 0  {}/%d_b.jpg'.format(self.local_path,denominator,output_dir)
+                kf_commmand = 'ffmpeg -i {} -vf "select=eq(pict_type\,PICT_TYPE_I)" -vsync 0 {}/k_%02d.jpg -loglevel debug'.format(self.local_path,output_dir)
             extract = sp.Popen(shlex.split(command))
             extract.wait()
             key_frame_extract = sp.check_output(shlex.split(kf_commmand),stderr=sp.STDOUT)
+            count = None
+            key_frames = defaultdict(dict)
             for line in key_frame_extract.split('\n'):
                 if "pict_type:I" in line:
-                    logging.info(line)
+                    if count is None:
+                        count = 0
+                    for l in line.strip().split(' '):
+                        if ':' in l:
+                            ka,va =l.split(':')
+                            if ka == 'n':
+                                assert int(va) == count,"n is frame index"
+                            key_frames[count][ka] = va
+                    os.rename('{}/k_{}.jpg'.format(output_dir,len(key_frames)),'{}/{}.jpg'.format(output_dir,count))
+                if "pict_type" in line and count:
+                    count += 1
             segments_dir = "{}/{}/{}/".format(self.media_dir,self.primary_key,'segments')
             command = 'ffmpeg -i {} -c copy -map 0 -segment_time 1 -f segment -reset_timestamps 1 ' \
                       '-segment_list_type csv -segment_list {}/segments.csv ' \
@@ -121,12 +133,14 @@ class WVideo(object):
                     os.remove('{}/{}/frames/scenes.json'.format(self.media_dir,self.primary_key))
             frame_width, frame_height = 0, 0
             for i,fname in enumerate(glob.glob(output_dir+'*.jpg')):
-                ind = int(fname.split('/')[-1].replace('.jpg', ''))
-                if i == 0:
-                    im = Image.open(fname)
-                    frame_width, frame_height = im.size # this remains constant for all frames
-                f = WFrame(frame_index=int(ind),video=self,w=frame_width,h=frame_height)
-                frames.append(f)
+                frame_name = fname.split('/')[-1].split('.')[0]
+                if not frame_name.startswith('k'):
+                    ind = int(frame_name)
+                    if i == 0:
+                        im = Image.open(fname)
+                        frame_width, frame_height = im.size # this remains constant for all frames
+                    f = WFrame(frame_index=int(ind),video=self,w=frame_width,h=frame_height)
+                    frames.append(f)
         else:
             zipf = zipfile.ZipFile("{}/{}/video/{}.zip".format(self.media_dir, self.primary_key, self.primary_key), 'r')
             zipf.extractall("{}/{}/frames/".format(self.media_dir, self.primary_key))

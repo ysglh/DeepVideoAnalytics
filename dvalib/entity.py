@@ -64,7 +64,7 @@ class WVideo(object):
         except:
             raise ValueError,str(self.metadata)
 
-    def perform_video_processing(self,args,frames,cuts,segments):
+    def perform_video_processing(self,args,frames,cuts,segments,key_frames):
         if args['rate']:
             denominator = int(args['rate'])
         else:
@@ -85,13 +85,12 @@ class WVideo(object):
         extract.wait()
         key_frame_extract = sp.check_output(shlex.split(kf_commmand), stderr=sp.STDOUT)
         count = None
-        key_frames = defaultdict(dict)
         for line in key_frame_extract.split('\n'):
             if "pict_type:I" in line:
                 if count is None:
                     count = 0
                 for l in line.strip().split(' '):
-                    if ':' in l:
+                    if l.startswith('n:') or l.startswith('t:'):
                         ka, va = l.split(':')
                         if ka == 'n':
                             if int(float(va)) != count:
@@ -153,8 +152,9 @@ class WVideo(object):
         frames = []
         cuts = []
         segments = []
+        key_frames = defaultdict(dict)
         if not self.dvideo.dataset:
-            self.perform_video_processing(args,frames=frames,cuts=cuts,segments=segments)
+            self.perform_video_processing(args,frames=frames,cuts=cuts,segments=segments,key_frames=key_frames)
         else:
             zipf = zipfile.ZipFile("{}/{}/video/{}.zip".format(self.media_dir, self.primary_key, self.primary_key), 'r')
             zipf.extractall("{}/{}/frames/".format(self.media_dir, self.primary_key))
@@ -180,7 +180,7 @@ class WVideo(object):
                             logging.warning("skipping {} not a jpeg file".format(fname))
                 else:
                     logging.warning("skipping {} ".format(subdir))
-        return frames, cuts, segments
+        return frames, cuts, segments, key_frames
 
     def index_frames(self,frames,visual_index):
         results = {}

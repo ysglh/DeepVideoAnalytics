@@ -89,6 +89,8 @@ class Frame(models.Model):
     subdir = models.TextField(default="") # Retains information if the source is a dataset for labeling
     h = models.IntegerField(default=0)
     w = models.IntegerField(default=0)
+    t = models.FloatField(null=True) # time in seconds for keyframes
+    keyframe = models.BooleanField(default=False) # is this a key frame for a video?
 
     class Meta:
         unique_together = (("video", "frame_index"),)
@@ -104,6 +106,8 @@ class Segment(models.Model):
     end_time = models.FloatField(default=0.0)
     metadata = models.TextField(default="{}")
     frame_count = models.IntegerField(default=0)
+    start_frame = models.ForeignKey(Frame,null=True,related_name="segment_start")
+    end_frame = models.ForeignKey(Frame, null=True,related_name="segment_end")
 
     class Meta:
         unique_together = (("video", "segment_index"),)

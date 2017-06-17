@@ -406,14 +406,20 @@ def extract_frames(task_id):
         dv.height = v.height
         dv.width = v.width
         dv.save()
-    frames, cuts, segments = v.extract_frames(args)
+    frames, cuts, segments, key_frames = v.extract_frames(args)
     dv.frames = len(frames)
     index_to_df = {}
     dv.save()
     df_list = []
+    time_to_findex = {}
     for f in frames:
         df = Frame()
         df.frame_index = f.frame_index
+        if f.frame_index in key_frames:
+            t = float(key_frames[f.frame_index]['t'])
+            df.t = t
+            time_to_findex[str(round(t,3))] = f.frame_index
+            df.keyframe = True
         df.video_id = dv.pk
         if f.h:
             df.h = f.h
@@ -440,6 +446,16 @@ def extract_frames(task_id):
         ds = Segment()
         ds.segment_index = segment_id
         ds.start_time = start_time
+        if str(round(ds.start_time,3)) in time_to_findex:
+            ds.start_frame_index = time_to_findex[str(round(ds.start_time,3)) ]
+            ds.start_frame_id = index_to_df[ds.start_frame_index]
+        else:
+            logging.info("Could not find keyframe for start of segment at ".format(ds.start_time))
+        if str(round(ds.end_time,3)) in time_to_findex:
+            ds.end_frame_index = time_to_findex[str(round(ds.end_time,3)) ]
+            ds.end_frame_id = index_to_df[ds.end_frame_index]
+        else:
+            logging.info("Could not find keyframe for end of segment at ".format(ds.end_time))
         ds.end_time = end_time
         ds.video_id = dv.pk
         ds.metadata = metadata

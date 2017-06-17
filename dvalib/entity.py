@@ -76,13 +76,16 @@ class WVideo(object):
             output_dir = "{}/{}/{}/".format(self.media_dir,self.primary_key,'frames')
             if args['rescale']:
                 command = 'ffmpeg -i {} -vf "select=not(mod(n\,{})),scale={}:-1" -vsync vfr  {}/%d_b.jpg'.format(self.local_path,denominator,int(args['rescale']),output_dir)
+                kf_commmand = 'ffmpeg -i {} -vf "select=eq(pict_type\,PICT_TYPE_I),scale={}:-1" -vsync vfr {}/k_%02d.jpg -loglevel debug'.format(self.local_path,int(args['rescale']),output_dir)
             else:
                 command = 'ffmpeg -i {} -vf "select=not(mod(n\,{}))" -vsync vfr  {}/%d_b.jpg'.format(self.local_path,denominator,output_dir)
+                kf_commmand = 'ffmpeg -i {} -vf "select=eq(pict_type\,PICT_TYPE_I)" -vsync vfr {}/k_%02d.jpg -loglevel debug'.format(self.local_path,output_dir)
             extract = sp.Popen(shlex.split(command))
             extract.wait()
-            key_frame_extract = 'ffmpeg -i {} -vf select="eq(pict_type\,PICT_TYPE_I)" -vsync vfr {}/%02d.jpg -loglevel debug 2>&1| grep "pict_type:I" > {}/keyframe_list.txt'\
-                .format(output_dir,output_dir,output_dir)
-
+            key_frame_extract = sp.check_output(shlex.split(kf_commmand),stderr=sp.STDOUT)
+            for line in key_frame_extract.split('\n'):
+                if "pict_type:I" in line:
+                    logging.info(line)
             segments_dir = "{}/{}/{}/".format(self.media_dir,self.primary_key,'segments')
             command = 'ffmpeg -i {} -c copy -map 0 -segment_time 1 -f segment -reset_timestamps 1 ' \
                       '-segment_list_type csv -segment_list {}/segments.csv ' \

@@ -387,7 +387,7 @@ def extract_frames(task_id):
     start.operation = extract_frames.name
     args = json.loads(start.arguments_json)
     if args == {}:
-        args['perform_scene_detection'] = True
+        args['perform_scene_detection'] = False
         args['rescale'] = 0
         args['rate'] = 30
         start.arguments_json = json.dumps(args)

@@ -63,13 +63,13 @@ RUN pip install torchvision
 RUN mkdir -p -m 700 /root/.jupyter/ && \
     echo "c.NotebookApp.ip = '*'" >> /root/.jupyter/jupyter_notebook_config.py
 WORKDIR /opt/ctpn/CTPN/
-EXPOSE 8888
-CMD ["jupyter", "notebook", "--no-browser", "--allow-root"]
 RUN apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8
 RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main" > /etc/apt/sources.list.d/pgdg.list
-RUN apt-get update && apt-get install -y postgresql-client-9.6 zip libpq-dev libssl-dev
+RUN apt-get update && apt-get install -y postgresql-client-9.6 zip libpq-dev libssl-dev python-opencv
 RUN git clone https://github.com/akshayubhat/DeepVideoAnalytics /root/DVA
 WORKDIR "/root/DVA"
 RUN pip install --upgrade cffi
 RUN pip install -r requirements.txt
+EXPOSE 8888
+CMD ["jupyter", "notebook", "--no-browser", "--allow-root"]
 VOLUME ["/root/DVA/dva/media"]

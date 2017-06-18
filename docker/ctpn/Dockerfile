@@ -1,4 +1,4 @@
-FROM nvidia/cuda:7.0-cudnn3-devel
+FROM nvidia/cuda:8.0-cudnn5-devel-ubuntu14.04
 MAINTAINER Akshay Bhat <akshayubhat@gmail.com>
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -29,7 +29,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ENV CTPN_ROOT=/opt/ctpn
 WORKDIR $CTPN_ROOT
 
-RUN git clone --depth 1 https://github.com/tianzhi0549/CTPN.git
+RUN git clone https://github.com/AKSHAYUBHAT/CTPN8.git
+RUN mv $CTPN_ROOT/CTPN/caffe_temp $CTPN_ROOT/CTPN/caffe
 WORKDIR $CTPN_ROOT/CTPN/caffe
 
 # Missing "packaging" package

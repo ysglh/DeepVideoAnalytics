@@ -71,6 +71,7 @@ WORKDIR "/root/DVA"
 RUN pip install --upgrade cffi
 RUN pip install -r requirements.txt
 EXPOSE 8888
+RUN wget "https://www.dropbox.com/s/l0vo83hmvv2aipn/crnn.pth?dl=1" -O /root/DVA/dvalib/crnn/data/crnn.pth
 RUN git pull
 CMD ["jupyter", "notebook", "--no-browser", "--allow-root"]
 VOLUME ["/root/DVA/dva/media"]

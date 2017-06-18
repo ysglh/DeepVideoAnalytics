@@ -51,9 +51,6 @@ RUN echo "$CTPN_ROOT/CTPN/caffe/build/lib" >> /etc/ld.so.conf.d/caffe.conf && ld
 RUN cp $CTPN_ROOT/CTPN/src/layers/* $CTPN_ROOT/CTPN/caffe/src/caffe/layers/
 RUN cp $CTPN_ROOT/CTPN/src/*.py $CTPN_ROOT/CTPN/caffe/src/caffe/
 RUN cp -r $CTPN_ROOT/CTPN/src/utils $CTPN_ROOT/CTPN/caffe/src/caffe/
-RUN cd ~ && mkdir -p ocv-tmp && cd ocv-tmp && wget https://github.com/Itseez/opencv/archive/2.4.12.zip
-RUN cd ~/ocv-tmp && unzip 2.4.12.zip && cd opencv-2.4.12 && mkdir release
-RUN cd ~/ocv-tmp/opencv-2.4.12/release && cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D BUILD_PYTHON_SUPPORT=ON .. && make -j8 && make install && rm -rf ~/ocv-tmp
 WORKDIR $CTPN_ROOT/CTPN
 RUN make
 RUN pip install --upgrade numpy
@@ -61,6 +58,8 @@ RUN wget "https://www.dropbox.com/s/yyj53aet2emhvs7/ctpn_trained_model.caffemode
 RUN mkdir /opt/ctpn/CTPN/output
 VOLUME ['/opt/ctpn/CTPN/output/']
 RUN pip install --upgrade jupyter
+RUN pip install http://download.pytorch.org/whl/cu80/torch-0.1.12.post2-cp27-none-linux_x86_64.whl
+RUN pip install torchvision
 RUN mkdir -p -m 700 /root/.jupyter/ && \
     echo "c.NotebookApp.ip = '*'" >> /root/.jupyter/jupyter_notebook_config.py
 WORKDIR /opt/ctpn/CTPN/

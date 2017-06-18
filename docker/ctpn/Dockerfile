@@ -71,5 +71,6 @@ WORKDIR "/root/DVA"
 RUN pip install --upgrade cffi
 RUN pip install -r requirements.txt
 EXPOSE 8888
+RUN git pull
 CMD ["jupyter", "notebook", "--no-browser", "--allow-root"]
 VOLUME ["/root/DVA/dva/media"]

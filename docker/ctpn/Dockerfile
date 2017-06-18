@@ -30,6 +30,7 @@ ENV CTPN_ROOT=/opt/ctpn
 WORKDIR $CTPN_ROOT
 
 RUN git clone https://github.com/AKSHAYUBHAT/CTPN8.git
+RUN mv CTPN8 CTPN
 RUN mv $CTPN_ROOT/CTPN/caffe_temp $CTPN_ROOT/CTPN/caffe
 WORKDIR $CTPN_ROOT/CTPN/caffe
 

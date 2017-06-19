@@ -1,15 +1,20 @@
 # Practical Deep OCR for scene text using CTPN + CRNN
 
-This folder cotains two noteboooks which demonstrate use of CTPN (Caffe implementation) [1,2] for
+This folder contains two notebooks which demonstrate use of CTPN (Caffe implementation) [1,2] for
 Text box detection and CRNN (PyTorch implmentation) [3,4] for Text character recognition. Most tutorials
 online describe traditional OCR techniques using Tessaract. However Tessaract is not useful for scene text recognition, 
-i.e. text occuring in natural scenes. Over the last couple of years significant improvements have been made in using 
-deep learning for OCR, in this demo we will show how you can use both models to .
+i.e. text occurring in natural scenes. Over the last couple of years significant improvements have been made in using 
+deep learning for OCR, in this demo we will show how you can use both models to perform OCR on scene text, and get good
+out-of-box performance without any having to perform any fine-tuning. Finally this pipeline has been integrated in 
+Deep Video Analytics and can be used in conjunction with other detection/indexing models.
 
-To run following two notebooks, clone this repo, start docker container (nvidia-docke/GPU preferred) using following script.
+To run following two notebooks, start docker container (nvidia-docker/GPU preferred) using following script.
 [https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/docker/ctpn/run_ocr_container.sh](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/docker/ctpn/run_ocr_container.sh)
 
-Go to the jupyter notebook url displayed and navigate to notebooks/OCR:
+Its possible to run the code on CPU but it will be very slow and requires setting cpu_mode in detect_text.ipynb. However
+since the code runs using Docker there are no dependencies to install!
+
+Once you have started the container, go to the Jupyter notebook url displayed in the console and navigate to "notebooks/OCR".
 
 ## Text detection
 
@@ -23,12 +28,11 @@ You can find the notebook here
 [https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/notebooks/OCR/detect_text.ipynb](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/notebooks/OCR/detect_text.ipynb)
 
 
-
 ## Text recognition
 
 ![recognition](recognition.png "recognition")
 
-In this notebook the stored boxes are then processed using CRNN [3,4] to extract text. 
+In this notebook the stored [boxes](/notebooks/OCR/boxes/ )are then processed using CRNN [3,4] to extract text. 
 Note that you cannot import caffe and pytorch into same notebook/process since it cases library/static linking issues.
 
 You can find the notebook here

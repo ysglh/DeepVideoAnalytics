@@ -49,7 +49,7 @@
        - rabbit
      volumes:
        - dvadata:/root/DVA/dva/media
-   dva:
+   dva-ocr:
      image: akshayubhat/dva_ctpn:latest
      container_name: dva-ocr
      environment:
@@ -64,7 +64,7 @@
        - DB_PASS=pgdbpass
        - TEST=1
        - AUTH_DISABLED=1
-     command: bash -c "git pull && fab startq:qocr"
+     command: bash -c "git pull && sleep 60 && fab startq:qocr"
      depends_on:
        - db
        - rabbit

@@ -36,6 +36,7 @@ TASK_NAMES_TO_QUEUE = {
     "assign_open_images_text_tags_by_id": Q_DETECTOR,
     "train_yolo_detector": Q_TRAINER,
     "perform_textbox_detection_by_id": Q_OCR,
+    "perform_text_recognition_by_id": Q_OCR,
 }
 
 
@@ -58,6 +59,7 @@ TASK_NAMES_TO_TYPE = {
     "perform_ssd_detection_by_id":VIDEO_TASK,
     "detect_custom_objects":VIDEO_TASK,
     "perform_textbox_detection_by_id":VIDEO_TASK,
+    "perform_text_recognition_by_id":VIDEO_TASK,
     "perform_face_detection_indexing_by_id":VIDEO_TASK,
     "alexnet_index_by_id":VIDEO_TASK,
     "alexnet_query_by_image":QUERY_TASK,
@@ -97,6 +99,7 @@ POST_OPERATION_TASKS = {
     ],
     'perform_textbox_detection_by_id':[
         {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'detections'}},
+        {'task_name': 'perform_text_recognition_by_id', 'arguments': {}},
     ],
     'inception_index_by_id':[
         {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'indexes'}},

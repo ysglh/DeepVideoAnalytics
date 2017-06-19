@@ -576,6 +576,33 @@ def perform_textbox_detection_by_id(task_id):
     return 0
 
 
+@app.task(track_started=True, name="perform_text_recognition_by_id")
+def perform_text_recognition_by_id(task_id):
+    start = TEvent.objects.get(pk=task_id)
+    if celery_40_bug_hack(start):
+        return 0
+    start.task_id = perform_text_recognition_by_id.request.id
+    start.started = True
+    start.operation = perform_text_recognition_by_id.name
+    start.save()
+    start_time = time.time()
+    video_id = start.video_id
+    detector = subprocess.Popen(['fab', 'recognize_text:{}'.format(video_id)],
+                                cwd=os.path.join(os.path.abspath(__file__).split('tasks.py')[0], '../'))
+    detector.wait()
+    if detector.returncode != 0:
+        start.errored = True
+        start.error_message = "fab recognize_text failed with return code {}".format(detector.returncode)
+        start.seconds = time.time() - start_time
+        start.save()
+        raise ValueError, start.error_message
+    process_next(task_id)
+    start.completed = True
+    start.seconds = time.time() - start_time
+    start.save()
+    return 0
+
+
 @app.task(track_started=True, name="perform_face_detection_indexing_by_id")
 def perform_face_detection_indexing_by_id(task_id):
     start = TEvent.objects.get(pk=task_id)

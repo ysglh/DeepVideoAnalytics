@@ -1069,3 +1069,55 @@ def detect_text_boxes(video_pk,cpu_mode=False):
             img = Image.open(path)
             img2 = img.crop((left,top,right,bottom))
             img2.save("{}/{}/detections/{}.jpg".format(settings.MEDIA_ROOT, video_pk, r.pk))
+
+
+@task
+def recognize_text(video_pk):
+    """
+    Recognize text in regions with name CTPN_TEXTBOX using CRNN
+    :param detector_pk
+    :param video_pk
+    :return:
+    """
+    setup_django()
+    from dvaapp.models import Region
+    from django.conf import settings
+    from PIL import Image
+    import sys
+    video_pk = int(video_pk)
+    import dvalib.crnn.utils as utils
+    import dvalib.crnn.dataset as dataset
+    import torch
+    from torch.autograd import Variable
+    from PIL import Image
+    import dvalib.crnn.models.crnn as crnn
+    model_path = '/root/DVA/dvalib/crnn/data/crnn.pth'
+    alphabet = '0123456789abcdefghijklmnopqrstuvwxyz'
+    model = crnn.CRNN(32, 1, 37, 256, 1)
+    model.load_state_dict(torch.load(model_path))
+    converter = utils.strLabelConverter(alphabet)
+    transformer = dataset.resizeNormalize((100, 32))
+    for r in Region.objects.all().filter(video_id=video_pk,object_name='CTPN_TEXTBOX'):
+        img_path = "{}/{}/detections/{}.jpg".format(settings.MEDIA_ROOT,video_pk,r.pk)
+        image = Image.open(img_path).convert('L')
+        image = transformer(image)
+        image = image.view(1, *image.size())
+        image = Variable(image)
+        model.eval()
+        preds = model(image)
+        _, preds = preds.max(2)
+        preds = preds.squeeze(2)
+        preds = preds.transpose(1, 0).contiguous().view(-1)
+        preds_size = Variable(torch.IntTensor([preds.size(0)]))
+        sim_pred = converter.decode(preds.data, preds_size.data, raw=False)
+        dr = Region()
+        dr.video_id = r.video_id
+        dr.object_name = "CRNN_TEXT"
+        dr.x = r.x
+        dr.y = r.y
+        dr.w = r.w
+        dr.h = r.h
+        dr.region_type = Region.ANNOTATION
+        dr.metadata_text = sim_pred
+        dr.frame_id = r.frame_id
+        dr.save()

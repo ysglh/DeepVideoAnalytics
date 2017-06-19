@@ -1047,8 +1047,8 @@ def detect_text_boxes(video_pk,cpu_mode=False):
         im, _=resize_im(im, cfg.SCALE, cfg.MAX_SCALE)
         text_lines=text_detector.detect(im)
         for k in text_lines:
-            top,left,bottom,right,score = k
-            top, left, bottom, right = int(top), int(left), int(bottom), int(right)
+            left, top, right, bottom ,score = k
+            left, top, right, bottom = int(left), int(top), int(right), int(bottom)
             r = Region()
             r.region_type = r.DETECTION
             r.confidence = int(100.0 * score)
@@ -1063,5 +1063,5 @@ def detect_text_boxes(video_pk,cpu_mode=False):
             right = r.w + r.x
             bottom = r.h + r.y
             img = Image.open(path)
-            img2 = img.crop((r.x,r.y,right, bottom))
+            img2 = img.crop((left,top,right,bottom))
             img2.save("{}/{}/detections/{}.jpg".format(settings.MEDIA_ROOT, video_pk, r.pk))

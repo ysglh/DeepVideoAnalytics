@@ -35,8 +35,8 @@ TASK_NAMES_TO_QUEUE = {
     "perform_clustering": Q_CLUSTER,
     "assign_open_images_text_tags_by_id": Q_DETECTOR,
     "train_yolo_detector": Q_TRAINER,
+    "perform_textbox_detection_by_id": Q_OCR,
 }
-
 
 
 VIDEO_TASK = 'video'
@@ -57,6 +57,7 @@ TASK_NAMES_TO_TYPE = {
     "import_vdn_s3":VIDEO_TASK,
     "perform_ssd_detection_by_id":VIDEO_TASK,
     "detect_custom_objects":VIDEO_TASK,
+    "perform_textbox_detection_by_id":VIDEO_TASK,
     "perform_face_detection_indexing_by_id":VIDEO_TASK,
     "alexnet_index_by_id":VIDEO_TASK,
     "alexnet_query_by_image":QUERY_TASK,
@@ -74,6 +75,7 @@ TASK_NAMES_TO_TYPE = {
 MANUAL_VIDEO_TASKS = ['inception_index_by_id',
                       'inception_index_regions_by_id',
                       'perform_ssd_detection_by_id',
+                      'perform_textbox_detection_by_id',
                       'perform_face_detection_indexing_by_id',
                       'perform_yolo_detection_by_id',
                       'assign_open_images_text_tags_by_id'
@@ -91,6 +93,9 @@ POST_OPERATION_TASKS = {
     ],
     'perform_ssd_detection_by_id':[
         {'task_name':'inception_index_regions_by_id','arguments':{'region_type':'D','object_name__startswith':'SSD_', 'w__gte':50,'h__gte':50}},
+        {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'detections'}},
+    ],
+    'perform_textbox_detection_by_id':[
         {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'detections'}},
     ],
     'inception_index_by_id':[

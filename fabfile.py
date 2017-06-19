@@ -1012,3 +1012,56 @@ def temp_import_detector(path="/Users/aub3/tempd"):
     shutil.copy("{}/phase_2_best.h5".format(path),"{}/models/{}/phase_2_best.h5".format(settings.MEDIA_ROOT,d.pk))
 
 
+@task
+def detect_text_boxes(video_pk,cpu_mode=False):
+    """
+    Detect Text Boxes in frames for a video using CTPN, must be run in dva_ctpn container
+    :param detector_pk
+    :param video_pk
+    :return:
+    """
+    setup_django()
+    from dvaapp.models import Region, Frame
+    from django.conf import settings
+    from PIL import Image
+    import sys
+    video_pk = int(video_pk)
+    sys.path.append('/opt/ctpn/CTPN/tools/')
+    sys.path.append('/opt/ctpn/CTPN/src/')
+    from cfg import Config as cfg
+    from other import resize_im, CaffeModel
+    import cv2, caffe
+    from detectors import TextProposalDetector, TextDetector
+    NET_DEF_FILE = "/opt/ctpn/CTPN/models/deploy.prototxt"
+    MODEL_FILE = "/opt/ctpn/CTPN/models/ctpn_trained_model.caffemodel"
+    if cpu_mode:  # Set this to true for CPU only mode
+        caffe.set_mode_cpu()
+    else:
+        caffe.set_mode_gpu()
+        caffe.set_device(cfg.TEST_GPU_ID)
+    text_proposals_detector = TextProposalDetector(CaffeModel(NET_DEF_FILE, MODEL_FILE))
+    text_detector = TextDetector(text_proposals_detector)
+    for f in Frame.objects.all().filter(video_id=video_pk):
+        path = "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,video_pk,f.frame_index)
+        im=cv2.imread(path)
+        im, _=resize_im(im, cfg.SCALE, cfg.MAX_SCALE)
+        text_lines=text_detector.detect(im)
+        for k in text_lines:
+            top,left,bottom,right,score = k
+            top, left, bottom, right = int(top), int(left), int(bottom), int(right)
+            r = Region()
+            r.region_type = r.DETECTION
+            r.confidence = int(100.0 * score)
+            r.object_name = "CTPN_TEXTBOX"
+            r.y = top
+            r.x = left
+            r.w = right - left
+            r.h = bottom - top
+            r.frame_id = f.pk
+            r.video_id = video_pk
+            r.save()
+            right = r.w + r.x
+            bottom = r.h + r.y
+            img = Image.open(path)
+            img2 = img.crop((r.x,r.y,right, bottom))
+            img2.save("{}/{}/detections/{}.jpg".format(settings.MEDIA_ROOT, video_pk, r.pk))

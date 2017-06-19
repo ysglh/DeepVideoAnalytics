@@ -13,7 +13,7 @@ Go to the jupyter notebook url displayed and navigate to notebooks/OCR:
 
 ## Text detection
 
-![detection](notebooks/OCR/detection.png "detection")
+![detection](detection.png "detection")
 
 The textbox detection is implemented using Connectionist Text Proposal Network [1,2].
 In this demo images in [images](/notebooks/OCR/images/) folder are processed using CTPN and extracted textboxes are stored in the [boxes](/notebooks/OCR/boxes/)
@@ -26,7 +26,7 @@ You can find the notebook here
 
 ## Text recognition
 
-![recognition](notebooks/OCR/recognition.png "recognition")
+![recognition](recognition.png "recognition")
 
 In this notebook the stored boxes are then processed using CRNN [3,4] to extract text. 
 Note that you cannot import caffe and pytorch into same notebook/process since it cases library/static linking issues.

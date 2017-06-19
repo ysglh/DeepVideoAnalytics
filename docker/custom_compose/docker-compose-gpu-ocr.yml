@@ -38,11 +38,33 @@
        - LAUNCH_Q_qfacedetector=1
        - LAUNCH_Q_qclusterer=1
        - LAUNCH_Q_qtrainer=1
+       - TEST=1
        - AUTH_DISABLED=1
      command: bash -c "youtube-dl -U && git pull && fab start_container"
      ports:
-       - "8500:80"
+       - "8000:80"
        - "8888:8888"
+     depends_on:
+       - db
+       - rabbit
+     volumes:
+       - dvadata:/root/DVA/dva/media
+   dva:
+     image: akshayubhat/dva_ctpn:latest
+     container_name: dva-ocr
+     environment:
+       - DOCKER_MODE=true
+       - RABBIT_HOST=rabbit
+       - RABBIT_USER=dvauser
+       - RABBIT_PASS=localpass
+       - GPU_AVAILABLE=1
+       - DB_HOST=db
+       - DB_NAME=postgres
+       - DB_USER=pgdbuser
+       - DB_PASS=pgdbpass
+       - TEST=1
+       - AUTH_DISABLED=1
+     command: bash -c "git pull && fab startq:qocr"
      depends_on:
        - db
        - rabbit

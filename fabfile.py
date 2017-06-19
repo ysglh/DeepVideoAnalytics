@@ -1044,11 +1044,15 @@ def detect_text_boxes(video_pk,cpu_mode=False):
     for f in Frame.objects.all().filter(video_id=video_pk):
         path = "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,video_pk,f.frame_index)
         im=cv2.imread(path)
+        old_h,old_w, channels = im.shape
         im, _=resize_im(im, cfg.SCALE, cfg.MAX_SCALE)
+        new_h, new_w, channels = im.shape
+        mul_h = float(old_h)/float(new_h)
+        mul_w = float(old_w)/float(new_w)
         text_lines=text_detector.detect(im)
         for k in text_lines:
             left, top, right, bottom ,score = k
-            left, top, right, bottom = int(left), int(top), int(right), int(bottom)
+            left, top, right, bottom = int(left*mul_w), int(top*mul_h), int(right*mul_w), int(bottom*mul_h)
             r = Region()
             r.region_type = r.DETECTION
             r.confidence = int(100.0 * score)

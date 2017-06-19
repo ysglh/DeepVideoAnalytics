@@ -32,7 +32,7 @@ You can find the notebook here
 
 ![recognition](recognition.png "recognition")
 
-In this notebook the stored [boxes](/notebooks/OCR/boxes/ )are then processed using CRNN [3,4] to extract text. 
+In this notebook the stored [boxes](/notebooks/OCR/boxes/) are then processed using CRNN [3,4] to extract text. 
 Note that you cannot import caffe and pytorch into same notebook/process since it cases library/static linking issues.
 
 You can find the notebook here
@@ -42,7 +42,7 @@ You can find the notebook here
 ## Integration with Deep Video Analytics
 
 Both CTPN & CRNN have been integrated into [Deep Video Analytics](https://www.deepvideoanalytics.com) and now its possible to run OCR directly on videos/images
-without having to write any code. CTPN and CRNN run as tasks on a celery queue named "qocr". Workers consuming qocr need to run on
+without having to write any code. CTPN and CRNN run as tasks on a celery queue named "qocr". Workers consuming "qocr" need to run on
 dva_ctpn container image. This [OCR docker-compose](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/docker/custom_compose/docker-compose-gpu-ocr.yml) file describes the setup. The extracted bounding boxes and text are 
 represented as Regions. Further extracted text can be conveniently queried using Postgres full-text search through the User Interface.
 

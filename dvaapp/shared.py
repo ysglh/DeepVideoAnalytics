@@ -420,10 +420,13 @@ def perform_query(count, approximate, selected_indexers, excluded_index_entries_
                                      {'url': '{}{}/detections/{}.jpg'.format(settings.MEDIA_URL, r.video_id,
                                                                              r.detection_id) if r.detection_id else '{}{}/frames/{}.jpg'.format(
                                          settings.MEDIA_URL, r.video_id, r.frame_id),
+                                      'result_type': "Detection" if r.detection_id else "Frame",
                                       'rank':r.rank,
                                       'frame_id': r.frame_id,
                                       'frame_index': r.frame.frame_index,
-                                      'video_id': r.video_id}))
+                                      'video_id': r.video_id,
+                                      'video_name': r.video.name
+                                      }))
     for k, v in context.iteritems():
         if v:
             context[k].sort()

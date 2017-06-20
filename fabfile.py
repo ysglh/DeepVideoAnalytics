@@ -162,8 +162,9 @@ def ci():
     django.setup()
     import base64
     from django.core.files.uploadedfile import SimpleUploadedFile
-    from dvaapp.views import handle_uploaded_file, handle_youtube_video, create_query, pull_vdn_list\
+    from dvaapp.views import handle_uploaded_file, handle_youtube_video, pull_vdn_list\
         ,import_vdn_dataset_url
+    from dvaapp.shared import create_query
     from dvaapp.models import Video, Clusters,IndexEntries,TEvent,VDNServer
     from django.conf import settings
     from dvaapp.tasks import extract_frames, perform_face_indexing, inception_index_by_id, perform_ssd_detection_by_id,\

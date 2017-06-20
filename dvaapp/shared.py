@@ -1,5 +1,6 @@
-import os,json,requests,base64,logging
-from models import Video,TEvent,AppliedLabel,Region,Frame,VDNDataset,VDNServer,Query, VDNDetector, CustomDetector, QueryResults
+import os, json, requests, base64, logging
+from models import Video, TEvent, AppliedLabel, Region, Frame, VDNDataset, VDNServer, Query, VDNDetector, \
+    CustomDetector, QueryResults
 from django.conf import settings
 from dva.celery import app
 from celery.result import AsyncResult
@@ -7,14 +8,15 @@ from collections import defaultdict
 import boto3
 from celery.exceptions import TimeoutError
 
+
 def refresh_task_status():
-    for t in TEvent.objects.all().filter(started=True,completed=False,errored=False):
+    for t in TEvent.objects.all().filter(started=True, completed=False, errored=False):
         if AsyncResult(t.id).status == 'FAILURE':
             t.errored = True
             t.save()
 
 
-def create_video_folders(video,create_subdirs=True):
+def create_video_folders(video, create_subdirs=True):
     os.mkdir('{}/{}'.format(settings.MEDIA_ROOT, video.pk))
     if create_subdirs:
         os.mkdir('{}/{}/video/'.format(settings.MEDIA_ROOT, video.pk))
@@ -25,14 +27,14 @@ def create_video_folders(video,create_subdirs=True):
         os.mkdir('{}/{}/audio/'.format(settings.MEDIA_ROOT, video.pk))
 
 
-def create_detector_folders(detector,create_subdirs=True):
+def create_detector_folders(detector, create_subdirs=True):
     try:
         os.mkdir('{}/models/{}'.format(settings.MEDIA_ROOT, detector.pk))
     except:
         pass
 
 
-def handle_uploaded_file(f,name,extract=True,user=None,perform_scene_detection=True,rate=30,rescale=0):
+def handle_uploaded_file(f, name, extract=True, user=None, perform_scene_detection=True, rate=30, rescale=0):
     video = Video()
     if user:
         video.uploader = user
@@ -43,7 +45,8 @@ def handle_uploaded_file(f,name,extract=True,user=None,perform_scene_detection=T
     filename = filename.lower()
     if filename.endswith('.dva_export.zip'):
         create_video_folders(video, create_subdirs=False)
-        with open('{}/{}/{}.{}'.format(settings.MEDIA_ROOT,video.pk,video.pk,filename.split('.')[-1]), 'wb+') as destination:
+        with open('{}/{}/{}.{}'.format(settings.MEDIA_ROOT, video.pk, video.pk, filename.split('.')[-1]),
+                  'wb+') as destination:
             for chunk in f.chunks():
                 destination.write(chunk)
         video.uploaded = True
@@ -52,10 +55,11 @@ def handle_uploaded_file(f,name,extract=True,user=None,perform_scene_detection=T
         import_video_task = TEvent()
         import_video_task.video = video
         import_video_task.save()
-        app.send_task(name=task_name, args=[import_video_task.pk,], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+        app.send_task(name=task_name, args=[import_video_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
     elif filename.endswith('.mp4') or filename.endswith('.flv') or filename.endswith('.zip'):
         create_video_folders(video, create_subdirs=True)
-        with open('{}/{}/video/{}.{}'.format(settings.MEDIA_ROOT,video.pk,video.pk,filename.split('.')[-1]), 'wb+') as destination:
+        with open('{}/{}/video/{}.{}'.format(settings.MEDIA_ROOT, video.pk, video.pk, filename.split('.')[-1]),
+                  'wb+') as destination:
             for chunk in f.chunks():
                 destination.write(chunk)
         video.uploaded = True
@@ -71,47 +75,52 @@ def handle_uploaded_file(f,name,extract=True,user=None,perform_scene_detection=T
             task_name = 'extract_frames_by_id'
             extract_frames_task.operation = task_name
             extract_frames_task.save()
-            app.send_task(name=task_name, args=[extract_frames_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+            app.send_task(name=task_name, args=[extract_frames_task.pk, ],
+                          queue=settings.TASK_NAMES_TO_QUEUE[task_name])
     else:
-        raise ValueError,"Extension {} not allowed".format(filename.split('.')[-1])
+        raise ValueError, "Extension {} not allowed".format(filename.split('.')[-1])
     return video
 
 
-def handle_downloaded_file(downloaded,video,name,extract=True,user=None,perform_scene_detection=True,rate=30,rescale=0,):
+def handle_downloaded_file(downloaded, video, name, extract=True, user=None, perform_scene_detection=True, rate=30,
+                           rescale=0, ):
     video.name = name
     video.save()
     filename = downloaded.split('/')[-1]
     if filename.endswith('.dva_export.zip'):
         create_video_folders(video, create_subdirs=False)
-        os.rename(downloaded,'{}/{}/{}.{}'.format(settings.MEDIA_ROOT,video.pk,video.pk,filename.split('.')[-1]))
+        os.rename(downloaded, '{}/{}/{}.{}'.format(settings.MEDIA_ROOT, video.pk, video.pk, filename.split('.')[-1]))
         video.uploaded = True
         video.save()
         task_name = 'import_video_by_id'
         import_video_task = TEvent()
         import_video_task.video = video
         import_video_task.save()
-        app.send_task(name=task_name, args=[import_video_task.pk,], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+        app.send_task(name=task_name, args=[import_video_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
     elif filename.endswith('.mp4') or filename.endswith('.flv') or filename.endswith('.zip'):
         create_video_folders(video, create_subdirs=True)
-        os.rename(downloaded,'{}/{}/video/{}.{}'.format(settings.MEDIA_ROOT, video.pk, video.pk, filename.split('.')[-1]))
+        os.rename(downloaded,
+                  '{}/{}/video/{}.{}'.format(settings.MEDIA_ROOT, video.pk, video.pk, filename.split('.')[-1]))
         video.uploaded = True
         if filename.endswith('.zip'):
             video.dataset = True
         video.save()
         if extract:
             extract_frames_task = TEvent()
-            extract_frames_task.arguments_json = json.dumps({'perform_scene_detection': perform_scene_detection,'rate': rate,'rescale': rescale})
+            extract_frames_task.arguments_json = json.dumps(
+                {'perform_scene_detection': perform_scene_detection, 'rate': rate, 'rescale': rescale})
             extract_frames_task.video = video
             task_name = 'extract_frames_by_id'
             extract_frames_task.operation = task_name
             extract_frames_task.save()
-            app.send_task(name=task_name, args=[extract_frames_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+            app.send_task(name=task_name, args=[extract_frames_task.pk, ],
+                          queue=settings.TASK_NAMES_TO_QUEUE[task_name])
     else:
-        raise ValueError,"Extension {} not allowed".format(filename.split('.')[-1])
+        raise ValueError, "Extension {} not allowed".format(filename.split('.')[-1])
     return video
 
 
-def create_annotation(form,object_name,labels,frame):
+def create_annotation(form, object_name, labels, frame):
     annotation = Region()
     annotation.object_name = object_name
     if form.cleaned_data['high_level']:
@@ -143,7 +152,7 @@ def create_annotation(form,object_name,labels,frame):
             dl.save()
 
 
-def handle_youtube_video(name,url,extract=True,user=None,perform_scene_detection=True,rate=30,rescale=0):
+def handle_youtube_video(name, url, extract=True, user=None, perform_scene_detection=True, rate=30, rescale=0):
     video = Video()
     if user:
         video.uploader = user
@@ -163,13 +172,14 @@ def handle_youtube_video(name,url,extract=True,user=None,perform_scene_detection
         app.send_task(name=task_name, args=[extract_frames_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
     return video
 
-def create_child_vdn_dataset(parent_video,server,headers):
+
+def create_child_vdn_dataset(parent_video, server, headers):
     server_url = server.url
     if not server_url.endswith('/'):
         server_url += '/'
     new_dataset = {'root': False,
-                   'parent_url': parent_video.vdn_dataset.url ,
-                   'description':'automatically created child'}
+                   'parent_url': parent_video.vdn_dataset.url,
+                   'description': 'automatically created child'}
     r = requests.post("{}api/datasets/".format(server_url), data=new_dataset, headers=headers)
     if r.status_code == 201:
         vdn_dataset = VDNDataset()
@@ -181,15 +191,16 @@ def create_child_vdn_dataset(parent_video,server,headers):
         vdn_dataset.save()
         return vdn_dataset
     else:
-        raise ValueError,"{} {} {} {}".format("{}api/datasets/".format(server_url),headers,r.status_code,new_dataset)
+        raise ValueError, "{} {} {} {}".format("{}api/datasets/".format(server_url), headers, r.status_code,
+                                               new_dataset)
 
 
-def create_root_vdn_dataset(s3export,server,headers,name,description):
+def create_root_vdn_dataset(s3export, server, headers, name, description):
     new_dataset = {'root': True,
-                   'aws_requester_pays':True,
-                   'aws_region':s3export.region,
-                   'aws_bucket':s3export.bucket,
-                   'aws_key':s3export.key,
+                   'aws_requester_pays': True,
+                   'aws_region': s3export.region,
+                   'aws_bucket': s3export.bucket,
+                   'aws_key': s3export.key,
                    'name': name,
                    'description': description
                    }
@@ -207,7 +218,7 @@ def create_root_vdn_dataset(s3export,server,headers,name,description):
         s3export.video.vdn_dataset = vdn_dataset
         return vdn_dataset
     else:
-        raise ValueError,"Could not crated dataset"
+        raise ValueError, "Could not crated dataset"
 
 
 def pull_vdn_list(pk):
@@ -238,10 +249,10 @@ def pull_vdn_list(pk):
     server.last_response_datasets = json.dumps(datasets)
     server.last_response_detectors = json.dumps(detectors)
     server.save()
-    return server,datasets,detectors
+    return server, datasets, detectors
 
 
-def create_query(count,approximate,selected,excluded_pks,image_data_url,user=None):
+def create_query(count, approximate, selected, excluded_pks, image_data_url, user=None):
     query = Query()
     query.count = count
     if excluded_pks:
@@ -274,10 +285,10 @@ def create_query(count,approximate,selected,excluded_pks,image_data_url,user=Non
             fh.write(image_data)
         with open(query_frame_path, 'w') as fh:
             fh.write(image_data)
-    return query,dv
+    return query, dv
 
 
-def create_dataset(d,server):
+def create_dataset(d, server):
     dataset = VDNDataset()
     dataset.server = server
     dataset.name = d['name']
@@ -294,7 +305,7 @@ def create_dataset(d,server):
     return dataset
 
 
-def import_vdn_dataset_url(server,url,user):
+def import_vdn_dataset_url(server, url, user):
     r = requests.get(url)
     response = r.json()
     vdn_dataset = create_dataset(response, server)
@@ -340,7 +351,7 @@ def create_vdn_detector(d, server):
     return vdn_detector
 
 
-def import_vdn_detector_url(server,url,user):
+def import_vdn_detector_url(server, url, user):
     r = requests.get(url)
     response = r.json()
     vdn_detector = create_vdn_detector(response, server)
@@ -352,22 +363,23 @@ def import_vdn_detector_url(server,url,user):
         task_name = 'import_vdn_detector_file'
         import_vdn_detector_task = TEvent()
         import_vdn_detector_task.operation = task_name
-        import_vdn_detector_task.arguments_json = json.dumps({'detector_pk':detector.pk})
+        import_vdn_detector_task.arguments_json = json.dumps({'detector_pk': detector.pk})
         import_vdn_detector_task.save()
-        app.send_task(name=task_name, args=[import_vdn_detector_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+        app.send_task(name=task_name, args=[import_vdn_detector_task.pk, ],
+                      queue=settings.TASK_NAMES_TO_QUEUE[task_name])
     elif vdn_detector.aws_key and vdn_detector.aws_bucket:
         raise NotImplementedError
     else:
         raise NotImplementedError
 
 
-def create_detector_dataset(object_names,labels):
+def create_detector_dataset(object_names, labels):
     class_distribution = defaultdict(int)
     rboxes = defaultdict(list)
     rboxes_set = defaultdict(set)
     frames = {}
     class_names = {k: i for i, k in enumerate(labels.union(object_names))}
-    i_class_names = {i:k for k,i in class_names.items()}
+    i_class_names = {i: k for k, i in class_names.items()}
     for r in Region.objects.all().filter(object_name__in=object_names):
         frames[r.frame_id] = r.frame
         if r.pk not in rboxes_set[r.frame_id]:
@@ -382,16 +394,19 @@ def create_detector_dataset(object_names,labels):
                 rboxes[l.frame_id].append((class_names[l.label_name], r.x, r.y, r.x + r.w, r.y + r.h))
                 rboxes_set[r.frame_id].add(r.pk)
                 class_distribution[l.label_name] += 1
-    return class_distribution,class_names,rboxes,rboxes_set,frames,i_class_names
+    return class_distribution, class_names, rboxes, rboxes_set, frames, i_class_names
 
 
-def perform_query(count, approximate, selected_indexers, excluded_index_entries_pk, image_data_url,user):
-    query, dv = create_query(count, approximate, selected_indexers, excluded_index_entries_pk, image_data_url,user)
+def perform_query(count, approximate, selected_indexers, excluded_index_entries_pk, image_data_url, user):
+    query, dv = create_query(count, approximate, selected_indexers, excluded_index_entries_pk, image_data_url, user)
     task_results = {}
+    context = {}
     for visual_index_name, visual_index in settings.VISUAL_INDEXES.iteritems():
         task_name = visual_index['retriever_task']
         if visual_index_name in selected_indexers:
-            task_results[visual_index_name] = app.send_task(task_name, args=[query.pk, ],queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+            task_results[visual_index_name] = app.send_task(task_name, args=[query.pk, ],
+                                                            queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+            context[visual_index_name] = []
     for visual_index_name, result in task_results.iteritems():
         try:
             logging.info("Waiting for {}".format(visual_index_name))
@@ -400,37 +415,17 @@ def perform_query(count, approximate, selected_indexers, excluded_index_entries_
             time_out = True
         except Exception, e:
             raise ValueError(e)
-    context = {}
-    for visual_index_name, visual_index in settings.VISUAL_INDEXES.iteritems():
-        context[visual_index_name] = []
     for r in QueryResults.objects.all().filter(query=query):
-        context[r.algorithm].append((r.rank, r))
-
-    for k,v in context.iteritems():
-        context[k].sort()
+        context[r.algorithm].append((r.rank,
+                                     {'url': '{}{}/detections/{}.jpg'.format(settings.MEDIA_URL, r.video_id,
+                                                                             r.detection_id) if r.detection_id else '{}{}/frames/{}.jpg'.format(
+                                         settings.MEDIA_URL, r.video_id, r.frame_id),
+                                      'rank':r.rank,
+                                      'frame_id': r.frame_id,
+                                      'frame_index': r.frame.frame_index,
+                                      'video_id': r.video_id}))
+    for k, v in context.iteritems():
         if v:
+            context[k].sort()
             context[k] = zip(*v)[1]
-    context['url'] = '{}queries/{}.png'.format(settings.MEDIA_URL, query.pk)
-    return {'task_id': "",'primary_key': query.pk, 'results': context}
-
-
-# if entries and settings.VISUAL_INDEXES[visual_index_name]['detection_specific']:
-#     for algo, rlist in entries.iteritems():
-#         for r in rlist:
-#             r['url'] = '{}{}/detections/{}.jpg'.format(settings.MEDIA_URL, r['video_primary_key'],
-#                                                        r['detection_primary_key'])
-#             d = Region.objects.get(pk=r['detection_primary_key'])
-#             r['result_detect'] = True
-#             r['frame_primary_key'] = d.frame_id
-#             r['result_type'] = 'detection'
-#             r['detection'] = [{'pk': d.pk, 'name': d.object_name, 'confidence': d.confidence}, ]
-#             results_detections.append(r)
-# elif entries:
-#     for algo, rlist in entries.iteritems():
-#         for r in rlist:
-#             r['url'] = '{}{}/frames/{}.jpg'.format(settings.MEDIA_URL, r['video_primary_key'],
-#                                                    r['frame_index'])
-#             r['detections'] = [{'pk': d.pk, 'name': d.object_name, 'confidence': d.confidence} for d in
-#                                Region.objects.filter(frame_id=r['frame_primary_key'])]
-#             r['result_type'] = 'frame'
-#             results.append(r)
+    return {'task_id': "", 'primary_key': query.pk, 'results': context, 'url':'{}queries/{}.png'.format(settings.MEDIA_URL, query.pk)}

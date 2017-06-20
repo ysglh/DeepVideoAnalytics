@@ -457,8 +457,7 @@ $scope.search = function (approximate) {
         canvas.deactivateAll().renderAll();
     }
     $scope.alert_status = true;
-    $scope.results = [];
-    $scope.results_detections = [];
+    $scope.results = {};
     $scope.$apply();
     $scope.$$phase || $scope.$digest();
     $scope.refreshData();
@@ -481,8 +480,7 @@ $scope.search = function (approximate) {
             $scope.status = "Search Completed";
             $scope.alert_status = false;
             console.log(response);
-            $scope.results = chunk(response.results, 4);
-            $scope.results_detections = chunk(response.results_detections, 4);
+            $scope.results = response.results;
             $scope.$$phase || $scope.$digest();
         }
     });
@@ -601,10 +599,9 @@ cveditor.controller('CanvasControls', function($scope) {
     $scope.alert_status = false;
     $scope.status = status;
     $scope.current_mode = null;
-    $scope.results = [];
+    $scope.results = {};
     $scope.boxes = [];
     $scope.existing_boxes = [];
-    $scope.results_detections = [];
     $scope.high_level_alert = "Add frame level annotation";
     $scope.send_entire_image = false;
     $scope.visible_all = true;

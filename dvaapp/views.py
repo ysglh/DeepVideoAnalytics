@@ -322,7 +322,9 @@ def search(request):
         approximate = True if request.POST.get('approximate') == 'true' else False
         image_data_url = request.POST.get('image_url')
         user = request.user if request.user.is_authenticated else None
-        return JsonResponse(data=perform_query())
+        return JsonResponse(data=perform_query(count, approximate, selected_indexers,
+                                               excluded_index_entries_pk, image_data_url, user))
+
 
 def home(request):
     return render(request, 'home.html', {})

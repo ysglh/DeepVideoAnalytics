@@ -420,7 +420,7 @@ def perform_query(count, approximate, selected_indexers, excluded_index_entries_
                                      {'url': '{}{}/detections/{}.jpg'.format(settings.MEDIA_URL, r.video_id,
                                                                              r.detection_id) if r.detection_id else '{}{}/frames/{}.jpg'.format(
                                          settings.MEDIA_URL, r.video_id, r.frame_id),
-                                      'result_type': "Detection" if r.detection_id else "Frame",
+                                      'result_type': "Region" if r.detection_id else "Frame",
                                       'rank':r.rank,
                                       'frame_id': r.frame_id,
                                       'frame_index': r.frame.frame_index,

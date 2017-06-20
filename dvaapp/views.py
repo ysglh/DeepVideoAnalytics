@@ -13,12 +13,11 @@ from rest_framework import viewsets, mixins
 from django.contrib.auth.models import User
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from django.db.models import Count
-from celery.exceptions import TimeoutError
 import math
 from django.db.models import Max
 from shared import handle_uploaded_file, create_annotation, create_child_vdn_dataset, \
-    create_query, create_root_vdn_dataset, handle_youtube_video, pull_vdn_list, \
-    import_vdn_dataset_url, create_detector_dataset, import_vdn_detector_url
+    create_root_vdn_dataset, handle_youtube_video, pull_vdn_list, \
+    import_vdn_dataset_url, create_detector_dataset, import_vdn_detector_url, perform_query
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.mixins import UserPassesTestMixin
 import logging
@@ -322,53 +321,8 @@ def search(request):
         selected_indexers = json.loads(request.POST.get('selected_indexers'))
         approximate = True if request.POST.get('approximate') == 'true' else False
         image_data_url = request.POST.get('image_url')
-        query, dv = create_query(count, approximate, selected_indexers, excluded_index_entries_pk, image_data_url,
-                                 request.user if request.user.is_authenticated else None)
-        task_results = {}
-        for visual_index_name, visual_index in settings.VISUAL_INDEXES.iteritems():
-            task_name = visual_index['retriever_task']
-            if visual_index_name in selected_indexers:
-                task_results[visual_index_name] = app.send_task(task_name, args=[query.pk, ],
-                                                                queue=settings.TASK_NAMES_TO_QUEUE[task_name])
-        results = []
-        results_detections = []
-        time_out = False
-        for visual_index_name, result in task_results.iteritems():
-            entries = {}
-            try:
-                logging.info("Waiting for {}".format(visual_index_name))
-                entries = result.get(timeout=120)
-                if entries:
-                    if not (type(entries) is dict):
-                        print type(entries), entries
-                        raise ValueError, entries
-            except TimeoutError:
-                time_out = True
-            except Exception, e:
-                raise ValueError(e)
-            if entries and settings.VISUAL_INDEXES[visual_index_name]['detection_specific']:
-                for algo, rlist in entries.iteritems():
-                    for r in rlist:
-                        r['url'] = '{}{}/detections/{}.jpg'.format(settings.MEDIA_URL, r['video_primary_key'],
-                                                                   r['detection_primary_key'])
-                        d = Region.objects.get(pk=r['detection_primary_key'])
-                        r['result_detect'] = True
-                        r['frame_primary_key'] = d.frame_id
-                        r['result_type'] = 'detection'
-                        r['detection'] = [{'pk': d.pk, 'name': d.object_name, 'confidence': d.confidence}, ]
-                        results_detections.append(r)
-            elif entries:
-                for algo, rlist in entries.iteritems():
-                    for r in rlist:
-                        r['url'] = '{}{}/frames/{}.jpg'.format(settings.MEDIA_URL, r['video_primary_key'],
-                                                               r['frame_index'])
-                        r['detections'] = [{'pk': d.pk, 'name': d.object_name, 'confidence': d.confidence} for d in
-                                           Region.objects.filter(frame_id=r['frame_primary_key'])]
-                        r['result_type'] = 'frame'
-                        results.append(r)
-        return JsonResponse(data={'task_id': "", 'time_out': time_out, 'primary_key': query.pk, 'results': results,
-                                  'results_detections': results_detections})
-
+        user = request.user if request.user.is_authenticated else None
+        return JsonResponse(data=perform_query())
 
 def home(request):
     return render(request, 'home.html', {})

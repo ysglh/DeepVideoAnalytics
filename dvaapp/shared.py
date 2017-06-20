@@ -1,11 +1,11 @@
-import os,json,requests,base64
-from models import Video,TEvent,AppliedLabel,Region,Frame,VDNDataset,VDNServer,Query, VDNDetector, CustomDetector
+import os,json,requests,base64,logging
+from models import Video,TEvent,AppliedLabel,Region,Frame,VDNDataset,VDNServer,Query, VDNDetector, CustomDetector, QueryResults
 from django.conf import settings
 from dva.celery import app
 from celery.result import AsyncResult
 from collections import defaultdict
 import boto3
-
+from celery.exceptions import TimeoutError
 
 def refresh_task_status():
     for t in TEvent.objects.all().filter(started=True,completed=False,errored=False):
@@ -383,3 +383,54 @@ def create_detector_dataset(object_names,labels):
                 rboxes_set[r.frame_id].add(r.pk)
                 class_distribution[l.label_name] += 1
     return class_distribution,class_names,rboxes,rboxes_set,frames,i_class_names
+
+
+def perform_query(count, approximate, selected_indexers, excluded_index_entries_pk, image_data_url,user):
+    query, dv = create_query(count, approximate, selected_indexers, excluded_index_entries_pk, image_data_url,user)
+    task_results = {}
+    for visual_index_name, visual_index in settings.VISUAL_INDEXES.iteritems():
+        task_name = visual_index['retriever_task']
+        if visual_index_name in selected_indexers:
+            task_results[visual_index_name] = app.send_task(task_name, args=[query.pk, ],queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+    for visual_index_name, result in task_results.iteritems():
+        try:
+            logging.info("Waiting for {}".format(visual_index_name))
+            _ = result.get(timeout=120)
+        except TimeoutError:
+            time_out = True
+        except Exception, e:
+            raise ValueError(e)
+    context = {}
+    for visual_index_name, visual_index in settings.VISUAL_INDEXES.iteritems():
+        context[visual_index_name] = []
+    for r in QueryResults.objects.all().filter(query=query):
+        context[r.algorithm].append((r.rank, r))
+
+    for k,v in context.iteritems():
+        context[k].sort()
+        if v:
+            context[k] = zip(*v)[1]
+    context['url'] = '{}queries/{}.png'.format(settings.MEDIA_URL, query.pk)
+    return {'task_id': "",'primary_key': query.pk, 'results': context}
+
+
+# if entries and settings.VISUAL_INDEXES[visual_index_name]['detection_specific']:
+#     for algo, rlist in entries.iteritems():
+#         for r in rlist:
+#             r['url'] = '{}{}/detections/{}.jpg'.format(settings.MEDIA_URL, r['video_primary_key'],
+#                                                        r['detection_primary_key'])
+#             d = Region.objects.get(pk=r['detection_primary_key'])
+#             r['result_detect'] = True
+#             r['frame_primary_key'] = d.frame_id
+#             r['result_type'] = 'detection'
+#             r['detection'] = [{'pk': d.pk, 'name': d.object_name, 'confidence': d.confidence}, ]
+#             results_detections.append(r)
+# elif entries:
+#     for algo, rlist in entries.iteritems():
+#         for r in rlist:
+#             r['url'] = '{}{}/frames/{}.jpg'.format(settings.MEDIA_URL, r['video_primary_key'],
+#                                                    r['frame_index'])
+#             r['detections'] = [{'pk': d.pk, 'name': d.object_name, 'confidence': d.confidence} for d in
+#                                Region.objects.filter(frame_id=r['frame_primary_key'])]
+#             r['result_type'] = 'frame'
+#             results.append(r)

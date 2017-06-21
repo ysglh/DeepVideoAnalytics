@@ -5,16 +5,11 @@ from dva.celery import app
 from .models import Video, Frame, TEvent, Query, IndexEntries, QueryResults, AppliedLabel, VDNDataset, Clusters, \
     ClusterCodes, Region, Scene, CustomDetector, Segment
 
-try:
-    from dvalib import entity
-    from dvalib import detector
-    from dvalib import indexer
-    from dvalib import clustering
-    from dvalib.yolo import trainer
-    from PIL import Image
-    from scipy import misc
-except ImportError:
-    logging.warning("Could not import dvalib assuming operating in frontend only mode")
+
+from dvalib import entity
+from dvalib import indexer
+from dvalib import clustering
+
 from collections import defaultdict
 import calendar
 import requests
@@ -628,58 +623,6 @@ def perform_face_detection_indexing_by_id(task_id):
     start.seconds = time.time() - start_time
     start.save()
     return 0
-
-
-def perform_face_indexing(video_id):
-    face_indexer = indexer.FacenetIndexer()
-    dv = Video.objects.get(id=video_id)
-    video = entity.WVideo(dv, settings.MEDIA_ROOT)
-    frames = Frame.objects.all().filter(video=dv)
-    wframes = [entity.WFrame(video=video, frame_index=df.frame_index, primary_key=df.pk) for df in frames]
-    input_paths = {f.local_path(): f.primary_key for f in wframes}
-    faces_dir = '{}/{}/detections'.format(settings.MEDIA_ROOT, video_id)
-    indexes_dir = '{}/{}/indexes'.format(settings.MEDIA_ROOT, video_id)
-    face_detector = detector.FaceDetector()
-    aligned_paths = face_detector.detect(wframes)
-    logging.info(len(aligned_paths))
-    faces = []
-    faces_to_pk = {}
-    count = 0
-    for path, v in aligned_paths.iteritems():
-        for scaled_img, bb in v:
-            d = Region()
-            d.region_type = Region.DETECTION
-            d.video = dv
-            d.confidence = 100.0
-            d.frame_id = input_paths[path]
-            d.object_name = "mtcnn_face"
-            left, top, right, bottom = bb[0], bb[1], bb[2], bb[3]
-            d.y = top
-            d.x = left
-            d.w = right - left
-            d.h = bottom - top
-            d.save()
-            face_path = '{}/{}.jpg'.format(faces_dir, d.pk)
-            output_filename = os.path.join(faces_dir, face_path)
-            misc.imsave(output_filename, scaled_img)
-            faces.append(face_path)
-            faces_to_pk[face_path] = d.pk
-            count += 1
-    dv.refresh_from_db()
-    dv.detections = dv.detections + count
-    dv.save()
-    path_count, emb_array, entries, feat_fname, entries_fname = face_indexer.index_faces(faces, faces_to_pk,
-                                                                                         indexes_dir, video_id)
-    i = IndexEntries()
-    i.video = dv
-    i.count = len(entries)
-    i.contains_frames = False
-    i.contains_detections = True
-    i.detection_name = "Face"
-    i.algorithm = 'facenet'
-    i.entries_file_name = entries_fname.split('/')[-1]
-    i.features_file_name = feat_fname.split('/')[-1]
-    i.save()
 
 
 @app.task(track_started=True, name="export_video_by_id")

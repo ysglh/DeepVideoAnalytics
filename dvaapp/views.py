@@ -17,7 +17,7 @@ import math
 from django.db.models import Max
 from shared import handle_uploaded_file, create_annotation, create_child_vdn_dataset, \
     create_root_vdn_dataset, handle_youtube_video, pull_vdn_list, \
-    import_vdn_dataset_url, create_detector_dataset, import_vdn_detector_url, perform_query
+    import_vdn_dataset_url, create_detector_dataset, import_vdn_detector_url, QueryProcessing
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.mixins import UserPassesTestMixin
 import logging
@@ -316,14 +316,13 @@ class VDNDatasetDetail(UserPassesTestMixin, DetailView):
 @user_passes_test(user_check)
 def search(request):
     if request.method == 'POST':
-        count = request.POST.get('count')
-        excluded_index_entries_pk = json.loads(request.POST.get('excluded_index_entries'))
-        selected_indexers = json.loads(request.POST.get('selected_indexers'))
-        approximate = True if request.POST.get('approximate') == 'true' else False
-        image_data_url = request.POST.get('image_url')
-        user = request.user if request.user.is_authenticated else None
-        return JsonResponse(data=perform_query(count, approximate, selected_indexers,
-                                               excluded_index_entries_pk, image_data_url, user))
+        qp = QueryProcessing()
+        qp.create_from_request(request)
+        qp.send_tasks()
+        qp.wait()
+        qp.collect_results()
+        return JsonResponse(data={'task_id': "", 'primary_key': qp.query.pk, 'results': qp.context,
+                                  'url': '{}queries/{}.png'.format(settings.MEDIA_URL, qp.query.pk)})
 
 
 def home(request):

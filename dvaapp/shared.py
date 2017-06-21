@@ -283,7 +283,13 @@ class QueryProcessing(object):
             with open(query_frame_path, 'w') as fh:
                 fh.write(self.query.image_data)
 
-    def create_from_view(self, count, approximate, selected, excluded_pks, image_data_url, user=None):
+    def create_from_request(self, request):
+        count = request.POST.get('count')
+        excluded_index_entries_pk = json.loads(request.POST.get('excluded_index_entries'))
+        selected_indexers = json.loads(request.POST.get('selected_indexers'))
+        approximate = True if request.POST.get('approximate') == 'true' else False
+        image_data_url = request.POST.get('image_url')
+        user = request.user if request.user.is_authenticated else None
         self.query = Query()
         self.query.approximate = approximate
         if not (user is None):
@@ -292,16 +298,41 @@ class QueryProcessing(object):
         self.query.image_data = image_data
         self.query.save()
         self.store_and_create_video_object()
-        for k in selected:
+        for k in selected_indexers:
             iq = IndexerQuery()
             iq.parent_query = self.query
             iq.algorithm = k
             iq.count = count
-            iq.excluded_index_entries_pk = [int(k) for k in excluded_pks]
+            iq.excluded_index_entries_pk = [int(epk) for epk in excluded_index_entries_pk] # fix this only the indexer specific
             iq.approximate = approximate
-            self.indexer_queries.append(k)
-            self.indexer_queries[k].save()
+            iq.save()
+            self.indexer_queries.append(iq)
+        return self.query
 
+    def create_from_json(self,j,user=None):
+        """
+        Create query from JSON
+        :param j: JSON encoded query
+        :param user:
+        :return:
+        """
+        self.query = Query()
+        if not (user is None):
+            self.query.user = user
+        if j['image_data_b64'].strip():
+            image_data = base64.decodestring(j['image_data_b64'])
+            self.query.image_data = image_data
+        self.query.save()
+        self.store_and_create_video_object()
+        for k in j['indexers']:
+            iq = IndexerQuery()
+            iq.parent_query = self.query
+            iq.algorithm = k
+            iq.count = k['count']
+            iq.excluded_index_entries_pk = k['excluded_index_entries_pk'] if 'excluded_index_entries_pk' in k else []
+            iq.approximate = k['approximate']
+            iq.save()
+            self.indexer_queries.append(iq)
         return self.query
 
     def load_from_db(self,query_pk):
@@ -314,15 +345,15 @@ class QueryProcessing(object):
             self.task_results[iq.algorithm] = app.send_task(task_name, args=[self.query.pk, ], queue=queue_name)
             self.context[iq.algorithm] = []
 
-    def wait_and_collect(self,timeout=120):
+    def wait(self,timeout=120):
         for visual_index_name, result in self.task_results.iteritems():
             try:
                 logging.info("Waiting for {}".format(visual_index_name))
-                _ = result.get(timeout=120)
-            except TimeoutError:
-                time_out = True
+                _ = result.get(timeout=timeout)
             except Exception, e:
                 raise ValueError(e)
+
+    def collect_results(self):
         for r in QueryResults.objects.all().filter(query=self.query):
             self.context[r.algorithm].append((r.rank,
                                          {'url': '{}{}/detections/{}.jpg'.format(settings.MEDIA_URL, r.video_id,
@@ -334,10 +365,10 @@ class QueryProcessing(object):
                                           'frame_index': r.frame.frame_index,
                                           'video_id': r.video_id,
                                           'video_name': r.video.name}))
-        for k, v in context.iteritems():
+        for k, v in self.context.iteritems():
             if v:
-                context[k].sort()
-                context[k] = zip(*v)[1]
+                self.context[k].sort()
+                self.context[k] = zip(*v)[1]
 
 
 def create_dataset(d, server):
@@ -448,10 +479,3 @@ def create_detector_dataset(object_names, labels):
                 class_distribution[l.label_name] += 1
     return class_distribution, class_names, rboxes, rboxes_set, frames, i_class_names
 
-
-def perform_query(count, approximate, selected_indexers, excluded_index_entries_pk, image_data_url, user):
-    qp = QueryProcessing()
-    query = qp.create_from_view(count, approximate, selected_indexers, excluded_index_entries_pk, image_data_url, user)
-    qp.send_tasks()
-
-    return {'task_id': "", 'primary_key': query.pk, 'results': context, 'url':'{}queries/{}.png'.format(settings.MEDIA_URL, query.pk)}

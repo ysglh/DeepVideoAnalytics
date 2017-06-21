@@ -49,15 +49,25 @@ class VDNDetector(models.Model):
 
 class Query(models.Model):
     created = models.DateTimeField('date created', auto_now_add=True)
-    count = models.IntegerField(default=20) # retrieve 20 results per algorithm
     selected_indexers = ArrayField(models.CharField(max_length=30),default=[])
-    excluded_index_entries_pk = ArrayField(models.IntegerField(), default=[])
-    results = models.BooleanField(default=False)
     results_metadata = models.TextField(default="")
-    approximate = models.BooleanField(default=False)
     user = models.ForeignKey(User, null=True)
     image_data = models.BinaryField(null=True)
 
+
+class IndexerQuery(models.Model):
+    parent_query = models.ForeignKey(Query)
+    created = models.DateTimeField('date created', auto_now_add=True)
+    count = models.IntegerField(default=20)
+    algorithm = models.CharField(max_length=500,default="")
+    # indexer = models.ForeignKey(CustomIndexer,null=True)
+    excluded_index_entries_pk = ArrayField(models.IntegerField(), default=[])
+    query_float_vector = ArrayField(models.FloatField(), default=[])
+    query_int_vector = ArrayField(models.IntegerField(), default=[])
+    results = models.BooleanField(default=False)
+    metadata = models.TextField(default="")
+    approximate = models.BooleanField(default=False)
+    user = models.ForeignKey(User, null=True)
 
 class Video(models.Model):
     name = models.CharField(max_length=500,default="")
@@ -158,6 +168,7 @@ class Region(models.Model):
 
 class QueryResults(models.Model):
     query = models.ForeignKey(Query)
+    indexerquery = models.ForeignKey(IndexerQuery)
     video = models.ForeignKey(Video)
     frame = models.ForeignKey(Frame)
     detection = models.ForeignKey(Region,null=True)
@@ -263,16 +274,10 @@ class CustomDetector(models.Model):
     created = models.DateTimeField('date created', auto_now_add=True)
 
 
-# class CustomAnnotator(models.Model):
-#     algorithm = models.CharField(max_length=100)
-#     object_name = models.CharField(max_length=100)
-#     min_width = models.IntegerField(default=0)
-#     min_height = models.IntegerField(default=0)
-#     width = models.IntegerField(default=0)
-#     height = models.IntegerField(default=0)
-#     dimensions = models.IntegerField(default=0)
-#     tfgraph_filename = models.CharField(max_length=200)
-#     vdn_parent = models.TextField(default="")
+# class CustomIndexer(models.Model):
+#     name = models.CharField(max_length=100)
+#     algorithm = models.CharField(max_length=100,default="")
+#     created = models.DateTimeField('date created', auto_now_add=True)
 
 
 class Scene(models.Model):

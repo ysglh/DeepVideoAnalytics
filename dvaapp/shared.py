@@ -1,6 +1,6 @@
 import os, json, requests, base64, logging
 from models import Video, TEvent, AppliedLabel, Region, Frame, VDNDataset, VDNServer, Query, VDNDetector, \
-    CustomDetector, QueryResults
+    CustomDetector, QueryResults, IndexerQuery
 from django.conf import settings
 from dva.celery import app
 from celery.result import AsyncResult
@@ -252,40 +252,92 @@ def pull_vdn_list(pk):
     return server, datasets, detectors
 
 
-def create_query(count, approximate, selected, excluded_pks, image_data_url, user=None):
-    query = Query()
-    query.count = count
-    if excluded_pks:
-        query.excluded_index_entries_pk = [int(k) for k in excluded_pks]
-    query.selected_indexers = selected
-    query.approximate = approximate
-    if not (user is None):
-        query.user = user
-    image_data = base64.decodestring(image_data_url[22:])
-    if settings.HEROKU_DEPLOY:
-        query.image_data = image_data
-    query.save()
-    dv = Video()
-    dv.name = 'query_{}'.format(query.pk)
-    dv.dataset = True
-    dv.query = True
-    dv.parent_query = query
-    dv.save()
-    if settings.HEROKU_DEPLOY:
-        query_key = "queries/{}.png".format(query.pk)
-        query_frame_key = "{}/frames/0.png".format(dv.pk)
-        s3 = boto3.resource('s3')
-        s3.Bucket(settings.MEDIA_BUCKET).put_object(Key=query_key, Body=image_data)
-        s3.Bucket(settings.MEDIA_BUCKET).put_object(Key=query_frame_key, Body=image_data)
-    else:
-        query_path = "{}/queries/{}.png".format(settings.MEDIA_ROOT, query.pk)
-        query_frame_path = "{}/{}/frames/0.png".format(settings.MEDIA_ROOT, dv.pk)
-        create_video_folders(dv)
-        with open(query_path, 'w') as fh:
-            fh.write(image_data)
-        with open(query_frame_path, 'w') as fh:
-            fh.write(image_data)
-    return query, dv
+class QueryProcessing(object):
+
+    def __init__(self):
+        self.query = None
+        self.indexer_queries = []
+        self.task_results = {}
+        self.context = {}
+        self.visual_indexes = settings.VISUAL_INDEXES
+
+    def store_and_create_video_object(self):
+        dv = Video()
+        dv.name = 'query_{}'.format(self.query.pk)
+        dv.dataset = True
+        dv.query = True
+        dv.parent_query = self.query
+        dv.save()
+        if settings.HEROKU_DEPLOY:
+            query_key = "queries/{}.png".format(self.query.pk)
+            query_frame_key = "{}/frames/0.png".format(dv.pk)
+            s3 = boto3.resource('s3')
+            s3.Bucket(settings.MEDIA_BUCKET).put_object(Key=query_key, Body=self.query.image_data)
+            s3.Bucket(settings.MEDIA_BUCKET).put_object(Key=query_frame_key, Body=self.query.image_data)
+        else:
+            query_path = "{}/queries/{}.png".format(settings.MEDIA_ROOT, self.query.pk)
+            query_frame_path = "{}/{}/frames/0.png".format(settings.MEDIA_ROOT, dv.pk)
+            create_video_folders(dv)
+            with open(query_path, 'w') as fh:
+                fh.write(self.query.image_data)
+            with open(query_frame_path, 'w') as fh:
+                fh.write(self.query.image_data)
+
+    def create_from_view(self, count, approximate, selected, excluded_pks, image_data_url, user=None):
+        self.query = Query()
+        self.query.approximate = approximate
+        if not (user is None):
+            self.query.user = user
+        image_data = base64.decodestring(image_data_url[22:])
+        self.query.image_data = image_data
+        self.query.save()
+        self.store_and_create_video_object()
+        for k in selected:
+            iq = IndexerQuery()
+            iq.parent_query = self.query
+            iq.algorithm = k
+            iq.count = count
+            iq.excluded_index_entries_pk = [int(k) for k in excluded_pks]
+            iq.approximate = approximate
+            self.indexer_queries.append(k)
+            self.indexer_queries[k].save()
+
+        return self.query
+
+    def load_from_db(self,query_pk):
+        pass
+
+    def send_tasks(self):
+        for iq in self.indexer_queries:
+            task_name = self.visual_indexes[iq.algorithm]['retriever_task']
+            queue_name = settings.TASK_NAMES_TO_QUEUE[task_name]
+            self.task_results[iq.algorithm] = app.send_task(task_name, args=[self.query.pk, ], queue=queue_name)
+            self.context[iq.algorithm] = []
+
+    def wait_and_collect(self,timeout=120):
+        for visual_index_name, result in self.task_results.iteritems():
+            try:
+                logging.info("Waiting for {}".format(visual_index_name))
+                _ = result.get(timeout=120)
+            except TimeoutError:
+                time_out = True
+            except Exception, e:
+                raise ValueError(e)
+        for r in QueryResults.objects.all().filter(query=self.query):
+            self.context[r.algorithm].append((r.rank,
+                                         {'url': '{}{}/detections/{}.jpg'.format(settings.MEDIA_URL, r.video_id,
+                                                                                 r.detection_id) if r.detection_id else '{}{}/frames/{}.jpg'.format(
+                                             settings.MEDIA_URL, r.video_id, r.frame_id),
+                                          'result_type': "Region" if r.detection_id else "Frame",
+                                          'rank':r.rank,
+                                          'frame_id': r.frame_id,
+                                          'frame_index': r.frame.frame_index,
+                                          'video_id': r.video_id,
+                                          'video_name': r.video.name}))
+        for k, v in context.iteritems():
+            if v:
+                context[k].sort()
+                context[k] = zip(*v)[1]
 
 
 def create_dataset(d, server):
@@ -398,37 +450,8 @@ def create_detector_dataset(object_names, labels):
 
 
 def perform_query(count, approximate, selected_indexers, excluded_index_entries_pk, image_data_url, user):
-    query, dv = create_query(count, approximate, selected_indexers, excluded_index_entries_pk, image_data_url, user)
-    task_results = {}
-    context = {}
-    for visual_index_name, visual_index in settings.VISUAL_INDEXES.iteritems():
-        task_name = visual_index['retriever_task']
-        if visual_index_name in selected_indexers:
-            task_results[visual_index_name] = app.send_task(task_name, args=[query.pk, ],
-                                                            queue=settings.TASK_NAMES_TO_QUEUE[task_name])
-            context[visual_index_name] = []
-    for visual_index_name, result in task_results.iteritems():
-        try:
-            logging.info("Waiting for {}".format(visual_index_name))
-            _ = result.get(timeout=120)
-        except TimeoutError:
-            time_out = True
-        except Exception, e:
-            raise ValueError(e)
-    for r in QueryResults.objects.all().filter(query=query):
-        context[r.algorithm].append((r.rank,
-                                     {'url': '{}{}/detections/{}.jpg'.format(settings.MEDIA_URL, r.video_id,
-                                                                             r.detection_id) if r.detection_id else '{}{}/frames/{}.jpg'.format(
-                                         settings.MEDIA_URL, r.video_id, r.frame_id),
-                                      'result_type': "Region" if r.detection_id else "Frame",
-                                      'rank':r.rank,
-                                      'frame_id': r.frame_id,
-                                      'frame_index': r.frame.frame_index,
-                                      'video_id': r.video_id,
-                                      'video_name': r.video.name
-                                      }))
-    for k, v in context.iteritems():
-        if v:
-            context[k].sort()
-            context[k] = zip(*v)[1]
+    qp = QueryProcessing()
+    query = qp.create_from_view(count, approximate, selected_indexers, excluded_index_entries_pk, image_data_url, user)
+    qp.send_tasks()
+
     return {'task_id': "", 'primary_key': query.pk, 'results': context, 'url':'{}queries/{}.png'.format(settings.MEDIA_URL, query.pk)}

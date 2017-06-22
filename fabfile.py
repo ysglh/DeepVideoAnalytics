@@ -207,10 +207,10 @@ def ci():
     clustering_task.save()
     perform_clustering(clustering_task.pk)
     query_dict = {
-        'image_data':base64.encodestring(file('tests/query.png').read()),
+        'image_data_b64':base64.encodestring(file('tests/query.png').read()),
         'indexers':[
             {
-                'algorithm':'facenet',
+                'algorithm':'inception',
                 'count':10,
                 'approximate':False
             }
@@ -220,10 +220,10 @@ def ci():
     qp.create_from_json(query_dict)
     execute_index_subquery(TEvent.objects.create(video=qp.indexer_queries[0].pk).pk)
     query_dict = {
-        'image_data':base64.encodestring(file('tests/query.png').read()),
+        'image_data_b64':base64.encodestring(file('tests/query.png').read()),
         'indexers':[
             {
-                'algorithm':'facenet',
+                'algorithm':'inception',
                 'count':10,
                 'approximate':True
             }
@@ -466,11 +466,12 @@ def yolo_detect(video_id):
     django.setup()
     from django.conf import settings
     from dvaapp.models import Video,Region,Frame
-    from dvalib import entity,detector
+    from dvaapp.operations.video_processing import WVideo,WFrame
+    from dvalib import detector
     dv = Video.objects.get(id=video_id)
     frames = Frame.objects.all().filter(video=dv)
-    v = entity.WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
-    wframes = {df.pk: entity.WFrame(video=v, frame_index=df.frame_index, primary_key=df.pk) for df in frames}
+    v = WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
+    wframes = {df.pk: WFrame(video=v, frame_index=df.frame_index, primary_key=df.pk) for df in frames}
     detection_count = 0
     algorithm = detector.YOLODetector()
     logging.info("starting detection {}".format(algorithm.name))
@@ -514,11 +515,12 @@ def ssd_detect(video_id):
     django.setup()
     from django.conf import settings
     from dvaapp.models import Video,Region,Frame
-    from dvalib import entity,detector
+    from dvalib import detector
+    from dvaapp.operations.video_processing import WVideo,WFrame
     dv = Video.objects.get(id=video_id)
     frames = Frame.objects.all().filter(video=dv)
-    v = entity.WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
-    wframes = {df.pk: entity.WFrame(video=v, frame_index=df.frame_index, primary_key=df.pk) for df in frames}
+    v = WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
+    wframes = {df.pk: WFrame(video=v, frame_index=df.frame_index, primary_key=df.pk) for df in frames}
     detection_count = 0
     algorithm = detector.SSDetector()
     logging.info("starting detection {}".format(algorithm.name))
@@ -561,9 +563,10 @@ def pyscenedetect(video_id,rescaled_width=0):
     django.setup()
     from dvaapp.models import Video
     from django.conf import settings
-    from dvalib import pyscenecustom,entity
+    from dvalib import pyscenecustom
+    from dvaapp.operations.video_processing import WVideo,WFrame
     dv = Video.objects.get(id=video_id)
-    v = entity.WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
+    v = WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
     rescaled_width = int(rescaled_width)
     if rescaled_width == 0:
         rescale = False
@@ -590,14 +593,15 @@ def process_video_list(filename):
 
 def perform_face_indexing(video_id):
     from dvaapp.models import Region,Frame,Video,IndexEntries
-    from dvalib import indexer,entity,detector
+    from dvalib import indexer,detector
+    from dvaapp.operations.video_processing import WFrame,WVideo
     from django.conf import settings
     from scipy import misc
     face_indexer = indexer.FacenetIndexer()
     dv = Video.objects.get(id=video_id)
-    video = entity.WVideo(dv, settings.MEDIA_ROOT)
+    video = WVideo(dv, settings.MEDIA_ROOT)
     frames = Frame.objects.all().filter(video=dv)
-    wframes = [entity.WFrame(video=video, frame_index=df.frame_index, primary_key=df.pk) for df in frames]
+    wframes = [WFrame(video=video, frame_index=df.frame_index, primary_key=df.pk) for df in frames]
     input_paths = {f.local_path(): f.primary_key for f in wframes}
     faces_dir = '{}/{}/detections'.format(settings.MEDIA_ROOT, video_id)
     indexes_dir = '{}/{}/indexes'.format(settings.MEDIA_ROOT, video_id)
@@ -662,11 +666,12 @@ def assign_tags(video_id):
     django.setup()
     from django.conf import settings
     from dvaapp.models import Video,Frame,Region
-    from dvalib import entity,annotator
+    from dvalib import annotator
+    from dvaapp.operations.video_processing import WVideo, WFrame
     dv = Video.objects.get(id=video_id)
     frames = Frame.objects.all().filter(video=dv)
-    v = entity.WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
-    wframes = {df.pk: entity.WFrame(video=v, frame_index=df.frame_index, primary_key=df.pk) for df in frames}
+    v = WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
+    wframes = {df.pk: WFrame(video=v, frame_index=df.frame_index, primary_key=df.pk) for df in frames}
     algorithm = annotator.OpenImagesAnnotator()
     logging.info("starting annotation {}".format(algorithm.name))
     for k,f in wframes.items():

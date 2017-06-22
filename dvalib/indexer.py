@@ -40,8 +40,9 @@ class BaseIndexer(object):
             self.index = np.concatenate([self.index, np.concatenate(temp_index).squeeze()])
             logging.info(self.index.shape)
 
-    def nearest(self,image_path,n=12):
-        query_vector = self.apply(image_path)
+    def nearest(self, image_path, n=12, query_vector=None):
+        if query_vector is None:
+            query_vector = self.apply(image_path)
         temp = []
         dist = []
         for k in xrange(self.index.shape[0]):
@@ -60,7 +61,7 @@ class BaseIndexer(object):
             temp = {'rank':i+1,'algo':self.name,'dist':float(dist[0,k])}
             temp.update(self.files[k])
             results.append(temp)
-        return results
+        return results # Next also return computed query_vector
 
     def apply(self,path):
         raise NotImplementedError

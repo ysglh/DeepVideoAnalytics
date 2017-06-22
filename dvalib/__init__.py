@@ -1,5 +1,5 @@
 import logging
 try:
-    import entity,facenet
+    import facenet
 except ImportError:
-    logging.warning("Could not import entity,facenet")
+    logging.warning("Could not import facenet")

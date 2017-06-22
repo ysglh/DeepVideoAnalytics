@@ -3,9 +3,9 @@ import subprocess, sys, shutil, os, glob, time, logging
 from django.conf import settings
 from dva.celery import app
 from .models import Video, Frame, TEvent, Query, IndexEntries, QueryResults, AppliedLabel, VDNDataset, Clusters, \
-    ClusterCodes, Region, Scene, CustomDetector, Segment
+    ClusterCodes, Region, Scene, CustomDetector, Segment, IndexerQuery
 
-from .query_processing import IndexerTask
+from .operations.query_processing import IndexerTask,QueryProcessing
 from dvalib import entity
 from dvalib import indexer
 from dvalib import clustering
@@ -144,45 +144,18 @@ def alexnet_index_by_id(task_id):
     start.save()
 
 
-def query_approximate(q, n, visual_index, clusterer):
-    vector = visual_index.apply(q.local_path)
-    results = {}
-    results[visual_index.name] = []
-    coarse, fine, results_indexes = clusterer.apply(vector, n)
-    for i, k in enumerate(results_indexes[0]):
-        e = ClusterCodes.objects.get(searcher_index=k.id, clusters=clusterer.dc)
-        if e.detection_id:
-            results[visual_index.name].append({
-                'rank': i + 1,
-                'dist': i,
-                'detection_primary_key': e.detection_id,
-                'frame_index': e.frame.frame_index,
-                'frame_primary_key': e.frame_id,
-                'video_primary_key': e.video_id,
-                'type': 'detection',
-            })
-        else:
-            results[visual_index.name].append({
-                'rank': i + 1,
-                'dist': i,
-                'detection_primary_key': e.detection_id,
-                'frame_index': e.frame.frame_index,
-                'frame_primary_key': e.frame_id,
-                'video_primary_key': e.video_id,
-                'type': 'frame',
-            })
-    return results
-
-
-@app.task(track_started=True, name="inception_query_by_image", base=IndexerTask)
-def inception_query_by_image(query_id):
-    dq = Query.objects.get(id=query_id)
+@app.task(track_started=True, name="execute_index_subquery", base=IndexerTask)
+def execute_index_subquery(query_id):
+    iq = execute_index_subquery.objects.get(id=query_id)
     start = TEvent()
-    start.task_id = inception_query_by_image.request.id
-    start.video_id = Video.objects.get(parent_query=dq).pk
+    start.task_id = execute_index_subquery.request.id
+    start.video_id = Video.objects.get(parent_query=iq.parent_query).pk
     start.started = True
-    start.operation = inception_query_by_image.name
+    start.operation = execute_index_subquery.name
     start.save()
+    qp = QueryProcessing()
+    qp.load_from_db(iq.parent_query,settings.MEDIA_ROOT)
+    qp.execute_sub_query(iq,iq.algorithm,execute_index_subquery)
     start_time = time.time()
     start.completed = True
     start.seconds = time.time() - start_time
@@ -192,20 +165,6 @@ def inception_query_by_image(query_id):
 
 
 
-@app.task(track_started=True, name="facenet_query_by_image", base=IndexerTask)
-def facenet_query_by_image(query_id):
-    dq = Query.objects.get(id=query_id)
-    start = TEvent()
-    start.task_id = facenet_query_by_image.request.id
-    start.video_id = Video.objects.get(parent_query=dq).pk
-    start.started = True
-    start.operation = facenet_query_by_image.name
-    start.save()
-    start_time = time.time()
-    start.completed = True
-    start.seconds = time.time() - start_time
-    start.save()
-    return 0
 
 
 def set_directory_labels(frames, dv):

@@ -5,7 +5,7 @@ import celery
 from dva.celery import app
 
 from dvalib import indexer,clustering
-from ..models import IndexEntries,Clusters,Video,Query,IndexerQuery,QueryResults
+from ..models import IndexEntries,Clusters,Video,Query,IndexerQuery,QueryResults,Region,ClusterCodes
 
 
 class IndexerTask(celery.Task):
@@ -62,6 +62,36 @@ class IndexerTask(celery.Task):
             IndexerTask._clusterer[algorithm].load()
         else:
             logging.warning("No clusterer found switching to exact search for {}".format(algorithm))
+
+
+def query_approximate(local_path, n, visual_index, clusterer):
+    vector = visual_index.apply(local_path)
+    results = {}
+    results[visual_index.name] = []
+    coarse, fine, results_indexes = clusterer.apply(vector, n)
+    for i, k in enumerate(results_indexes[0]):
+        e = ClusterCodes.objects.get(searcher_index=k.id, clusters=clusterer.dc)
+        if e.detection_id:
+            results[visual_index.name].append({
+                'rank': i + 1,
+                'dist': i,
+                'detection_primary_key': e.detection_id,
+                'frame_index': e.frame.frame_index,
+                'frame_primary_key': e.frame_id,
+                'video_primary_key': e.video_id,
+                'type': 'detection',
+            })
+        else:
+            results[visual_index.name].append({
+                'rank': i + 1,
+                'dist': i,
+                'detection_primary_key': e.detection_id,
+                'frame_index': e.frame.frame_index,
+                'frame_primary_key': e.frame_id,
+                'video_primary_key': e.video_id,
+                'type': 'frame',
+            })
+    return results
 
 
 class QueryProcessing(object):
@@ -147,8 +177,8 @@ class QueryProcessing(object):
 
     def send_tasks(self):
         for iq in self.indexer_queries:
-            task_name = self.visual_indexes[iq.algorithm]['retriever_task']
-            queue_name = settings.TASK_NAMES_TO_QUEUE[task_name]
+            task_name = 'execute_index_subquery'
+            queue_name = self.visual_indexes[iq.algorithm]['retriever_queue']
             self.task_results[iq.algorithm] = app.send_task(task_name, args=[self.query.pk, ], queue=queue_name)
             self.context[iq.algorithm] = []
 
@@ -159,7 +189,6 @@ class QueryProcessing(object):
                 _ = result.get(timeout=timeout)
             except Exception, e:
                 raise ValueError(e)
-
 
     def collect_results(self):
         for r in QueryResults.objects.all().filter(query=self.query):
@@ -178,80 +207,41 @@ class QueryProcessing(object):
                 self.context[k].sort()
                 self.context[k] = zip(*v)[1]
 
-
     def load_from_db(self,query,media_dir):
         self.query = query
         self.media_dir = media_dir
-        # if self.query.image_data:
-        #     for iq in self.indexer_queries:
-        #         self.local_path = "{}/queries/{}_{}.png".format(self.media_dir, iq.algorightm ,self.query.pk)
-        #         with open(self.local_path, 'w') as fh:
-        #             fh.write(str(self.query.image_data.image_data))
 
-    def execute_query(self,iq,visual_index):
-        results = visual_index.nearest(image_path="")
-        # if self.query.image_data:
-        #     os.rename(self.local_path, "{}/queries/{}.png".format(self.media_dir, self.primary_key))
-        return results
-
-
-"""
-    facenet = facenet_query_by_image.visual_indexer['facenet']
-    Q = entity.WQuery(dquery=dq, media_dir=settings.MEDIA_ROOT, visual_index=facenet)
-    exact = True
-    if dq.approximate:
-        if facenet_query_by_image.clusterer['facenet'] is None:
-            facenet_query_by_image.load_clusterer('facenet')
-        clusterer = facenet_query_by_image.clusterer['facenet']
-        if clusterer:
-            results = query_approximate(Q, dq.count, facenet, clusterer)
-            exact = False
-    if exact:
-        facenet_query_by_image.refresh_index('facenet')
-        results = Q.find(dq.count)
-    for algo, rlist in results.iteritems():
-        for r in rlist:
-            qr = QueryResults()
-            qr.query = dq
-            dd = Region.objects.get(pk=r['detection_primary_key'])
-            qr.detection = dd
-            qr.frame_id = dd.frame_id
-            qr.video_id = r['video_primary_key']
-            qr.algorithm = algo
-            qr.rank = r['rank']
-            qr.distance = r['dist']
-            qr.save()
-    dq.results = True
-    dq.save()
-"""
-
-"""
-    inception = inception_query_by_image.visual_indexer['inception']
-    Q = entity.WQuery(dquery=dq, media_dir=settings.MEDIA_ROOT, visual_index=inception)
-    exact = True  # by default run exact search
-    if dq.approximate:
-        if inception_query_by_image.clusterer['inception'] is None:
-            inception_query_by_image.load_clusterer('inception')
-        clusterer = inception_query_by_image.clusterer['inception']
-        if clusterer:
-            results = query_approximate(Q, dq.count, inception, clusterer)
-            exact = False
-    if exact:
-        inception_query_by_image.refresh_index('inception')
-        results = Q.find(dq.count)
-    dq.results = True
-    dq.results_metadata = json.dumps(results)
-    for algo, rlist in results.iteritems():
-        for r in rlist:
-            qr = QueryResults()
-            qr.query = dq
-            if 'detection_primary_key' in r:
-                qr.detection_id = r['detection_primary_key']
-            qr.frame_id = r['frame_primary_key']
-            qr.video_id = r['video_primary_key']
-            qr.algorithm = algo
-            qr.rank = r['rank']
-            qr.distance = r['dist']
-            qr.save()
-    dq.save()
-"""
+    def execute_sub_query(self,iq,index_name,query_task):
+        visual_index = query_task.visual_indexer[index_name]
+        exact = True
+        local_path = "{}/queries/{}_{}.png".format(self.media_dir, iq.algorithm, self.query.pk)
+        with open(local_path, 'w') as fh:
+            fh.write(str(self.query.image_data.image_data))
+        results = []
+        if iq.approximate:
+            if query_task.clusterer[index_name] is None:
+                query_task.load_clusterer(index_name)
+            clusterer = query_task.clusterer[index_name]
+            if clusterer:
+                results = query_approximate(local_path, iq.count, visual_index, clusterer)
+                exact = False
+        if exact:
+            query_task.refresh_index(index_name)
+            results = visual_index.nearest(image_path=local_path)
+        for algo, rlist in results.iteritems():
+            for r in rlist:
+                qr = QueryResults()
+                qr.query = self.query
+                qr.indexerquery = iq
+                if 'detection_primary_key' in r:
+                    dd = Region.objects.get(pk=r['detection_primary_key'])
+                    qr.detection = dd
+                    qr.frame_id = dd.frame_id
+                qr.video_id = r['video_primary_key']
+                qr.algorithm = algo
+                qr.rank = r['rank']
+                qr.distance = r['dist']
+                qr.save()
+        iq.results = True
+        iq.save()
+        return 0

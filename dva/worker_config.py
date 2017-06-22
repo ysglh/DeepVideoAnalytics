@@ -15,8 +15,6 @@ QUEUES = [Q_EXTRACTOR,Q_INDEXER,Q_DETECTOR,Q_RETRIEVER,Q_FACE_RETRIEVER,Q_FACE_D
 TASK_NAMES_TO_QUEUE = {
     "inception_index_by_id":Q_INDEXER,
     "inception_index_regions_by_id":Q_INDEXER,
-    "inception_query_by_image":Q_RETRIEVER,
-    "facenet_query_by_image":Q_FACE_RETRIEVER,
     "extract_frames_by_id":Q_EXTRACTOR,
     "perform_ssd_detection_by_id":Q_DETECTOR,
     "detect_custom_objects":Q_DETECTOR,
@@ -50,8 +48,6 @@ IMPORT_TASK = 'import'
 TASK_NAMES_TO_TYPE = {
     "inception_index_by_id":VIDEO_TASK,
     "inception_index_regions_by_id":VIDEO_TASK,
-    "inception_query_by_image":QUERY_TASK,
-    "facenet_query_by_image":QUERY_TASK,
     "extract_frames_by_id":VIDEO_TASK,
     "import_vdn_file":VIDEO_TASK,
     "import_vdn_detector_file":IMPORT_TASK,
@@ -125,14 +121,13 @@ POST_OPERATION_TASKS = {
         {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'detections'}},
     ]
 }
-
+# execute_index_subquery
 
 VISUAL_INDEXES = {
     'inception':
         {
             'indexer_task':"inception_index_by_id",
             'indexer_queue':Q_INDEXER,
-            'retriever_task':"inception_query_by_image",
             'retriever_queue':Q_RETRIEVER,
             'detection_specific':False
         },
@@ -140,7 +135,6 @@ VISUAL_INDEXES = {
         {
             'indexer_task': "perform_face_detection_indexing_by_id",
             'indexer_queue': Q_FACE_DETECTOR,
-            'retriever_task':"facenet_query_by_image",
             'retriever_queue': Q_FACE_RETRIEVER,
             'detection_specific': True
         },

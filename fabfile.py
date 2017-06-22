@@ -218,7 +218,7 @@ def ci():
     }
     qp = QueryProcessing()
     qp.create_from_json(query_dict)
-    execute_index_subquery(TEvent.objects.create(video=qp.indexer_queries[0].pk).pk)
+    execute_index_subquery(qp.indexer_queries[0].pk)
     query_dict = {
         'image_data_b64':base64.encodestring(file('tests/query.png').read()),
         'indexers':[
@@ -231,7 +231,7 @@ def ci():
     }
     qp = QueryProcessing()
     qp.create_from_json(query_dict)
-    execute_index_subquery(TEvent.objects.create(video=qp.indexer_queries[0].pk).pk)
+    execute_index_subquery(qp.indexer_queries[0].pk)
     server, datasets, detectors = pull_vdn_list(1)
     for k in datasets:
         if k['name'] == 'MSCOCO_Sample_500':

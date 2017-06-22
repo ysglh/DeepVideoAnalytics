@@ -597,7 +597,7 @@ def render_tasks(request, context):
                           'edges': settings.POST_OPERATION_TASKS[k] if k in settings.POST_OPERATION_TASKS else []
                           })
     context['task_list'] = task_list
-    context["videos"] = Video.objects.all().filter(parent_query__count__isnull=True)
+    context["videos"] = Video.objects.all().filter(parent_query__isnull=True)
     context['manual_tasks'] = settings.MANUAL_VIDEO_TASKS
     return render(request, 'tasks.html', context)
 
@@ -619,7 +619,7 @@ def indexes(request):
     context = {
         'visual_index_list': settings.VISUAL_INDEXES.items(),
         'index_entries': IndexEntries.objects.all(),
-        "videos": Video.objects.all().filter(parent_query__count__isnull=True),
+        "videos": Video.objects.all().filter(parent_query__isnull=True),
         "region_types": Region.REGION_TYPES
     }
     if request.method == 'POST':
@@ -650,7 +650,7 @@ def indexes(request):
 @user_passes_test(user_check)
 def detections(request):
     context = {}
-    context["videos"] = Video.objects.all().filter(parent_query__count__isnull=True)
+    context["videos"] = Video.objects.all().filter(parent_query__isnull=True)
     context["detectors"] = CustomDetector.objects.all()
     detector_stats = []
     for d in CustomDetector.objects.all():
@@ -721,7 +721,7 @@ def detections(request):
 
 @user_passes_test(user_check)
 def textsearch(request):
-    context = {'results': {}, "videos": Video.objects.all().filter(parent_query__count__isnull=True)}
+    context = {'results': {}, "videos": Video.objects.all().filter(parent_query__isnull=True)}
     if request.method == 'POST':
         q = request.POST.get('q')
         context['q'] = q

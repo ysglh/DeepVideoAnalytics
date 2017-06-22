@@ -143,7 +143,9 @@ class QueryProcessing(object):
             iq.parent_query = self.query
             iq.algorithm = k
             iq.count = count
-            iq.excluded_index_entries_pk = [int(epk) for epk in excluded_index_entries_pk] # fix this only the indexer specific
+            if excluded_index_entries_pk:
+                # !!fix this only the indexer specific
+                iq.excluded_index_entries_pk = [int(epk) for epk in excluded_index_entries_pk]
             iq.approximate = approximate
             iq.save()
             self.indexer_queries.append(iq)
@@ -179,7 +181,7 @@ class QueryProcessing(object):
         for iq in self.indexer_queries:
             task_name = 'execute_index_subquery'
             queue_name = self.visual_indexes[iq.algorithm]['retriever_queue']
-            self.task_results[iq.algorithm] = app.send_task(task_name, args=[self.query.pk, ], queue=queue_name)
+            self.task_results[iq.algorithm] = app.send_task(task_name, args=[iq.pk, ], queue=queue_name)
             self.context[iq.algorithm] = []
 
     def wait(self,timeout=120):
@@ -195,7 +197,7 @@ class QueryProcessing(object):
             self.context[r.algorithm].append((r.rank,
                                          {'url': '{}{}/detections/{}.jpg'.format(settings.MEDIA_URL, r.video_id,
                                                                                  r.detection_id) if r.detection_id else '{}{}/frames/{}.jpg'.format(
-                                             settings.MEDIA_URL, r.video_id, r.frame_id),
+                                             settings.MEDIA_URL, r.video_id, r.frame.frame_index),
                                           'result_type': "Region" if r.detection_id else "Frame",
                                           'rank':r.rank,
                                           'frame_id': r.frame_id,
@@ -216,7 +218,7 @@ class QueryProcessing(object):
         exact = True
         local_path = "{}/queries/{}_{}.png".format(self.media_dir, iq.algorithm, self.query.pk)
         with open(local_path, 'w') as fh:
-            fh.write(str(self.query.image_data.image_data))
+            fh.write(str(self.query.image_data))
         results = []
         if iq.approximate:
             if query_task.clusterer[index_name] is None:
@@ -228,8 +230,7 @@ class QueryProcessing(object):
         if exact:
             query_task.refresh_index(index_name)
             results = visual_index.nearest(image_path=local_path)
-        for algo, rlist in results.iteritems():
-            for r in rlist:
+            for r in results:
                 qr = QueryResults()
                 qr.query = self.query
                 qr.indexerquery = iq
@@ -237,8 +238,10 @@ class QueryProcessing(object):
                     dd = Region.objects.get(pk=r['detection_primary_key'])
                     qr.detection = dd
                     qr.frame_id = dd.frame_id
+                else:
+                    qr.frame_id = r['frame_primary_key']
                 qr.video_id = r['video_primary_key']
-                qr.algorithm = algo
+                qr.algorithm = iq.algorithm
                 qr.rank = r['rank']
                 qr.distance = r['dist']
                 qr.save()

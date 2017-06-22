@@ -146,7 +146,7 @@ def alexnet_index_by_id(task_id):
 
 @app.task(track_started=True, name="execute_index_subquery", base=IndexerTask)
 def execute_index_subquery(query_id):
-    iq = execute_index_subquery.objects.get(id=query_id)
+    iq = IndexerQuery.objects.get(id=query_id)
     start = TEvent()
     start.task_id = execute_index_subquery.request.id
     start.video_id = Video.objects.get(parent_query=iq.parent_query).pk

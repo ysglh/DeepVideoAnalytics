@@ -5,7 +5,7 @@ from dva.celery import app
 from .models import Video, Frame, TEvent, Query, IndexEntries, QueryResults, AppliedLabel, VDNDataset, Clusters, \
     ClusterCodes, Region, Scene, CustomDetector, Segment
 
-
+from .query_processing import IndexerTask
 from dvalib import entity
 from dvalib import indexer
 from dvalib import clustering
@@ -14,7 +14,6 @@ from collections import defaultdict
 import calendar
 import requests
 import json
-import celery
 import zipfile
 from . import serializers
 import boto3
@@ -43,64 +42,6 @@ def celery_40_bug_hack(start):
     :return:
     """
     return start.started
-
-
-class IndexerTask(celery.Task):
-    _visual_indexer = None
-    _clusterer = None
-
-    @property
-    def visual_indexer(self):
-        if IndexerTask._visual_indexer is None:
-            IndexerTask._visual_indexer = {'inception': indexer.InceptionIndexer(),
-                                           'facenet': indexer.FacenetIndexer(),
-                                           'alexnet': indexer.AlexnetIndexer()}
-        return IndexerTask._visual_indexer
-
-    @property
-    def clusterer(self):
-        if IndexerTask._clusterer is None:
-            IndexerTask._clusterer = {'inception': None, 'facenet': None, 'alexnet': None}
-        return IndexerTask._clusterer
-
-    def refresh_index(self, index_name):
-        index_entries = IndexEntries.objects.all()
-        visual_index = self.visual_indexer[index_name]
-        for index_entry in index_entries:
-            if index_entry.pk not in visual_index.loaded_entries and index_entry.algorithm == index_name:
-                fname = "{}/{}/indexes/{}".format(settings.MEDIA_ROOT, index_entry.video_id,
-                                                  index_entry.features_file_name)
-                vectors = indexer.np.load(fname)
-                vector_entries = json.load(file("{}/{}/indexes/{}".format(settings.MEDIA_ROOT, index_entry.video_id,
-                                                                          index_entry.entries_file_name)))
-                logging.info("Starting {} in {}".format(index_entry.video_id, visual_index.name))
-                start_index = visual_index.findex
-                try:
-                    visual_index.load_index(vectors, vector_entries)
-                except:
-                    logging.info("ERROR Failed to load {} ".format(index_entry.video_id))
-                visual_index.loaded_entries[index_entry.pk] = indexer.IndexRange(start=start_index,
-                                                                                 end=visual_index.findex - 1)
-                logging.info("finished {} in {}, current shape {}, range".format(index_entry.video_id,
-                                                                                 visual_index.name,
-                                                                                 visual_index.index.shape,
-                                                                                 visual_index.loaded_entries[
-                                                                                     index_entry.pk].start,
-                                                                                 visual_index.loaded_entries[
-                                                                                     index_entry.pk].end,
-                                                                                 ))
-
-    def load_clusterer(self, algorithm):
-        dc = Clusters.objects.all().filter(completed=True, indexer_algorithm=algorithm).last()
-        if dc:
-            model_file_name = "{}/clusters/{}.proto".format(settings.MEDIA_ROOT, dc.pk)
-            IndexerTask._clusterer[algorithm] = clustering.Clustering(fnames=[], m=None, v=None, sub=None,
-                                                                      n_components=None,
-                                                                      model_proto_filename=model_file_name, dc=dc)
-            logging.warning("loading clusterer {}".format(model_file_name))
-            IndexerTask._clusterer[algorithm].load()
-        else:
-            logging.warning("No clusterer found switching to exact search for {}".format(algorithm))
 
 
 @app.task(track_started=True, name="inception_index_by_id", base=IndexerTask)
@@ -243,71 +184,12 @@ def inception_query_by_image(query_id):
     start.operation = inception_query_by_image.name
     start.save()
     start_time = time.time()
-    inception = inception_query_by_image.visual_indexer['inception']
-    Q = entity.WQuery(dquery=dq, media_dir=settings.MEDIA_ROOT, visual_index=inception)
-    exact = True  # by default run exact search
-    if dq.approximate:
-        if inception_query_by_image.clusterer['inception'] is None:
-            inception_query_by_image.load_clusterer('inception')
-        clusterer = inception_query_by_image.clusterer['inception']
-        if clusterer:
-            results = query_approximate(Q, dq.count, inception, clusterer)
-            exact = False
-    if exact:
-        inception_query_by_image.refresh_index('inception')
-        results = Q.find(dq.count)
-    dq.results = True
-    dq.results_metadata = json.dumps(results)
-    for algo, rlist in results.iteritems():
-        for r in rlist:
-            qr = QueryResults()
-            qr.query = dq
-            if 'detection_primary_key' in r:
-                qr.detection_id = r['detection_primary_key']
-            qr.frame_id = r['frame_primary_key']
-            qr.video_id = r['video_primary_key']
-            qr.algorithm = algo
-            qr.rank = r['rank']
-            qr.distance = r['dist']
-            qr.save()
-    dq.save()
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
-    return results
+    return 0
 
 
-@app.task(track_started=True, name="alexnet_query_by_image", base=IndexerTask)
-def alexnet_query_by_image(query_id):
-    dq = Query.objects.get(id=query_id)
-    start = TEvent()
-    start.task_id = alexnet_query_by_image.request.id
-    start.video_id = Video.objects.get(parent_query=dq).pk
-    start.started = True
-    start.operation = alexnet_query_by_image.name
-    start.save()
-    start_time = time.time()
-    alexnet_query_by_image.refresh_index('alexnet')
-    alexnet = alexnet_query_by_image.visual_indexer['alexnet']
-    Q = entity.WQuery(dquery=dq, media_dir=settings.MEDIA_ROOT, visual_index=alexnet)
-    results = Q.find(10)
-    dq.results = True
-    dq.results_metadata = json.dumps(results)
-    for algo, rlist in results.iteritems():
-        for r in rlist:
-            qr = QueryResults()
-            qr.query = dq
-            qr.frame_id = r['frame_primary_key']
-            qr.video_id = r['video_primary_key']
-            qr.algorithm = algo
-            qr.rank = r['rank']
-            qr.distance = r['dist']
-            qr.save()
-    dq.save()
-    start.completed = True
-    start.seconds = time.time() - start_time
-    start.save()
-    return results
 
 
 @app.task(track_started=True, name="facenet_query_by_image", base=IndexerTask)
@@ -320,37 +202,10 @@ def facenet_query_by_image(query_id):
     start.operation = facenet_query_by_image.name
     start.save()
     start_time = time.time()
-    facenet = facenet_query_by_image.visual_indexer['facenet']
-    Q = entity.WQuery(dquery=dq, media_dir=settings.MEDIA_ROOT, visual_index=facenet)
-    exact = True
-    if dq.approximate:
-        if facenet_query_by_image.clusterer['facenet'] is None:
-            facenet_query_by_image.load_clusterer('facenet')
-        clusterer = facenet_query_by_image.clusterer['facenet']
-        if clusterer:
-            results = query_approximate(Q, dq.count, facenet, clusterer)
-            exact = False
-    if exact:
-        facenet_query_by_image.refresh_index('facenet')
-        results = Q.find(dq.count)
-    for algo, rlist in results.iteritems():
-        for r in rlist:
-            qr = QueryResults()
-            qr.query = dq
-            dd = Region.objects.get(pk=r['detection_primary_key'])
-            qr.detection = dd
-            qr.frame_id = dd.frame_id
-            qr.video_id = r['video_primary_key']
-            qr.algorithm = algo
-            qr.rank = r['rank']
-            qr.distance = r['dist']
-            qr.save()
-    dq.results = True
-    dq.save()
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
-    return results
+    return 0
 
 
 def set_directory_labels(frames, dv):

@@ -154,6 +154,16 @@ class QueryProcessing(object):
     def create_from_json(self, j, user=None):
         """
         Create query from JSON
+        {
+        'image_data':base64.encodestring(file('tests/query.png').read()),
+        'indexers':[
+            {
+                'algorithm':'facenet',
+                'count':10,
+                'approximate':False
+            }
+            ]
+        }
         :param j: JSON encoded query
         :param user:
         :return:
@@ -169,7 +179,7 @@ class QueryProcessing(object):
         for k in j['indexers']:
             iq = IndexerQuery()
             iq.parent_query = self.query
-            iq.algorithm = k
+            iq.algorithm = k['algorithm']
             iq.count = k['count']
             iq.excluded_index_entries_pk = k['excluded_index_entries_pk'] if 'excluded_index_entries_pk' in k else []
             iq.approximate = k['approximate']

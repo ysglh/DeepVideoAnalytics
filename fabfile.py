@@ -166,9 +166,10 @@ def ci():
         ,import_vdn_dataset_url
     from dvaapp.models import Video, Clusters,IndexEntries,TEvent,VDNServer
     from django.conf import settings
+    from dvaapp.operations.query_processing import QueryProcessing
     from dvaapp.tasks import extract_frames, inception_index_by_id, perform_ssd_detection_by_id,\
         perform_yolo_detection_by_id, inception_index_regions_by_id, export_video_by_id, import_video_by_id,\
-        inception_query_by_image, perform_clustering, assign_open_images_text_tags_by_id
+        execute_index_subquery, perform_clustering, assign_open_images_text_tags_by_id
     for fname in glob.glob('tests/ci/*.mp4'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")
@@ -187,7 +188,6 @@ def ci():
         inception_index_by_id(TEvent.objects.create(video=v).pk)
         if i ==0: # save travis time by just running detection on first video
             perform_ssd_detection_by_id(TEvent.objects.create(video=v).pk)
-            # perform_yolo_detection_by_id(TEvent.objects.create(video=v).pk)
             perform_face_indexing(v.pk)
             inception_index_regions_by_id(TEvent.objects.create(video=v).pk)
             assign_open_images_text_tags_by_id(TEvent.objects.create(video=v).pk)
@@ -206,11 +206,32 @@ def ci():
     clustering_task.operation = 'perform_clustering'
     clustering_task.save()
     perform_clustering(clustering_task.pk)
-    # Renable these tests once new query processing has been created
-    # query,dv = create_query(10,False,['inception',],[],'data:image/png;base64,'+base64.encodestring(file('tests/query.png').read()))
-    # inception_query_by_image(query.pk)
-    # query,dv = create_query(10,True,['inception',],[],'data:image/png;base64,'+base64.encodestring(file('tests/query.png').read()))
-    # inception_query_by_image(query.pk)
+    query_dict = {
+        'image_data':base64.encodestring(file('tests/query.png').read()),
+        'indexers':[
+            {
+                'algorithm':'facenet',
+                'count':10,
+                'approximate':False
+            }
+        ]
+    }
+    qp = QueryProcessing()
+    qp.create_from_json(query_dict)
+    execute_index_subquery(TEvent.objects.create(video=qp.indexer_queries[0].pk).pk)
+    query_dict = {
+        'image_data':base64.encodestring(file('tests/query.png').read()),
+        'indexers':[
+            {
+                'algorithm':'facenet',
+                'count':10,
+                'approximate':True
+            }
+        ]
+    }
+    qp = QueryProcessing()
+    qp.create_from_json(query_dict)
+    execute_index_subquery(TEvent.objects.create(video=qp.indexer_queries[0].pk).pk)
     server, datasets, detectors = pull_vdn_list(1)
     for k in datasets:
         if k['name'] == 'MSCOCO_Sample_500':

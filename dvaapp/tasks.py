@@ -6,8 +6,7 @@ from .models import Video, Frame, TEvent, Query, IndexEntries, QueryResults, App
     ClusterCodes, Region, Scene, CustomDetector, Segment, IndexerQuery
 
 from .operations.query_processing import IndexerTask,QueryProcessing
-from dvalib import entity
-from dvalib import indexer
+from .operations.video_processing import WFrame,WVideo
 from dvalib import clustering
 
 from collections import defaultdict
@@ -56,7 +55,7 @@ def inception_index_by_id(task_id):
     video_id = start.video_id
     start_time = time.time()
     dv = Video.objects.get(id=video_id)
-    video = entity.WVideo(dv, settings.MEDIA_ROOT)
+    video = WVideo(dv, settings.MEDIA_ROOT)
     frames = Frame.objects.all().filter(video=dv)
     visual_index = inception_index_by_id.visual_indexer['inception']
     index_name, index_results, feat_fname, entries_fname = video.index_frames(frames, visual_index)
@@ -89,7 +88,7 @@ def inception_index_regions_by_id(task_id):
     arguments = json.loads(start.arguments_json)
     start.save()
     start_time = time.time()
-    video = entity.WVideo(dv, settings.MEDIA_ROOT)
+    video = WVideo(dv, settings.MEDIA_ROOT)
     arguments['video_id'] = dv.pk
     detections = Region.objects.all().filter(**arguments)
     logging.info("Indexing {} Regions".format(detections.count()))
@@ -124,7 +123,7 @@ def alexnet_index_by_id(task_id):
     start_time = time.time()
     video_id = start.video_id
     dv = Video.objects.get(id=video_id)
-    video = entity.WVideo(dv, settings.MEDIA_ROOT)
+    video = WVideo(dv, settings.MEDIA_ROOT)
     frames = Frame.objects.all().filter(video=dv)
     visual_index = alexnet_index_by_id.visual_indexer['alexnet']
     index_name, index_results, feat_fname, entries_fname = video.index_frames(frames, visual_index)
@@ -206,7 +205,7 @@ def extract_frames(task_id):
     dv = Video.objects.get(id=video_id)
     if dv.youtube_video:
         create_video_folders(dv)
-    v = entity.WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
+    v = WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
     time.sleep(3)  # otherwise ffprobe randomly fails
     if not dv.dataset:
         v.get_metadata()

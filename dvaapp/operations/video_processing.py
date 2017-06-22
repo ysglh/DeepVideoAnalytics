@@ -62,23 +62,26 @@ class WVideo(object):
                 self.local_path, output_dir)
         extract = sp.Popen(shlex.split(command))
         extract.wait()
-        key_frame_extract = sp.check_output(shlex.split(kf_commmand), stderr=sp.STDOUT)
-        count = None
-        for line in key_frame_extract.split('\n'):
-            if "pict_type:I" in line:
-                if count is None:
-                    count = 0
-                for l in line.strip().split(' '):
-                    if l.startswith('n:') or l.startswith('t:'):
-                        ka, va = l.split(':')
-                        if ka == 'n':
-                            if int(float(va)) != count:
-                                logging.warning("{} != {} is not frame index".format(va,count))
-                        key_frames[count][ka] = va
-                src, dst = '{}/k_{}.jpg'.format(output_dir, len(key_frames)), '{}/{}.jpg'.format(output_dir, count)
-                os.rename(src, dst)
-            if "pict_type" in line and not (count is None):
-                count += 1
+        # key_frame_extract = sp.check_output(shlex.split(kf_commmand), stderr=sp.STDOUT)
+        # count = None
+        # for line in key_frame_extract.split('\n'):
+        #     if "pict_type:I" in line:
+        #         if count is None:
+        #             count = 0
+        #         for l in line.strip().split(' '):
+        #             if l.startswith('n:') or l.startswith('t:'):
+        #                 ka, va = l.split(':')
+        #                 if ka == 'n':
+        #                     if int(float(va)) != count:
+        #                         logging.warning("{} != {} is not frame index".format(va,count))
+        #                 key_frames[count][ka] = va
+        #         src, dst = '{}/k_{}.jpg'.format(output_dir, len(key_frames)), '{}/{}.jpg'.format(output_dir, count)
+        #         try:
+        #             os.rename(src, dst)
+        #         except:
+        #             logging.exception("Could not copy {} to {}".format(src,dst))
+        #     if "pict_type" in line and not (count is None):
+        #         count += 1
         segments_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'segments')
         command = 'ffmpeg -i {} -c copy -map 0 -segment_time 1 -f segment -reset_timestamps 1 ' \
                   '-segment_list_type csv -segment_list {}/segments.csv ' \

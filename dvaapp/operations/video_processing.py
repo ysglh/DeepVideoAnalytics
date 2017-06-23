@@ -193,19 +193,20 @@ class WVideo(object):
             if i == 0:
                 im = Image.open(fname)
                 frame_width, frame_height = im.size  # this remains constant for all frames
-            frame_name = fname.split('/')[-1].split('.')[0]
-            ind = int(frame_name)
-            if ind in frame_index_to_data:
-                df = Frame()
-                df.frame_index = int(ind)
-                df.video_id = self.dvideo.pk
-                df.keyframe = True if frame_index_to_data[ind]['type'] == 'I' else False
-                df.t = frame_index_to_data[ind]['t']
-                df.h = frame_height
-                df.w = frame_width
-                df_list.append(df)
-            else:
-                logging.error("Skipping frame {} due to missing associated data".format(fname))
+            if not fname.endswith('_b.jpg'):
+                frame_name = fname.split('/')[-1].split('.')[0]
+                ind = int(frame_name)
+                if ind in frame_index_to_data:
+                    df = Frame()
+                    df.frame_index = int(ind)
+                    df.video_id = self.dvideo.pk
+                    df.keyframe = True if frame_index_to_data[ind]['type'] == 'I' else False
+                    df.t = frame_index_to_data[ind]['t']
+                    df.h = frame_height
+                    df.w = frame_width
+                    df_list.append(df)
+                else:
+                    logging.error("Skipping frame {} due to missing associated data".format(fname))
         _ = Frame.objects.bulk_create(df_list)
         self.dvideo.frames = len(df_list)
         self.dvideo.save()

@@ -226,16 +226,18 @@ class WVideo(object):
             for line in file('{}/segments.csv'.format(segments_dir)):
                 segment_file_name, start_time, end_time = line.strip().split(',')
                 command = 'ffprobe -select_streams v -show_streams  -print_format json {}  '.format(segment_file_name)
-                logging.info(command)
+                # logging.info(command)
                 segment_json = sp.check_output(shlex.split(command), cwd=segments_dir)
                 segments.append((int(segment_file_name.split('.')[0]), float(start_time), float(end_time), segment_json))
+            timer_start = time.time()
+            for line in file('{}/segments.csv'.format(segments_dir)):
+                segment_file_name, start_time, end_time = line.strip().split(',')
                 command = 'ffprobe -show_frames -select_streams v:0 -print_format csv {}'.format(segment_file_name)
-                logging.info(command)
-                timer_start = time.time()
+                # logging.info(command)
                 segment_frames= sp.check_output(shlex.split(command), cwd=segments_dir)
-                logging.info("Took {} seconds to process {}".format(time.time() - timer_start,segment_file_name))
-                with open("{}/{}_frames.txt".format(segments_dir,segment_file_name.split('.')[0])) as framesout:
+                with open("{}/{}_frames.txt".format(segments_dir,segment_file_name.split('.')[0]),'w') as framesout:
                     framesout.write(segment_frames)
+            logging.info("Took {} seconds to process {} segments".format(time.time() - timer_start,len(segments)))
             segments.sort()
         for s in segments:
             segment_id, start_time, end_time, metadata = s

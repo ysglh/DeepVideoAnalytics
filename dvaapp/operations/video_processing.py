@@ -26,6 +26,7 @@ def set_directory_labels(frames, dv):
     AppliedLabel.objects.bulk_create(label_list)
 
 
+
 class WVideo(object):
     """
     Wrapper object for a video / dataset
@@ -133,66 +134,58 @@ class WVideo(object):
         return visual_index.name,entries,feat_fname,entries_fname
 
     def extract(self,args,start):
-        if self.dvideo.dataset:
-            self.extract_zip_dataset()
-        else:
-            self.get_metadata()
-
-
-    def extract_video_frames(self):
-        output_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'frames')
-        if args['rescale']:
-            command = 'ffmpeg -i {} -vf "select=not(mod(n\,{})),scale={}:-1" -vsync 0  {}/%d_b.jpg'.format(
-                self.local_path, denominator, int(args['rescale']), output_dir)
-            kf_commmand = 'ffmpeg -i {} -vf "select=eq(pict_type\,PICT_TYPE_I),scale={}:-1" -vsync 0 {}/k_%d.jpg -loglevel debug'.format(
-                self.local_path, int(args['rescale']), output_dir)
-        else:
-            command = 'ffmpeg -i {} -vf "select=not(mod(n\,{}))" -vsync 0  {}/%d_b.jpg'.format(self.local_path,
-                                                                                               denominator, output_dir)
-            kf_commmand = 'ffmpeg -i {} -vf "select=eq(pict_type\,PICT_TYPE_I)" -vsync 0 {}/k_%d.jpg -loglevel debug'.format(
-                self.local_path, output_dir)
-        extract = sp.Popen(shlex.split(command))
-        extract.wait()
-        for fname in glob.glob(output_dir + '*_b.jpg'):
-            ind = int(fname.split('/')[-1].replace('_b.jpg', ''))
-            os.rename(fname, fname.replace('{}_b.jpg'.format(ind), '{}.jpg'.format((ind - 1) * denominator)))
         if not args['perform_scene_detection']:
             logging.warning("Scene detection is disabled")
         else:
             if not args['rescale']:
                 args['rescale'] = 0
-        frame_width, frame_height = 0, 0
+        rescale = args['rescale']
+        denominator = args['denominator']
+        if self.dvideo.dataset:
+            self.extract_zip_dataset()
+        else:
+            self.get_metadata()
+            self.extract_video_frames(denominator,rescale)
 
+    def extract_key_frames(self):
+        # select=eq(pict_type\,PICT_TYPE_I),
+        pass
+
+    def extract_video_frames(self,denominator,rescale):
+        output_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'frames')
+        ffmpeg_command = 'ffmpeg -i {} -vf'.format(self.local_path)
+        if rescale:
+            filter_command = '"select=not(mod(n\,{}))+eq(pict_type\,PICT_TYPE_I),showinfo,scale={}:-1" -vsync 0'.format(denominator,rescale)
+        else:
+            filter_command = '"select=not(mod(n\,{}))+eq(pict_type\,PICT_TYPE_I),showinfo" -vsync 0'.format(denominator)
+        output_command = "{}/%d_b.jpg -loglevel debug".format(output_dir)
+        command = " ".join([ffmpeg_command,filter_command,output_command])
+        extract = sp.Popen(shlex.split(command))
+        extract.wait()
+        for fname in glob.glob(output_dir + '*_b.jpg'):
+            ind = int(fname.split('/')[-1].replace('_b.jpg', ''))
+            os.rename(fname, fname.replace('{}_b.jpg'.format(ind), '{}.jpg'.format((ind - 1) * denominator)))
+        frame_width, frame_height = 0, 0
+        df_list = []
         for i, fname in enumerate(glob.glob(output_dir + '*.jpg')):
             frame_name = fname.split('/')[-1].split('.')[0]
-            if not frame_name.startswith('k'):
-                ind = int(frame_name)
-                if i == 0:
-                    im = Image.open(fname)
-                    frame_width, frame_height = im.size  # this remains constant for all frames
-                f = WFrame(frame_index=int(ind), video=self, w=frame_width, h=frame_height)
-                frames.append(f)
-        self.dvideo.frames = len(frames)
+            ind = int(frame_name)
+            if i == 0:
+                im = Image.open(fname)
+                frame_width, frame_height = im.size  # this remains constant for all frames
+            # f = WFrame(frame_index=int(ind), video=self, w=frame_width, h=frame_height)
+
+            df = Frame()
+            df.frame_index = int(ind)
+            df.video_id = self.dvideo.pk
+            df.h = frame_height
+            df.w = frame_width
+            df_list.append(df)
+        df_ids = Frame.objects.bulk_create(df_list)
+        self.dvideo.frames = len(df_list)
         index_to_df = {}
         self.dvideo.save()
         df_list = []
-        for f in frames:
-            df = Frame()
-            df.frame_index = f.frame_index
-            if f.frame_index in key_frames:
-                t = float(key_frames[f.frame_index]['t'])
-                df.t = t
-                df.keyframe = True
-            df.video_id = self.dvideo.pk
-            if f.h:
-                df.h = f.h
-            if f.w:
-                df.w = f.w
-            if f.name:
-                df.name = f.name[:150]
-                df.subdir = f.subdir.replace('/', ' ')
-            df_list.append(df)
-        df_ids = Frame.objects.bulk_create(df_list)
         for i, k in enumerate(df_ids):
             index_to_df[df_list[i].frame_index] = k.id
 

@@ -5,7 +5,7 @@ from PIL import Image
 import os
 from collections import defaultdict
 from ..models import Video,Frame,Segment,Scene,AppliedLabel
-
+import time
 
 def set_directory_labels(frames, dv):
     labels_to_frame = defaultdict(set)
@@ -229,6 +229,13 @@ class WVideo(object):
                 logging.info(command)
                 segment_json = sp.check_output(shlex.split(command), cwd=segments_dir)
                 segments.append((int(segment_file_name.split('.')[0]), float(start_time), float(end_time), segment_json))
+                command = 'ffprobe -show_frames -select_streams v:0 -print_format csv {}'.format(segment_file_name)
+                logging.info(command)
+                timer_start = time.time()
+                segment_frames= sp.check_output(shlex.split(command), cwd=segments_dir)
+                logging.info("Took {} seconds to process {}".format(time.time() - timer_start,segment_file_name))
+                with open("{}/{}_frames.txt".format(segments_dir,segment_file_name.split('.')[0])) as framesout:
+                    framesout.write(segment_frames)
             segments.sort()
         for s in segments:
             segment_id, start_time, end_time, metadata = s

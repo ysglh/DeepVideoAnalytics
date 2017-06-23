@@ -171,10 +171,10 @@ class WVideo(object):
                     elif entry.startswith('pict_type:'):
                         k,v = entry.split(':')
                         temp["type"] = v
-            if 'index'in temp:
+            if len(temp.keys()) == 3:
                 frame_index_to_data[temp["index"]] = temp
             else:
-                raise ValueError,line
+                logging.error("Skipping malformed line/frame: {} \n Please track https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/issues/52 for progress".format(line))
         with open("{}{}".format(output_dir, "frames.json"), 'w') as out:
             json.dump(frame_index_to_data,out,indent=2)
         for src,dst in filename_index:
@@ -195,14 +195,17 @@ class WVideo(object):
                 frame_width, frame_height = im.size  # this remains constant for all frames
             frame_name = fname.split('/')[-1].split('.')[0]
             ind = int(frame_name)
-            df = Frame()
-            df.frame_index = int(ind)
-            df.video_id = self.dvideo.pk
-            df.keyframe = True if frame_index_to_data[ind]['type'] == 'I' else False
-            df.t = frame_index_to_data[ind]['t']
-            df.h = frame_height
-            df.w = frame_width
-            df_list.append(df)
+            if ind in frame_index_to_data:
+                df = Frame()
+                df.frame_index = int(ind)
+                df.video_id = self.dvideo.pk
+                df.keyframe = True if frame_index_to_data[ind]['type'] == 'I' else False
+                df.t = frame_index_to_data[ind]['t']
+                df.h = frame_height
+                df.w = frame_width
+                df_list.append(df)
+            else:
+                logging.error("Skipping frame {} due to missing associated data".format(fname))
         _ = Frame.objects.bulk_create(df_list)
         self.dvideo.frames = len(df_list)
         self.dvideo.save()

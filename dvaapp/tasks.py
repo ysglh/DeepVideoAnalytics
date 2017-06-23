@@ -189,7 +189,7 @@ def extract_frames(task_id):
     if dv.youtube_video:
         create_video_folders(dv)
     v = WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
-    v.extract()
+    v.extract(args=args,start=start)
     process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time

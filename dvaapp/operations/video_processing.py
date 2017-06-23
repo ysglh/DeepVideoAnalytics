@@ -69,13 +69,6 @@ class WVideo(object):
         self.dvideo.width = self.width
         self.dvideo.save()
 
-    def perform_video_processing(self,args,frames,cuts,key_frames):
-        if args['rate']:
-            denominator = int(args['rate'])
-        else:
-            denominator = 30
-
-
 
     def index_frames(self,frames,visual_index):
         results = {}
@@ -136,32 +129,37 @@ class WVideo(object):
     def extract(self,args,start):
         if not args['perform_scene_detection']:
             logging.warning("Scene detection is disabled")
+        if args['rate']:
+            denominator = int(args['rate'])
         else:
-            if not args['rescale']:
-                args['rescale'] = 0
-        rescale = args['rescale']
-        denominator = args['denominator']
+            denominator = 30
+        rescale = args['rescale'] if 'rescale' in args else 0
         if self.dvideo.dataset:
             self.extract_zip_dataset()
         else:
             self.get_metadata()
             self.extract_video_frames(denominator,rescale)
 
-    def extract_key_frames(self):
-        # select=eq(pict_type\,PICT_TYPE_I),
-        pass
 
     def extract_video_frames(self,denominator,rescale):
         output_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'frames')
         ffmpeg_command = 'ffmpeg -i {} -vf'.format(self.local_path)
         if rescale:
-            filter_command = '"select=not(mod(n\,{}))+eq(pict_type\,PICT_TYPE_I),showinfo,scale={}:-1" -vsync 0'.format(denominator,rescale)
+            filter_command_denominator = '"select=not(mod(n\,{})),scale={}:-1" -vsync 0'.format(denominator,rescale)
+            filter_command_keyframe = '"select=eq(pict_type\,PICT_TYPE_I),scale={}:-1" -vsync 0'.format(rescale)
         else:
-            filter_command = '"select=not(mod(n\,{}))+eq(pict_type\,PICT_TYPE_I),showinfo" -vsync 0'.format(denominator)
-        output_command = "{}/%d_b.jpg -loglevel debug".format(output_dir)
-        command = " ".join([ffmpeg_command,filter_command,output_command])
-        extract = sp.Popen(shlex.split(command))
-        extract.wait()
+            filter_command_denominator = '"select=not(mod(n\,{}))" -vsync 0'.format(denominator)
+            filter_command_keyframe = '"select=eq(pict_type\,PICT_TYPE_I)" -vsync 0'.format()
+        output_command = "{}/%d_b.jpg".format(output_dir)
+        denominator_command = " ".join([ffmpeg_command,filter_command_denominator,output_command])
+        output_command = "{}/%d_k.jpg -loglevel debug".format(output_dir)
+        keyframe_command = " ".join([ffmpeg_command, filter_command_keyframe, output_command])
+        logging.info(denominator_command)
+        _ = sp.check_output(shlex.split(denominator_command),stderr=sp.STDOUT)
+        logging.info(keyframe_command)
+        keyframes_info = sp.check_output(shlex.split(keyframe_command),stderr=sp.STDOUT)
+        with open("{}{}".format(output_dir,"keyframes.txt"),'w') as out:
+            out.write(keyframes_info)
         for fname in glob.glob(output_dir + '*_b.jpg'):
             ind = int(fname.split('/')[-1].replace('_b.jpg', ''))
             os.rename(fname, fname.replace('{}_b.jpg'.format(ind), '{}.jpg'.format((ind - 1) * denominator)))
@@ -173,8 +171,6 @@ class WVideo(object):
             if i == 0:
                 im = Image.open(fname)
                 frame_width, frame_height = im.size  # this remains constant for all frames
-            # f = WFrame(frame_index=int(ind), video=self, w=frame_width, h=frame_height)
-
             df = Frame()
             df.frame_index = int(ind)
             df.video_id = self.dvideo.pk

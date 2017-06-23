@@ -171,7 +171,10 @@ class WVideo(object):
                     elif entry.startswith('pict_type:'):
                         k,v = entry.split(':')
                         temp["type"] = v
-            frame_index_to_data[temp["index"]] = temp
+            if 'index'in temp:
+                frame_index_to_data[temp["index"]] = temp
+            else:
+                raise ValueError,line
         with open("{}{}".format(output_dir, "frames.json"), 'w') as out:
             json.dump(frame_index_to_data,out,indent=2)
         for src,dst in filename_index:

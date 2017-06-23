@@ -166,23 +166,6 @@ def execute_index_subquery(query_id):
 
 
 
-def set_directory_labels(frames, dv):
-    labels_to_frame = defaultdict(set)
-    for f in frames:
-        if f.name:
-            for l in f.subdir.split('/')[1:]:
-                if l.strip():
-                    labels_to_frame[l].add(f.primary_key)
-    label_list = []
-    for l in labels_to_frame:
-        for fpk in labels_to_frame[l]:
-            a = AppliedLabel()
-            a.video = dv
-            a.frame_id = fpk
-            a.source = AppliedLabel.DIRECTORY
-            a.label_name = l
-            label_list.append(a)
-    AppliedLabel.objects.bulk_create(label_list)
 
 
 @app.task(track_started=True, name="extract_frames_by_id")
@@ -206,67 +189,7 @@ def extract_frames(task_id):
     if dv.youtube_video:
         create_video_folders(dv)
     v = WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
-    time.sleep(3)  # otherwise ffprobe randomly fails
-    if not dv.dataset:
-        v.get_metadata()
-        dv.metadata = v.metadata
-        dv.length_in_seconds = v.duration
-        dv.height = v.height
-        dv.width = v.width
-        dv.save()
-    frames, cuts, segments, key_frames = v.extract_frames(args)
-    dv.frames = len(frames)
-    index_to_df = {}
-    dv.save()
-    df_list = []
-    for f in frames:
-        df = Frame()
-        df.frame_index = f.frame_index
-        if f.frame_index in key_frames:
-            t = float(key_frames[f.frame_index]['t'])
-            df.t = t
-            df.keyframe = True
-        df.video_id = dv.pk
-        if f.h:
-            df.h = f.h
-        if f.w:
-            df.w = f.w
-        if f.name:
-            df.name = f.name[:150]
-            df.subdir = f.subdir.replace('/', ' ')
-        df_list.append(df)
-    df_ids = Frame.objects.bulk_create(df_list)
-    for i,k in enumerate(df_ids):
-        index_to_df[df_list[i].frame_index] = k.id
-    for start_frame_index, end_frame_index in [(cuts[cutindex], cuts[cutindex + 1]) for cutindex, cut in enumerate(sorted(cuts)[:-1])]:
-        ds = Scene()
-        ds.video = dv
-        ds.start_frame_index = start_frame_index
-        ds.end_frame_index = end_frame_index
-        ds.start_frame_id = index_to_df[start_frame_index]
-        ds.end_frame_id = index_to_df[end_frame_index]
-        ds.source = start
-        ds.save()
-    total_frames = 0
-    for s in segments:
-        segment_id,start_time,end_time,metadata = s
-        ds = Segment()
-        ds.segment_index = segment_id
-        ds.start_time = start_time
-        ds.end_time = end_time
-        ds.video_id = dv.pk
-        ds.metadata = metadata
-        metadata_json = json.loads(metadata)
-        ds.frame_count = int(metadata_json["streams"][0]["nb_frames"])
-        ds.start_frame_index = total_frames
-        if ds.start_frame_index in index_to_df:
-            ds.start_frame_id = index_to_df[ds.start_frame_index]
-        else:
-            logging.info("Could not find find keyframe for index {}".format(ds.start_frame_index))
-        total_frames += ds.frame_count
-        ds.end_frame_index = total_frames - 1
-        ds.save()
-    set_directory_labels(frames, dv)
+    v.extract()
     process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time

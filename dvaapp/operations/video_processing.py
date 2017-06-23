@@ -178,30 +178,28 @@ class WVideo(object):
                 os.rename(src,dst)
             except:
                 logging.exception("Could not move {} to {}".format(src,dst))
-
+        return frame_index_to_data
 
     def extract_video_frames(self,denominator,rescale):
-        self.ffmpeg_frames(denominator,rescale)
         output_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'frames')
-        for fname in glob.glob(output_dir + '*_b.jpg'):
-            ind = int(fname.split('/')[-1].replace('_b.jpg', ''))
-            os.rename(fname, fname.replace('{}_b.jpg'.format(ind), '{}.jpg'.format((ind - 1) * denominator)))
+        frame_index_to_data = self.ffmpeg_frames(denominator,rescale)
         frame_width, frame_height = 0, 0
         df_list = []
         for i, fname in enumerate(glob.glob(output_dir + '*.jpg')):
             if i == 0:
                 im = Image.open(fname)
                 frame_width, frame_height = im.size  # this remains constant for all frames
-            if not fname.endswith('_k.jpg'):
-                frame_name = fname.split('/')[-1].split('.')[0]
-                ind = int(frame_name)
-                df = Frame()
-                df.frame_index = int(ind)
-                df.video_id = self.dvideo.pk
-                df.h = frame_height
-                df.w = frame_width
-                df_list.append(df)
-        df_ids = Frame.objects.bulk_create(df_list)
+            frame_name = fname.split('/')[-1].split('.')[0]
+            ind = int(frame_name)
+            df = Frame()
+            df.frame_index = int(ind)
+            df.video_id = self.dvideo.pk
+            df.keyframe = True if frame_index_to_data[ind]['type'] == 'I' else False
+            df.t = frame_index_to_data[ind]['t']
+            df.h = frame_height
+            df.w = frame_width
+            df_list.append(df)
+        _ = Frame.objects.bulk_create(df_list)
         self.dvideo.frames = len(df_list)
         self.dvideo.save()
 

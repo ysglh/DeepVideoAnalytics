@@ -140,7 +140,6 @@ class WVideo(object):
             self.get_metadata()
             self.extract_video_frames(denominator,rescale)
 
-
     def extract_video_frames(self,denominator,rescale):
         output_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'frames')
         ffmpeg_command = 'ffmpeg -i {} -vf'.format(self.local_path)
@@ -166,17 +165,18 @@ class WVideo(object):
         frame_width, frame_height = 0, 0
         df_list = []
         for i, fname in enumerate(glob.glob(output_dir + '*.jpg')):
-            frame_name = fname.split('/')[-1].split('.')[0]
-            ind = int(frame_name)
             if i == 0:
                 im = Image.open(fname)
                 frame_width, frame_height = im.size  # this remains constant for all frames
-            df = Frame()
-            df.frame_index = int(ind)
-            df.video_id = self.dvideo.pk
-            df.h = frame_height
-            df.w = frame_width
-            df_list.append(df)
+            if not fname.endswith('_k.jpg'):
+                frame_name = fname.split('/')[-1].split('.')[0]
+                ind = int(frame_name)
+                df = Frame()
+                df.frame_index = int(ind)
+                df.video_id = self.dvideo.pk
+                df.h = frame_height
+                df.w = frame_width
+                df_list.append(df)
         df_ids = Frame.objects.bulk_create(df_list)
         self.dvideo.frames = len(df_list)
         index_to_df = {}

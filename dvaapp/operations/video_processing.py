@@ -139,6 +139,7 @@ class WVideo(object):
         else:
             self.get_metadata()
             self.extract_video_frames(denominator,rescale)
+            self.segment_video()
 
     def ffmpeg_frames(self,denominator,rescale):
         output_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'frames')
@@ -217,7 +218,7 @@ class WVideo(object):
         else:
             for line in file('{}/segments.csv'.format(segments_dir)):
                 segment_file_name, start_time, end_time = line.strip().split(',')
-                command = 'ffprobe -select_streams v -show_streams -show_frames -print_format json {}  '.format(segment_file_name)
+                command = 'ffprobe -select_streams v -show_streams  -print_format json {}  '.format(segment_file_name)
                 logging.info(command)
                 segment_json = sp.check_output(shlex.split(command), cwd=segments_dir)
                 segments.append((int(segment_file_name.split('.')[0]), float(start_time), float(end_time), segment_json))

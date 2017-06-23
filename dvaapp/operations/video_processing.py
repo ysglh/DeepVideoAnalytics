@@ -150,7 +150,7 @@ class WVideo(object):
         output_command = "{}/%d_b.jpg -loglevel debug".format(output_dir)
         command = " ".join([ffmpeg_command,filter_command,output_command])
         logging.info(command)
-        frame_data = [l for l in sp.check_output(shlex.split(command),stderr=sp.STDOUT).split('\n') if "Parsed_select" in l and "select:1" in l]
+        frame_data = [l for l in sp.check_output(shlex.split(command),stderr=sp.STDOUT).splitlines() if "Parsed_select" in l and "select_out:0" in l]
         frame_index_to_data = {}
         filename_index = []
         with open("{}{}".format(output_dir, "frames.txt"), 'w') as out:
@@ -162,8 +162,8 @@ class WVideo(object):
                 if entry:
                     if entry.startswith('n:'):
                         k,v = entry.split(':')
-                        temp["index"] = int(v)
-                        filename_index.append(("{}{}_k.jpg".format(output_dir,i+1),"{}{}.jpg".format(output_dir,int(v))))
+                        temp["index"] = int(float(v))
+                        filename_index.append(("{}{}_b.jpg".format(output_dir,i+1),"{}{}.jpg".format(output_dir,temp["index"])))
                     elif entry.startswith('t:'):
                         k,v = entry.split(':')
                         temp["t"] = float(v)
@@ -203,11 +203,7 @@ class WVideo(object):
                 df_list.append(df)
         df_ids = Frame.objects.bulk_create(df_list)
         self.dvideo.frames = len(df_list)
-        index_to_df = {}
         self.dvideo.save()
-        df_list = []
-        for i, k in enumerate(df_ids):
-            index_to_df[df_list[i].frame_index] = k.id
 
     def segment_video(self):
         segments = []
@@ -240,8 +236,7 @@ class WVideo(object):
             ds.frame_count = int(metadata_json["streams"][0]["nb_frames"])
             ds.save()
 
-
-    def detect_scenes(self,index_to_df,rescale,start):
+    def detect_scenes(self,rescale,start):
         cwd = os.path.join(os.path.abspath(__file__).split('entity.py')[0], '../')
         scencedetect = sp.Popen(['fab', 'pyscenedetect:{},{}'.format(self.primary_key, rescale)], cwd=cwd)
         scencedetect.wait()
@@ -252,6 +247,7 @@ class WVideo(object):
                 cuts = json.load(fh)
             os.remove('{}/{}/frames/scenes.json'.format(self.media_dir, self.primary_key))
         cust_list = [(cuts[cutindex], cuts[cutindex + 1]) for cutindex, cut in enumerate(sorted(cuts)[:-1])]
+        index_to_df = {}
         for start_frame_index, end_frame_index in cust_list:
             ds = Scene()
             ds.video = self.dvideo

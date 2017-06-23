@@ -140,25 +140,49 @@ class WVideo(object):
             self.get_metadata()
             self.extract_video_frames(denominator,rescale)
 
-    def extract_video_frames(self,denominator,rescale):
+    def ffmpeg_frames(self,denominator,rescale):
         output_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'frames')
         ffmpeg_command = 'ffmpeg -i {} -vf'.format(self.local_path)
         if rescale:
-            filter_command_denominator = '"select=not(mod(n\,{})),scale={}:-1" -vsync 0'.format(denominator,rescale)
-            filter_command_keyframe = '"select=eq(pict_type\,PICT_TYPE_I),scale={}:-1" -vsync 0'.format(rescale)
+            filter_command = '"select=not(mod(n\,{}))+eq(pict_type\,PICT_TYPE_I),scale={}:-1" -vsync 0'.format(denominator,rescale)
         else:
-            filter_command_denominator = '"select=not(mod(n\,{}))" -vsync 0'.format(denominator)
-            filter_command_keyframe = '"select=eq(pict_type\,PICT_TYPE_I)" -vsync 0'.format()
-        output_command = "{}/%d_b.jpg".format(output_dir)
-        denominator_command = " ".join([ffmpeg_command,filter_command_denominator,output_command])
-        output_command = "{}/%d_k.jpg -loglevel debug".format(output_dir)
-        keyframe_command = " ".join([ffmpeg_command, filter_command_keyframe, output_command])
-        logging.info(denominator_command)
-        _ = sp.check_output(shlex.split(denominator_command),stderr=sp.STDOUT)
-        logging.info(keyframe_command)
-        keyframes_info = sp.check_output(shlex.split(keyframe_command),stderr=sp.STDOUT)
-        with open("{}{}".format(output_dir,"keyframes.txt"),'w') as out:
-            out.write(keyframes_info)
+            filter_command = '"select=not(mod(n\,{}))+eq(pict_type\,PICT_TYPE_I)" -vsync 0'.format(denominator)
+        output_command = "{}/%d_b.jpg -loglevel debug".format(output_dir)
+        command = " ".join([ffmpeg_command,filter_command,output_command])
+        logging.info(command)
+        frame_data = [l for l in sp.check_output(shlex.split(command),stderr=sp.STDOUT).split('\n') if "Parsed_select" in l and "select:1" in l]
+        frame_index_to_data = {}
+        filename_index = []
+        with open("{}{}".format(output_dir, "frames.txt"), 'w') as out:
+            out.write("\n".join(frame_data))
+        for i,line in enumerate(frame_data):
+            temp = {}
+            for entry in line.split(' '):
+                entry = entry.strip()
+                if entry:
+                    if entry.startswith('n:'):
+                        k,v = entry.split(':')
+                        temp["index"] = int(v)
+                        filename_index.append(("{}{}_k.jpg".format(output_dir,i+1),"{}{}.jpg".format(output_dir,int(v))))
+                    elif entry.startswith('t:'):
+                        k,v = entry.split(':')
+                        temp["t"] = float(v)
+                    elif entry.startswith('pict_type:'):
+                        k,v = entry.split(':')
+                        temp["type"] = v
+            frame_index_to_data[temp["index"]] = temp
+        with open("{}{}".format(output_dir, "frames.json"), 'w') as out:
+            json.dump(frame_index_to_data,out,indent=2)
+        for src,dst in filename_index:
+            try:
+                os.rename(src,dst)
+            except:
+                logging.exception("Could not move {} to {}".format(src,dst))
+
+
+    def extract_video_frames(self,denominator,rescale):
+        self.ffmpeg_frames(denominator,rescale)
+        output_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'frames')
         for fname in glob.glob(output_dir + '*_b.jpg'):
             ind = int(fname.split('/')[-1].replace('_b.jpg', ''))
             os.rename(fname, fname.replace('{}_b.jpg'.format(ind), '{}.jpg'.format((ind - 1) * denominator)))

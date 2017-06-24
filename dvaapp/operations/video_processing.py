@@ -184,9 +184,9 @@ class WVideo(object):
         ffmpeg_command = 'ffmpeg -loglevel panic -i {} -vf'.format(input_segment)
         df_list = []
         if rescale:
-            filter_command = '"select=not(mod(n\,{}))+eq(pict_type\,PICT_TYPE_I),scale={}:-1" -vsync 0'.format(denominator,rescale)
+            filter_command = '"select=not(mod(n\,{}))+eq(pict_type\,PICT_TYPE_I),scale={}:-1"'.format(denominator,rescale)
         else:
-            filter_command = '"select=not(mod(n\,{}))+eq(pict_type\,PICT_TYPE_I)" -vsync 0'.format(denominator)
+            filter_command = '"select=not(mod(n\,{}))+eq(pict_type\,PICT_TYPE_I)"'.format(denominator)
         output_command = "{}/segment_{}_%d_b.jpg".format(output_dir,segment_id)
         command = " ".join([ffmpeg_command,filter_command,output_command])
         logging.info(command)

@@ -26,6 +26,45 @@ def set_directory_labels(frames, dv):
     AppliedLabel.objects.bulk_create(label_list)
 
 
+def parse_segment_framelist(segment_id,framelist):
+    """
+    0 frame,
+    1 media_type=video,
+    2 key_frame=0,
+    3 pkt_pts=37888,
+    4 pkt_pts_time=2.960000,
+    5 pkt_dts=N/A,
+    6 pkt_dts_time=N/A,
+    7 best_effort_timestamp=37888,
+    8 best_effort_timestamp_time=2.960000,
+    9 pkt_duration=512,
+    10 pkt_duration_time=0.040000,
+    11 pkt_pos=698586,
+    12 pkt_size=11416,
+    13 width=1280,
+    14 height=720,
+    15 pix_fmt=yuv420p,
+    16 sample_aspect_ratio=1:1,
+    17 pict_type=P,
+    18 coded_picture_number=73,
+    19 display_picture_number=0,
+    20 interlaced_frame=0,
+    21 top_field_first=0,
+    22 repeat_pict=0
+    :param segment_file:
+    :return:
+    """
+    frames = {}
+    for line in framelist.splitlines():
+        if line.strip():
+            entries = line.strip().split(',')
+            if len(entries) ==  23:
+                frames[int(entries[18])] = {'type':entries[17],'ts':float(entries[8])}
+            else:
+                logging.error("Line without 23 entries in {} \n {} ".format(segment_id,line))
+                raise ValueError
+    return frames
+
 
 class WVideo(object):
     """
@@ -41,6 +80,8 @@ class WVideo(object):
         self.width = None
         self.height = None
         self.metadata = {}
+        self.segment_frames_dict = {}
+
 
     def get_metadata(self):
         if self.dvideo.youtube_video:
@@ -232,11 +273,13 @@ class WVideo(object):
             timer_start = time.time()
             for line in file('{}/segments.csv'.format(segments_dir)):
                 segment_file_name, start_time, end_time = line.strip().split(',')
+                segment_id = int(segment_file_name.split('.')[0])
                 command = 'ffprobe -show_frames -select_streams v:0 -print_format csv {}'.format(segment_file_name)
                 # logging.info(command)
-                segment_frames= sp.check_output(shlex.split(command), cwd=segments_dir)
-                with open("{}/{}_frames.txt".format(segments_dir,segment_file_name.split('.')[0]),'w') as framesout:
-                    framesout.write(segment_frames)
+                framelist= sp.check_output(shlex.split(command), cwd=segments_dir)
+                with open("{}/{}.txt".format(segments_dir,segment_file_name.split('.')[0]),'w') as framesout:
+                    framesout.write(framelist)
+                self.segment_frames_dict[segment_id] = parse_segment_framelist(segment_id,framelist)
             logging.info("Took {} seconds to process {} segments".format(time.time() - timer_start,len(segments)))
             segments.sort()
         for s in segments:
@@ -244,6 +287,7 @@ class WVideo(object):
             ds = Segment()
             ds.segment_index = segment_id
             ds.start_time = start_time
+            ds.frame_count = len(self.segment_frames_dict[segment_id])
             ds.end_time = end_time
             ds.video_id = self.dvideo.pk
             ds.metadata = metadata

@@ -1203,3 +1203,20 @@ def recognize_text(video_pk):
         dr.metadata_text = sim_pred
         dr.frame_id = r.frame_id
         dr.save()
+
+
+@task
+def qt():
+    import django
+    sys.path.append(os.path.dirname(__file__))
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
+    django.setup()
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    from dvaapp.views import handle_uploaded_file
+    from dvaapp.models import Video, TEvent
+    from dvaapp.tasks import extract_frames
+    for fname in glob.glob('tests/ci/*.mp4'):
+        name = fname.split('/')[-1].split('.')[0]
+        f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")
+        v = handle_uploaded_file(f, name, False)
+        extract_frames(TEvent.objects.create(video=v).pk)

@@ -179,80 +179,93 @@ class WVideo(object):
             self.extract_zip_dataset()
         else:
             self.get_metadata()
-            self.extract_video_frames(denominator,rescale)
-            self.segment_video()
+            self.segment_video(denominator,rescale)
 
-    def ffmpeg_frames(self,denominator,rescale):
+    def extract_segment_frames(self,segment_id,denominator,rescale):
         output_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'frames')
-        ffmpeg_command = 'ffmpeg -i {} -vf'.format(self.local_path)
+        input_segment = "{}/{}/{}/{}.mp4".format(self.media_dir, self.primary_key, 'segments', segment_id)
+        ffmpeg_command = 'ffmpeg -i {} -vf'.format(input_segment)
         if rescale:
             filter_command = '"select=not(mod(n\,{}))+eq(pict_type\,PICT_TYPE_I),scale={}:-1" -vsync 0'.format(denominator,rescale)
         else:
             filter_command = '"select=not(mod(n\,{}))+eq(pict_type\,PICT_TYPE_I)" -vsync 0'.format(denominator)
-        output_command = "{}/%d_b.jpg -loglevel debug".format(output_dir)
+        output_command = "{}/segment_{}_%d_b.jpg".format(output_dir,segment_id)
         command = " ".join([ffmpeg_command,filter_command,output_command])
         logging.info(command)
-        frame_data = [l for l in sp.check_output(shlex.split(command),stderr=sp.STDOUT).splitlines() if "Parsed_select" in l and "select_out:0" in l]
-        frame_index_to_data = {}
-        filename_index = []
-        with open("{}{}".format(output_dir, "frames.txt"), 'w') as out:
-            out.write("\n".join(frame_data))
-        for i,line in enumerate(frame_data):
-            temp = {}
-            for entry in line.split(' '):
-                entry = entry.strip()
-                if entry:
-                    if entry.startswith('n:'):
-                        k,v = entry.split(':')
-                        temp["index"] = int(float(v))
-                        filename_index.append(("{}{}_b.jpg".format(output_dir,i+1),"{}{}.jpg".format(output_dir,temp["index"])))
-                    elif entry.startswith('t:'):
-                        k,v = entry.split(':')
-                        temp["t"] = float(v)
-                    elif entry.startswith('pict_type:'):
-                        k,v = entry.split(':')
-                        temp["type"] = v
-            if len(temp.keys()) == 3:
-                frame_index_to_data[temp["index"]] = temp
-            else:
-                logging.error("Skipping malformed line/frame: {} \n Please track https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/issues/52 for progress".format(line))
-        with open("{}{}".format(output_dir, "frames.json"), 'w') as out:
-            json.dump(frame_index_to_data,out,indent=2)
-        for src,dst in filename_index:
-            try:
-                os.rename(src,dst)
-            except:
-                logging.exception("Could not move {} to {}".format(src,dst))
-        return frame_index_to_data
+        _ = sp.check_output(shlex.split(command), stderr=sp.STDOUT)
 
-    def extract_video_frames(self,denominator,rescale):
-        output_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'frames')
-        frame_index_to_data = self.ffmpeg_frames(denominator,rescale)
-        frame_width, frame_height = 0, 0
-        df_list = []
-        for i, fname in enumerate(glob.glob(output_dir + '*.jpg')):
-            if i == 0:
-                im = Image.open(fname)
-                frame_width, frame_height = im.size  # this remains constant for all frames
-            if not fname.endswith('_b.jpg'):
-                frame_name = fname.split('/')[-1].split('.')[0]
-                ind = int(frame_name)
-                if ind in frame_index_to_data:
-                    df = Frame()
-                    df.frame_index = int(ind)
-                    df.video_id = self.dvideo.pk
-                    df.keyframe = True if frame_index_to_data[ind]['type'] == 'I' else False
-                    df.t = frame_index_to_data[ind]['t']
-                    df.h = frame_height
-                    df.w = frame_width
-                    df_list.append(df)
-                else:
-                    logging.error("Skipping frame {} due to missing associated data".format(fname))
-        _ = Frame.objects.bulk_create(df_list)
-        self.dvideo.frames = len(df_list)
-        self.dvideo.save()
 
-    def segment_video(self):
+    # def ffmpeg_frames(self,denominator,rescale):
+    #     output_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'frames')
+    #     ffmpeg_command = 'ffmpeg -i {} -vf'.format(self.local_path)
+    #     if rescale:
+    #         filter_command = '"select=not(mod(n\,{}))+eq(pict_type\,PICT_TYPE_I),scale={}:-1" -vsync 0'.format(denominator,rescale)
+    #     else:
+    #         filter_command = '"select=not(mod(n\,{}))+eq(pict_type\,PICT_TYPE_I)" -vsync 0'.format(denominator)
+    #     output_command = "{}/%d_b.jpg -loglevel debug".format(output_dir)
+    #     command = " ".join([ffmpeg_command,filter_command,output_command])
+    #     logging.info(command)
+    #     frame_data = [l for l in sp.check_output(shlex.split(command),stderr=sp.STDOUT).splitlines() if "Parsed_select" in l and "select_out:0" in l]
+    #     frame_index_to_data = {}
+    #     filename_index = []
+    #     with open("{}{}".format(output_dir, "frames.txt"), 'w') as out:
+    #         out.write("\n".join(frame_data))
+    #     for i,line in enumerate(frame_data):
+    #         temp = {}
+    #         for entry in line.split(' '):
+    #             entry = entry.strip()
+    #             if entry:
+    #                 if entry.startswith('n:'):
+    #                     k,v = entry.split(':')
+    #                     temp["index"] = int(float(v))
+    #                     filename_index.append(("{}{}_b.jpg".format(output_dir,i+1),"{}{}.jpg".format(output_dir,temp["index"])))
+    #                 elif entry.startswith('t:'):
+    #                     k,v = entry.split(':')
+    #                     temp["t"] = float(v)
+    #                 elif entry.startswith('pict_type:'):
+    #                     k,v = entry.split(':')
+    #                     temp["type"] = v
+    #         if len(temp.keys()) == 3:
+    #             frame_index_to_data[temp["index"]] = temp
+    #         else:
+    #             logging.error("Skipping malformed line/frame: {} \n Please track https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/issues/52 for progress".format(line))
+    #     with open("{}{}".format(output_dir, "frames.json"), 'w') as out:
+    #         json.dump(frame_index_to_data,out,indent=2)
+    #     for src,dst in filename_index:
+    #         try:
+    #             os.rename(src,dst)
+    #         except:
+    #             logging.exception("Could not move {} to {}".format(src,dst))
+    #     return frame_index_to_data
+
+    # def extract_video_frames(self,denominator,rescale):
+    #     output_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'frames')
+    #     frame_index_to_data = self.ffmpeg_frames(denominator,rescale)
+    #     frame_width, frame_height = 0, 0
+    #     df_list = []
+    #     for i, fname in enumerate(glob.glob(output_dir + '*.jpg')):
+    #         if i == 0:
+    #             im = Image.open(fname)
+    #             frame_width, frame_height = im.size  # this remains constant for all frames
+    #         if not fname.endswith('_b.jpg'):
+    #             frame_name = fname.split('/')[-1].split('.')[0]
+    #             ind = int(frame_name)
+    #             if ind in frame_index_to_data:
+    #                 df = Frame()
+    #                 df.frame_index = int(ind)
+    #                 df.video_id = self.dvideo.pk
+    #                 df.keyframe = True if frame_index_to_data[ind]['type'] == 'I' else False
+    #                 df.t = frame_index_to_data[ind]['t']
+    #                 df.h = frame_height
+    #                 df.w = frame_width
+    #                 df_list.append(df)
+    #             else:
+    #                 logging.error("Skipping frame {} due to missing associated data".format(fname))
+    #     _ = Frame.objects.bulk_create(df_list)
+    #     self.dvideo.frames = len(df_list)
+    #     self.dvideo.save()
+
+    def segment_video(self,denominator,rescale):
         segments = []
         segments_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'segments')
         command = 'ffmpeg -i {} -c copy -map 0 -segment_time 1 -f segment -reset_timestamps 1 ' \
@@ -280,6 +293,7 @@ class WVideo(object):
                 with open("{}/{}.txt".format(segments_dir,segment_file_name.split('.')[0]),'w') as framesout:
                     framesout.write(framelist)
                 self.segment_frames_dict[segment_id] = parse_segment_framelist(segment_id,framelist)
+                self.extract_segment_frames(segment_id, denominator, rescale)
             logging.info("Took {} seconds to process {} segments".format(time.time() - timer_start,len(segments)))
             segments.sort()
         for s in segments:

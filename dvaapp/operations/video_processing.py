@@ -59,23 +59,23 @@ class WVideo(object):
                     else:
                         self.csv_format[kv] = i
                 break
+        self.field_count = len(self.csv_format)
+        self.frame_index_index = self.csv_format['coded_picture_number']
+        self.pict_type_index = self.csv_format['pict_type']
+        self.time_index = self.csv_format['best_effort_timestamp_time']
         logging.info(self.csv_format)
 
     def parse_segment_framelist(self,segment_id, framelist):
         if self.csv_format is None:
             self.detect_csv_segment_format()
         frames = {}
-        field_count = len(self.csv_format)
-        frame_index_index = self.csv_format['coded_picture_number']
-        pict_type_index = self.csv_format['pict_type']
-        time_index = self.csv_format['best_effort_timestamp_time']
         for line in framelist.splitlines():
             if line.strip():
                 entries = line.strip().split(',')
-                if len(entries) == field_count:
-                    frames[frame_index_index] = {'type': entries[pict_type_index], 'ts': float(entries[time_index])}
+                if len(entries) == self.field_count:
+                    frames[int(entries[self.frame_index_index])] = {'type': entries[self.pict_type_index], 'ts': float(entries[self.time_index])}
                 else:
-                    errro_message = "{} (expected) != {} entries in {} \n {} ".format(field_count,len(entries),segment_id, line)
+                    errro_message = "format used {} \n {} (expected) != {} entries in {} \n {} ".format(self.csv_format,self.field_count,len(entries),segment_id, line)
                     logging.error(errro_message)
                     raise ValueError, errro_message
         return frames

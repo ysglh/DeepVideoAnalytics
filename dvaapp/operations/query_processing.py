@@ -257,4 +257,6 @@ class QueryProcessing(object):
                 qr.save()
         iq.results = True
         iq.save()
+        self.query.results_available = True
+        self.query.save()
         return 0

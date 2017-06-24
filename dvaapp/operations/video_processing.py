@@ -181,12 +181,12 @@ class WVideo(object):
     def extract_segment_frames(self,segment_id,start_index,denominator,rescale,line):
         output_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'frames')
         input_segment = "{}/{}/{}/{}.mp4".format(self.media_dir, self.primary_key, 'segments', segment_id)
-        ffmpeg_command = 'ffmpeg -loglevel panic -i {} -vf'.format(input_segment)
+        ffmpeg_command = 'ffmpeg -fflags +igndts -loglevel panic -i {} -vf'.format(input_segment) # Alternative to igndts is setting vsync vfr
         df_list = []
         if rescale:
-            filter_command = '"select=not(mod(n\,{}))+eq(pict_type\,PICT_TYPE_I),scale={}:-1" -vsync vfr'.format(denominator,rescale)
+            filter_command = '"select=not(mod(n\,{}))+eq(pict_type\,PICT_TYPE_I),scale={}:-1" -vsync 0'.format(denominator,rescale)
         else:
-            filter_command = '"select=not(mod(n\,{}))+eq(pict_type\,PICT_TYPE_I)" -vsync vfr'.format(denominator)
+            filter_command = '"select=not(mod(n\,{}))+eq(pict_type\,PICT_TYPE_I)" -vsync 0'.format(denominator)
         output_command = "{}/segment_{}_%d_b.jpg".format(output_dir,segment_id)
         command = " ".join([ffmpeg_command,filter_command,output_command])
         logging.info(command)
@@ -195,6 +195,7 @@ class WVideo(object):
         except:
             raise ValueError,"{} for {} could not run {}".format(line,self.dvideo.name,command)
         ordered_frames = sorted([(k,v) for k,v in self.segment_frames_dict[segment_id].iteritems() if k%denominator == 0 or v['type'] == 'I'])
+        frame_width, frame_height = 0, 0
         for i,f_id in enumerate(ordered_frames):
             frame_index, frame_data = f_id
             src = "{}/segment_{}_{}_b.jpg".format(output_dir,segment_id,i+1)
@@ -203,7 +204,6 @@ class WVideo(object):
                 os.rename(src,dst)
             except:
                 raise ValueError,str((src, dst, frame_index, start_index))
-            frame_width, frame_height = 0, 0
             if i ==0:
                 im = Image.open(dst)
                 frame_width, frame_height = im.size  # this remains constant for all frames

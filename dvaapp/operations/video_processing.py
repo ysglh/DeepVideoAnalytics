@@ -221,7 +221,7 @@ class WVideo(object):
     def segment_video(self,denominator,rescale):
         segments = []
         segments_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'segments')
-        command = 'ffmpeg -loglevel panic -i {} -c copy -map 0 -segment_time 1 -f segment -reset_timestamps 1 ' \
+        command = 'ffmpeg -loglevel panic -i {} -c copy -map 0 -segment_time 1 -f segment ' \
                   '-segment_list_type csv -segment_list {}/segments.csv ' \
                   '{}/%d.mp4'.format(self.local_path, segments_dir, segments_dir)
         logging.info(command)

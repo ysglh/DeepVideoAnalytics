@@ -51,6 +51,7 @@ class Query(models.Model):
     created = models.DateTimeField('date created', auto_now_add=True)
     selected_indexers = ArrayField(models.CharField(max_length=30),default=[])
     results_metadata = models.TextField(default="")
+    results_available = models.BooleanField(default=False)
     user = models.ForeignKey(User, null=True)
     image_data = models.BinaryField(null=True)
 

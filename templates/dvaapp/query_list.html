@@ -19,7 +19,7 @@
                     <div class="box {% if v.results %} box-success {% else %} box-warning {% endif %}">
                     <div class="box-header with-border">
                         <h4 class="text-center">Created at {{ v.created }}</h4>
-                        <h4 class="text-center">{% if v.results %} results available {% else %} waiting for results {% endif %}</h4>
+                        <h4 class="text-center">{% if v.results_available %} results available {% else %} waiting for results {% endif %}</h4>
                     </div>
                     <div class="box-body" style="min-height:300px">
                         <a href="/queries/{{ v.pk }}">

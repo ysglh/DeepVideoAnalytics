@@ -68,7 +68,7 @@ urlpatterns = [
     url(r'^accounts/profile/$', views.index, name='profile'),
 ]
 
-if settings.DVA_PRIVATE_ENABLE and sys.platform != 'darwin':
+if settings.DVA_PRIVATE_ENABLE :
     urlpatterns.append(url(r'^$', views.home, name='home'))
 else:
     urlpatterns.append(url(r'^$', views.index, name='app_home'))

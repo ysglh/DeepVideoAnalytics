@@ -185,6 +185,7 @@ class WVideo(object):
         output_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'frames')
         input_segment = "{}/{}/{}/{}.mp4".format(self.media_dir, self.primary_key, 'segments', segment_id)
         ffmpeg_command = 'ffmpeg -i {} -vf'.format(input_segment)
+        df_list = []
         if rescale:
             filter_command = '"select=not(mod(n\,{}))+eq(pict_type\,PICT_TYPE_I),scale={}:-1" -vsync 0'.format(denominator,rescale)
         else:
@@ -203,6 +204,19 @@ class WVideo(object):
                 os.rename(src,dst)
             except:
                 raise ValueError,str((src,dst))
+            frame_width, frame_height = 0, 0
+            if i ==0:
+                im = Image.open(dst)
+                frame_width, frame_height = im.size  # this remains constant for all frames
+            df = Frame()
+            df.frame_index = int(frame_index+start_index)
+            df.video_id = self.dvideo.pk
+            df.keyframe = True if frame_data['type'] == 'I' else False
+            df.t = frame_data['ts']
+            df.h = frame_height
+            df.w = frame_width
+            df_list.append(df)
+        return df_list
 
     # def ffmpeg_frames(self,denominator,rescale):
     #     output_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'frames')
@@ -254,8 +268,6 @@ class WVideo(object):
     #     df_list = []
     #     for i, fname in enumerate(glob.glob(output_dir + '*.jpg')):
     #         if i == 0:
-    #             im = Image.open(fname)
-    #             frame_width, frame_height = im.size  # this remains constant for all frames
     #         if not fname.endswith('_b.jpg'):
     #             frame_name = fname.split('/')[-1].split('.')[0]
     #             ind = int(frame_name)
@@ -283,6 +295,7 @@ class WVideo(object):
         logging.info(command)
         segmentor = sp.Popen(shlex.split(command))
         segmentor.wait()
+        df_list = []
         if segmentor.returncode != 0:
             raise ValueError
         else:
@@ -301,12 +314,13 @@ class WVideo(object):
                 with open("{}/{}.txt".format(segments_dir,segment_file_name.split('.')[0]),'w') as framesout:
                     framesout.write(framelist)
                 self.segment_frames_dict[segment_id] = parse_segment_framelist(segment_id,framelist)
-                self.extract_segment_frames(segment_id, start_index, denominator, rescale)
+                df_list += self.extract_segment_frames(segment_id, start_index, denominator, rescale)
                 start_index += len(self.segment_frames_dict[segment_id])
                 print start_index
                 segments.append((int(segment_file_name.split('.')[0]), float(start_time), float(end_time), segment_json, start_index))
             logging.info("Took {} seconds to process {} segments".format(time.time() - timer_start,len(segments)))
             segments.sort()
+        _ = Frame.objects.bulk_create(df_list)
         for s in segments:
             segment_id, start_time, end_time, metadata, start_index = s
             ds = Segment()

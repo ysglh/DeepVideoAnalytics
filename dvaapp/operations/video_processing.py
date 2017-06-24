@@ -178,7 +178,7 @@ class WVideo(object):
             self.get_metadata()
             self.segment_video(denominator,rescale)
 
-    def extract_segment_frames(self,segment_id,start_index,denominator,rescale):
+    def extract_segment_frames(self,segment_id,start_index,denominator,rescale,line):
         output_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'frames')
         input_segment = "{}/{}/{}/{}.mp4".format(self.media_dir, self.primary_key, 'segments', segment_id)
         ffmpeg_command = 'ffmpeg -loglevel panic -i {} -vf'.format(input_segment)
@@ -193,7 +193,7 @@ class WVideo(object):
         try:
             _ = sp.check_output(shlex.split(command), stderr=sp.STDOUT)
         except:
-            raise ValueError,"for {} could not run {}".format(self.dvideo.name,command)
+            raise ValueError,"{} for {} could not run {}".format(line,self.dvideo.name,command)
         ordered_frames = sorted([(k,v) for k,v in self.segment_frames_dict[segment_id].iteritems() if k%denominator == 0 or v['type'] == 'I'])
         for i,f_id in enumerate(ordered_frames):
             frame_index, frame_data = f_id
@@ -235,22 +235,21 @@ class WVideo(object):
             start_index = 0
             for line in file('{}/segments.csv'.format(segments_dir)):
                 segment_file_name, start_time, end_time = line.strip().split(',')
+                segment_id = int(segment_file_name.split('.')[0])
                 command = 'ffprobe -select_streams v -show_streams  -print_format json {}  '.format(segment_file_name)
                 # logging.info(command)
                 segment_json = sp.check_output(shlex.split(command), cwd=segments_dir)
-                segment_file_name, start_time, end_time = line.strip().split(',')
-                segment_id = int(segment_file_name.split('.')[0])
                 command = 'ffprobe -show_frames -select_streams v:0 -print_format csv {}'.format(segment_file_name)
                 # logging.info(command)
                 framelist= sp.check_output(shlex.split(command), cwd=segments_dir)
                 with open("{}/{}.txt".format(segments_dir,segment_file_name.split('.')[0]),'w') as framesout:
                     framesout.write(framelist)
                 self.segment_frames_dict[segment_id] = self.parse_segment_framelist(segment_id,framelist)
-                df_list += self.extract_segment_frames(segment_id, start_index, denominator, rescale)
+                logging.warning("Processing line {}".format(line))
+                df_list += self.extract_segment_frames(segment_id, start_index, denominator, rescale,line)
                 start_index += len(self.segment_frames_dict[segment_id])
-                s = (int(segment_file_name.split('.')[0]), float(start_time), float(end_time), segment_json, start_index)
-                segments.append(s)
-                segment_id, start_time, end_time, metadata, start_index = s
+                start_time = float(start_time)
+                end_time = float(end_time)
                 ds = Segment()
                 ds.segment_index = segment_id
                 ds.start_time = start_time
@@ -258,7 +257,7 @@ class WVideo(object):
                 ds.frame_count = len(self.segment_frames_dict[segment_id])
                 ds.end_time = end_time
                 ds.video_id = self.dvideo.pk
-                ds.metadata = metadata
+                ds.metadata = segment_json
                 ds.save()
             logging.info("Took {} seconds to process {} segments".format(time.time() - timer_start,len(segments)))
             segments.sort()

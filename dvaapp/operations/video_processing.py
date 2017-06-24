@@ -60,7 +60,7 @@ class WVideo(object):
                         self.csv_format[kv] = i
                 break
         self.field_count = len(self.csv_format)
-        self.frame_index_index = self.csv_format['coded_picture_number']
+        # self.frame_index_index = self.csv_format['coded_picture_number'] # decode order (e.g. B frames requrire next P frame) AND NOT!!! frame order show frames provides ordered frames
         self.pict_type_index = self.csv_format['pict_type']
         self.time_index = self.csv_format['best_effort_timestamp_time']
         logging.info(self.csv_format)
@@ -69,11 +69,13 @@ class WVideo(object):
         if self.csv_format is None:
             self.detect_csv_segment_format()
         frames = {}
+        findex = 0
         for line in framelist.splitlines():
             if line.strip():
                 entries = line.strip().split(',')
                 if len(entries) == self.field_count:
-                    frames[int(entries[self.frame_index_index])] = {'type': entries[self.pict_type_index], 'ts': float(entries[self.time_index])}
+                    frames[findex] = {'type': entries[self.pict_type_index], 'ts': float(entries[self.time_index])}
+                    findex += 1
                 else:
                     errro_message = "format used {} \n {} (expected) != {} entries in {} \n {} ".format(self.csv_format,self.field_count,len(entries),segment_id, line)
                     logging.error(errro_message)

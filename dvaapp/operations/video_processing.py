@@ -200,10 +200,9 @@ class WVideo(object):
             src = "{}/segment_{}_{}_b.jpg".format(output_dir,segment_id,i+1)
             dst = "{}/{}.jpg".format(output_dir,frame_index+start_index)
             try:
-                print src,dst,frame_index,start_index
                 os.rename(src,dst)
             except:
-                raise ValueError,str((src,dst))
+                raise ValueError,str((src, dst, frame_index, start_index))
             frame_width, frame_height = 0, 0
             if i ==0:
                 im = Image.open(dst)
@@ -213,78 +212,11 @@ class WVideo(object):
             df.video_id = self.dvideo.pk
             df.keyframe = True if frame_data['type'] == 'I' else False
             df.t = frame_data['ts']
+            df.segment_index = segment_id
             df.h = frame_height
             df.w = frame_width
             df_list.append(df)
         return df_list
-
-    # def ffmpeg_frames(self,denominator,rescale):
-    #     output_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'frames')
-    #     ffmpeg_command = 'ffmpeg -i {} -vf'.format(self.local_path)
-    #     if rescale:
-    #         filter_command = '"select=not(mod(n\,{}))+eq(pict_type\,PICT_TYPE_I),scale={}:-1" -vsync 0'.format(denominator,rescale)
-    #     else:
-    #         filter_command = '"select=not(mod(n\,{}))+eq(pict_type\,PICT_TYPE_I)" -vsync 0'.format(denominator)
-    #     output_command = "{}/%d_b.jpg -loglevel debug".format(output_dir)
-    #     command = " ".join([ffmpeg_command,filter_command,output_command])
-    #     logging.info(command)
-    #     frame_data = [l for l in sp.check_output(shlex.split(command),stderr=sp.STDOUT).splitlines() if "Parsed_select" in l and "select_out:0" in l]
-    #     frame_index_to_data = {}
-    #     filename_index = []
-    #     with open("{}{}".format(output_dir, "frames.txt"), 'w') as out:
-    #         out.write("\n".join(frame_data))
-    #     for i,line in enumerate(frame_data):
-    #         temp = {}
-    #         for entry in line.split(' '):
-    #             entry = entry.strip()
-    #             if entry:
-    #                 if entry.startswith('n:'):
-    #                     k,v = entry.split(':')
-    #                     temp["index"] = int(float(v))
-    #                     filename_index.append(("{}{}_b.jpg".format(output_dir,i+1),"{}{}.jpg".format(output_dir,temp["index"])))
-    #                 elif entry.startswith('t:'):
-    #                     k,v = entry.split(':')
-    #                     temp["t"] = float(v)
-    #                 elif entry.startswith('pict_type:'):
-    #                     k,v = entry.split(':')
-    #                     temp["type"] = v
-    #         if len(temp.keys()) == 3:
-    #             frame_index_to_data[temp["index"]] = temp
-    #         else:
-    #             logging.error("Skipping malformed line/frame: {} \n Please track https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/issues/52 for progress".format(line))
-    #     with open("{}{}".format(output_dir, "frames.json"), 'w') as out:
-    #         json.dump(frame_index_to_data,out,indent=2)
-    #     for src,dst in filename_index:
-    #         try:
-    #             os.rename(src,dst)
-    #         except:
-    #             logging.exception("Could not move {} to {}".format(src,dst))
-    #     return frame_index_to_data
-
-    # def extract_video_frames(self,denominator,rescale):
-    #     output_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'frames')
-    #     frame_index_to_data = self.ffmpeg_frames(denominator,rescale)
-    #     frame_width, frame_height = 0, 0
-    #     df_list = []
-    #     for i, fname in enumerate(glob.glob(output_dir + '*.jpg')):
-    #         if i == 0:
-    #         if not fname.endswith('_b.jpg'):
-    #             frame_name = fname.split('/')[-1].split('.')[0]
-    #             ind = int(frame_name)
-    #             if ind in frame_index_to_data:
-    #                 df = Frame()
-    #                 df.frame_index = int(ind)
-    #                 df.video_id = self.dvideo.pk
-    #                 df.keyframe = True if frame_index_to_data[ind]['type'] == 'I' else False
-    #                 df.t = frame_index_to_data[ind]['t']
-    #                 df.h = frame_height
-    #                 df.w = frame_width
-    #                 df_list.append(df)
-    #             else:
-    #                 logging.error("Skipping frame {} due to missing associated data".format(fname))
-    #     _ = Frame.objects.bulk_create(df_list)
-    #     self.dvideo.frames = len(df_list)
-    #     self.dvideo.save()
 
     def segment_video(self,denominator,rescale):
         segments = []
@@ -316,25 +248,23 @@ class WVideo(object):
                 self.segment_frames_dict[segment_id] = parse_segment_framelist(segment_id,framelist)
                 df_list += self.extract_segment_frames(segment_id, start_index, denominator, rescale)
                 start_index += len(self.segment_frames_dict[segment_id])
-                segments.append((int(segment_file_name.split('.')[0]), float(start_time), float(end_time), segment_json, start_index))
+                s = (int(segment_file_name.split('.')[0]), float(start_time), float(end_time), segment_json, start_index)
+                segments.append(s)
+                segment_id, start_time, end_time, metadata, start_index = s
+                ds = Segment()
+                ds.segment_index = segment_id
+                ds.start_time = start_time
+                ds.start_index = start_index
+                ds.frame_count = len(self.segment_frames_dict[segment_id])
+                ds.end_time = end_time
+                ds.video_id = self.dvideo.pk
+                ds.metadata = metadata
+                ds.save()
             logging.info("Took {} seconds to process {} segments".format(time.time() - timer_start,len(segments)))
             segments.sort()
         _ = Frame.objects.bulk_create(df_list)
         self.dvideo.frames = sum([len(c) for c in self.segment_frames_dict.itervalues()])
         self.dvideo.save()
-        for s in segments:
-            segment_id, start_time, end_time, metadata, start_index = s
-            ds = Segment()
-            ds.segment_index = segment_id
-            ds.start_time = start_time
-            ds.start_index = start_index
-            ds.frame_count = len(self.segment_frames_dict[segment_id])
-            ds.end_time = end_time
-            ds.video_id = self.dvideo.pk
-            ds.metadata = metadata
-            metadata_json = json.loads(metadata)
-            ds.frame_count = int(metadata_json["streams"][0]["nb_frames"])
-            ds.save()
 
     def detect_scenes(self,rescale,start):
         cwd = os.path.join(os.path.abspath(__file__).split('entity.py')[0], '../')

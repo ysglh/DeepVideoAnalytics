@@ -69,6 +69,7 @@ class IndexerQuery(models.Model):
     approximate = models.BooleanField(default=False)
     user = models.ForeignKey(User, null=True)
 
+
 class Video(models.Model):
     name = models.CharField(max_length=500,default="")
     length_in_seconds = models.IntegerField(default=0)
@@ -101,6 +102,7 @@ class Frame(models.Model):
     w = models.IntegerField(default=0)
     t = models.FloatField(null=True) # time in seconds for keyframes
     keyframe = models.BooleanField(default=False) # is this a key frame for a video?
+    segment_index = models.IntegerField(null=True)
 
     class Meta:
         unique_together = (("video", "frame_index"),)

@@ -116,6 +116,7 @@ class Segment(models.Model):
     end_time = models.FloatField(default=0.0)
     metadata = models.TextField(default="{}")
     frame_count = models.IntegerField(default=0)
+    start_index = models.IntegerField(default=0)
     start_frame = models.ForeignKey(Frame,null=True,related_name="segment_start")
     end_frame = models.ForeignKey(Frame, null=True,related_name="segment_end")
 

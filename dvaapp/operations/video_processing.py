@@ -26,44 +26,6 @@ def set_directory_labels(frames, dv):
     AppliedLabel.objects.bulk_create(label_list)
 
 
-def parse_segment_framelist(segment_id,framelist):
-    """
-    0 frame,
-    1 media_type=video,
-    2 key_frame=0,
-    3 pkt_pts=37888,
-    4 pkt_pts_time=2.960000,
-    5 pkt_dts=N/A,
-    6 pkt_dts_time=N/A,
-    7 best_effort_timestamp=37888,
-    8 best_effort_timestamp_time=2.960000,
-    9 pkt_duration=512,
-    10 pkt_duration_time=0.040000,
-    11 pkt_pos=698586,
-    12 pkt_size=11416,
-    13 width=1280,
-    14 height=720,
-    15 pix_fmt=yuv420p,
-    16 sample_aspect_ratio=1:1,
-    17 pict_type=P,
-    18 coded_picture_number=73,
-    19 display_picture_number=0,
-    20 interlaced_frame=0,
-    21 top_field_first=0,
-    22 repeat_pict=0
-    :param segment_file:
-    :return:
-    """
-    frames = {}
-    for line in framelist.splitlines():
-        if line.strip():
-            entries = line.strip().split(',')
-            if len(entries) ==  23:
-                frames[int(entries[18])] = {'type':entries[17],'ts':float(entries[8])}
-            else:
-                logging.error("Line without 23 entries in {} \n {} ".format(segment_id,line))
-                raise ValueError,"Line without 23 entries in {} \n {} ".format(segment_id,line)
-    return frames
 
 
 class WVideo(object):
@@ -76,12 +38,47 @@ class WVideo(object):
         self.primary_key = self.dvideo.pk
         self.media_dir = media_dir
         self.local_path = "{}/{}/video/{}.mp4".format(self.media_dir,self.primary_key,self.primary_key)
+        self.segments_dir = "{}/{}/segments/".format(self.media_dir,self.primary_key)
         self.duration = None
         self.width = None
         self.height = None
         self.metadata = {}
         self.segment_frames_dict = {}
+        self.csv_format = None
 
+    def detect_csv_segment_format(self):
+        self.csv_format = {}
+        command ="ffprobe -i {}1.mp4 -show_frames -select_streams v:0 -print_format csv=nokey=0".format(self.segments_dir)
+        csv_format_lines = sp.check_output(shlex.split(command))
+        for line in csv_format_lines.splitlines():
+            if line.strip():
+                for i,kv in enumerate(line.strip().split(',')):
+                    if '=' in kv:
+                        k,v = kv.strip().split('=')
+                        self.csv_format[k] = i
+                    else:
+                        self.csv_format[kv] = i
+                break
+        logging.info(self.csv_format)
+
+    def parse_segment_framelist(self,segment_id, framelist):
+        if self.csv_format is None:
+            self.detect_csv_segment_format()
+        frames = {}
+        field_count = len(self.csv_format)
+        frame_index_index = self.csv_format['coded_picture_number']
+        pict_type_index = self.csv_format['pict_type']
+        time_index = self.csv_format['best_effort_timestamp_time']
+        for line in framelist.splitlines():
+            if line.strip():
+                entries = line.strip().split(',')
+                if len(entries) == field_count:
+                    frames[frame_index_index] = {'type': entries[pict_type_index], 'ts': float(entries[time_index])}
+                else:
+                    errro_message = "{} (expected) != {} entries in {} \n {} ".format(field_count,len(entries),segment_id, line)
+                    logging.error(errro_message)
+                    raise ValueError, errro_message
+        return frames
 
     def get_metadata(self):
         if self.dvideo.youtube_video:
@@ -245,7 +242,7 @@ class WVideo(object):
                 framelist= sp.check_output(shlex.split(command), cwd=segments_dir)
                 with open("{}/{}.txt".format(segments_dir,segment_file_name.split('.')[0]),'w') as framesout:
                     framesout.write(framelist)
-                self.segment_frames_dict[segment_id] = parse_segment_framelist(segment_id,framelist)
+                self.segment_frames_dict[segment_id] = self.parse_segment_framelist(segment_id,framelist)
                 df_list += self.extract_segment_frames(segment_id, start_index, denominator, rescale)
                 start_index += len(self.segment_frames_dict[segment_id])
                 s = (int(segment_file_name.split('.')[0]), float(start_time), float(end_time), segment_json, start_index)

@@ -29,26 +29,26 @@ before_install:
   - sudo apt-get install -y --allow-unauthenticated ffmpeg
   - sudo apt-get install -y pkg-config python-dev unzip swig3.0 libopencv-dev libhdf5-dev python-pip libav-tools libjpeg-dev  libpng-dev  libtiff-dev  libjasper-dev  python-numpy python-scipy  python-pycurl  python-opencv
   - sudo dpkg -L python-opencv
-  - sudo wget https://yt-dl.org/downloads/latest/youtube-dl -O /bin/youtube-dl
+  - sudo wget --quiet https://yt-dl.org/downloads/latest/youtube-dl -O /bin/youtube-dl
   - sudo chmod a+rx /bin/youtube-dl
   - youtube-dl -U
-  - pip install --only-binary=numpy,scipy numpy scipy
-  - pip install https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.1.0-cp27-none-linux_x86_64.whl
-  - pip install --no-deps keras
-  - pip install --no-deps h5py
-install: "pip install -r requirements.txt > /dev/null"
+  - pip install -q --only-binary=numpy,scipy numpy scipy
+  - pip install -q https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.1.0-cp27-none-linux_x86_64.whl
+  - pip install -q --no-deps keras
+  - pip install -q --no-deps h5py
+install: "pip install -q -r requirements.txt > /dev/null"
 
 
 before_script:
   - cd repos/lopq/python && python setup.py install && cd ../../..
   - python manage.py migrate
   - python manage.py runserver 8000 &
-  - cd dvalib/data/2016_08 && wget https://www.dropbox.com/s/umo0xtljm9an90x/model.ckpt && wget https://www.dropbox.com/s/f93axdtlb3ltj40/model.ckpt.meta && cd ../../..
+  - cd dvalib/data/2016_08 && wget --quiet https://www.dropbox.com/s/umo0xtljm9an90x/model.ckpt && wget --quiet https://www.dropbox.com/s/f93axdtlb3ltj40/model.ckpt.meta && cd ../../..
   - cd dvalib/ssd/checkpoints && unzip ssd_300_vgg.ckpt.zip && cd ../../..
-  - cd dvalib/facenet/facenet_model && wget https://www.dropbox.com/s/2unad9skmc7msel/model-20170306-150500.ckpt-250000.data-00000-of-00001 && cd ../../..
-  - cd dvalib/facenet/facenet_model && wget https://www.dropbox.com/s/j8ky6bl0jgpygp6/model-20170306-150500.ckpt-250000.index && cd ../../..
-  - cd dvalib/facenet/facenet_model && wget https://www.dropbox.com/s/tnebmpku7xtzwnv/model-20170306-150500.meta && cd ../../..
-  - cd tests && wget https://www.dropbox.com/s/xwbk5g1qit5s9em/WorldIsNotEnough.mp4 && cd ..
+  - cd dvalib/facenet/facenet_model && wget --quiet https://www.dropbox.com/s/2unad9skmc7msel/model-20170306-150500.ckpt-250000.data-00000-of-00001 && cd ../../..
+  - cd dvalib/facenet/facenet_model && wget --quiet https://www.dropbox.com/s/j8ky6bl0jgpygp6/model-20170306-150500.ckpt-250000.index && cd ../../..
+  - cd dvalib/facenet/facenet_model && wget --quiet https://www.dropbox.com/s/tnebmpku7xtzwnv/model-20170306-150500.meta && cd ../../..
+  - cd tests && wget --quiet https://www.dropbox.com/s/xwbk5g1qit5s9em/WorldIsNotEnough.mp4 && cd ..
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
   - sleep 3 # give xvfb some time to start
@@ -56,11 +56,11 @@ before_script:
 script:
   - fab add_default_vdn_server
   - fab ci
-  - wget localhost:8000
-  - wget localhost:8000/videos/
-  - wget localhost:8000/videos/1/
-  - wget localhost:8000/status
-  - wget localhost:8000/queries/
-  - wget http://www.visualdata.network/vdn/api/
-  - wget http://www.visualdata.network/vdn/
-  - wget http://www.visualdata.network/vdn/get_token/
+  - wget --quiet localhost:8000
+  - wget --quiet localhost:8000/videos/
+  - wget --quiet localhost:8000/videos/1/
+  - wget --quiet localhost:8000/status
+  - wget --quiet localhost:8000/queries/
+  - wget --quiet http://www.visualdata.network/vdn/api/
+  - wget --quiet http://www.visualdata.network/vdn/
+  - wget --quiet http://www.visualdata.network/vdn/get_token/

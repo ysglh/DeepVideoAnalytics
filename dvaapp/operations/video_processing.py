@@ -181,7 +181,7 @@ class WVideo(object):
     def extract_segment_frames(self,segment_id,start_index,denominator,rescale):
         output_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'frames')
         input_segment = "{}/{}/{}/{}.mp4".format(self.media_dir, self.primary_key, 'segments', segment_id)
-        ffmpeg_command = 'ffmpeg -i {} -vf'.format(input_segment)
+        ffmpeg_command = 'ffmpeg -loglevel panic -i {} -vf'.format(input_segment)
         df_list = []
         if rescale:
             filter_command = '"select=not(mod(n\,{}))+eq(pict_type\,PICT_TYPE_I),scale={}:-1" -vsync 0'.format(denominator,rescale)
@@ -190,7 +190,10 @@ class WVideo(object):
         output_command = "{}/segment_{}_%d_b.jpg".format(output_dir,segment_id)
         command = " ".join([ffmpeg_command,filter_command,output_command])
         logging.info(command)
-        _ = sp.check_output(shlex.split(command), stderr=sp.STDOUT)
+        try:
+            _ = sp.check_output(shlex.split(command), stderr=sp.STDOUT)
+        except:
+            raise ValueError,"for {} could not run {}".format(self.dvideo.name,command)
         ordered_frames = sorted([(k,v) for k,v in self.segment_frames_dict[segment_id].iteritems() if k%denominator == 0 or v['type'] == 'I'])
         for i,f_id in enumerate(ordered_frames):
             frame_index, frame_data = f_id
@@ -218,7 +221,7 @@ class WVideo(object):
     def segment_video(self,denominator,rescale):
         segments = []
         segments_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'segments')
-        command = 'ffmpeg -i {} -c copy -map 0 -segment_time 1 -f segment -reset_timestamps 1 ' \
+        command = 'ffmpeg -loglevel panic -i {} -c copy -map 0 -segment_time 1 -f segment -reset_timestamps 1 ' \
                   '-segment_list_type csv -segment_list {}/segments.csv ' \
                   '{}/%d.mp4'.format(self.local_path, segments_dir, segments_dir)
         logging.info(command)

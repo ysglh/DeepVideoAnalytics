@@ -197,8 +197,9 @@ class WVideo(object):
         for i,f_id in enumerate(ordered_frames):
             frame_index, frame_data = f_id
             src = "{}/segment_{}_{}_b.jpg".format(output_dir,segment_id,i+1)
-            dst = "{}/{}.jpg".format(output_dir,segment_id,frame_index+start_index)
+            dst = "{}/{}.jpg".format(output_dir,frame_index+start_index)
             try:
+                print src,dst,frame_index,start_index
                 os.rename(src,dst)
             except:
                 raise ValueError,str((src,dst))
@@ -300,8 +301,9 @@ class WVideo(object):
                 with open("{}/{}.txt".format(segments_dir,segment_file_name.split('.')[0]),'w') as framesout:
                     framesout.write(framelist)
                 self.segment_frames_dict[segment_id] = parse_segment_framelist(segment_id,framelist)
-                start_index += len(self.segment_frames_dict[segment_id])
                 self.extract_segment_frames(segment_id, start_index, denominator, rescale)
+                start_index += len(self.segment_frames_dict[segment_id])
+                print start_index
                 segments.append((int(segment_file_name.split('.')[0]), float(start_time), float(end_time), segment_json, start_index))
             logging.info("Took {} seconds to process {} segments".format(time.time() - timer_start,len(segments)))
             segments.sort()

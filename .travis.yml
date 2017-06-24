@@ -25,9 +25,9 @@ env:
 
 before_install:
   - sudo add-apt-repository ppa:mc3man/trusty-media -y
-  - sudo apt-get update -q
-  - sudo apt-get install -y --allow-unauthenticated ffmpeg
-  - sudo apt-get install -y pkg-config python-dev unzip swig3.0 libopencv-dev libhdf5-dev python-pip libav-tools libjpeg-dev  libpng-dev  libtiff-dev  libjasper-dev  python-numpy python-scipy  python-pycurl  python-opencv
+  - sudo apt-get -qq update
+  - sudo apt-get -qq install -y --allow-unauthenticated ffmpeg
+  - sudo apt-get -qq install -y pkg-config python-dev unzip swig3.0 libopencv-dev libhdf5-dev python-pip libav-tools libjpeg-dev  libpng-dev  libtiff-dev  libjasper-dev  python-numpy python-scipy  python-pycurl  python-opencv
   - sudo dpkg -L python-opencv
   - sudo wget --quiet https://yt-dl.org/downloads/latest/youtube-dl -O /bin/youtube-dl
   - sudo chmod a+rx /bin/youtube-dl

@@ -62,7 +62,7 @@ def parse_segment_framelist(segment_id,framelist):
                 frames[int(entries[18])] = {'type':entries[17],'ts':float(entries[8])}
             else:
                 logging.error("Line without 23 entries in {} \n {} ".format(segment_id,line))
-                raise ValueError
+                raise ValueError,"Line without 23 entries in {} \n {} ".format(segment_id,line)
     return frames
 
 

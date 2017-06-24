@@ -316,11 +316,12 @@ class WVideo(object):
                 self.segment_frames_dict[segment_id] = parse_segment_framelist(segment_id,framelist)
                 df_list += self.extract_segment_frames(segment_id, start_index, denominator, rescale)
                 start_index += len(self.segment_frames_dict[segment_id])
-                print start_index
                 segments.append((int(segment_file_name.split('.')[0]), float(start_time), float(end_time), segment_json, start_index))
             logging.info("Took {} seconds to process {} segments".format(time.time() - timer_start,len(segments)))
             segments.sort()
         _ = Frame.objects.bulk_create(df_list)
+        self.dvideo.frames = sum([len(c) for c in self.segment_frames_dict.itervalues()])
+        self.dvideo.save()
         for s in segments:
             segment_id, start_time, end_time, metadata, start_index = s
             ds = Segment()

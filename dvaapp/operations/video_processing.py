@@ -193,10 +193,10 @@ class WVideo(object):
         command = " ".join([ffmpeg_command,filter_command,output_command])
         logging.info(command)
         _ = sp.check_output(shlex.split(command), stderr=sp.STDOUT)
-        ordered_frames = sorted([(k,v) for k,v in self.segment_frames_dict[segment_id] if k%denominator == 0 or v['type'] == 'I'])
+        ordered_frames = sorted([(k,v) for k,v in self.segment_frames_dict[segment_id].iteritems() if k%denominator == 0 or v['type'] == 'I'])
         for i,f_id in enumerate(ordered_frames):
             frame_index, frame_data = f_id
-            src = "{}/segment_{}_{}_b.jpg".format(output_dir,segment_id,i)
+            src = "{}/segment_{}_{}_b.jpg".format(output_dir,segment_id,i+1)
             dst = "{}/{}.jpg".format(output_dir,segment_id,frame_index+start_index)
             try:
                 os.rename(src,dst)

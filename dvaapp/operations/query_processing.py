@@ -3,8 +3,11 @@ import boto3
 from django.conf import settings
 import celery
 from dva.celery import app
+try:
+    from dvalib import indexer,clustering
+except ImportError:
+    logging.warning("Could not import indexer / clustering assuming running in front-end mode / Heroku")
 
-from dvalib import indexer,clustering
 from ..models import IndexEntries,Clusters,Video,Query,IndexerQuery,QueryResults,Region,ClusterCodes
 
 

@@ -9,9 +9,12 @@ try:
 except ImportError:
     logging.warning("Could not import torch")
 from scipy import spatial
-from tensorflow.python.platform import gfile
-from facenet import facenet
-import tensorflow as tf
+try:
+    from tensorflow.python.platform import gfile
+    from facenet import facenet
+    import tensorflow as tf
+except ImportError:
+    logging.warning("Could not import Tensorflow assuming operating in either frontend or caffe/pytorch mode")
 import time
 from collections import namedtuple
 

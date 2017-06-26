@@ -824,7 +824,7 @@ def setup_vdn(password):
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
-    from vdnapp.models import User,Dataset,Organization
+    from vdnapp.models import User,Dataset,Organization,Detector
     user = User(username="akshayvdn",password=password,email="aub3@cornell.edu")
     user.save()
     o = Organization()
@@ -864,6 +864,16 @@ def setup_vdn(password):
         d.aws_key = key
         d.root = True
         d.aws_requester_pays = True
+        d.description = name
+        d.save()
+    detectors = [
+        ('License plate', 'https://www.dropbox.com/s/ztsl59pxgzvd14k/1.dva_detector.zip'),
+    ]
+    for name, url in detectors:
+        d = Detector()
+        d.organization = o
+        d.name = name
+        d.download_url = url
         d.description = name
         d.save()
 

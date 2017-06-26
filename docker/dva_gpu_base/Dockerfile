@@ -1,4 +1,4 @@
-FROM tensorflow/tensorflow:1.1.0-gpu
+FROM tensorflow/tensorflow:1.2.0-gpu
 MAINTAINER Akshay Bhat <akshayubhat@gmail.com>
 RUN apt-get update -q && apt-get install -y wget xz-utils
 WORKDIR "/bin/"

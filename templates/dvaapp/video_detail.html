@@ -191,6 +191,7 @@
                         <th class="text-center">y</th>
                         <th class="text-center">w</th>
                         <th class="text-center">h</th>
+                        {% if not object.dataset %}<th class="text-center">segment</th>{% endif %}
                         <th class="text-center">frame index</th>
                         <th class="text-center">view</th>
                 </tr>
@@ -206,6 +207,7 @@
                         <td class="text-right">{{ 0 }}</td>
                         <td class="text-right">{{ f.w }}</td>
                         <td class="text-right">{{ f.h }}</td>
+                        {% if not object.dataset %}<td class="text-right"><a href="/segments/by_index/{{ object.pk }}/{{ f.segment_index }}">{{ f.segment_index }}</a></td>{% endif %}
                         <td class="text-right">{{ f.frame_index }} </td>
                         <td class="text-center"><a href="/frames/{{ f.pk }}">view</a></td>
                     </tr>
@@ -220,6 +222,7 @@
                         <td class="text-right">{{ d.y }}</td>
                         <td class="text-right">{{ d.w }}</td>
                         <td class="text-right">{{ d.h }}</td>
+                        {% if not object.dataset %}<td class="text-right"></td>{% endif %}
                         <td class="text-right">{{ d.parent_frame_index }} </td>
                         <td class="text-center"><a href="/frames/{{ d.frame_id }}">view</a></td>
                     </tr>
@@ -234,6 +237,7 @@
                         <td class="text-right">{{ d.y }}</td>
                         <td class="text-right">{{ d.w }}</td>
                         <td class="text-right">{{ d.h }}</td>
+                        {% if not object.dataset %}<td class="text-right"></td>{% endif %}
                         <td class="text-right">{{ d.parent_frame_index }} </td>
                         <td class="text-center"><a href="/frames/{{ d.frame_id }}">view</a></td>
                     </tr>

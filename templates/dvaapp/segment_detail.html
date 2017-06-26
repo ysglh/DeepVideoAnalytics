@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block page_content %}
+<section class="content-header" style="padding-top:0px" xmlns="http://www.w3.org/1999/html">
+<div class="row">
+    <div class="box box-info">
+        <div class="box-header">
+            <h4> <span style="font-weight:bold">{{ object.name }}</span>: Currently showing frames and associated annotations & detections for frame index <span style="font-weight:bold">{{ offset }}</span> to <span style="font-weight:bold">{{ limit }}</span>.</h4>
+        </div>
+    </div>
+    </div>
+</section>
+<section class="content">
+<div class="row">
+    <div class="col-lg-6">
+        {% if not video.dataset %}
+        <div class="box">
+        <div class="box-header with-border" >
+            <h3>Video</h3>
+            {%  if object.youtube_video %}<a href="{{ object.url }}" target="_blank">{{ object.url }}</a>{% endif %}
+        </div>
+        <div class="box-body" style="text-align:center">
+            <video controls="" preload="metadata" name="media" style="width:90%;margin-left:auto;margin-right:auto">
+            <source src="{{url}}" type="video/mp4">
+            </video>
+        </div>
+        </div>
+        {% endif %}
+        {% if frame_index_offsets %}
+        <div class="box box-warning">
+        <div class="box-header with-border">
+        <h4>The video / dataset has max frame_index {{ max_frame_index }} > 1000 please select range </h4>
+        </div>
+        <div class="box-body">
+            <table class="table dataTables">
+            <thead>
+            <tr>
+                    <th class="text-center">frame index range</th>
+                    <th class="text-center">view</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for offset in frame_index_offsets %}
+                <tr>
+                    <td class="text-center">{{ offset.0 }} to {{ offset.1 }}</td>
+                    <td class="text-center"><a href=".?frame_index_offset={{ offset.0 }}">view range</a></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+            </table>
+        </div>
+        </div>
+        {%  endif %}
+    </div>
+</div>
+<div class="row">
+<div class="col-lg-12">
+            <div class="box">
+            <div class="box-header with-border">
+            <h3>List of frames/images & detection</h3>
+            </div>
+            <div class="box-body">
+                {% if frame_first and frame_last %}
+                <div class="row">
+                    <div class="col-lg-6 col-md-6 col-sm-6 text-center" style="height:200px"><a href="/frames/{{ frame_first.pk }}"><img style="height:70%"  src="{{ MEDIA_URL }}{{ object.pk }}/frames/{{ frame_first.frame_index }}.jpg"><h4>Frame {{ frame_first.frame_index }}</h4></a></div>
+                    <div class="col-lg-6 col-md-6 col-sm-6 text-center" style="height:200px"><a href="/frames/{{ frame_last.pk }}"><img style="height:70%" src="{{ MEDIA_URL }}{{ object.pk }}/frames/{{ frame_last.frame_index }}.jpg"><h4>Frame {{ frame_last.frame_index }}</h4></a></div>
+                </div>
+                {% endif %}
+                <table class="table dataTables">
+                <thead>
+                <tr>
+                        <th class="text-center">type</th>
+                        <th class="text-center">file / annotation / object name</th>
+                        <th class="text-center">confidence</th>
+                        <th class="text-center">x</th>
+                        <th class="text-center">y</th>
+                        <th class="text-center">w</th>
+                        <th class="text-center">h</th>
+                        <th class="text-center">frame index</th>
+                        <th class="text-center">view</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for f in frame_list %}
+                    <tr>
+                        <td>{% if object.dataset %} image {% else %} video frame {% endif %}</td>
+                        <td class="text-left">{% if object.dataset %}  {{ f.name }} {% endif %}</td>
+                        <td class="text-right"> 100.0 %</td>
+                        <td class="text-right">{{ 0 }}</td>
+                        <td class="text-right">{{ 0 }}</td>
+                        <td class="text-right">{{ f.w }}</td>
+                        <td class="text-right">{{ f.h }}</td>
+                        <td class="text-right">{{ f.frame_index }} </td>
+                        <td class="text-center"><a href="/frames/{{ f.pk }}">view</a></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+                </table>
+                </div>
+            </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="box box-primary">
+        <div class="box-body with-border">
+            <h4>Assign label to entire segment</h4>
+            <form role="form"  method="post" action="/assign_segment_labels" >
+                    <div class="form-group">
+                        <input id="labels" style="margin:10px auto" name="labels" class="form-control" type="text-area" rows="3" width="80%" required="" placeholder="provide a single label name, or a comma separated list">
+                    </div>
+                        <input name="video_pk" class="form-control" type="hidden" value="{{ object.pk }}">
+                    <div class="form-group">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary pull-right">submit</button>
+                    </div>
+            </form>
+        </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+            <div class="box">
+            <div class="box-body">
+                <h3>Metadata</h3>
+                <textarea style="width:100%;height:300px;">
+                    {{ object.metadata }}
+                </textarea>
+            </div>
+        </div>
+    </div>
+</div>
+</section>
+{% endblock %}
+{% block page_js%}
+<script>
+    $(document).ready(function() {
+        InitializeTables();
+    })
+</script>
+{% endblock %}

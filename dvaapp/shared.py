@@ -3,6 +3,7 @@ from models import Video, TEvent, AppliedLabel, Region, Frame, VDNDataset, VDNSe
     CustomDetector, QueryResults, IndexerQuery
 from django.conf import settings
 from dva.celery import app
+from django_celery_results.models import TaskResult
 from celery.result import AsyncResult
 from collections import defaultdict
 import boto3
@@ -11,7 +12,7 @@ from celery.exceptions import TimeoutError
 
 def refresh_task_status():
     for t in TEvent.objects.all().filter(started=True, completed=False, errored=False):
-        if AsyncResult(t.id).status == 'FAILURE':
+        if TaskResult.objects.get(task_id=t.task_id).status == 'FAILURE':
             t.errored = True
             t.save()
 

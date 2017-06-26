@@ -6,7 +6,7 @@ import json
 from django.views.generic import ListView, DetailView
 from .forms import UploadFileForm, YTVideoForm, AnnotationForm
 from .models import Video, Frame, Query, QueryResults, TEvent, IndexEntries, VDNDataset, Region, VDNServer, \
-    ClusterCodes, Clusters, AppliedLabel, Scene, CustomDetector, VDNDetector
+    ClusterCodes, Clusters, AppliedLabel, Scene, CustomDetector, VDNDetector, Segment
 from dva.celery import app
 import serializers
 from rest_framework import viewsets, mixins
@@ -17,7 +17,7 @@ import math
 from django.db.models import Max
 from shared import handle_uploaded_file, create_annotation, create_child_vdn_dataset, \
     create_root_vdn_dataset, handle_youtube_video, pull_vdn_list, \
-    import_vdn_dataset_url, create_detector_dataset, import_vdn_detector_url
+    import_vdn_dataset_url, create_detector_dataset, import_vdn_detector_url, refresh_task_status
 from operations.query_processing import QueryProcessing
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.mixins import UserPassesTestMixin
@@ -264,6 +264,26 @@ class FrameDetail(UserPassesTestMixin, DetailView):
             '-frame_index')[0:1]
         context['next_frame'] = Frame.objects.filter(video=self.object.video,
                                                      frame_index__gt=self.object.frame_index).order_by('frame_index')[
+                                0:1]
+        return context
+
+    def test_func(self):
+        return user_check(self.request.user)
+
+
+class SegmentDetail(UserPassesTestMixin, DetailView):
+    model = Segment
+
+    def get_context_data(self, **kwargs):
+        context = super(SegmentDetail, self).get_context_data(**kwargs)
+        context['video'] = self.object.video
+        context['frame_list'] = Frame.objects.all().filter(video=self.object.video,segment_index=self.object.segment_index).order_by('frame_index')
+        context['url'] = '{}{}/segments/{}.mp4'.format(settings.MEDIA_URL, self.object.video.pk, self.object.segment_index)
+        context['previous_segment'] = Frame.objects.filter(video=self.object.video,
+                                                           segment_index__lt=self.object.segment_index).order_by(
+            '-segment_index')[0:1]
+        context['next_segment'] = Frame.objects.filter(video=self.object.video,
+                                                       segment_index__gt=self.object.segment_index).order_by('segment_index')[
                                 0:1]
         return context
 
@@ -587,6 +607,7 @@ def push(request, video_id):
 
 @user_passes_test(user_check)
 def render_tasks(request, context):
+    refresh_task_status()
     context['events'] = TEvent.objects.all()
     context['settings_queues'] = set(settings.TASK_NAMES_TO_QUEUE.values())
     task_list = []

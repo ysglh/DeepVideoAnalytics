@@ -157,7 +157,7 @@
                     </thead>
                     <tbody>
                     {% for e in events %}
-                        {% if e.seconds < 0 and e.started %}
+                        {% if e.seconds < 0 and e.started and not e.errored %}
                         <tr>
                             <td>{{ e.video.name }}</td>
                             <td>{{ e.operation }}</td>
@@ -192,7 +192,7 @@
                     </thead>
                     <tbody>
                     {% for e in events %}
-                        {% if e.seconds > 0 %}
+                        {% if e.completed %}
                         <tr>
                             <td>{{ e.video.name }}</td>
                             <td>{{ e.operation }}</td>

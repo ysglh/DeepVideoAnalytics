@@ -383,7 +383,7 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
     context['external_servers_count'] = VDNServer.objects.count()
     context['task_events_count'] = TEvent.objects.count()
     context['pending_tasks'] = TEvent.objects.all().filter(started=False).count()
-    context['running_tasks'] = TEvent.objects.all().filter(started=True, completed=False).count()
+    context['running_tasks'] = TEvent.objects.all().filter(started=True, completed=False, errored=False).count()
     context['successful_tasks'] = TEvent.objects.all().filter(started=True, completed=True).count()
     context['errored_tasks'] = TEvent.objects.all().filter(errored=True).count()
     context['video_count'] = Video.objects.count() - context['query_count']

@@ -53,6 +53,7 @@ urlpatterns = [
     url(r'^retry/(?P<pk>\d+)/$', views.retry_task, name='restart_task'),
     url(r'^push/(?P<video_id>\d+)/$', views.push, name='push'),
     url(r'^coarse_code/(?P<pk>\d+)/(?P<coarse_code>\w+)$', views.coarse_code_detail, name='coarse_code_detail'),
+    url(r'^segments/by_index/(?P<video_pk>\d+)/(?P<segment_index>\w+)$', views.segment_by_index, name='segment_by_index'),
     url(r'^requery/(?P<query_pk>\d+)/$', views.index, name='requery'),
     url(r'^query_frame/(?P<frame_pk>\d+)/$', views.index, name='query_frame'),
     url(r'^query_detection/(?P<detection_pk>\d+)/$', views.index, name='query_detection'),

@@ -499,6 +499,12 @@ def yt(request):
 
 
 @user_passes_test(user_check)
+def segment_by_index(request,video_pk,segment_index):
+    segment = Segment.objects.get(video_id=video_pk,segment_index=segment_index)
+    return redirect('segment_detail',pk=segment.pk)
+
+
+@user_passes_test(user_check)
 def export_video(request):
     if request.method == 'POST':
         pk = request.POST.get('video_id')

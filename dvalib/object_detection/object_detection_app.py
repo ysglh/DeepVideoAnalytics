@@ -6,10 +6,10 @@ import multiprocessing
 import numpy as np
 import tensorflow as tf
 
-from utils import FPS, WebcamVideoStream
+from app_utils import FPS, WebcamVideoStream
 from multiprocessing import Process, Queue, Pool
-from object_detection.utils import label_map_util
-from object_detection.utils import visualization_utils as vis_util
+from utils import label_map_util
+from utils import visualization_utils as vis_util
 
 CWD_PATH = os.getcwd()
 

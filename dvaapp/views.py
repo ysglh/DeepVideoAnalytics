@@ -627,7 +627,35 @@ def render_tasks(request, context):
 @user_passes_test(user_check)
 def status(request):
     context = {}
-    return render_status(request, context)
+    try:
+        context['indexer_log'] = file("logs/{}.log".format(settings.Q_INDEXER)).read()
+    except:
+        context['indexer_log'] = ""
+    try:
+        context['detector_log'] = file("logs/{}.log".format(settings.Q_DETECTOR)).read()
+    except:
+        context['detector_log'] = ""
+    try:
+        context['extract_log'] = file("logs/{}.log".format(settings.Q_EXTRACTOR)).read()
+    except:
+        context['extract_log'] = ""
+    try:
+        context['retriever_log'] = file("logs/{}.log".format(settings.Q_RETRIEVER)).read()
+    except:
+        context['retriever_log'] = ""
+    try:
+        context['face_retriever_log'] = file("logs/{}.log".format(settings.Q_FACE_RETRIEVER)).read()
+    except:
+        context['face_retriever_log'] = ""
+    try:
+        context['face_detector_log'] = file("logs/{}.log".format(settings.Q_FACE_DETECTOR)).read()
+    except:
+        context['face_detector_log'] = ""
+    try:
+        context['fab_log'] = file("logs/fab.log").read()
+    except:
+        context['fab_log'] = ""
+    return render(request, 'status.html', context)
 
 
 @user_passes_test(user_check)
@@ -964,44 +992,3 @@ def retry_task(request, pk):
         raise NotImplementedError
 
 
-@user_passes_test(user_check)
-def render_status(request, context):
-    context['video_count'] = Video.objects.count()
-    context['frame_count'] = Frame.objects.count()
-    context['query_count'] = Query.objects.count()
-    context['events'] = TEvent.objects.all()
-    context['detection_count'] = Region.objects.all().filter(region_type=Region.DETECTION).count()
-    context['settings_task_names_to_type'] = settings.TASK_NAMES_TO_TYPE
-    context['settings_task_names_to_queue'] = settings.TASK_NAMES_TO_QUEUE
-    context['settings_post_operation_tasks'] = settings.POST_OPERATION_TASKS
-    context['settings_tasks'] = set(settings.TASK_NAMES_TO_QUEUE.keys())
-    context['settings_queues'] = set(settings.TASK_NAMES_TO_QUEUE.values())
-    try:
-        context['indexer_log'] = file("logs/{}.log".format(settings.Q_INDEXER)).read()
-    except:
-        context['indexer_log'] = ""
-    try:
-        context['detector_log'] = file("logs/{}.log".format(settings.Q_DETECTOR)).read()
-    except:
-        context['detector_log'] = ""
-    try:
-        context['extract_log'] = file("logs/{}.log".format(settings.Q_EXTRACTOR)).read()
-    except:
-        context['extract_log'] = ""
-    try:
-        context['retriever_log'] = file("logs/{}.log".format(settings.Q_RETRIEVER)).read()
-    except:
-        context['retriever_log'] = ""
-    try:
-        context['face_retriever_log'] = file("logs/{}.log".format(settings.Q_FACE_RETRIEVER)).read()
-    except:
-        context['face_retriever_log'] = ""
-    try:
-        context['face_detector_log'] = file("logs/{}.log".format(settings.Q_FACE_DETECTOR)).read()
-    except:
-        context['face_detector_log'] = ""
-    try:
-        context['fab_log'] = file("logs/fab.log").read()
-    except:
-        context['fab_log'] = ""
-    return render(request, 'status.html', context)

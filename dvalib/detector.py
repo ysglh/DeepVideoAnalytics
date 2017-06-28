@@ -104,44 +104,32 @@ class BaseDetector(object):
         pass
 
 
-class YOLODetector(object):
+class TFDetector(BaseDetector):
 
-    def __init__(self):
-        self.name = "YOLO9000"
+    def __init__(self,model_path):
+        super(TFDetector, self).__init__()
+        self.model_path = model_path
 
-    def detect(self,wframes):
-        darknet_path = os.path.join(os.path.abspath(__file__).split('detector.py')[0],'../darknet/')
-        list_path = "{}/{}_list.txt".format(darknet_path, os.getpid())
-        output_path = "{}/{}_output.txt".format(darknet_path, os.getpid())
-        logging.info(darknet_path)
-        path_to_pk = {}
-        with open(list_path, 'w') as framelist:
-            for frame in wframes:
-                framelist.write('{}\n'.format(frame.local_path()))
-                path_to_pk[frame.local_path()] = frame.primary_key
-        # ./darknet detector test cfg/combine9k.data cfg/yolo9000.cfg yolo9000.weights data/list.txt
-        with open(output_path, 'w') as output:
-            args = ["./darknet", 'detector', 'test', 'cfg/combine9k.data', 'cfg/yolo9000.cfg', 'yolo9000.weights',list_path]
-            logging.info(args)
-            returncode = subprocess.call(args, cwd=darknet_path, stdout=output)
-        if returncode == 0:
-            detections = defaultdict(list)
-            for line in file(output_path):
-                if line.strip():
-                    temp = {}
-                    frame_path, name, confidence, left, right, top, bot = line.strip().split('\t')
-                    if frame_path not in path_to_pk:
-                        raise ValueError, frame_path
-                    temp['top'] = int(top)
-                    temp['left'] = int(left)
-                    temp['right'] = int(right)
-                    temp['bot'] = int(bot)
-                    temp['confidence'] = float(confidence)
-                    temp['name'] = "{}_{}".format(self.name,name.replace(' ', '_'))
-                    detections[path_to_pk[frame_path]].append(temp)
-            return detections
-        else:
-            raise ValueError,returncode
+    def detect(self,image_np):
+        image_np_expanded = np.expand_dims(image_np, axis=0)
+        (boxes, scores, classes, num_detections) = self.sess.run([self.boxes, self.scores, self.classes, self.num_detections],
+                                                                 feed_dict={self.image_tensor: image_np_expanded})
+        return boxes, scores, classes, num_detections
+
+    def load(self):
+        self.detection_graph = tf.Graph()
+        with self.detection_graph.as_default():
+            self.od_graph_def = tf.GraphDef()
+            with tf.gfile.GFile(self.model_path, 'rb') as fid:
+                serialized_graph = fid.read()
+                self.od_graph_def.ParseFromString(serialized_graph)
+                tf.import_graph_def(self.od_graph_def, name='')
+            self.sess = tf.Session(graph=self.detection_graph)
+        self.image_tensor = self.detection_graph.get_tensor_by_name('image_tensor:0')
+        self.boxes = self.detection_graph.get_tensor_by_name('detection_boxes:0')
+        self.scores = self.detection_graph.get_tensor_by_name('detection_scores:0')
+        self.classes = self.detection_graph.get_tensor_by_name('detection_classes:0')
+        self.num_detections = self.detection_graph.get_tensor_by_name('num_detections:0')
 
 
 class SSDetector(BaseDetector):

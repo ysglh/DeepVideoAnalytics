@@ -278,13 +278,10 @@ class SegmentDetail(UserPassesTestMixin, DetailView):
         context = super(SegmentDetail, self).get_context_data(**kwargs)
         context['video'] = self.object.video
         context['frame_list'] = Frame.objects.all().filter(video=self.object.video,segment_index=self.object.segment_index).order_by('frame_index')
+        context['region_list'] = Region.objects.all().filter(video=self.object.video,parent_segment_index=self.object.segment_index).order_by('parent_frame_index')
         context['url'] = '{}{}/segments/{}.mp4'.format(settings.MEDIA_URL, self.object.video.pk, self.object.segment_index)
-        context['previous_segment'] = Frame.objects.filter(video=self.object.video,
-                                                           segment_index__lt=self.object.segment_index).order_by(
-            '-segment_index')[0:1]
-        context['next_segment'] = Frame.objects.filter(video=self.object.video,
-                                                       segment_index__gt=self.object.segment_index).order_by('segment_index')[
-                                0:1]
+        context['previous_segment_index'] = self.object.segment_index - 1 if self.object.segment_index else None
+        context['next_segment_index'] = self.object.segment_index + 1 if (self.object.segment_index+1) < self.object.video.segments else None
         return context
 
     def test_func(self):

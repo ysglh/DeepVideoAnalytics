@@ -168,6 +168,8 @@ def create_region(a,video_obj,vdn_dataset):
     da.object_name = a['object_name']
     da.full_frame = a['full_frame']
     da.parent_frame_index = a['parent_frame_index']
+    if 'parent_segment_index' in a:
+        da.parent_frame_index = a['parent_segment_index']
     if vdn_dataset:
         da.vdn_dataset = vdn_dataset
     return da

@@ -222,7 +222,7 @@
                         <td class="text-right">{{ d.y }}</td>
                         <td class="text-right">{{ d.w }}</td>
                         <td class="text-right">{{ d.h }}</td>
-                        {% if not object.dataset %}<td class="text-right"></td>{% endif %}
+                        {% if not object.dataset %}<td class="text-right"><a href="/segments/by_index/{{ object.pk }}/{{ d.parent_segment_index }}">{{ d.parent_segment_index }}</a></td>{% endif %}
                         <td class="text-right">{{ d.parent_frame_index }} </td>
                         <td class="text-center"><a href="/frames/{{ d.frame_id }}">view</a></td>
                     </tr>
@@ -237,7 +237,7 @@
                         <td class="text-right">{{ d.y }}</td>
                         <td class="text-right">{{ d.w }}</td>
                         <td class="text-right">{{ d.h }}</td>
-                        {% if not object.dataset %}<td class="text-right"></td>{% endif %}
+                        {% if not object.dataset %}<td class="text-right"><a href="/segments/by_index/{{ object.pk }}/{{ d.parent_segment_index }}">{{ d.parent_segment_index }}</a></td>{% endif %}
                         <td class="text-right">{{ d.parent_frame_index }} </td>
                         <td class="text-center"><a href="/frames/{{ d.frame_id }}">view</a></td>
                     </tr>

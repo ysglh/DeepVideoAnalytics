@@ -233,7 +233,7 @@
                 </div>
                 <div class="box box-primary">
                     <div class="box-header with-border">
-                        <h4>Tasks status & objects</h4>
+                        <h4>Tasks status</h4>
                     </div>
                     <div class="box-body">
                         <div class="row text-center">
@@ -250,69 +250,41 @@
                                 <a class="btn btn-danger" href="/tasks" style="margin: 10px auto" > <i class="fa fa-close"></i> {{ errored_tasks }} failed</a>
                             </div>
                         </div>
-
-                        <table class="table">
-                            <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Count</th>
-                                <th>View</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Videos / Datasets</td>
-                                    <td class="text-right">{{video_count}}</td>
-                                    <td class="text-center"><a href="/videos/">view</a></td>
-                                </tr>
-                                <tr>
-                                    <td>Scenes</td>
-                                    <td class="text-right">{{scene_count}}</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>Frames</td>
-                                    <td class="text-right">{{frame_count}}</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>Regions</td>
-                                    <td class="text-right">{{region_count}}</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>Queries</td>
-                                    <td class="text-right">{{ query_count }}</td>
-                                    <td class="text-center"><a href="/queries/">view</a></td>
-                                </tr>
-                                <tr>
-                                    <td>Index entries</td>
-                                    <td class="text-right">{{ index_entries_count }}</td>
-                                    <td class="text-center"><a href="/indexes/">view</a></td>
-                                </tr>
-                                <tr>
-                                    <td>Trained detectors</td>
-                                    <td class="text-right">{{ custom_detector_count }}</td>
-                                    <td class="text-center"><a href="/detections/">view</a></td>
-                                </tr>
-                                <tr>
-                                    <td>Task events</td>
-                                    <td class="text-right">{{ task_events_count }}</td>
-                                    <td class="text-center"><a href="/tasks/">view</a></td>
-                                </tr>
-                                <tr>
-                                    <td>VDN datasets</td>
-                                    <td class="text-right">{{ external_datasets_count }}</td>
-                                    <td class="text-center"><a href="/external/">view</a></td>
-                                </tr>
-                                <tr>
-                                    <td>VDN servers</td>
-                                    <td class="text-right">{{ external_servers_count }}</td>
-                                    <td class="text-center"><a href="/external/">view</a></td>
-                                </tr>
-                            </tbody>
-                        </table>
-
+                    </div>
+                </div>
+                <div class="box box-primary">
+                    <div class="box-header with-border">
+                        <h4>Objects</h4>
+                    </div>
+                    <div class="box-body">
+                        <div class="row text-center">
+                            <div class="col-xs-3">
+                                <a class="btn" href="/videos/" style="margin: 10px auto" > <i class="fa fa-video-camera"></i> {{ video_count }} video / datasets</a>
+                            </div>
+                            <div class="col-xs-3">
+                                <a class="btn" href="/videos/" style="margin: 10px auto" > <i class="fa fa-picture-o"></i> {{ frame_count }} frames / images</a>
+                            </div>
+                            <div class="col-xs-3">
+                                <a class="btn" href="/queries/" style="margin: 10px auto" > <i class="fa fa-search"></i> {{ query_count }} queries</a>
+                            </div>
+                            <div class="col-xs-3">
+                                <a class="btn" href="/indexes/" style="margin: 10px auto" > <i class="fa fa-list"></i> {{ index_entries_count }} indexes</a>
+                            </div>
+                        </div>
+                        <div class="row text-center">
+                            <div class="col-xs-3">
+                                <a class="btn" href="/detections/" style="margin: 10px auto" > <i class="fa fa-square"></i> {{ custom_detector_count }} Trained detectors</a>
+                            </div>
+                            <div class="col-xs-3">
+                                <a class="btn" href="/tasks/" style="margin: 10px auto" > <i class="fa fa-clock-o"></i> {{ task_events_count }}  tasks </a>
+                            </div>
+                            <div class="col-xs-3">
+                                <a class="btn" href="/external/" style="margin: 10px auto" > <i class="fa fa-globe"></i> {{ external_datasets_count }} VDN datasets</a>
+                            </div>
+                            <div class="col-xs-3">
+                                <a class="btn" href="/external/" style="margin: 10px auto" > <i class="fa fa-globe"></i> {{ external_servers_count }} VDN servers</a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

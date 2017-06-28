@@ -158,6 +158,7 @@ class Region(models.Model):
     user = models.ForeignKey(User,null=True)
     frame = models.ForeignKey(Frame,null=True)
     parent_frame_index = models.IntegerField(default=-1)
+    parent_segment_index = models.IntegerField(default=-1)
     metadata_text = models.TextField(default="")
     metadata_json = models.TextField(default="")
     full_frame = models.BooleanField(default=False)
@@ -175,10 +176,14 @@ class Region(models.Model):
     def clean(self):
         if self.parent_frame_index == -1 or self.parent_frame_index is None:
             self.parent_frame_index = self.frame.frame_index
+        if self.parent_segment_index == -1 or self.parent_segment_index is None:
+            self.parent_segment_index = self.frame.segment_index
 
     def save(self, *args, **kwargs):
         if self.parent_frame_index == -1 or self.parent_frame_index is None:
             self.parent_frame_index = self.frame.frame_index
+        if self.parent_segment_index == -1 or self.parent_segment_index is None:
+            self.parent_segment_index = self.frame.segment_index
         super(Region, self).save(*args, **kwargs)
 
 
@@ -310,6 +315,7 @@ class AppliedLabel(models.Model):
     (UI, 'User Interface'), (DIRECTORY, 'Directory Name'), (ALGO, 'Algorithm'), (VDN, "Visual Data Network"))
     video = models.ForeignKey(Video)
     scene = models.ForeignKey(Scene,null=True)
+    segment = models.ForeignKey(Segment,null=True)
     frame = models.ForeignKey(Frame,null=True)
     region = models.ForeignKey(Region,null=True)
     label_name = models.CharField(max_length=200)

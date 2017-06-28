@@ -113,7 +113,7 @@ class FrameExportSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Frame
-        fields = ('region_list','video','frame_index','name','subdir','id')
+        fields = ('region_list','video','frame_index','name','subdir','id','segment_index')
 
 
 class IndexEntryExportSerializer(serializers.ModelSerializer):

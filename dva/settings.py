@@ -68,6 +68,7 @@ INSTALLED_APPS = [
                      'django_celery_results',
                      'corsheaders',
                      'rest_framework',
+                     'django_filters',
                      'vdnapp',
                      'crispy_forms',
                      'rest_framework.authtoken'

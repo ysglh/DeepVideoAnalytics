@@ -53,6 +53,13 @@ class FrameViewSet(viewsets.ReadOnlyModelViewSet):
     filter_fields = ('frame_index', 'subdir', 'name', 'video')
 
 
+class SegmentViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
+    queryset = Segment.objects.all()
+    serializer_class = serializers.SegmentSerializer
+    filter_fields = ('segment_index','video')
+
+
 class RegionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin, mixins.DestroyModelMixin,
                     viewsets.GenericViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)

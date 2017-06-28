@@ -1,6 +1,6 @@
 from rest_framework import serializers, viewsets
 from django.contrib.auth.models import User
-from models import Video, AppliedLabel, Frame, Region, Query, QueryResults, TEvent, IndexEntries, VDNDataset, VDNServer, Scene, Clusters, ClusterCodes
+from models import Video, AppliedLabel, Frame, Region, Query, QueryResults, TEvent, IndexEntries, VDNDataset, VDNServer, Scene, Clusters, ClusterCodes, Segment
 import os, json, logging, glob
 from collections import defaultdict
 from django.conf import settings
@@ -39,6 +39,12 @@ class AppliedLabelSerializer(serializers.HyperlinkedModelSerializer):
 class FrameSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Frame
+        fields = '__all__'
+
+
+class SegmentSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Segment
         fields = '__all__'
 
 
@@ -113,7 +119,7 @@ class FrameExportSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Frame
-        fields = ('region_list','video','frame_index','name','subdir','id','segment_index')
+        fields = ('region_list','video','frame_index','keyframe','t','name','subdir','id','segment_index')
 
 
 class IndexEntryExportSerializer(serializers.ModelSerializer):
@@ -140,8 +146,15 @@ class SceneExportSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class SegmentExportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Segment
+        fields = '__all__'
+
+
 class VideoExportSerializer(serializers.ModelSerializer):
     frame_list = FrameExportSerializer(source='frame_set',read_only=True,many=True)
+    segment_list = SegmentExportSerializer(source='segment_set',read_only=True,many=True)
     index_entries_list = IndexEntryExportSerializer(source='indexentries_set',read_only=True,many=True)
     event_list = TEventExportSerializer(source='tevent_set',read_only=True,many=True)
     label_list = AppliedLabelExportSerializer(source='appliedlabel_set', read_only=True, many=True)
@@ -150,7 +163,7 @@ class VideoExportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Video
         fields = ('name','length_in_seconds','height','width','metadata','frames','created','description','uploaded','dataset',
-                  'uploader','segments','url','youtube_video','frame_list','event_list','label_list','scene_list','index_entries_list')
+                  'uploader','segments','url','youtube_video','frame_list','segment_list','event_list','label_list','scene_list','index_entries_list')
 
 
 def create_region(a,video_obj,vdn_dataset):

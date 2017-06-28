@@ -494,7 +494,6 @@ def yolo_detect(video_id):
             img2.save("{}/{}/detections/{}.jpg".format(settings.MEDIA_ROOT, video_id, dd.pk))
             detection_count += 1
     dv.refresh_from_db()
-    dv.detections = dv.detections + detection_count
     dv.save()
 
 
@@ -543,7 +542,6 @@ def ssd_detect(video_id):
             img2.save("{}/{}/detections/{}.jpg".format(settings.MEDIA_ROOT, video_id, dd.pk))
             detection_count += 1
     dv.refresh_from_db()
-    dv.detections = dv.detections + detection_count
     dv.save()
 
 
@@ -632,7 +630,6 @@ def perform_face_indexing(video_id):
             faces_to_pk[face_path] = d.pk
             count += 1
     dv.refresh_from_db()
-    dv.detections = dv.detections + count
     dv.save()
     path_count, emb_array, entries, feat_fname, entries_fname = face_indexer.index_faces(faces, faces_to_pk,
                                                                                          indexes_dir, video_id)

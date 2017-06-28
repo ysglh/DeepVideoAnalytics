@@ -747,6 +747,55 @@ def detections(request):
 
 
 @user_passes_test(user_check)
+def training(request):
+    context = {}
+    context["videos"] = Video.objects.all().filter(parent_query__isnull=True)
+    context["detectors"] = CustomDetector.objects.all()
+    if request.method == 'POST':
+        if request.POST.get('action') == 'estimate':
+            args = request.POST.get('args')
+            args = json.loads(args) if args.strip() else {}
+            args['name'] = request.POST.get('name')
+            args['labels'] = [k.strip() for k in request.POST.get('labels').split(',') if k.strip()]
+            args['object_names'] = [k.strip() for k in request.POST.get('object_names').split(',') if k.strip()]
+            args['excluded_videos'] = request.POST.getlist('excluded_videos')
+            labels = set(args['labels']) if 'labels' in args else set()
+            object_names = set(args['object_names']) if 'object_names' in args else set()
+            class_distribution, class_names, rboxes, rboxes_set, frames, i_class_names = create_detector_dataset(object_names, labels)
+            context["estimate"] = {
+                'args':args,
+                'class_distribution':class_distribution,
+                'class_names':class_names,
+                'rboxes':rboxes,
+                'rboxes_set':rboxes_set,
+                'frames':frames,
+                'i_class_names':i_class_names
+            }
+        else:
+            args = request.POST.get('args')
+            args = json.loads(args) if args.strip() else {}
+            args['name'] = request.POST.get('name')
+            args['labels'] = [k.strip() for k in request.POST.get('labels').split(',') if k.strip()]
+            args['object_names'] = [k.strip() for k in request.POST.get('object_names').split(',') if k.strip()]
+            args['excluded_videos'] = request.POST.getlist('excluded_videos')
+            detector = CustomDetector()
+            detector.name = args['name']
+            detector.algorithm = "yolo"
+            detector.arguments = json.dumps(args)
+            detector.save()
+            args['detector_pk'] = detector.pk
+            task_name = "train_yolo_detector"
+            train_event = TEvent()
+            train_event.operation = task_name
+            train_event.arguments_json = json.dumps(args)
+            train_event.save()
+            detector.source = train_event
+            detector.save()
+            app.send_task(name=task_name, args=[train_event.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+    return render(request, 'training.html', context)
+
+
+@user_passes_test(user_check)
 def textsearch(request):
     context = {'results': {}, "videos": Video.objects.all().filter(parent_query__isnull=True)}
     if request.method == 'POST':
@@ -767,6 +816,15 @@ def textsearch(request):
             if request.POST.get('labels'):
                 context['results']['labels'] = AppliedLabel.objects.all().filter(label_name__contains=q)
     return render(request, 'textsearch.html', context)
+
+
+@user_passes_test(user_check)
+def ocr(request):
+    context = {'results': {},
+               "videos": Video.objects.all().filter(parent_query__isnull=True),
+               'manual_tasks':settings.OCR_VIDEO_TASKS
+               }
+    return render(request, 'ocr.html', context)
 
 
 @user_passes_test(user_check)

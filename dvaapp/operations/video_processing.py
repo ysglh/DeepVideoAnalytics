@@ -221,7 +221,6 @@ class WVideo(object):
         return df_list
 
     def segment_video(self,denominator,rescale):
-        segments = []
         segments_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'segments')
         command = 'ffmpeg -loglevel panic -i {} -c copy -map 0 -segment_time 1 -f segment ' \
                   '-segment_list_type csv -segment_list {}/segments.csv ' \
@@ -261,10 +260,10 @@ class WVideo(object):
                 ds.video_id = self.dvideo.pk
                 ds.metadata = segment_json
                 ds.save()
-            logging.info("Took {} seconds to process {} segments".format(time.time() - timer_start,len(segments)))
-            segments.sort()
+            logging.info("Took {} seconds to process {} segments".format(time.time() - timer_start,len(self.segment_frames_dict)))
         _ = Frame.objects.bulk_create(df_list)
         self.dvideo.frames = sum([len(c) for c in self.segment_frames_dict.itervalues()])
+        self.dvideo.segments = len(self.segment_frames_dict)
         self.dvideo.save()
 
     def detect_scenes(self,rescale,start):

@@ -47,6 +47,18 @@ class VDNDetector(models.Model):
     organization_url = models.TextField()
 
 
+class CustomIndexer(models.Model):
+    name = models.CharField(max_length=100)
+    algorithm = models.CharField(max_length=100,default="")
+    model_filename = models.CharField(max_length=200,default="")
+    # vdn_detector = models.ForeignKey(VDNDetector,null=True)
+    input_layer_name = models.CharField(max_length=300,default="")
+    embedding_layer_name = models.CharField(max_length=300,default="")
+    embedding_layer_size = models.CharField(max_length=300,default="")
+    indexer_queue = models.CharField(max_length=300,default="")
+    retriever_queue = models.CharField(max_length=300,default="")
+
+
 class Query(models.Model):
     created = models.DateTimeField('date created', auto_now_add=True)
     selected_indexers = ArrayField(models.CharField(max_length=30),default=[])
@@ -61,7 +73,7 @@ class IndexerQuery(models.Model):
     created = models.DateTimeField('date created', auto_now_add=True)
     count = models.IntegerField(default=20)
     algorithm = models.CharField(max_length=500,default="")
-    # indexer = models.ForeignKey(CustomIndexer,null=True)
+    indexer = models.ForeignKey(CustomIndexer,null=True)
     excluded_index_entries_pk = ArrayField(models.IntegerField(), default=[])
     query_float_vector = ArrayField(models.FloatField(), default=[])
     query_int_vector = ArrayField(models.IntegerField(), default=[])
@@ -83,7 +95,7 @@ class Video(models.Model):
     uploaded = models.BooleanField(default=False)
     dataset = models.BooleanField(default=False)
     uploader = models.ForeignKey(User,null=True)
-    detections = models.IntegerField(default=0)
+    segments = models.IntegerField(default=0)
     url = models.TextField(default="")
     youtube_video = models.BooleanField(default=False)
     query = models.BooleanField(default=False)
@@ -276,20 +288,6 @@ class CustomDetector(models.Model):
     source = models.ForeignKey(TEvent, null=True)
     trained = models.BooleanField(default=False)
     created = models.DateTimeField('date created', auto_now_add=True)
-
-
-class CustomIndexer(models.Model):
-    name = models.CharField(max_length=100)
-    algorithm = models.CharField(max_length=100,default="")
-    model_filename = models.CharField(max_length=200,default="")
-    # vdn_detector = models.ForeignKey(VDNDetector,null=True)
-    input_layer_name = models.CharField(max_length=300,default="")
-    embedding_layer_name = models.CharField(max_length=300,default="")
-    embedding_layer_size = models.CharField(max_length=300,default="")
-    indexer_queue = models.CharField(max_length=300,default="")
-    retriever_queue = models.CharField(max_length=300,default="")
-
-
 
 
 class Scene(models.Model):

@@ -80,6 +80,8 @@ MANUAL_VIDEO_TASKS = ['inception_index_by_id',
                       'sync_bucket_video_by_id'
                       ]
 
+OCR_VIDEO_TASKS = ['perform_textbox_detection_by_id',]
+
 
 POST_OPERATION_TASKS = {
     "extract_frames_by_id":[

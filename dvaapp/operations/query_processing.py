@@ -228,6 +228,11 @@ class QueryProcessing(object):
         self.query = query
         self.media_dir = media_dir
 
+    def to_json(self):
+        json_query = {
+        }
+        return json.dumps(json_query)
+
     def execute_sub_query(self,iq,index_name,query_task):
         visual_index = query_task.visual_indexer[index_name]
         exact = True

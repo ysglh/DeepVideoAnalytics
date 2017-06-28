@@ -158,7 +158,7 @@ class Region(models.Model):
     user = models.ForeignKey(User,null=True)
     frame = models.ForeignKey(Frame,null=True)
     parent_frame_index = models.IntegerField(default=-1)
-    parent_segment_index = models.IntegerField(default=-1)
+    parent_segment_index = models.IntegerField(default=-1,null=True)
     metadata_text = models.TextField(default="")
     metadata_json = models.TextField(default="")
     full_frame = models.BooleanField(default=False)

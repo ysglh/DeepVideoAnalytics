@@ -278,10 +278,18 @@ class CustomDetector(models.Model):
     created = models.DateTimeField('date created', auto_now_add=True)
 
 
-# class CustomIndexer(models.Model):
-#     name = models.CharField(max_length=100)
-#     algorithm = models.CharField(max_length=100,default="")
-#     created = models.DateTimeField('date created', auto_now_add=True)
+class CustomIndexer(models.Model):
+    name = models.CharField(max_length=100)
+    algorithm = models.CharField(max_length=100,default="")
+    model_filename = models.CharField(max_length=200,default="")
+    # vdn_detector = models.ForeignKey(VDNDetector,null=True)
+    input_layer_name = models.CharField(max_length=300,default="")
+    embedding_layer_name = models.CharField(max_length=300,default="")
+    embedding_layer_size = models.CharField(max_length=300,default="")
+    indexer_queue = models.CharField(max_length=300,default="")
+    retriever_queue = models.CharField(max_length=300,default="")
+
+
 
 
 class Scene(models.Model):

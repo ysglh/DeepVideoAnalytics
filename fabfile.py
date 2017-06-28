@@ -974,7 +974,7 @@ def detect_custom_objects(detector_pk,video_pk):
     args = {'detector_pk':int(detector_pk)}
     video_pk = int(video_pk)
     detector = CustomDetector.objects.get(pk=args['detector_pk'])
-    args['root_dir'] = "{}/models/{}/".format(settings.MEDIA_ROOT, detector.pk)
+    args['root_dir'] = "{}/detectors/{}/".format(settings.MEDIA_ROOT, detector.pk)
     class_names = {k:v for k,v in json.loads(detector.class_names)}
     i_class_names = {i: k for k, i in class_names.items()}
     frames = {}
@@ -1026,7 +1026,7 @@ def train_yolo(start_pk):
     object_names = set(args['object_names']) if 'object_names' in args else set()
     detector = CustomDetector.objects.get(pk=args['detector_pk'])
     create_detector_folders(detector)
-    args['root_dir'] = "{}/models/{}/".format(settings.MEDIA_ROOT,detector.pk)
+    args['root_dir'] = "{}/detectors/{}/".format(settings.MEDIA_ROOT,detector.pk)
     class_distribution, class_names, rboxes, rboxes_set, frames, i_class_names = create_detector_dataset(object_names,labels)
     images, boxes = [], []
     path_to_f = {}
@@ -1070,7 +1070,7 @@ def train_yolo(start_pk):
         r.video_id = path_to_f[path].video_id
         bulk_regions.append(r)
     Region.objects.bulk_create(bulk_regions,batch_size=1000)
-    folder_name = "{}/models/{}".format(settings.MEDIA_ROOT,detector.pk)
+    folder_name = "{}/detectors/{}".format(settings.MEDIA_ROOT,detector.pk)
     file_name = '{}/exports/{}.dva_detector.zip'.format(settings.MEDIA_ROOT,detector.pk)
     zipper = subprocess.Popen(['zip', file_name, '-r', '.'],cwd=folder_name)
     zipper.wait()
@@ -1101,7 +1101,7 @@ def temp_import_detector(path="/Users/aub3/tempd"):
     d.class_distribution = json.dumps(data['class_names'])
     d.save()
     create_detector_folders(d)
-    shutil.copy("{}/phase_2_best.h5".format(path),"{}/models/{}/phase_2_best.h5".format(settings.MEDIA_ROOT,d.pk))
+    shutil.copy("{}/phase_2_best.h5".format(path),"{}/detectors/{}/phase_2_best.h5".format(settings.MEDIA_ROOT,d.pk))
 
 
 @task

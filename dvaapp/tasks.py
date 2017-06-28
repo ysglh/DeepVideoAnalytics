@@ -519,15 +519,15 @@ def import_vdn_detector_file(task_id):
         r = requests.get(dd.vdn_detector.download_url + '?dl=1')
     else:
         r = requests.get(dd.vdn_detector.download_url)
-    output_filename = "{}/models/{}.zip".format(settings.MEDIA_ROOT, dd.pk)
+    output_filename = "{}/detectors/{}.zip".format(settings.MEDIA_ROOT, dd.pk)
     with open(output_filename, 'wb') as f:
         for chunk in r.iter_content(chunk_size=1024):
             if chunk:
                 f.write(chunk)
     r.close()
-    source_zip = "{}/models/{}.zip".format(settings.MEDIA_ROOT, dd.pk)
+    source_zip = "{}/detectors/{}.zip".format(settings.MEDIA_ROOT, dd.pk)
     zipf = zipfile.ZipFile(source_zip, 'r')
-    zipf.extractall("{}/models/{}/".format(settings.MEDIA_ROOT, dd.pk))
+    zipf.extractall("{}/detectors/{}/".format(settings.MEDIA_ROOT, dd.pk))
     zipf.close()
     serializers.import_detector(dd)
     dd.save()

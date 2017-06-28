@@ -30,7 +30,19 @@ def create_video_folders(video, create_subdirs=True):
 
 def create_detector_folders(detector, create_subdirs=True):
     try:
-        os.mkdir('{}/models/{}'.format(settings.MEDIA_ROOT, detector.pk))
+        os.mkdir('{}/detectors/{}'.format(settings.MEDIA_ROOT, detector.pk))
+    except:
+        pass
+
+def create_indexer_folders(indexer, create_subdirs=True):
+    try:
+        os.mkdir('{}/indexers/{}'.format(settings.MEDIA_ROOT, indexer.pk))
+    except:
+        pass
+
+def create_annotator_folders(annotator, create_subdirs=True):
+    try:
+        os.mkdir('{}/annotators/{}'.format(settings.MEDIA_ROOT, annotator.pk))
     except:
         pass
 

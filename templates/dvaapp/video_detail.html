@@ -15,8 +15,8 @@
                     <th class="text-center">name</th>
                     <th class="text-center">duration</th>
                     <th class="text-center">frames</th>
-                    <th class="text-center">detections</th>
-                    <th class="text-center">annotations</th>
+                    <th class="text-center">segments</th>
+                    <th class="text-center">regions</th>
                     <th class="text-center">labels</th>
                     <th class="text-center">height</th>
                     <th class="text-center">width</th>
@@ -32,8 +32,8 @@
                         <td>{{ object.name }} </td>
                         <td class="text-right">{{ object.length_in_seconds }} </td>
                         <td class="text-right">{{ object.frames }} </td>
-                        <td class="text-right">{{ object.detections }} </td>
-                        <td class="text-right">{{ annotation_count }} </td>
+                        <td class="text-right">{{ object.segments }} </td>
+                        <td class="text-right">{{ region_count }} </td>
                         <td class="text-right">{{ label_count }} </td>
                         <td class="text-right">{{ object.height }} </td>
                         <td class="text-right">{{ object.width }} </td>

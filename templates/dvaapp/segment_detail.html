@@ -6,7 +6,7 @@
 <div class="row">
     <div class="box box-info">
         <div class="box-header">
-            <h4> <span style="font-weight:bold">{{ object.name }}</span>: Currently showing frames and associated annotations & detections for frame index <span style="font-weight:bold">{{ offset }}</span> to <span style="font-weight:bold">{{ limit }}</span>.</h4>
+            <h4> Segment {{ object.segment_index }} in  <a href="/videos/{{ object.video.pk }}" style="font-weight:bold">{{ object.video.name }}</a></h4>
         </div>
     </div>
     </div>
@@ -17,8 +17,7 @@
         {% if not video.dataset %}
         <div class="box">
         <div class="box-header with-border" >
-            <h3>Video</h3>
-            {%  if object.youtube_video %}<a href="{{ object.url }}" target="_blank">{{ object.url }}</a>{% endif %}
+            <h3>Segment</h3>
         </div>
         <div class="box-body" style="text-align:center">
             <video controls="" preload="metadata" name="media" style="width:90%;margin-left:auto;margin-right:auto">

@@ -150,7 +150,7 @@ class VideoExportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Video
         fields = ('name','length_in_seconds','height','width','metadata','frames','created','description','uploaded','dataset',
-                  'uploader','detections','url','youtube_video','frame_list','event_list','label_list','scene_list','index_entries_list')
+                  'uploader','segments','url','youtube_video','frame_list','event_list','label_list','scene_list','index_entries_list')
 
 
 def create_region(a,video_obj,vdn_dataset):
@@ -283,7 +283,8 @@ def import_video_json(video_obj,video_json,video_root_dir):
     video_obj.frames = video_json['frames']
     video_obj.height = video_json['height']
     video_obj.width = video_json['width']
-    video_obj.detections = video_json['detections']
+    if 'segments' in video_json:
+        video_obj.segments = video_json['segments']
     video_obj.youtube_video = video_json['youtube_video']
     video_obj.dataset = video_json['dataset']
     video_obj.url = video_json['url']

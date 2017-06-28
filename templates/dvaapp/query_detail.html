@@ -34,23 +34,24 @@
     </div>
 </div>
 <div class="row">
+    {% for name_entries in results %}
     <div class="col-lg-6">
-        <h3>Inception results</h3>
-        {% for d in inception %}
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h3>{{ name_entries.0 }} results</h3>
+            </div>
+        </div>
+        {% for d in name_entries.1 %}
             {% if forloop.first %} <div class="row"> {% endif %}
             <div class="col-sm-3 col-xs-6">
                 <div class="box box-primary">
                 <div class="box-header with-border">
-                    <h4>{% if d.detection %} Detection {% else %} Frame {% endif %} {{ d.rank }}</h4>
-                    <p>In {{ d.video.name }} at {{ d.frame.frame_index }}</p>
-                    <p>Found by {{ d.algorithm }} at {{ d.distance|floatformat }}</p>
+                    <h4>{% if d.result_type == "Region" %} Region {% else %} Frame {% endif %} {{ d.rank }}</h4>
+                    <p>In {{ d.video_name }} at {{ d.frame_index }}</p>
+                    <p>at {{ d.distance|floatformat }}</p>
                 </div>
                 <div class="box-body">
-                    {% if d.detection %}
-                        <a href="/frames/{{ d.frame.pk }}"><img class="img-responsive img-bordered-sm" style="width:80%;margin-left:auto;margin-right:auto" src="{{ MEDIA_URL }}{{ d.video.pk }}/detections/{{ d.detection.pk }}.jpg"></a>
-                    {% else %}
-                        <a href="/frames/{{ d.frame.pk }}"><img class="img-responsive img-bordered-sm" style="width:80%;margin-left:auto;margin-right:auto" src="{{ MEDIA_URL }}{{ d.video.pk }}/frames/{{ d.frame.frame_index }}.jpg"></a>
-                    {% endif %}
+                    <a href="/frames/{{ d.frame_id }}"><img class="img-responsive img-bordered-sm" style="width:80%;margin-left:auto;margin-right:auto" src="{{ d.url }}"></a>
                 </div>
                 </div>
             </div>
@@ -58,30 +59,7 @@
             {% if forloop.last %} </div> {% endif %}
         {% endfor %}
     </div>
-    <div class="col-lg-6">
-            <h3>Facenet results</h3>
-            {% for d in facenet %}
-            {% if forloop.first %} <div class="row"> {% endif %}
-            <div class="col-sm-3 col-xs-6">
-                <div class="box box-primary">
-                <div class="box-header with-border">
-                    <h4>Face {{ d.rank }}</h4>
-                    <p>In {{ d.video.name }} at {{ d.frame.frame_index }}</p>
-                    <p>Found by {{ d.algorithm }} at {{ d.distance|floatformat }}</p>
-                </div>
-                <div class="box-body">
-                    {% if d.detection %}
-                        <a href="/frames/{{ d.frame.pk }}"><img class="img-responsive img-bordered-sm" style="max-height:200px;margin-left:auto;margin-right:auto" src="{{ MEDIA_URL }}{{ d.video.pk }}/detections/{{ d.detection.pk }}.jpg"></a>
-                    {% else %}
-                        <a href="/frames/{{ d.frame.pk }}"><img class="img-responsive img-bordered-sm" style="max-height:200px;margin-left:auto;margin-right:auto" src="{{ MEDIA_URL }}{{ d.video.pk }}/frames/{{ d.frame.frame_index }}.jpg"></a>
-                    {% endif %}
-                </div>
-                </div>
-            </div>
-            {% if forloop.counter|divisibleby:"4" or forloop.last %}</div><div class="row">{% endif %}
-            {% if forloop.last %} </div> {% endif %}
-            {% endfor %}
-    </div>
+    {% endfor %}
 </div>
 </section>
 {% endblock %}

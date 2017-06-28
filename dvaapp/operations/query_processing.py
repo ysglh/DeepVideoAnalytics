@@ -9,7 +9,7 @@ except ImportError:
     logging.warning("Could not import indexer / clustering assuming running in front-end mode / Heroku")
 
 from ..models import IndexEntries,Clusters,Video,Query,IndexerQuery,QueryResults,Region,ClusterCodes
-
+from collections import defaultdict
 
 class IndexerTask(celery.Task):
     _visual_indexer = None
@@ -206,6 +206,7 @@ class QueryProcessing(object):
                 raise ValueError(e)
 
     def collect_results(self):
+        self.context = defaultdict(list)
         for r in QueryResults.objects.all().filter(query=self.query):
             self.context[r.algorithm].append((r.rank,
                                          {'url': '{}{}/detections/{}.jpg'.format(settings.MEDIA_URL, r.video_id,
@@ -215,6 +216,7 @@ class QueryProcessing(object):
                                           'rank':r.rank,
                                           'frame_id': r.frame_id,
                                           'frame_index': r.frame.frame_index,
+                                          'distance': r.distance,
                                           'video_id': r.video_id,
                                           'video_name': r.video.name}))
         for k, v in self.context.iteritems():

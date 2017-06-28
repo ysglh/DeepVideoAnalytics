@@ -300,19 +300,10 @@ class QueryDetail(UserPassesTestMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(QueryDetail, self).get_context_data(**kwargs)
-        context['inception'] = []
-        context['facenet'] = []
-        for r in QueryResults.objects.all().filter(query=self.object):
-            if r.algorithm == 'facenet':
-                context['facenet'].append((r.rank, r))
-            else:
-                context['inception'].append((r.rank, r))
-        context['facenet'].sort()
-        context['inception'].sort()
-        if context['inception']:
-            context['inception'] = zip(*context['inception'])[1]
-        if context['facenet']:
-            context['facenet'] = zip(*context['facenet'])[1]
+        qp = QueryProcessing()
+        qp.load_from_db(self.object,settings.MEDIA_ROOT)
+        qp.collect_results()
+        context['results'] = qp.context.items()
         context['url'] = '{}queries/{}.png'.format(settings.MEDIA_URL, self.object.pk, self.object.pk)
         return context
 

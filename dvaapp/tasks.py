@@ -279,6 +279,7 @@ def perform_ssd_detection_by_id(task_id):
     v = WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
     wframes = [WFrame(video=v, frame_index=df.frame_index, primary_key=df.pk) for df in frames]
     dd_list = []
+    path_list = []
     for f in wframes:
         detections = detector.detect(f.local_path())
         for d in detections:
@@ -293,10 +294,12 @@ def perform_ssd_detection_by_id(task_id):
             dd.w = d['w']
             dd.h = d['h']
             dd_list.append(dd)
-            img = PIL.Image.open(f.local_path())
-            img2 = img.crop((d['x'], d['y'], d['x']+d['w'], d['y']+d['h']))
-            img2.save("{}/{}/detections/{}.jpg".format(settings.MEDIA_ROOT, video_id, dd.pk))
-    Region.objects.bulk_create(dd_list,1000)
+            path_list.append(f.local_path())
+    dd_ids = Region.objects.bulk_create(dd_list,1000)
+    for i,dd in enumerate(dd_list):
+        img = PIL.Image.open(path_list[i])
+        img2 = img.crop((dd.x, dd.y,dd.x + dd.w, dd.y + dd.h))
+        img2.save("{}/{}/detections/{}.jpg".format(settings.MEDIA_ROOT, video_id, dd_ids[i].id))
     process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time

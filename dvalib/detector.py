@@ -106,15 +106,26 @@ class BaseDetector(object):
 
 class TFDetector(BaseDetector):
 
-    def __init__(self,model_path):
+    def __init__(self,model_path,class_index_to_string):
         super(TFDetector, self).__init__()
         self.model_path = model_path
+        self.class_index_to_string = class_index_to_string
 
-    def detect(self,image_np):
-        image_np_expanded = np.expand_dims(image_np, axis=0)
+    def detect(self,image_path,min_score=0.1):
+        plimg = PIL.Image.open(image_path).convert('RGB')
+        img = pil_to_array(plimg)
+        image_np_expanded = np.expand_dims(img, axis=0)
         (boxes, scores, classes, num_detections) = self.sess.run([self.boxes, self.scores, self.classes, self.num_detections],
                                                                  feed_dict={self.image_tensor: image_np_expanded})
-        return boxes, scores, classes, num_detections
+        detections = []
+        for i, _ in enumerate(boxes[0]):
+            if scores[0][i] > min_score:
+                detections.append({
+                    'box': boxes[0][i],
+                    'score': scores[0][i],
+                    'object_name': self.class_index_to_string[int(classes[0][i])]
+                })
+        return detections
 
     def load(self):
         self.detection_graph = tf.Graph()

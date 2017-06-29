@@ -276,17 +276,18 @@ def perform_ssd_detection_by_id(task_id):
         detector.load()
     dv = Video.objects.get(id=video_id)
     frames = Frame.objects.all().filter(video=dv)
-    v = WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
-    wframes = [WFrame(video=v, frame_index=df.frame_index, primary_key=df.pk) for df in frames]
     dd_list = []
     path_list = []
-    for f in wframes:
-        detections = detector.detect(f.local_path())
+    for df in frames:
+        local_path = "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,video_id,df.frame_index)
+        detections = detector.detect(local_path)
         for d in detections:
             dd = Region()
             dd.region_type = Region.DETECTION
-            dd.video = dv
-            dd.frame_id = f.primary_key
+            dd.video_id = dv.pk
+            dd.frame_id = df.pk
+            dd.parent_frame_index = df.frame_index
+            dd.parent_segment_index = df.segment_index
             dd.object_name = 'SSD_{}'.format(d['object_name'])
             dd.confidence = 100.0*d['score']
             dd.x = d['x']
@@ -294,7 +295,7 @@ def perform_ssd_detection_by_id(task_id):
             dd.w = d['w']
             dd.h = d['h']
             dd_list.append(dd)
-            path_list.append(f.local_path())
+            path_list.append(local_path)
     dd_ids = Region.objects.bulk_create(dd_list,1000)
     for i,dd in enumerate(dd_list):
         img = PIL.Image.open(path_list[i])

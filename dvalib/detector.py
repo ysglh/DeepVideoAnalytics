@@ -1,9 +1,6 @@
 import os,logging,subprocess, time
 import tensorflow as tf
 import PIL
-from dvalib.ssd.nets import ssd_vgg_300, np_methods
-from dvalib.ssd.preprocessing import ssd_vgg_preprocessing
-from collections import defaultdict
 import numpy as np
 from scipy import misc
 from collections import defaultdict
@@ -11,34 +8,8 @@ from .facenet import facenet
 from .facenet.align import detect_face
 import random
 from time import sleep
-# from __future__ import absolute_import
-# from __future__ import division
-# from __future__ import print_function
 
 
-VOC_LABELS = {
-    'none': (0, 'Background'),
-    'aeroplane': (1, 'Vehicle'),
-    'bicycle': (2, 'Vehicle'),
-    'bird': (3, 'Animal'),
-    'boat': (4, 'Vehicle'),
-    'bottle': (5, 'Indoor'),
-    'bus': (6, 'Vehicle'),
-    'car': (7, 'Vehicle'),
-    'cat': (8, 'Animal'),
-    'chair': (9, 'Indoor'),
-    'cow': (10, 'Animal'),
-    'diningtable': (11, 'Indoor'),
-    'dog': (12, 'Animal'),
-    'horse': (13, 'Animal'),
-    'motorbike': (14, 'Vehicle'),
-    'person': (15, 'Person'),
-    'pottedplant': (16, 'Indoor'),
-    'sheep': (17, 'Animal'),
-    'sofa': (18, 'Indoor'),
-    'train': (19, 'Vehicle'),
-    'tvmonitor': (20, 'Indoor'),
-}
 
 
 def pil_to_array(pilImage):
@@ -110,8 +81,9 @@ class TFDetector(BaseDetector):
         super(TFDetector, self).__init__()
         self.model_path = model_path
         self.class_index_to_string = class_index_to_string
+        self.sess = None
 
-    def detect(self,image_path,min_score=0.1):
+    def detect(self,image_path,min_score=0.20):
         plimg = PIL.Image.open(image_path).convert('RGB')
         img = pil_to_array(plimg)
         image_np_expanded = np.expand_dims(img, axis=0)
@@ -119,9 +91,15 @@ class TFDetector(BaseDetector):
                                                                  feed_dict={self.image_tensor: image_np_expanded})
         detections = []
         for i, _ in enumerate(boxes[0]):
+            shape = img.shape
             if scores[0][i] > min_score:
+                top,left = (int(boxes[0][i][0] * shape[0]), int(boxes[0][i][1] * shape[1]))
+                bot,right = (int(boxes[0][i][2] * shape[0]), int(boxes[0][i][3] * shape[1]))
                 detections.append({
-                    'box': boxes[0][i],
+                    'x': left,
+                    'y':top,
+                    'w':right-left,
+                    'h':bot-top,
                     'score': scores[0][i],
                     'object_name': self.class_index_to_string[int(classes[0][i])]
                 })
@@ -135,7 +113,9 @@ class TFDetector(BaseDetector):
                 serialized_graph = fid.read()
                 self.od_graph_def.ParseFromString(serialized_graph)
                 tf.import_graph_def(self.od_graph_def, name='')
-            self.sess = tf.Session(graph=self.detection_graph)
+            config = tf.ConfigProto()
+            config.gpu_options.per_process_gpu_memory_fraction = 0.15
+            self.sess = tf.Session(graph=self.detection_graph,config=config)
         self.image_tensor = self.detection_graph.get_tensor_by_name('image_tensor:0')
         self.boxes = self.detection_graph.get_tensor_by_name('detection_boxes:0')
         self.scores = self.detection_graph.get_tensor_by_name('detection_scores:0')
@@ -143,58 +123,6 @@ class TFDetector(BaseDetector):
         self.num_detections = self.detection_graph.get_tensor_by_name('num_detections:0')
 
 
-class SSDetector(BaseDetector):
-
-    def __init__(self):
-        self.isess = None
-        self.name = "SSD"
-        self.classnames =  {v[0]:k for k,v in VOC_LABELS.iteritems()}
-        logging.info("Detector created")
-
-    def load(self):
-        slim = tf.contrib.slim
-        net_shape = (300, 300)
-        data_format = 'NHWC' # NCHW not defined
-        self.img_input = tf.placeholder(tf.uint8, shape=(None, None, 3))
-        self.image_pre, self.labels_pre, self.bboxes_pre, self.bbox_img = ssd_vgg_preprocessing.preprocess_for_eval(self.img_input, None, None,net_shape, data_format, resize=ssd_vgg_preprocessing.Resize.WARP_RESIZE)
-        self.image_4d = tf.expand_dims(self.image_pre, 0)
-        self.ssd_net = ssd_vgg_300.SSDNet()
-        with slim.arg_scope(self.ssd_net.arg_scope(data_format=data_format)):
-            self.predictions, self.localisations, _, _ = self.ssd_net.net(self.image_4d, is_training=False, reuse=None) # ask paul about reuse = None
-        network_path = os.path.abspath(__file__).split('detector.py')[0] + 'ssd/checkpoints/ssd_300_vgg.ckpt'
-        config = tf.ConfigProto()
-        config.gpu_options.allow_growth = True
-        self.isess = tf.InteractiveSession(config=config)
-        self.isess.run(tf.global_variables_initializer())
-        saver = tf.train.Saver()
-        saver.restore(self.isess, network_path)
-        self.ssd_anchors = self.ssd_net.anchors(net_shape)
-
-    def detect(self,wframes, select_threshold=0.5, nms_threshold=.45, net_shape=(300, 300)):
-        detections = defaultdict(list)
-        if self.isess is None:
-            self.load()
-        for wf in wframes:
-            plimg = PIL.Image.open(wf.local_path()).convert('RGB')
-            img = pil_to_array(plimg)
-            rimg, rpredictions, rlocalisations, rbbox_img = self.isess.run([self.image_4d, self.predictions, self.localisations, self.bbox_img],feed_dict={self.img_input: img})
-            rclasses, rscores, rbboxes = np_methods.ssd_bboxes_select(rpredictions, rlocalisations, self.ssd_anchors,select_threshold=select_threshold, img_shape=net_shape, num_classes=21, decode=True)
-            rbboxes = np_methods.bboxes_clip(rbbox_img, rbboxes)
-            rclasses, rscores, rbboxes = np_methods.bboxes_sort(rclasses, rscores, rbboxes, top_k=400)
-            rclasses, rscores, rbboxes = np_methods.bboxes_nms(rclasses, rscores, rbboxes, nms_threshold=nms_threshold)
-            rbboxes = np_methods.bboxes_resize(rbbox_img, rbboxes)
-            shape = img.shape
-            for i,bbox in enumerate(rbboxes):
-                top,left = (int(bbox[0] * shape[0]), int(bbox[1] * shape[1]))
-                bot,right = (int(bbox[2] * shape[0]), int(bbox[3] * shape[1]))
-                detections[wf.primary_key].append({
-                    'top':top,
-                    'bot':bot,
-                    'left':left,
-                    'right':right,
-                    'confidence':100*rscores[i],
-                    'name':"{}_{}".format(self.name,self.classnames[rclasses[i]])})
-        return detections
 
 
 class FaceDetector():

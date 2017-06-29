@@ -128,7 +128,7 @@ def clean():
     server.save()
 
 @task
-def restart_queues(detection=False):
+def restart_queues():
     """
     tries to kill all celery workers and restarts them
     :return:
@@ -139,8 +139,7 @@ def restart_queues(detection=False):
     local('fab startq:qretriever &')
     local('fab startq:qface &')
     local('fab startq:qfacedetector &')
-    if detection:
-        local('fab startq:qdetector &')
+    local('fab startq:qdetector &')
 
 @task
 def kill():
@@ -241,7 +240,7 @@ def ci():
 
 
 @task
-def quick(detection=False):
+def quick():
     """
     Used on my local Mac for quickly cleaning and testing
     :param detection:
@@ -250,7 +249,7 @@ def quick(detection=False):
     clean()
     superu()
     test()
-    launch(detection)
+    launch()
 
 
 @task
@@ -274,7 +273,7 @@ def superu():
 
 
 @task
-def launch(detection=False):
+def launch():
     """
     Launch workers for each queue
     :param detection: use fab launch_queues:1 to lauch detector queue in addition to all others
@@ -286,8 +285,7 @@ def launch(detection=False):
     local('fab startq:qfaceretriever &')
     local('fab startq:qfacedetector &')
     local('fab startq:qclusterer &')
-    if detection:
-        local('fab startq:qdetector &')
+    local('fab startq:qdetector &')
 
 @task
 def launch_queues_env():
@@ -497,52 +495,6 @@ def yolo_detect(video_id):
     dv.save()
 
 
-@task
-def ssd_detect(video_id):
-    """
-    This is a HACK since Tensorflow is absolutely atrocious in allocating and freeing up memory.
-    Once a process / session is allocated a memory it cannot be forced to clear it up.
-    As a result this code gets called via a subprocess which clears memory when it exits.
-
-    :param video_id:
-    :return:
-    """
-    import django
-    from PIL import Image
-    sys.path.append(os.path.dirname(__file__))
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
-    django.setup()
-    from django.conf import settings
-    from dvaapp.models import Video,Region,Frame
-    from dvalib import detector
-    from dvaapp.operations.video_processing import WVideo,WFrame
-    dv = Video.objects.get(id=video_id)
-    frames = Frame.objects.all().filter(video=dv)
-    v = WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
-    wframes = {df.pk: WFrame(video=v, frame_index=df.frame_index, primary_key=df.pk) for df in frames}
-    detection_count = 0
-    algorithm = detector.SSDetector()
-    logging.info("starting detection {}".format(algorithm.name))
-    frame_detections = algorithm.detect(wframes.values())
-    for frame_pk,detections in frame_detections.iteritems():
-        for d in detections:
-            dd = Region()
-            dd.region_type = Region.DETECTION
-            dd.video = dv
-            dd.frame_id = frame_pk
-            dd.object_name = d['name']
-            dd.confidence = d['confidence']
-            dd.x = d['left']
-            dd.y = d['top']
-            dd.w = d['right'] - d['left']
-            dd.h = d['bot'] - d['top']
-            dd.save()
-            img = Image.open(wframes[frame_pk].local_path())
-            img2 = img.crop((d['left'], d['top'], d['right'], d['bot']))
-            img2.save("{}/{}/detections/{}.jpg".format(settings.MEDIA_ROOT, video_id, dd.pk))
-            detection_count += 1
-    dv.refresh_from_db()
-    dv.save()
 
 
 @task

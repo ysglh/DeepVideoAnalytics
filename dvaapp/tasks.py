@@ -1,11 +1,13 @@
 from __future__ import absolute_import
 import subprocess, sys, shutil, os, glob, time, logging
+import PIL
 from django.conf import settings
 from dva.celery import app
 from .models import Video, Frame, TEvent, Query, IndexEntries, QueryResults, AppliedLabel, VDNDataset, Clusters, \
     ClusterCodes, Region, Scene, CustomDetector, Segment, IndexerQuery
 
 from .operations.query_processing import IndexerTask,QueryProcessing
+from .operations.detection_processing import DetectorTask
 from .operations.video_processing import WFrame,WVideo
 from dvalib import clustering
 
@@ -257,7 +259,7 @@ def assign_open_images_text_tags_by_id(task_id):
     return 0
 
 
-@app.task(track_started=True, name="perform_ssd_detection_by_id")
+@app.task(track_started=True, name="perform_ssd_detection_by_id",base=DetectorTask)
 def perform_ssd_detection_by_id(task_id):
     start = TEvent.objects.get(pk=task_id)
     if celery_40_bug_hack(start):
@@ -268,15 +270,31 @@ def perform_ssd_detection_by_id(task_id):
     start.save()
     start_time = time.time()
     video_id = start.video_id
-    detector = subprocess.Popen(['fab', 'ssd_detect:{}'.format(video_id)],
-                                cwd=os.path.join(os.path.abspath(__file__).split('tasks.py')[0], '../'))
-    detector.wait()
-    if detector.returncode != 0:
-        start.errored = True
-        start.error_message = "fab ssd_detect failed with return code {}".format(detector.returncode)
-        start.seconds = time.time() - start_time
-        start.save()
-        raise ValueError, start.error_message
+    detector = perform_ssd_detection_by_id.get_static_detectors['coco_mobilenet']
+    if detector.sess is None:
+        logging.info("loading detection model")
+        detector.load()
+    dv = Video.objects.get(id=video_id)
+    frames = Frame.objects.all().filter(video=dv)
+    v = WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
+    wframes = [WFrame(video=v, frame_index=df.frame_index, primary_key=df.pk) for df in frames]
+    for f in wframes:
+        detections = detector.detect(f.local_path())
+        for d in detections:
+            dd = Region()
+            dd.region_type = Region.DETECTION
+            dd.video = dv
+            dd.frame_id = f.primary_key
+            dd.object_name = 'SSD_{}'.format(d['object_name'])
+            dd.confidence = 100.0*d['score']
+            dd.x = d['x']
+            dd.y = d['y']
+            dd.w = d['w']
+            dd.h = d['h']
+            dd.save()
+            img = PIL.Image.open(f.local_path())
+            img2 = img.crop((d['x'], d['y'], d['x']+d['w'], d['y']+d['h']))
+            img2.save("{}/{}/detections/{}.jpg".format(settings.MEDIA_ROOT, video_id, dd.pk))
     process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time

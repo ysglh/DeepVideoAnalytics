@@ -168,7 +168,7 @@ def ci():
     from dvaapp.operations.query_processing import QueryProcessing
     from dvaapp.tasks import extract_frames, inception_index_by_id, perform_ssd_detection_by_id,\
         perform_yolo_detection_by_id, inception_index_regions_by_id, export_video_by_id, import_video_by_id,\
-        execute_index_subquery, perform_clustering, assign_open_images_text_tags_by_id
+        execute_index_subquery, perform_clustering, assign_open_images_text_tags_by_id, perform_face_detection
     for fname in glob.glob('tests/ci/*.mp4'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")
@@ -187,6 +187,7 @@ def ci():
         inception_index_by_id(TEvent.objects.create(video=v).pk)
         if i ==0: # save travis time by just running detection on first video
             perform_ssd_detection_by_id(TEvent.objects.create(video=v).pk)
+            perform_face_detection(TEvent.objects.create(video=v).pk)
             perform_face_indexing(v.pk)
             inception_index_regions_by_id(TEvent.objects.create(video=v).pk)
             assign_open_images_text_tags_by_id(TEvent.objects.create(video=v).pk)
@@ -465,6 +466,11 @@ def process_video_list(filename):
 
 
 def perform_face_indexing(video_id):
+    import django
+    sys.path.append(os.path.dirname(__file__))
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
+    django.setup()
+    video_id = int(video_id)
     from dvaapp.models import Region,Frame,Video,IndexEntries
     from dvalib import indexer,detector
     from dvaapp.operations.video_processing import WFrame,WVideo
@@ -473,13 +479,13 @@ def perform_face_indexing(video_id):
     face_indexer = indexer.FacenetIndexer()
     dv = Video.objects.get(id=video_id)
     faces = []
-    faces_to_pk = {}
+    f_to_pk = {}
     for dd in Region.objects.all().filter(object_name='MTCNN_FACE',video=dv):
         path = '{}/{}/detections/{}.jpg'.format(settings.MEDIA_ROOT,video_id,dd.pk)
         faces.append(path)
-        faces_to_pk[path] = dd.pk
+        f_to_pk[path] = dd.pk
     indexes_dir = '{}/{}/indexes'.format(settings.MEDIA_ROOT, video_id)
-    path_count, emb , entries, feat_fname, entries_fname = face_indexer.index_faces(faces, faces_to_pk, indexes_dir, video_id)
+    path_count, emb , entries, feat_fname, entries_fname = face_indexer.index_faces(faces, f_to_pk, indexes_dir, video_id)
     i = IndexEntries()
     i.video = dv
     i.count = len(entries)
@@ -492,13 +498,6 @@ def perform_face_indexing(video_id):
     i.save()
 
 
-@task
-def perform_face_detection(video_id):
-    import django
-    sys.path.append(os.path.dirname(__file__))
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
-    django.setup()
-    perform_face_indexing(int(video_id))
 
 
 @task

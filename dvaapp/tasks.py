@@ -362,18 +362,18 @@ def perform_text_recognition_by_id(task_id):
     return 0
 
 
-@app.task(track_started=True, name="perform_face_detection_indexing_by_id",base=DetectorTask)
-def perform_face_detection_indexing_by_id(task_id):
+@app.task(track_started=True, name="perform_face_detection",base=DetectorTask)
+def perform_face_detection(task_id):
     start = TEvent.objects.get(pk=task_id)
     if celery_40_bug_hack(start):
         return 0
-    start.task_id = perform_face_detection_indexing_by_id.request.id
+    start.task_id = perform_face_detection.request.id
     start.started = True
-    start.operation = perform_face_detection_indexing_by_id.name
+    start.operation = perform_face_detection.name
     start.save()
     start_time = time.time()
     video_id = start.video_id
-    detector = perform_face_detection_indexing_by_id.get_static_detectors['face_mtcnn']
+    detector = perform_face_detection.get_static_detectors['face_mtcnn']
     if detector.session is None:
         logging.info("loading detection model")
         detector.load()
@@ -406,12 +406,30 @@ def perform_face_detection_indexing_by_id(task_id):
             im.save(output_filename)
             faces.append(face_path)
             faces_to_pk[face_path] = d.pk
+    process_next(task_id)
+    start.completed = True
+    start.seconds = time.time() - start_time
+    start.save()
+    return 0
+
+
+@app.task(track_started=True, name="perform_face_indexing")
+def perform_face_indexing(task_id):
+    start = TEvent.objects.get(pk=task_id)
+    if celery_40_bug_hack(start):
+        return 0
+    start.task_id = perform_face_indexing.request.id
+    start.started = True
+    start.operation = perform_face_indexing.name
+    start.save()
+    start_time = time.time()
+    video_id = start.video_id
     cwd = os.path.join(os.path.abspath(__file__).split('tasks.py')[0], '../')
-    face_detector = subprocess.Popen(['fab', 'perform_face_detection:{}'.format(video_id)],cwd=cwd)
-    face_detector.wait()
-    if face_detector.returncode != 0:
-        start.errored = True
-        start.error_message = "fab perform_face_detection failed with return code {}".format(face_detector.returncode)
+    face_indexer = subprocess.Popen(['fab', 'perform_face_indexing:{}'.format(video_id)],cwd=cwd)
+    face_indexer.wait()
+    if face_indexer.returncode != 0:
+        face_indexer.errored = True
+        start.error_message = "fab perform_face_detection failed with return code {}".format(face_indexer.returncode)
         start.seconds = time.time() - start_time
         start.save()
         raise ValueError, start.error_message

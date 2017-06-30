@@ -18,7 +18,8 @@ TASK_NAMES_TO_QUEUE = {
     "extract_frames_by_id":Q_EXTRACTOR,
     "perform_ssd_detection_by_id":Q_DETECTOR,
     "detect_custom_objects":Q_DETECTOR,
-    "perform_face_detection_indexing_by_id":Q_FACE_DETECTOR,
+    "perform_face_detection":Q_FACE_DETECTOR,
+    "perform_face_indexing":Q_FACE_DETECTOR,
     "alexnet_index_by_id":Q_INDEXER,
     "alexnet_query_by_image":Q_RETRIEVER,
     "export_video_by_id":Q_EXTRACTOR,
@@ -56,7 +57,8 @@ TASK_NAMES_TO_TYPE = {
     "detect_custom_objects":VIDEO_TASK,
     "perform_textbox_detection_by_id":VIDEO_TASK,
     "perform_text_recognition_by_id":VIDEO_TASK,
-    "perform_face_detection_indexing_by_id":VIDEO_TASK,
+    "perform_face_detection":VIDEO_TASK,
+    "perform_face_indexing":VIDEO_TASK,
     "alexnet_index_by_id":VIDEO_TASK,
     "alexnet_query_by_image":QUERY_TASK,
     "export_video_by_id": VIDEO_TASK,
@@ -74,7 +76,8 @@ MANUAL_VIDEO_TASKS = ['inception_index_by_id',
                       'inception_index_regions_by_id',
                       'perform_ssd_detection_by_id',
                       'perform_textbox_detection_by_id',
-                      'perform_face_detection_indexing_by_id',
+                      'perform_face_detection',
+                      'perform_face_indexing',
                       'perform_yolo_detection_by_id',
                       'assign_open_images_text_tags_by_id',
                       'sync_bucket_video_by_id'
@@ -87,7 +90,7 @@ POST_OPERATION_TASKS = {
     "extract_frames_by_id":[
         {'task_name':'perform_ssd_detection_by_id','arguments':{}},
         {'task_name':'inception_index_by_id','arguments':{}},
-        {'task_name':'perform_face_detection_indexing_by_id','arguments':{}},
+        {'task_name':'perform_face_detection','arguments':{}},
         {'task_name':'sync_bucket_video_by_id','arguments':{'dirname':'frames'}},
         {'task_name':'sync_bucket_video_by_id','arguments':{'dirname':'segments'}},
     ],
@@ -102,9 +105,12 @@ POST_OPERATION_TASKS = {
     'inception_index_by_id':[
         {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'indexes'}},
     ],
-    'perform_face_detection_indexing_by_id':[
-        {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'indexes'}},
+    'perform_face_detection':[
+        {'task_name': 'perform_face_indexing', 'arguments': {}},
         {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'detections'}},
+    ],
+    'perform_face_indexing':[
+        {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'indexes'}},
     ],
     'inception_index_regions_by_id':[
         {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'indexes'}},

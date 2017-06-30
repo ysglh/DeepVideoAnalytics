@@ -263,6 +263,7 @@ class IndexEntries(models.Model):
     features_file_name = models.CharField(max_length=100)
     entries_file_name = models.CharField(max_length=100)
     algorithm = models.CharField(max_length=100)
+    indexer = models.ForeignKey(CustomIndexer, null=True)
     detection_name = models.CharField(max_length=100)
     count = models.IntegerField()
     approximate = models.BooleanField(default=False)

@@ -48,6 +48,26 @@
        - rabbit
      volumes:
        - dvadata:/root/DVA/dva/media
+   dva-worker:
+     image: akshayubhat/dva-auto:latest
+     container_name: dva-worker
+     environment:
+       - DOCKER_MODE=true
+       - RABBIT_HOST=rabbit
+       - RABBIT_USER=dvauser
+       - RABBIT_PASS=localpass
+       - DB_HOST=db
+       - DB_NAME=postgres
+       - DB_USER=pgdbuser
+       - DB_PASS=pgdbpass
+       - DISABLE_DEBUG=1
+       - SECRET_KEY=283y312bhv2b13v13
+     command: bash -c "git pull && fab startq:qextract"
+     depends_on:
+       - db
+       - rabbit
+     volumes:
+       - dvadata:/root/DVA/dva/media
  volumes:
   dvapgdata:
   dvadata:

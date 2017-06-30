@@ -23,7 +23,7 @@ def set_directory_labels(frames, dv):
             a.source = AppliedLabel.DIRECTORY
             a.label_name = l
             label_list.append(a)
-    AppliedLabel.objects.bulk_create(label_list)
+    AppliedLabel.objects.bulk_create(label_list,batch_size=1000)
 
 
 
@@ -261,7 +261,7 @@ class WVideo(object):
                 ds.metadata = segment_json
                 ds.save()
             logging.info("Took {} seconds to process {} segments".format(time.time() - timer_start,len(self.segment_frames_dict)))
-        _ = Frame.objects.bulk_create(df_list)
+        _ = Frame.objects.bulk_create(df_list,batch_size=1000)
         self.dvideo.frames = sum([len(c) for c in self.segment_frames_dict.itervalues()])
         self.dvideo.segments = len(self.segment_frames_dict)
         self.dvideo.save()
@@ -331,7 +331,7 @@ class WVideo(object):
                 df.name = f.name[:150]
                 df.subdir = f.subdir.replace('/', ' ')
             df_list.append(df)
-        df_ids = Frame.objects.bulk_create(df_list)
+        df_ids = Frame.objects.bulk_create(df_list,batch_size=1000)
         set_directory_labels(frames, self.dvideo)
 
 

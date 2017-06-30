@@ -189,7 +189,6 @@ def ci():
         if i ==0: # save travis time by just running detection on first video
             perform_ssd_detection_by_id(TEvent.objects.create(video=v).pk)
             perform_face_detection(TEvent.objects.create(video=v).pk)
-            perform_face_indexing(TEvent.objects.create(video=v).pk)
             inception_index_regions_by_id(TEvent.objects.create(video=v).pk)
             assign_open_images_text_tags_by_id(TEvent.objects.create(video=v).pk)
         fname = export_video_by_id(TEvent.objects.create(video=v,event_type=TEvent.EXPORT).pk)
@@ -239,6 +238,23 @@ def ci():
             print 'FOUND MSCOCO SAMPLE'
             import_vdn_dataset_url(VDNServer.objects.get(pk=1),k['url'],None)
     test_backup()
+
+
+@task
+def ci_face():
+    """
+    Used in conjunction with travis for Continuous Integration for testing face indexing
+    :return:
+    """
+    import django
+    sys.path.append(os.path.dirname(__file__))
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
+    django.setup()
+    from dvaapp.models import Video, TEvent
+    from dvaapp.tasks import perform_face_indexing
+    for i,v in enumerate(Video.objects.all()):
+        if i ==0: # save travis time by just running detection on first video
+            perform_face_indexing(TEvent.objects.create(video=v).pk)
 
 
 @task

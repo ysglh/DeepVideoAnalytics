@@ -55,6 +55,7 @@ before_script:
 script:
   - fab add_default_vdn_server
   - fab ci
+  - fab ci_face
   - wget --quiet localhost:8000
   - wget --quiet localhost:8000/videos/
   - wget --quiet localhost:8000/videos/1/

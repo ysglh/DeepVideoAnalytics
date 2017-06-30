@@ -413,7 +413,7 @@ def perform_face_detection(task_id):
     return 0
 
 
-@app.task(track_started=True, name="perform_face_indexing")
+@app.task(track_started=True, name="perform_face_indexing",base=IndexerTask)
 def perform_face_indexing(task_id):
     start = TEvent.objects.get(pk=task_id)
     if celery_40_bug_hack(start):
@@ -424,15 +424,26 @@ def perform_face_indexing(task_id):
     start.save()
     start_time = time.time()
     video_id = start.video_id
-    cwd = os.path.join(os.path.abspath(__file__).split('tasks.py')[0], '../')
-    face_indexer = subprocess.Popen(['fab', 'perform_face_indexing:{}'.format(video_id)],cwd=cwd)
-    face_indexer.wait()
-    if face_indexer.returncode != 0:
-        face_indexer.errored = True
-        start.error_message = "fab perform_face_detection failed with return code {}".format(face_indexer.returncode)
-        start.seconds = time.time() - start_time
-        start.save()
-        raise ValueError, start.error_message
+    visual_index = perform_face_indexing.visual_indexer['facenet']
+    dv = Video.objects.get(id=video_id)
+    faces = []
+    f_to_pk = {}
+    for dd in Region.objects.all().filter(object_name='MTCNN_face',video=dv):
+        path = '{}/{}/detections/{}.jpg'.format(settings.MEDIA_ROOT,video_id,dd.pk)
+        faces.append(path)
+        f_to_pk[path] = dd.pk
+    indexes_dir = '{}/{}/indexes'.format(settings.MEDIA_ROOT, video_id)
+    path_count, emb , entries, feat_fname, entries_fname = visual_index.index_faces(faces, f_to_pk, indexes_dir, video_id)
+    i = IndexEntries()
+    i.video = dv
+    i.count = len(entries)
+    i.contains_frames = False
+    i.contains_detections = True
+    i.detection_name = "Face"
+    i.algorithm = 'facenet'
+    i.entries_file_name = entries_fname.split('/')[-1]
+    i.features_file_name = feat_fname.split('/')[-1]
+    i.save()
     process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time

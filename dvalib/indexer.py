@@ -194,58 +194,44 @@ class FacenetIndexer(BaseIndexer):
         raise NotImplementedError,"Use index_faces"
 
     def index_faces(self,paths, paths_to_pk, output_dir, video_pk):
-        with tf.Graph().as_default():
-            config = tf.ConfigProto()
-            config.gpu_options.per_process_gpu_memory_fraction = 0.15
-            with tf.Session(config=config) as sess:
-                output_dir = os.path.expanduser(output_dir)
-                if not os.path.isdir(output_dir):
-                    os.makedirs(output_dir)
-                logging.info("Loading trained model...\n")
-                meta_file, ckpt_file, model_dir = facenet.get_model_filenames()
-                facenet.load_model(model_dir, meta_file, ckpt_file)
-                images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
-                embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
-                phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")
-                image_size = images_placeholder.get_shape()[1]
-                embedding_size = embeddings.get_shape()[1]
-                logging.info('Generating embeddings from images...\n')
-                start_time = time.time()
-                batch_size = 25
-                nrof_images = len(paths)
-                nrof_batches = int(np.ceil(1.0 * nrof_images / batch_size))
-                emb_array = np.zeros((nrof_images, embedding_size))
-                count = 0
-                path_count = {}
-                entries = []
-                for i in xrange(nrof_batches):
-                    start_index = i * batch_size
-                    end_index = min((i + 1) * batch_size, nrof_images)
-                    paths_batch = paths[start_index:end_index]
-                    for eindex, fname in enumerate(paths_batch):
-                        count += 1
-                        entry = {
-                            'path': fname,
-                            'detection_primary_key': paths_to_pk[fname],
-                            'index': eindex,
-                            'type': 'detection',
-                            'video_primary_key': video_pk
-                        }
-                        entries.append(entry)
-                    images = facenet.load_data(paths_batch, do_random_crop=False, do_random_flip=False,
-                                               image_size=image_size, do_prewhiten=True)
-                    feed_dict = {images_placeholder: images, phase_train_placeholder: False}
-                    emb_array[start_index:end_index, :] = sess.run(embeddings, feed_dict=feed_dict)
-
-                if nrof_images:
-                    time_avg_forward_pass = (time.time() - start_time) / float(nrof_images)
-                    logging.info("Forward pass took avg of %.3f[seconds/image] for %d images\n" % (
-                    time_avg_forward_pass, nrof_images))
-                    logging.info("Finally saving embeddings and gallery to: %s" % (output_dir))
-                feat_fname = os.path.join(output_dir, "facenet.npy")
-                entries_fname = os.path.join(output_dir, "facenet.json")
-                np.save(feat_fname, emb_array)
-                fh = open(entries_fname, 'w')
-                json.dump(entries, fh)
-                fh.close()
-                return path_count, emb_array, entries, feat_fname, entries_fname
+        self.load()
+        output_dir = os.path.expanduser(output_dir)
+        if not os.path.isdir(output_dir):
+            os.makedirs(output_dir)
+        start_time = time.time()
+        batch_size = 25
+        nrof_images = len(paths)
+        nrof_batches = int(np.ceil(1.0 * nrof_images / batch_size))
+        emb_array = np.zeros((nrof_images, self.embedding_size))
+        count = 0
+        path_count = {}
+        entries = []
+        for i in xrange(nrof_batches):
+            start_index = i * batch_size
+            end_index = min((i + 1) * batch_size, nrof_images)
+            paths_batch = paths[start_index:end_index]
+            for eindex, fname in enumerate(paths_batch):
+                count += 1
+                entry = {
+                    'path': fname,
+                    'detection_primary_key': paths_to_pk[fname],
+                    'index': eindex,
+                    'type': 'detection',
+                    'video_primary_key': video_pk
+                }
+                entries.append(entry)
+            images = facenet.load_data(paths_batch, do_random_crop=False, do_random_flip=False, image_size=self.image_size, do_prewhiten=True)
+            feed_dict = {self.images_placeholder: images, self.phase_train_placeholder: False}
+            emb_array[start_index:end_index, :] = self.session.run(self.embeddings, feed_dict=feed_dict)
+        if nrof_images:
+            time_avg_forward_pass = (time.time() - start_time) / float(nrof_images)
+            logging.info("Forward pass took avg of %.3f[seconds/image] for %d images\n" % (
+            time_avg_forward_pass, nrof_images))
+            logging.info("Finally saving embeddings and gallery to: %s" % (output_dir))
+        feat_fname = os.path.join(output_dir, "facenet.npy")
+        entries_fname = os.path.join(output_dir, "facenet.json")
+        np.save(feat_fname, emb_array)
+        fh = open(entries_fname, 'w')
+        json.dump(entries, fh)
+        fh.close()
+        return path_count, emb_array, entries, feat_fname, entries_fname

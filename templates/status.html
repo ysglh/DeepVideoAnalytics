@@ -6,77 +6,25 @@
 <div class="row">
     <div class="box box-info">
         <div class="box-header">
-            <h2>System status and logs</h2>
+            <h2>Logs (only on the current machine / container)</h2>
         </div>
     </div>
 </div>
 </section>
 <section class="content">
 <div class="row">
+    {% for log in logs %}
     <div class="col-lg-6">
         <div class="box">
             <div class="box-header with-border">
-            <h3>Indexer log</h3>
+            <h4>{{ log.0 }}</h4>
             </div>
             <div class="box-body">
-                <textarea style="width:100%;height:250px">{{ indexer_log }}</textarea>
+                <textarea style="width:100%;height:250px">{{ log.1 }}</textarea>
             </div>
         </div>
     </div>
-    <div class="col-lg-6">
-        <div class="box">
-            <div class="box-header with-border">
-            <h3>Detector log</h3>
-            </div>
-            <div class="box-body">
-                <textarea style="width:100%;height:250px">{{ detector_log }}</textarea>
-            </div>
-        </div>
-    </div>
-</div>    
-<div class="row">
-    <div class="col-lg-6">
-        <div class="box">
-            <div class="box-header with-border">
-            <h3>Extract log</h3>
-            </div>
-            <div class="box-body">
-                <textarea style="width:100%;height:250px">{{ extract_log }}</textarea>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-6">
-        <div class="box">
-            <div class="box-header with-border">
-            <h3>Retriever log</h3>
-            </div>
-            <div class="box-body">
-                <textarea style="width:100%;height:250px">{{ retriever_log }}</textarea>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="row">
-    <div class="col-lg-6">
-        <div class="box">
-            <div class="box-header with-border">
-            <h3>Face detector log</h3>
-            </div>
-            <div class="box-body">
-                <textarea style="width:100%;height:250px">{{ face_detector_log }}</textarea>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-6">
-        <div class="box">
-            <div class="box-header with-border">
-            <h3>Face retriever log</h3>
-            </div>
-            <div class="box-body">
-                <textarea style="width:100%;height:250px">{{ face_retriever_log }}</textarea>
-            </div>
-        </div>
-    </div>
+    {% endfor %}
 </div>
 </section>
 {% endblock %}

@@ -168,7 +168,8 @@ def ci():
     from dvaapp.operations.query_processing import QueryProcessing
     from dvaapp.tasks import extract_frames, inception_index_by_id, perform_ssd_detection_by_id,\
         perform_yolo_detection_by_id, inception_index_regions_by_id, export_video_by_id, import_video_by_id,\
-        execute_index_subquery, perform_clustering, assign_open_images_text_tags_by_id, perform_face_detection
+        execute_index_subquery, perform_clustering, assign_open_images_text_tags_by_id, perform_face_detection,\
+        perform_face_indexing
     for fname in glob.glob('tests/ci/*.mp4'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")
@@ -188,7 +189,7 @@ def ci():
         if i ==0: # save travis time by just running detection on first video
             perform_ssd_detection_by_id(TEvent.objects.create(video=v).pk)
             perform_face_detection(TEvent.objects.create(video=v).pk)
-            perform_face_indexing(v.pk)
+            perform_face_indexing(TEvent.objects.create(video=v).pk)
             inception_index_regions_by_id(TEvent.objects.create(video=v).pk)
             assign_open_images_text_tags_by_id(TEvent.objects.create(video=v).pk)
         fname = export_video_by_id(TEvent.objects.create(video=v,event_type=TEvent.EXPORT).pk)
@@ -463,42 +464,6 @@ def process_video_list(filename):
     vlist = json.load(file(filename))
     for video in vlist:
         handle_youtube_video(video['name'],video['url'])
-
-
-@task
-def perform_face_indexing(video_id):
-    import django
-    sys.path.append(os.path.dirname(__file__))
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
-    django.setup()
-    video_id = int(video_id)
-    from dvaapp.models import Region,Frame,Video,IndexEntries
-    from dvalib import indexer,detector
-    from dvaapp.operations.video_processing import WFrame,WVideo
-    from django.conf import settings
-    from scipy import misc
-    face_indexer = indexer.FacenetIndexer()
-    dv = Video.objects.get(id=video_id)
-    faces = []
-    f_to_pk = {}
-    for dd in Region.objects.all().filter(object_name='MTCNN_face',video=dv):
-        path = '{}/{}/detections/{}.jpg'.format(settings.MEDIA_ROOT,video_id,dd.pk)
-        faces.append(path)
-        f_to_pk[path] = dd.pk
-    indexes_dir = '{}/{}/indexes'.format(settings.MEDIA_ROOT, video_id)
-    path_count, emb , entries, feat_fname, entries_fname = face_indexer.index_faces(faces, f_to_pk, indexes_dir, video_id)
-    i = IndexEntries()
-    i.video = dv
-    i.count = len(entries)
-    i.contains_frames = False
-    i.contains_detections = True
-    i.detection_name = "Face"
-    i.algorithm = 'facenet'
-    i.entries_file_name = entries_fname.split('/')[-1]
-    i.features_file_name = feat_fname.split('/')[-1]
-    i.save()
-
-
 
 
 @task

@@ -147,7 +147,7 @@
                 {% for d in detection_list %}
                     <tr>
                         <td>{{ d.object_name }} </td>
-                        <td>{{ d.confidence }} </td>
+                        <td>{{ d.confidence|floatformat }} </td>
                         <td>{{ d.x }} </td>
                         <td>{{ d.y }} </td>
                         <td>{{ d.w }} </td>

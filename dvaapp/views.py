@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.conf import settings
 from django.http import JsonResponse
 import requests
+import glob
 import json
 from django.views.generic import ListView, DetailView
 from .forms import UploadFileForm, YTVideoForm, AnnotationForm
@@ -627,34 +628,9 @@ def render_tasks(request, context):
 @user_passes_test(user_check)
 def status(request):
     context = {}
-    try:
-        context['indexer_log'] = file("logs/{}.log".format(settings.Q_INDEXER)).read()
-    except:
-        context['indexer_log'] = ""
-    try:
-        context['detector_log'] = file("logs/{}.log".format(settings.Q_DETECTOR)).read()
-    except:
-        context['detector_log'] = ""
-    try:
-        context['extract_log'] = file("logs/{}.log".format(settings.Q_EXTRACTOR)).read()
-    except:
-        context['extract_log'] = ""
-    try:
-        context['retriever_log'] = file("logs/{}.log".format(settings.Q_RETRIEVER)).read()
-    except:
-        context['retriever_log'] = ""
-    try:
-        context['face_retriever_log'] = file("logs/{}.log".format(settings.Q_FACE_RETRIEVER)).read()
-    except:
-        context['face_retriever_log'] = ""
-    try:
-        context['face_detector_log'] = file("logs/{}.log".format(settings.Q_FACE_DETECTOR)).read()
-    except:
-        context['face_detector_log'] = ""
-    try:
-        context['fab_log'] = file("logs/fab.log").read()
-    except:
-        context['fab_log'] = ""
+    context['logs'] = []
+    for fname in glob.glob('logs/*.log'):
+        context['logs'].append((fname,file(fname).read()))
     return render(request, 'status.html', context)
 
 

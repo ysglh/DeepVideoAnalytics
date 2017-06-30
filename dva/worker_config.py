@@ -19,7 +19,7 @@ TASK_NAMES_TO_QUEUE = {
     "perform_ssd_detection_by_id":Q_DETECTOR,
     "detect_custom_objects":Q_DETECTOR,
     "perform_face_detection":Q_FACE_DETECTOR,
-    "perform_face_indexing":Q_FACE_DETECTOR,
+    "perform_face_indexing":Q_FACE_RETRIEVER,  # to save GPU memory, ideally they should be on different queue
     "alexnet_index_by_id":Q_INDEXER,
     "alexnet_query_by_image":Q_RETRIEVER,
     "export_video_by_id":Q_EXTRACTOR,

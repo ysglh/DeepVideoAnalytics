@@ -128,7 +128,7 @@ class FaceDetector():
     def __init__(self,session=None):
         self.image_size = 182
         self.margin = 44
-        self.gpu_memory_fraction = 0.1
+        self.gpu_memory_fraction = 0.15
         self.session = session
         self.minsize = 20
         self.threshold = [0.6, 0.7, 0.7]

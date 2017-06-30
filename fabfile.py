@@ -556,28 +556,32 @@ def perform_face_indexing(video_id):
     faces_dir = '{}/{}/detections'.format(settings.MEDIA_ROOT, video_id)
     indexes_dir = '{}/{}/indexes'.format(settings.MEDIA_ROOT, video_id)
     face_detector = detector.FaceDetector()
+    face_detector.load()
+    aligned_paths = {}
+    for frame in wframes:
+        image_path = frame.local_path()
+        aligned_paths[frame] = face_detector.detect(image_path)
     aligned_paths = face_detector.detect(wframes)
     logging.info(len(aligned_paths))
     faces = []
     faces_to_pk = {}
     count = 0
-    for path, v in aligned_paths.iteritems():
-        for scaled_img, bb in v:
+    for path, vlist in aligned_paths.iteritems():
+        for v in vlist:
             d = Region()
             d.region_type = Region.DETECTION
             d.video = dv
             d.confidence = 100.0
             d.frame_id = input_paths[path]
             d.object_name = "mtcnn_face"
-            left, top, right, bottom = bb[0], bb[1], bb[2], bb[3]
-            d.y = top
-            d.x = left
-            d.w = right - left
-            d.h = bottom - top
+            d.y = v['y']
+            d.x = v['x']
+            d.w = v['w']
+            d.h = v['h']
             d.save()
             face_path = '{}/{}.jpg'.format(faces_dir, d.pk)
             output_filename = os.path.join(faces_dir, face_path)
-            misc.imsave(output_filename, scaled_img)
+            misc.imsave(output_filename, v['scaled'])
             faces.append(face_path)
             faces_to_pk[face_path] = d.pk
             count += 1

@@ -27,7 +27,6 @@
 | CRNN.pytorch  |  [MIT License](https://github.com/meijieru/crnn.pytorch/blob/master/LICENSE.md)  |
 | Original CRNN code by Baoguang Shi  |  [MIT License](https://github.com/bgshih/crnn) |
 | Object Detector App using TF Object detection API |  [MIT License](https://github.com/datitran/Object-Detector-App) | 
-| Modified PySceneDetect  |  [BSD 2-Clause](https://github.com/Breakthrough/PySceneDetect)  |
 | Segment annotator  |   [BSD 3-clause](https://github.com/kyamagu/js-segment-annotator/blob/master/LICENSE) |
 | TF Object detection API  | [Apache License 2.0](https://github.com/tensorflow/models/tree/master/object_detection) |
 | LOPQ   |  [Apache 2.0 License](https://github.com/yahoo/lopq/blob/master/LICENSE)  | repos/lopq/

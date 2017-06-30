@@ -480,7 +480,7 @@ def perform_face_indexing(video_id):
     dv = Video.objects.get(id=video_id)
     faces = []
     f_to_pk = {}
-    for dd in Region.objects.all().filter(object_name='MTCNN_FACE',video=dv):
+    for dd in Region.objects.all().filter(object_name='MTCNN_face',video=dv):
         path = '{}/{}/detections/{}.jpg'.format(settings.MEDIA_ROOT,video_id,dd.pk)
         faces.append(path)
         f_to_pk[path] = dd.pk

@@ -394,7 +394,7 @@ def perform_face_detection(task_id):
             d.video_id = video_id
             d.confidence = 100.0
             d.frame_id = input_paths[path]
-            d.object_name = "MTCNN_FACE"
+            d.object_name = "MTCNN_face"
             d.y = v['y']
             d.x = v['x']
             d.w = v['w']

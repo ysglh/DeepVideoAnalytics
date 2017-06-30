@@ -271,7 +271,7 @@ def perform_ssd_detection_by_id(task_id):
     start_time = time.time()
     video_id = start.video_id
     detector = perform_ssd_detection_by_id.get_static_detectors['coco_mobilenet']
-    if detector.sess is None:
+    if detector.session is None:
         logging.info("loading detection model")
         detector.load()
     dv = Video.objects.get(id=video_id)
@@ -362,7 +362,7 @@ def perform_text_recognition_by_id(task_id):
     return 0
 
 
-@app.task(track_started=True, name="perform_face_detection_indexing_by_id")
+@app.task(track_started=True, name="perform_face_detection_indexing_by_id",base=DetectorTask)
 def perform_face_detection_indexing_by_id(task_id):
     start = TEvent.objects.get(pk=task_id)
     if celery_40_bug_hack(start):
@@ -373,8 +373,41 @@ def perform_face_detection_indexing_by_id(task_id):
     start.save()
     start_time = time.time()
     video_id = start.video_id
-    face_detector = subprocess.Popen(['fab', 'perform_face_detection:{}'.format(video_id)],
-                                     cwd=os.path.join(os.path.abspath(__file__).split('tasks.py')[0], '../'))
+    detector = perform_face_detection_indexing_by_id.get_static_detectors['face_mtcnn']
+    if detector.session is None:
+        logging.info("loading detection model")
+        detector.load()
+    input_paths = {}
+    for df in Frame.objects.all().filter(video_id=video_id):
+        input_paths["{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,video_id,df.frame_index)] = df.pk
+    faces_dir = '{}/{}/detections'.format(settings.MEDIA_ROOT, video_id)
+    aligned_paths = {}
+    for image_path in input_paths:
+        aligned_paths[image_path] = detector.detect(image_path)
+    logging.info(len(aligned_paths))
+    faces = []
+    faces_to_pk = {}
+    for path, vlist in aligned_paths.iteritems():
+        for v in vlist:
+            d = Region()
+            d.region_type = Region.DETECTION
+            d.video_id = video_id
+            d.confidence = 100.0
+            d.frame_id = input_paths[path]
+            d.object_name = "MTCNN_FACE"
+            d.y = v['y']
+            d.x = v['x']
+            d.w = v['w']
+            d.h = v['h']
+            d.save()
+            face_path = '{}/{}.jpg'.format(faces_dir, d.pk)
+            output_filename = os.path.join(faces_dir, face_path)
+            im = PIL.Image.fromarray(v['scaled'])
+            im.save(output_filename)
+            faces.append(face_path)
+            faces_to_pk[face_path] = d.pk
+    cwd = os.path.join(os.path.abspath(__file__).split('tasks.py')[0], '../')
+    face_detector = subprocess.Popen(['fab', 'perform_face_detection:{}'.format(video_id)],cwd=cwd)
     face_detector.wait()
     if face_detector.returncode != 0:
         start.errored = True

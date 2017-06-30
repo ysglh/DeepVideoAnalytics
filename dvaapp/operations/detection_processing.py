@@ -31,5 +31,6 @@ class DetectorTask(celery.Task):
     @property
     def get_static_detectors(self):
         if DetectorTask._detectors is None:
-            DetectorTask._detectors = {'coco_mobilenet': detector.TFDetector(model_path=model_path,class_index_to_string=coco_class_index_to_string)}
+            DetectorTask._detectors = {'coco_mobilenet': detector.TFDetector(model_path=model_path,class_index_to_string=coco_class_index_to_string),
+                                       'face_mtcnn': detector.FaceDetector()}
         return DetectorTask._detectors

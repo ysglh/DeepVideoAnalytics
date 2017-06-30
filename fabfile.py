@@ -447,83 +447,6 @@ def restore(path):
     print zipper.returncode
 
 
-@task
-def yolo_detect(video_id):
-    """
-    This is a HACK since Tensorflow is absolutely atrocious in allocating and freeing up memory.
-    Once a process / session is allocated a memory it cannot be forced to clear it up.
-    As a result this code gets called via a subprocess which clears memory when it exits.
-
-    :param video_id:
-    :return:
-    """
-    import django
-    from PIL import Image
-    sys.path.append(os.path.dirname(__file__))
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
-    django.setup()
-    from django.conf import settings
-    from dvaapp.models import Video,Region,Frame
-    from dvaapp.operations.video_processing import WVideo,WFrame
-    from dvalib import detector
-    dv = Video.objects.get(id=video_id)
-    frames = Frame.objects.all().filter(video=dv)
-    v = WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
-    wframes = {df.pk: WFrame(video=v, frame_index=df.frame_index, primary_key=df.pk) for df in frames}
-    detection_count = 0
-    algorithm = detector.YOLODetector()
-    logging.info("starting detection {}".format(algorithm.name))
-    frame_detections = algorithm.detect(wframes.values())
-    for frame_pk,detections in frame_detections.iteritems():
-        for d in detections:
-            dd = Region()
-            dd.region_type = Region.DETECTION
-            dd.video = dv
-            dd.frame_id = frame_pk
-            dd.object_name = d['name']
-            dd.confidence = d['confidence']
-            dd.x = d['left']
-            dd.y = d['top']
-            dd.w = d['right'] - d['left']
-            dd.h = d['bot'] - d['top']
-            dd.save()
-            img = Image.open(wframes[frame_pk].local_path())
-            img2 = img.crop((d['left'], d['top'], d['right'], d['bot']))
-            img2.save("{}/{}/detections/{}.jpg".format(settings.MEDIA_ROOT, video_id, dd.pk))
-            detection_count += 1
-    dv.refresh_from_db()
-    dv.save()
-
-
-
-
-@task
-def pyscenedetect(video_id,rescaled_width=0):
-    """
-    Pyscenedetect often causes unexplainable double free errors on some machine when executing cap.release()
-    This ensures that the task recovers partial frame data i.e. every nth frame even if the command running inside a subprocess fails
-    :param video_id:
-    :param rescaled_width:
-    :return:
-    """
-    import django
-    from PIL import Image
-    sys.path.append(os.path.dirname(__file__))
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
-    django.setup()
-    from dvaapp.models import Video
-    from django.conf import settings
-    from dvalib import pyscenecustom
-    from dvaapp.operations.video_processing import WVideo,WFrame
-    dv = Video.objects.get(id=video_id)
-    v = WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
-    rescaled_width = int(rescaled_width)
-    if rescaled_width == 0:
-        rescale = False
-    else:
-        rescale = True
-    manager = pyscenecustom.manager.SceneManager(save_image_prefix="{}/{}/frames/".format(settings.MEDIA_ROOT, video_id), rescaled_width=int(rescaled_width),rescale=rescale)
-    pyscenecustom.detect_scenes_file(v.local_path, manager)
 
 
 @task
@@ -549,46 +472,14 @@ def perform_face_indexing(video_id):
     from scipy import misc
     face_indexer = indexer.FacenetIndexer()
     dv = Video.objects.get(id=video_id)
-    video = WVideo(dv, settings.MEDIA_ROOT)
-    frames = Frame.objects.all().filter(video=dv)
-    wframes = [WFrame(video=video, frame_index=df.frame_index, primary_key=df.pk) for df in frames]
-    input_paths = {f.local_path(): f.primary_key for f in wframes}
-    faces_dir = '{}/{}/detections'.format(settings.MEDIA_ROOT, video_id)
-    indexes_dir = '{}/{}/indexes'.format(settings.MEDIA_ROOT, video_id)
-    face_detector = detector.FaceDetector()
-    face_detector.load()
-    aligned_paths = {}
-    for frame in wframes:
-        image_path = frame.local_path()
-        aligned_paths[frame] = face_detector.detect(image_path)
-    aligned_paths = face_detector.detect(wframes)
-    logging.info(len(aligned_paths))
     faces = []
     faces_to_pk = {}
-    count = 0
-    for path, vlist in aligned_paths.iteritems():
-        for v in vlist:
-            d = Region()
-            d.region_type = Region.DETECTION
-            d.video = dv
-            d.confidence = 100.0
-            d.frame_id = input_paths[path]
-            d.object_name = "mtcnn_face"
-            d.y = v['y']
-            d.x = v['x']
-            d.w = v['w']
-            d.h = v['h']
-            d.save()
-            face_path = '{}/{}.jpg'.format(faces_dir, d.pk)
-            output_filename = os.path.join(faces_dir, face_path)
-            misc.imsave(output_filename, v['scaled'])
-            faces.append(face_path)
-            faces_to_pk[face_path] = d.pk
-            count += 1
-    dv.refresh_from_db()
-    dv.save()
-    path_count, emb_array, entries, feat_fname, entries_fname = face_indexer.index_faces(faces, faces_to_pk,
-                                                                                         indexes_dir, video_id)
+    for dd in Region.objects.all().filter(object_name='MTCNN_FACE',video=dv):
+        path = '{}/{}/detections/{}.jpg'.format(settings.MEDIA_ROOT,video_id,dd.pk)
+        faces.append(path)
+        faces_to_pk[path] = dd.pk
+    indexes_dir = '{}/{}/indexes'.format(settings.MEDIA_ROOT, video_id)
+    path_count, emb , entries, feat_fname, entries_fname = face_indexer.index_faces(faces, faces_to_pk, indexes_dir, video_id)
     i = IndexEntries()
     i.video = dv
     i.count = len(entries)

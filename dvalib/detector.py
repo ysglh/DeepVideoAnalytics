@@ -81,13 +81,13 @@ class TFDetector(BaseDetector):
         super(TFDetector, self).__init__()
         self.model_path = model_path
         self.class_index_to_string = class_index_to_string
-        self.sess = None
+        self.session = None
 
     def detect(self,image_path,min_score=0.20):
         plimg = PIL.Image.open(image_path).convert('RGB')
         img = pil_to_array(plimg)
         image_np_expanded = np.expand_dims(img, axis=0)
-        (boxes, scores, classes, num_detections) = self.sess.run([self.boxes, self.scores, self.classes, self.num_detections],
+        (boxes, scores, classes, num_detections) = self.session.run([self.boxes, self.scores, self.classes, self.num_detections],
                                                                  feed_dict={self.image_tensor: image_np_expanded})
         detections = []
         for i, _ in enumerate(boxes[0]):
@@ -115,7 +115,7 @@ class TFDetector(BaseDetector):
                 tf.import_graph_def(self.od_graph_def, name='')
             config = tf.ConfigProto()
             config.gpu_options.per_process_gpu_memory_fraction = 0.15
-            self.sess = tf.Session(graph=self.detection_graph,config=config)
+            self.session = tf.Session(graph=self.detection_graph,config=config)
         self.image_tensor = self.detection_graph.get_tensor_by_name('image_tensor:0')
         self.boxes = self.detection_graph.get_tensor_by_name('detection_boxes:0')
         self.scores = self.detection_graph.get_tensor_by_name('detection_scores:0')
@@ -125,22 +125,22 @@ class TFDetector(BaseDetector):
 
 class FaceDetector():
 
-    def __init__(self):
+    def __init__(self,session=None):
         self.image_size = 182
         self.margin = 44
         self.gpu_memory_fraction = 0.1
-        self.sess = None
-        self.minsize = 20  # minimum size of face
-        self.threshold = [0.6, 0.7, 0.7]  # three steps's threshold
-        self.factor = 0.709  # scale factor
+        self.session = session
+        self.minsize = 20
+        self.threshold = [0.6, 0.7, 0.7]
+        self.factor = 0.709
 
     def load(self):
         logging.info('Creating networks and loading parameters')
         with tf.Graph().as_default():
             gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=self.gpu_memory_fraction)
-            sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=False))
-            with sess.as_default():
-                self.pnet, self.rnet, self.onet = detect_face.create_mtcnn(sess, None)
+            self.session = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=False))
+            with self.session.as_default():
+                self.pnet, self.rnet, self.onet = detect_face.create_mtcnn(self.session, None)
 
     def detect(self,image_path):
         aligned = []

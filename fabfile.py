@@ -465,6 +465,7 @@ def process_video_list(filename):
         handle_youtube_video(video['name'],video['url'])
 
 
+@task
 def perform_face_indexing(video_id):
     import django
     sys.path.append(os.path.dirname(__file__))

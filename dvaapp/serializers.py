@@ -326,9 +326,9 @@ def import_video_json(video_obj,video_json,video_root_dir):
 
 
 def import_detector(dd):
-    dd.phase_1_log = file("{}/models/{}/phase_1.log".format(settings.MEDIA_ROOT, dd.pk)).read()
-    dd.phase_2_log = file("{}/models/{}/phase_2.log".format(settings.MEDIA_ROOT, dd.pk)).read()
-    with open("{}/models/{}/input.json".format(settings.MEDIA_ROOT, dd.pk)) as fh:
+    dd.phase_1_log = file("{}/detectors/{}/phase_1.log".format(settings.MEDIA_ROOT, dd.pk)).read()
+    dd.phase_2_log = file("{}/detectors/{}/phase_2.log".format(settings.MEDIA_ROOT, dd.pk)).read()
+    with open("{}/detectors/{}/input.json".format(settings.MEDIA_ROOT, dd.pk)) as fh:
         metadata = json.load(fh)
     if 'class_distribution' in metadata:
         dd.class_distribution = json.dumps(metadata['class_distribution'])

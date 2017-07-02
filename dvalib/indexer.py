@@ -35,6 +35,8 @@ class BaseIndexer(object):
         self.net = None
         self.loaded_entries = {}
         self.index, self.files, self.findex = None, {}, 0
+        self.support_batching = False
+        self.batch_size = 100
 
     def load_index(self,numpy_matrix,entries):
         temp_index = [numpy_matrix, ]
@@ -75,10 +77,25 @@ class BaseIndexer(object):
     def apply(self,path):
         raise NotImplementedError
 
+    def apply_batch(self,paths):
+        raise NotImplementedError
+
     def index_paths(self,paths):
-        features = []
-        for path in paths:
-            features.append(self.apply(path))
+        if self.support_batching:
+            logging.info("Using batching")
+            path_buffer = []
+            fdict = {}
+            for path in paths:
+                path_buffer.append(path)
+                if len(path_buffer) > self.batch_size:
+                    fdict.update(self.apply_batch(path_buffer))
+                    path_buffer = []
+            fdict.update(self.apply_batch(path_buffer))
+            features = [fdict[paths[i]] for i in range(len(paths))]
+        else:
+            features = []
+            for path in paths:
+                features.append(self.apply(path))
         return features
 
 
@@ -130,6 +147,8 @@ class InceptionIndexer(BaseIndexer):
         self.fname = None
         self.image = None
         self.iterator = None
+        self.support_batching = True
+
 
     def load(self):
         if self.session is None:
@@ -159,7 +178,7 @@ class InceptionIndexer(BaseIndexer):
     def apply_batch(self,image_paths):
         if self.session is None:
             self.load()
-        self.session.run(self.iterator.initializer, feed_dict={self.filenames_placeholder: [image_paths,]})
+        self.session.run(self.iterator.initializer, feed_dict={self.filenames_placeholder: image_paths})
         embeddings = {}
         while True:
             try:

@@ -99,7 +99,8 @@ class TFDetector(BaseDetector):
         detections = []
         for i, _ in enumerate(boxes[0]):
             plimg = PIL.Image.open(image_path)
-            shape = (plimg.height,plimg.width)
+            frame_width, frame_height = plimg.size
+            shape = (frame_height,frame_width)
             if scores[0][i] > min_score:
                 top,left = (int(boxes[0][i][0] * shape[0]), int(boxes[0][i][1] * shape[1]))
                 bot,right = (int(boxes[0][i][2] * shape[0]), int(boxes[0][i][3] * shape[1]))

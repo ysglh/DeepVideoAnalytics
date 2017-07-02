@@ -1049,9 +1049,10 @@ def qt():
     from django.core.files.uploadedfile import SimpleUploadedFile
     from dvaapp.views import handle_uploaded_file
     from dvaapp.models import Video, TEvent
-    from dvaapp.tasks import extract_frames
-    for fname in glob.glob('tests/ci/*.mp4'):
+    from dvaapp.tasks import extract_frames,perform_ssd_detection_by_id
+    for fname in glob.glob('tests/example*.zip'):
         name = fname.split('/')[-1].split('.')[0]
-        f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")
-        v = handle_uploaded_file(f, name, False)
+        f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
+        v = handle_uploaded_file(f, name)
         extract_frames(TEvent.objects.create(video=v).pk)
+        perform_ssd_detection_by_id(TEvent.objects.create(video=v).pk)

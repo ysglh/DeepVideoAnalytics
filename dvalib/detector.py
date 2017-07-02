@@ -10,6 +10,11 @@ import random
 from time import sleep
 
 
+def _parse_function(filename):
+    image_string = tf.read_file(filename)
+    image_decoded = tf.image.decode_image(image_string,channels=3)
+    return tf.expand_dims(image_decoded, 0), filename
+
 
 
 def pil_to_array(pilImage):
@@ -82,16 +87,19 @@ class TFDetector(BaseDetector):
         self.model_path = model_path
         self.class_index_to_string = class_index_to_string
         self.session = None
+        self.dataset = None
+        self.filenames_placeholder = None
+        self.image = None
+        self.fname = None
 
     def detect(self,image_path,min_score=0.20):
-        plimg = PIL.Image.open(image_path).convert('RGB')
-        img = pil_to_array(plimg)
-        image_np_expanded = np.expand_dims(img, axis=0)
-        (boxes, scores, classes, num_detections) = self.session.run([self.boxes, self.scores, self.classes, self.num_detections],
-                                                                 feed_dict={self.image_tensor: image_np_expanded})
+        self.session.run(self.iterator.initializer, feed_dict={self.filenames_placeholder: [image_path,]})
+        (fname, boxes, scores, classes, num_detections) = self.session.run(
+            [self.fname,self.boxes, self.scores, self.classes, self.num_detections])
         detections = []
         for i, _ in enumerate(boxes[0]):
-            shape = img.shape
+            plimg = PIL.Image.open(image_path)
+            shape = (plimg.height,plimg.width)
             if scores[0][i] > min_score:
                 top,left = (int(boxes[0][i][0] * shape[0]), int(boxes[0][i][1] * shape[1]))
                 bot,right = (int(boxes[0][i][2] * shape[0]), int(boxes[0][i][3] * shape[1]))
@@ -108,19 +116,23 @@ class TFDetector(BaseDetector):
     def load(self):
         self.detection_graph = tf.Graph()
         with self.detection_graph.as_default():
+            self.filenames_placeholder = tf.placeholder("string")
+            dataset = tf.contrib.data.Dataset.from_tensor_slices(self.filenames_placeholder)
+            dataset = dataset.map(_parse_function)
+            self.iterator = dataset.make_initializable_iterator()
             self.od_graph_def = tf.GraphDef()
             with tf.gfile.GFile(self.model_path, 'rb') as fid:
                 serialized_graph = fid.read()
                 self.od_graph_def.ParseFromString(serialized_graph)
-                tf.import_graph_def(self.od_graph_def, name='')
+                self.image, self.fname = self.iterator.get_next()
+                tf.import_graph_def(self.od_graph_def, name='',input_map={'image_tensor': self.image})
             config = tf.ConfigProto()
             config.gpu_options.per_process_gpu_memory_fraction = 0.15
             self.session = tf.Session(graph=self.detection_graph,config=config)
-        self.image_tensor = self.detection_graph.get_tensor_by_name('image_tensor:0')
-        self.boxes = self.detection_graph.get_tensor_by_name('detection_boxes:0')
-        self.scores = self.detection_graph.get_tensor_by_name('detection_scores:0')
-        self.classes = self.detection_graph.get_tensor_by_name('detection_classes:0')
-        self.num_detections = self.detection_graph.get_tensor_by_name('num_detections:0')
+            self.boxes = self.detection_graph.get_tensor_by_name('detection_boxes:0')
+            self.scores = self.detection_graph.get_tensor_by_name('detection_scores:0')
+            self.classes = self.detection_graph.get_tensor_by_name('detection_classes:0')
+            self.num_detections = self.detection_graph.get_tensor_by_name('num_detections:0')
 
 
 class FaceDetector():

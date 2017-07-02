@@ -22,6 +22,12 @@ from collections import namedtuple
 IndexRange = namedtuple('IndexRange',['start','end'])
 
 
+def _parse_function(filename):
+    image_string = tf.read_file(filename)
+    image_decoded = tf.image.decode_image(image_string,channels=3)
+    return image_decoded, filename
+
+
 class BaseIndexer(object):
 
     def __init__(self):
@@ -119,6 +125,11 @@ class InceptionIndexer(BaseIndexer):
         self.session = None
         self.graph_def = None
         self.index, self.files, self.findex = None, {}, 0
+        self.pool3 = None
+        self.filenames_placeholder = None
+        self.fname = None
+        self.image = None
+        self.iterator = None
 
     def load(self):
         if self.session is None:
@@ -127,29 +138,36 @@ class InceptionIndexer(BaseIndexer):
             config.gpu_options.per_process_gpu_memory_fraction = 0.15
             self.session = tf.InteractiveSession(config=config)
             network_path = os.path.abspath(__file__).split('indexer.py')[0]+'data/network.pb'
+            self.filenames_placeholder = tf.placeholder("string")
+            dataset = tf.contrib.data.Dataset.from_tensor_slices(self.filenames_placeholder)
+            dataset = dataset.map(_parse_function)
+            self.iterator = dataset.make_initializable_iterator()
             with gfile.FastGFile(network_path, 'rb') as f:
-                self.graph_def = tf.GraphDef()
-                self.graph_def.ParseFromString(f.read())
-                _ = tf.import_graph_def(self.graph_def, name='incept')
-                # if png:
-                #     png_data = tf.placeholder(tf.string, shape=[])
-                #     decoded_png = tf.image.decode_png(png_data, channels=3)
-                #     _ = tf.import_graph_def(graph_def, name='incept',input_map={'DecodeJpeg': decoded_png})
-                #     return png_data
-
-
+                graph_def = tf.GraphDef()
+                graph_def.ParseFromString(f.read())
+                self.image, self.fname = self.iterator.get_next()
+                _ = tf.import_graph_def(graph_def, name='incept', input_map={'DecodeJpeg': self.image})
+                self.pool3 = self.session.graph.get_tensor_by_name('incept/pool_3:0')
 
     def apply(self,image_path):
-        self.load()
-        if image_path.endswith('.png'):
-            im = PIL.Image.open(image_path)
-            bg = PIL.Image.new("RGB", im.size, (255, 255, 255))
-            bg.paste(im, im)
-            image_path = image_path.replace('.png','.jpg')
-            bg.save(image_path)
-        pool3 = self.session.graph.get_tensor_by_name('incept/pool_3:0')
-        pool3_features = self.session.run(pool3,{'incept/DecodeJpeg/contents:0': file(image_path).read()})
+        if self.session is None:
+            self.load()
+        self.session.run(self.iterator.initializer, feed_dict={self.filenames_placeholder: [image_path,]})
+        f, pool3_features = self.session.run([self.fname,self.pool3])
         return np.atleast_2d(np.squeeze(pool3_features))
+
+    def apply_batch(self,image_paths):
+        if self.session is None:
+            self.load()
+        self.session.run(self.iterator.initializer, feed_dict={self.filenames_placeholder: [image_paths,]})
+        embeddings = {}
+        while True:
+            try:
+                f, emb = self.session.run([self.fname,self.pool3])
+                embeddings[f] = np.atleast_2d(np.squeeze(emb))
+            except tf.errors.OutOfRangeError:
+                break
+        return embeddings
 
 
 class FacenetIndexer(BaseIndexer):

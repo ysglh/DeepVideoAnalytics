@@ -64,7 +64,7 @@
        - DB_PASS=pgdbpass
        - TEST=1
        - AUTH_DISABLED=1
-     command: bash -c "rm -rf /root/DVA/ && git clone https://github.com/akshayubhat/DeepVideoAnalytics /root/DVA && sleep 60 && fab startq:qocr"
+     command: bash -c "sleep 60 && git pull && fab startq:qocr"
      depends_on:
        - db
        - rabbit

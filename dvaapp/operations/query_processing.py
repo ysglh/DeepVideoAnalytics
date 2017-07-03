@@ -19,14 +19,13 @@ class IndexerTask(celery.Task):
     def visual_indexer(self):
         if IndexerTask._visual_indexer is None:
             IndexerTask._visual_indexer = {'inception': indexer.InceptionIndexer(),
-                                           'facenet': indexer.FacenetIndexer(),
-                                           'alexnet': indexer.AlexnetIndexer()}
+                                           'facenet': indexer.FacenetIndexer()}
         return IndexerTask._visual_indexer
 
     @property
     def clusterer(self):
         if IndexerTask._clusterer is None:
-            IndexerTask._clusterer = {'inception': None, 'facenet': None, 'alexnet': None}
+            IndexerTask._clusterer = {'inception': None, 'facenet': None}
         return IndexerTask._clusterer
 
     def refresh_index(self, index_name):

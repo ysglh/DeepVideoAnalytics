@@ -75,3 +75,4 @@ notes/*.mov
 /dvalib/crnn/data/crnn.pth
 /shared/crnn.pth
 /shared/demo.png
+/dvalib/data/facenet.pb

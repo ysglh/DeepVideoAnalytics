@@ -432,22 +432,23 @@ def perform_face_indexing(task_id):
         path = '{}/{}/detections/{}.jpg'.format(settings.MEDIA_ROOT,video_id,dd.pk)
         faces.append(path)
         f_to_pk[path] = dd.pk
-    indexes_dir = '{}/{}/indexes'.format(settings.MEDIA_ROOT, video_id)
-    path_count, emb , entries, feat_fname, entries_fname = visual_index.index_faces(faces, f_to_pk, indexes_dir, video_id)
-    i = IndexEntries()
-    i.video = dv
-    i.count = len(entries)
-    i.contains_frames = False
-    i.contains_detections = True
-    i.detection_name = "Face"
-    i.algorithm = 'facenet'
-    i.entries_file_name = entries_fname.split('/')[-1]
-    i.features_file_name = feat_fname.split('/')[-1]
-    i.save()
-    process_next(task_id)
-    start.completed = True
-    start.seconds = time.time() - start_time
-    start.save()
+    if faces:
+        indexes_dir = '{}/{}/indexes'.format(settings.MEDIA_ROOT, video_id)
+        path_count, emb , entries, feat_fname, entries_fname = visual_index.index_faces(faces, f_to_pk, indexes_dir, video_id)
+        i = IndexEntries()
+        i.video = dv
+        i.count = len(entries)
+        i.contains_frames = False
+        i.contains_detections = True
+        i.detection_name = "Face"
+        i.algorithm = 'facenet'
+        i.entries_file_name = entries_fname.split('/')[-1]
+        i.features_file_name = feat_fname.split('/')[-1]
+        i.save()
+        process_next(task_id)
+        start.completed = True
+        start.seconds = time.time() - start_time
+        start.save()
     return 0
 
 

@@ -94,14 +94,7 @@ class BaseIndexer(object):
     def index_paths(self,paths):
         if self.support_batching:
             logging.info("Using batching")
-            path_buffer = []
-            fdict = {}
-            for path in paths:
-                path_buffer.append(path)
-                if len(path_buffer) > self.batch_size:
-                    fdict.update(self.apply_batch(path_buffer))
-                    path_buffer = []
-            fdict.update(self.apply_batch(path_buffer))
+            fdict = self.apply_batch(paths)
             features = [fdict[paths[i]] for i in range(len(paths))]
         else:
             features = []
@@ -226,7 +219,6 @@ class InceptionIndexer(BaseIndexer):
         while True:
             try:
                 f, emb = self.session.run([self.fname,self.pool3])
-                print emb.shape
                 for i,fname in enumerate(f):
                     embeddings[fname] = np.atleast_2d(np.squeeze(emb[i,:,:,:]))
             except tf.errors.OutOfRangeError:
@@ -265,7 +257,6 @@ class FacenetIndexer(BaseIndexer):
             self.iterator = batched_dataset.make_initializable_iterator()
             false_phase_train = tf.constant(False)
             with gfile.FastGFile(self.network_path, 'rb') as f:
-                print self.network_path
                 graph_def = tf.GraphDef()
                 graph_def.ParseFromString(f.read())
                 self.image, self.fname = self.iterator.get_next()

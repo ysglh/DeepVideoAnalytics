@@ -445,10 +445,10 @@ def perform_face_indexing(task_id):
         i.entries_file_name = entries_fname.split('/')[-1]
         i.features_file_name = feat_fname.split('/')[-1]
         i.save()
-        process_next(task_id)
-        start.completed = True
-        start.seconds = time.time() - start_time
-        start.save()
+    process_next(task_id)
+    start.completed = True
+    start.seconds = time.time() - start_time
+    start.save()
     return 0
 
 

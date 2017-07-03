@@ -1,13 +1,5 @@
 import numpy as np
 import os,logging,json
-import PIL
-try:
-    import torch
-    from torch.autograd import Variable
-    from torchvision import transforms
-    from torchvision.models import alexnet
-except ImportError:
-    logging.warning("Could not import torch")
 from scipy import spatial
 try:
     from tensorflow.python.platform import gfile
@@ -108,37 +100,6 @@ class BaseIndexer(object):
         return features
 
 
-class AlexnetIndexer(BaseIndexer):
-
-    def __init__(self):
-        super(AlexnetIndexer, self).__init__()
-        self.name = "alexnet"
-        self.net = None
-        self.transform = None
-        self.index, self.files, self.findex = None, {}, 0
-
-    def apply(self,path):
-        self.load()
-        tensor = self.transform(PIL.Image.open(path).convert('RGB')).unsqueeze_(0)
-        if torch.cuda.is_available():
-            tensor = torch.FloatTensor(tensor).cuda()
-        result = self.net(Variable(tensor))
-        if torch.cuda.is_available():
-            return result.data.cpu().numpy()
-        return result.data.numpy()
-
-
-    def load(self):
-        if self.net is None:
-            logging.warning("Loading the network {} , first apply / query will be slower".format(self.name))
-            self.net = alexnet(pretrained=True)
-            if torch.cuda.is_available():
-                self.net.cuda()
-            self.transform = transforms.Compose([
-                transforms.RandomCrop(224),
-                transforms.ToTensor(),
-                transforms.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225]),
-            ])
 
 
 class InceptionIndexer(BaseIndexer):

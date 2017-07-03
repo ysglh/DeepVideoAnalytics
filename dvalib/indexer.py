@@ -29,9 +29,9 @@ def _parse_function(filename):
 
 def _parse_scale_standardize_function(filename):
     image_string = tf.read_file(filename)
-    image_decoded = tf.image.decode_image(image_string,channels=3)
+    image_decoded = tf.image.decode_png(image_string,channels=3)
     # https://github.com/tensorflow/tensorflow/issues/8551
-    image_scaled = tf.image.resize_image_with_crop_or_pad(image_decoded, 160, 160)
+    image_scaled = tf.image.resize_images(image_decoded, [160, 160])
     image_standardized = tf.image.per_image_standardization(image_scaled)
     return image_standardized, filename
 

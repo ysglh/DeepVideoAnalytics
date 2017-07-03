@@ -27,14 +27,6 @@ def _parse_function(filename):
     image_decoded = tf.image.decode_image(image_string,channels=3)
     return image_decoded, filename
 
-def _parse_scale_standardize_function(filename):
-    image_string = tf.read_file(filename)
-    image_decoded = tf.image.decode_image(image_string,channels=3)
-    # https://github.com/tensorflow/tensorflow/issues/8551
-    image_scaled = tf.image.resize_image_with_crop_or_pad(image_decoded, 160, 160)
-    image_standardized = tf.image.per_image_standardization(image_scaled)
-    return image_standardized, filename
-
 
 class BaseCustomIndexer(object):
 
@@ -132,14 +124,14 @@ class CustomTFIndexer(BaseCustomIndexer):
             self.session = tf.InteractiveSession(config=config)
             self.filenames_placeholder = tf.placeholder("string")
             dataset = tf.contrib.data.Dataset.from_tensor_slices(self.filenames_placeholder)
-            dataset = dataset.map(_parse_scale_standardize_function)
+            dataset = dataset.map(_parse_function)
             self.iterator = dataset.make_initializable_iterator()
             false_phase_train = tf.constant(False)
             with gfile.FastGFile(self.network_path, 'rb') as f:
                 graph_def = tf.GraphDef()
                 graph_def.ParseFromString(f.read())
                 self.image, self.fname = self.iterator.get_next()
-                _ = tf.import_graph_def(graph_def, input_map={'{}:0'.format(self.input_op): self.image,'phase_train:0':false_phase_train})
+                _ = tf.import_graph_def(graph_def, input_map={'{}:0'.format(self.input_op): self.image})
                 self.emb = self.session.graph.get_tensor_by_name('import/{}:0'.format(self.embedding_op))
 
 
@@ -149,88 +141,3 @@ class CustomTFIndexer(BaseCustomIndexer):
         self.session.run(self.iterator.initializer, feed_dict={self.filenames_placeholder: [image_path, ]})
         f, features = self.session.run([self.fname, self.emb])
         return np.atleast_2d(np.squeeze(features))
-
-
-class FacenetIndexer(BaseCustomIndexer):
-
-    def __init__(self):
-        super(FacenetIndexer, self).__init__()
-        self.name = "facenet"
-        self.network_path = os.path.abspath(__file__).split('indexer.py')[0]+'data/facenet.pb'
-        self.embedding_op = "embeddings"
-        self.input_op = "input"
-        self.net = None
-        self.tf = True
-        self.session = None
-        self.graph_def = None
-        self.index, self.files, self.findex = None, {}, 0
-        self.image = None
-        self.filenames_placeholder = None
-        self.emb = None
-        self.batch_size = 32
-
-    def load(self):
-        if self.session is None:
-            logging.warning("Loading {} , first apply / query will be slower".format(self.name))
-            config = tf.ConfigProto()
-            config.gpu_options.per_process_gpu_memory_fraction = 0.15
-            self.session = tf.InteractiveSession(config=config)
-            self.filenames_placeholder = tf.placeholder("string")
-            dataset = tf.contrib.data.Dataset.from_tensor_slices(self.filenames_placeholder)
-            dataset = dataset.map(_parse_scale_standardize_function)
-            batched_dataset = dataset.batch(self.batch_size)
-            self.iterator = batched_dataset.make_initializable_iterator()
-            false_phase_train = tf.constant(False)
-            with gfile.FastGFile(self.network_path, 'rb') as f:
-                print self.network_path
-                graph_def = tf.GraphDef()
-                graph_def.ParseFromString(f.read())
-                self.image, self.fname = self.iterator.get_next()
-                _ = tf.import_graph_def(graph_def, input_map={'{}:0'.format(self.input_op): self.image,'phase_train:0':false_phase_train})
-                self.emb = self.session.graph.get_tensor_by_name('import/{}:0'.format(self.embedding_op))
-
-    def apply(self, image_path):
-        if self.session is None:
-            self.load()
-        self.session.run(self.iterator.initializer, feed_dict={self.filenames_placeholder: [image_path, ]})
-        f, features = self.session.run([self.fname, self.emb])
-        return np.atleast_2d(np.squeeze(features))
-
-    def index_faces(self, paths, paths_to_pk, output_dir, video_pk):
-        self.load()
-        entries = []
-        output_dir = os.path.expanduser(output_dir)
-        if not os.path.isdir(output_dir):
-            os.makedirs(output_dir)
-        path_count = 0
-        self.session.run(self.iterator.initializer, feed_dict={self.filenames_placeholder:paths})
-        embeddings = []
-        while True:
-            try:
-                fnames, emb_array = self.session.run([self.fname, self.emb])
-                embeddings.append(emb_array)
-                # print len(fnames),emb_array.shape
-                for eindex, fname in enumerate(fnames):
-                    entry = {
-                        'path': fname,
-                        'detection_primary_key': paths_to_pk[fname],
-                        'index': path_count,
-                        'type': 'detection',
-                        'video_primary_key': video_pk
-                    }
-                    path_count += 1
-                    entries.append(entry)
-            except tf.errors.OutOfRangeError:
-                break
-        feat_fname = os.path.join(output_dir, "facenet.npy")
-        entries_fname = os.path.join(output_dir, "facenet.json")
-        if embeddings:
-            embeddings = np.squeeze(np.vstack(embeddings))
-            # print embeddings.shape
-            np.save(feat_fname, embeddings)
-            fh = open(entries_fname, 'w')
-            json.dump(entries, fh)
-            fh.close()
-        else:
-            embeddings = None
-        return path_count, embeddings, entries, feat_fname, entries_fname

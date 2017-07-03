@@ -30,6 +30,7 @@ def _parse_function(filename):
 def _parse_scale_standardize_function(filename):
     image_string = tf.read_file(filename)
     image_decoded = tf.image.decode_png(image_string,channels=3)
+    # Cannot use decode_image but decode_png decodes both jpeg as well as png
     # https://github.com/tensorflow/tensorflow/issues/8551
     image_scaled = tf.image.resize_images(image_decoded, [160, 160])
     image_standardized = tf.image.per_image_standardization(image_scaled)

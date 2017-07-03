@@ -28,6 +28,7 @@ def _parse_resize_inception_function(filename):
     image_scaled = tf.image.resize_images(image_decoded, [299, 299])
     return image_scaled, filename
 
+
 def _parse_scale_standardize_function(filename):
     image_string = tf.read_file(filename)
     image_decoded = tf.image.decode_png(image_string,channels=3)
@@ -109,10 +110,13 @@ class BaseIndexer(object):
         return features
 
 
-class InceptionIndexer(BaseIndexer):
+class OLDInceptionIndexer(BaseIndexer):
+    """
+    Old inception indexer which did not use batching
+    """
 
     def __init__(self):
-        super(InceptionIndexer, self).__init__()
+        super(OLDInceptionIndexer, self).__init__()
         self.name = "inception"
         self.net = None
         self.tf = True
@@ -166,14 +170,14 @@ class InceptionIndexer(BaseIndexer):
         return embeddings
 
 
-class BInceptionIndexer(BaseIndexer):
+class InceptionIndexer(BaseIndexer):
     """
     Batched inception indexer
     """
 
-    def __init__(self):
-        super(BInceptionIndexer, self).__init__()
-        self.name = "batchedinception"
+    def __init__(self,batch_size=8,gpu_fraction=0.2):
+        super(InceptionIndexer, self).__init__()
+        self.name = "inception"
         self.net = None
         self.tf = True
         self.session = None
@@ -185,13 +189,14 @@ class BInceptionIndexer(BaseIndexer):
         self.image = None
         self.iterator = None
         self.support_batching = True
-        self.batch_size = 64
+        self.batch_size = batch_size
+        self.gpu_fraction = gpu_fraction
 
     def load(self):
         if self.session is None:
             logging.warning("Loading the network {} , first apply / query will be slower".format(self.name))
             config = tf.ConfigProto()
-            config.gpu_options.per_process_gpu_memory_fraction = 0.15
+            config.gpu_options.per_process_gpu_memory_fraction = self.gpu_fraction
             self.session = tf.InteractiveSession(config=config)
             network_path = os.path.abspath(__file__).split('indexer.py')[0]+'data/network.pb'
             self.filenames_placeholder = tf.placeholder("string")

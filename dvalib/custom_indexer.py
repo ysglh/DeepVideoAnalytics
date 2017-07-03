@@ -36,7 +36,7 @@ def _parse_scale_standardize_function(filename):
     return image_standardized, filename
 
 
-class BaseIndexer(object):
+class BaseCustomIndexer(object):
 
     def __init__(self):
         self.name = "base"
@@ -107,56 +107,22 @@ class BaseIndexer(object):
         return features
 
 
-class AlexnetIndexer(BaseIndexer):
+class CustomTFIndexer(BaseCustomIndexer):
 
-    def __init__(self):
-        super(AlexnetIndexer, self).__init__()
-        self.name = "alexnet"
-        self.net = None
-        self.transform = None
-        self.index, self.files, self.findex = None, {}, 0
-
-    def apply(self,path):
-        self.load()
-        tensor = self.transform(PIL.Image.open(path).convert('RGB')).unsqueeze_(0)
-        if torch.cuda.is_available():
-            tensor = torch.FloatTensor(tensor).cuda()
-        result = self.net(Variable(tensor))
-        if torch.cuda.is_available():
-            return result.data.cpu().numpy()
-        return result.data.numpy()
-
-
-    def load(self):
-        if self.net is None:
-            logging.warning("Loading the network {} , first apply / query will be slower".format(self.name))
-            self.net = alexnet(pretrained=True)
-            if torch.cuda.is_available():
-                self.net.cuda()
-            self.transform = transforms.Compose([
-                transforms.RandomCrop(224),
-                transforms.ToTensor(),
-                transforms.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225]),
-            ])
-
-
-class InceptionIndexer(BaseIndexer):
-
-    def __init__(self):
-        super(InceptionIndexer, self).__init__()
-        self.name = "inception"
+    def __init__(self,name,network_path,input_op,embedding_op):
+        super(CustomTFIndexer, self).__init__()
+        self.name = name
+        self.network_path = network_path
+        self.embedding_op = embedding_op
+        self.input_op = input_op
         self.net = None
         self.tf = True
         self.session = None
         self.graph_def = None
         self.index, self.files, self.findex = None, {}, 0
-        self.pool3 = None
-        self.filenames_placeholder = None
-        self.fname = None
         self.image = None
-        self.iterator = None
-        self.support_batching = True
-
+        self.filenames_placeholder = None
+        self.emb = None
 
     def load(self):
         if self.session is None:
@@ -164,40 +130,28 @@ class InceptionIndexer(BaseIndexer):
             config = tf.ConfigProto()
             config.gpu_options.per_process_gpu_memory_fraction = 0.15
             self.session = tf.InteractiveSession(config=config)
-            network_path = os.path.abspath(__file__).split('indexer.py')[0]+'data/network.pb'
             self.filenames_placeholder = tf.placeholder("string")
             dataset = tf.contrib.data.Dataset.from_tensor_slices(self.filenames_placeholder)
-            dataset = dataset.map(_parse_function)
+            dataset = dataset.map(_parse_scale_standardize_function)
             self.iterator = dataset.make_initializable_iterator()
-            with gfile.FastGFile(network_path, 'rb') as f:
+            false_phase_train = tf.constant(False)
+            with gfile.FastGFile(self.network_path, 'rb') as f:
                 graph_def = tf.GraphDef()
                 graph_def.ParseFromString(f.read())
                 self.image, self.fname = self.iterator.get_next()
-                _ = tf.import_graph_def(graph_def, name='incept', input_map={'DecodeJpeg': self.image})
-                self.pool3 = self.session.graph.get_tensor_by_name('incept/pool_3:0')
+                _ = tf.import_graph_def(graph_def, input_map={'{}:0'.format(self.input_op): self.image,'phase_train:0':false_phase_train})
+                self.emb = self.session.graph.get_tensor_by_name('import/{}:0'.format(self.embedding_op))
 
-    def apply(self,image_path):
+
+    def apply(self, image_path):
         if self.session is None:
             self.load()
-        self.session.run(self.iterator.initializer, feed_dict={self.filenames_placeholder: [image_path,]})
-        f, pool3_features = self.session.run([self.fname,self.pool3])
-        return np.atleast_2d(np.squeeze(pool3_features))
-
-    def apply_batch(self,image_paths):
-        if self.session is None:
-            self.load()
-        self.session.run(self.iterator.initializer, feed_dict={self.filenames_placeholder: image_paths})
-        embeddings = {}
-        while True:
-            try:
-                f, emb = self.session.run([self.fname,self.pool3])
-                embeddings[f] = np.atleast_2d(np.squeeze(emb))
-            except tf.errors.OutOfRangeError:
-                break
-        return embeddings
+        self.session.run(self.iterator.initializer, feed_dict={self.filenames_placeholder: [image_path, ]})
+        f, features = self.session.run([self.fname, self.emb])
+        return np.atleast_2d(np.squeeze(features))
 
 
-class FacenetIndexer(BaseIndexer):
+class FacenetIndexer(BaseCustomIndexer):
 
     def __init__(self):
         super(FacenetIndexer, self).__init__()

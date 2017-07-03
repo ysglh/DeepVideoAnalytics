@@ -26,8 +26,7 @@ def _parse_resize_inception_function(filename):
     # Cannot use decode_image but decode_png decodes both jpeg as well as png
     # https://github.com/tensorflow/tensorflow/issues/8551
     image_scaled = tf.image.resize_images(image_decoded, [299, 299])
-    image_standardized = tf.image.per_image_standardization(image_scaled)
-    return image_standardized, filename
+    return image_scaled, filename
 
 def _parse_scale_standardize_function(filename):
     image_string = tf.read_file(filename)

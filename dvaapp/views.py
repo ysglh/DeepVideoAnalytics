@@ -482,7 +482,6 @@ def yt(request):
         user = request.user if request.user.is_authenticated else None
         if form.is_valid():
             handle_youtube_video(form.cleaned_data['name'], form.cleaned_data['url'], user=user,
-                                 perform_scene_detection=form.cleaned_data['scene'],
                                  rate=form.cleaned_data['nth'],
                                  rescale=form.cleaned_data['rescale'] if 'rescale' in form.cleaned_data else 0)
         else:

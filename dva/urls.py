@@ -24,4 +24,4 @@ urlpatterns = [url(r'^admin/', admin.site.urls), url(r'', include('dvaapp.urls')
                url(r'^vdn/', include('vdnapp.urls'))]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DVA_PRIVATE_ENABLE:
-    urlpatterns.append(url(r'^demo/', include('dvap.urls')))
+    urlpatterns.append(url(r'^apps/', include('dvap.urls')))

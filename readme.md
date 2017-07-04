@@ -12,8 +12,8 @@
 
 #### Libraries used/modified in code and their licenses
 
-| Library  | Link to the license | Directory |
-| -------- | ------------------- | --------- |
+| Library  | Link to the license | 
+| -------- | ------------------- |
 | YAD2K  |  [MIT License](https://github.com/allanzelener/YAD2K/blob/master/LICENSE)  |
 | AdminLTE2  |  [MIT License](https://github.com/almasaeed2010/AdminLTE/blob/master/LICENSE) |
 | FabricJS |  [MIT License](https://github.com/kangax/fabric.js/blob/master/LICENSE)  |
@@ -23,10 +23,11 @@
 | CRNN.pytorch  |  [MIT License](https://github.com/meijieru/crnn.pytorch/blob/master/LICENSE.md)  |
 | Original CRNN code by Baoguang Shi  |  [MIT License](https://github.com/bgshih/crnn) |
 | Object Detector App using TF Object detection API |  [MIT License](https://github.com/datitran/Object-Detector-App) | 
+| Plotly.js |  [MIT License](https://github.com/plotly/plotly.js/blob/master/LICENSE) | 
 | Segment annotator  |   [BSD 3-clause](https://github.com/kyamagu/js-segment-annotator/blob/master/LICENSE) |
-| TF Object detection API  | [Apache License 2.0](https://github.com/tensorflow/models/tree/master/object_detection) |
-| LOPQ   |  [Apache 2.0 License](https://github.com/yahoo/lopq/blob/master/LICENSE)  | repos/lopq/
-| Open Images Pre-trained network |  [Apache 2.0 License](https://github.com/openimages/dataset/blob/master/LICENSE) |
+| TF Object detection API  | [Apache 2.0](https://github.com/tensorflow/models/tree/master/object_detection) |
+| LOPQ   |  [Apache 2.0](https://github.com/yahoo/lopq/blob/master/LICENSE)  | 
+| Open Images Pre-trained network |  [Apache 2.0](https://github.com/openimages/dataset/blob/master/LICENSE) |
 
 #### Additionally following libraries & frameworks are installed when building/running the container
 

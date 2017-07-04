@@ -4,7 +4,7 @@ import PIL
 from django.conf import settings
 from dva.celery import app
 from .models import Video, Frame, TEvent, Query, IndexEntries, QueryResults, AppliedLabel, VDNDataset, Clusters, \
-    ClusterCodes, Region, Scene, CustomDetector, Segment, IndexerQuery
+    ClusterCodes, Region, Tube, CustomDetector, Segment, IndexerQuery
 
 from .operations.query_processing import IndexerTask,QueryProcessing
 from .operations.detection_processing import DetectorTask

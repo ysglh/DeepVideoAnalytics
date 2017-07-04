@@ -4,7 +4,7 @@ import numpy as np
 from PIL import Image
 import os
 from collections import defaultdict
-from ..models import Video,Frame,Segment,Scene,AppliedLabel
+from ..models import Video,Frame,Segment,Tube,AppliedLabel
 import time
 
 def set_directory_labels(frames, dv):
@@ -167,8 +167,6 @@ class WVideo(object):
         return visual_index.name,entries,feat_fname,entries_fname
 
     def extract(self,args,start):
-        if not args['perform_scene_detection']:
-            logging.warning("Scene detection is disabled")
         if args['rate']:
             denominator = int(args['rate'])
         else:
@@ -265,28 +263,6 @@ class WVideo(object):
         self.dvideo.frames = sum([len(c) for c in self.segment_frames_dict.itervalues()])
         self.dvideo.segments = len(self.segment_frames_dict)
         self.dvideo.save()
-
-    def detect_scenes(self,rescale,start):
-        cwd = os.path.join(os.path.abspath(__file__).split('entity.py')[0], '../')
-        scencedetect = sp.Popen(['fab', 'pyscenedetect:{},{}'.format(self.primary_key, rescale)], cwd=cwd)
-        scencedetect.wait()
-        if scencedetect.returncode != 0:
-            logging.info("pyscene detect failed with {} check fab.log for the reason".format(scencedetect.returncode))
-        else:
-            with open('{}/{}/frames/scenes.json'.format(self.media_dir, self.primary_key)) as fh:
-                cuts = json.load(fh)
-            os.remove('{}/{}/frames/scenes.json'.format(self.media_dir, self.primary_key))
-        cust_list = [(cuts[cutindex], cuts[cutindex + 1]) for cutindex, cut in enumerate(sorted(cuts)[:-1])]
-        index_to_df = {}
-        for start_frame_index, end_frame_index in cust_list:
-            ds = Scene()
-            ds.video = self.dvideo
-            ds.start_frame_index = start_frame_index
-            ds.end_frame_index = end_frame_index
-            ds.start_frame_id = index_to_df[start_frame_index]
-            ds.end_frame_id = index_to_df[end_frame_index]
-            ds.source = start
-            ds.save()
 
     def extract_zip_dataset(self):
         frames = []

@@ -48,7 +48,7 @@ def create_annotator_folders(annotator, create_subdirs=True):
         pass
 
 
-def handle_uploaded_file(f, name, extract=True, user=None, perform_scene_detection=True, rate=30, rescale=0):
+def handle_uploaded_file(f, name, extract=True, user=None, rate=30, rescale=0):
     video = Video()
     if user:
         video.uploader = user
@@ -82,9 +82,7 @@ def handle_uploaded_file(f, name, extract=True, user=None, perform_scene_detecti
         video.save()
         if extract:
             extract_frames_task = TEvent()
-            extract_frames_task.arguments_json = json.dumps({'perform_scene_detection': perform_scene_detection,
-                                                             'rate': rate,
-                                                             'rescale': rescale})
+            extract_frames_task.arguments_json = json.dumps({'rate': rate,'rescale': rescale})
             extract_frames_task.video = video
             task_name = 'extract_frames_by_id'
             extract_frames_task.operation = task_name
@@ -96,7 +94,7 @@ def handle_uploaded_file(f, name, extract=True, user=None, perform_scene_detecti
     return video
 
 
-def handle_downloaded_file(downloaded, video, name, extract=True, user=None, perform_scene_detection=True, rate=30,
+def handle_downloaded_file(downloaded, video, name, extract=True, user=None, rate=30,
                            rescale=0, ):
     video.name = name
     video.save()
@@ -121,8 +119,7 @@ def handle_downloaded_file(downloaded, video, name, extract=True, user=None, per
         video.save()
         if extract:
             extract_frames_task = TEvent()
-            extract_frames_task.arguments_json = json.dumps(
-                {'perform_scene_detection': perform_scene_detection, 'rate': rate, 'rescale': rescale})
+            extract_frames_task.arguments_json = json.dumps({'rate': rate, 'rescale': rescale})
             extract_frames_task.video = video
             task_name = 'extract_frames_by_id'
             extract_frames_task.operation = task_name
@@ -166,7 +163,7 @@ def create_annotation(form, object_name, labels, frame):
             dl.save()
 
 
-def handle_youtube_video(name, url, extract=True, user=None, perform_scene_detection=True, rate=30, rescale=0):
+def handle_youtube_video(name, url, extract=True, user=None, rate=30, rescale=0):
     video = Video()
     if user:
         video.uploader = user
@@ -178,9 +175,7 @@ def handle_youtube_video(name, url, extract=True, user=None, perform_scene_detec
     extract_frames_task = TEvent()
     extract_frames_task.video = video
     extract_frames_task.operation = task_name
-    extract_frames_task.arguments_json = json.dumps({'perform_scene_detection': perform_scene_detection,
-                                                     'rate': rate,
-                                                     'rescale': rescale})
+    extract_frames_task.arguments_json = json.dumps({'rate': rate,'rescale': rescale})
     extract_frames_task.save()
     if extract:
         app.send_task(name=task_name, args=[extract_frames_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])

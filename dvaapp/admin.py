@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Video,Frame,TEvent,IndexEntries,QueryResults,Query,AppliedLabel,VDNServer,VDNDataset, ClusterCodes, Clusters, Region, Scene, CustomDetector, Segment
+from .models import Video,Frame,TEvent,IndexEntries,QueryResults,Query,AppliedLabel,VDNServer,VDNDataset, ClusterCodes, Clusters, Region, Tube, CustomDetector, Segment
 
 
 @admin.register(Segment)
@@ -66,8 +66,8 @@ class ClusterCodesAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(Scene)
-class SceneAdmin(admin.ModelAdmin):
+@admin.register(Tube)
+class TubeAdmin(admin.ModelAdmin):
     pass
 
 

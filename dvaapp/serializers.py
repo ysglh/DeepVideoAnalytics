@@ -1,6 +1,6 @@
 from rest_framework import serializers, viewsets
 from django.contrib.auth.models import User
-from models import Video, AppliedLabel, Frame, Region, Query, QueryResults, TEvent, IndexEntries, VDNDataset, VDNServer, Scene, Clusters, ClusterCodes, Segment
+from models import Video, AppliedLabel, Frame, Region, Query, QueryResults, TEvent, IndexEntries, VDNDataset, VDNServer, Tube, Clusters, ClusterCodes, Segment
 import os, json, logging, glob
 from collections import defaultdict
 from django.conf import settings
@@ -54,9 +54,9 @@ class RegionSerializer(serializers.HyperlinkedModelSerializer):
         fields = '__all__'
 
 
-class SceneSerializer(serializers.HyperlinkedModelSerializer):
+class TubeSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = Scene
+        model = Tube
         fields = '__all__'
 
 
@@ -140,9 +140,9 @@ class AppliedLabelExportSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class SceneExportSerializer(serializers.ModelSerializer):
+class TubeExportSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Scene
+        model = Tube
         fields = '__all__'
 
 
@@ -158,7 +158,7 @@ class VideoExportSerializer(serializers.ModelSerializer):
     index_entries_list = IndexEntryExportSerializer(source='indexentries_set',read_only=True,many=True)
     event_list = TEventExportSerializer(source='tevent_set',read_only=True,many=True)
     label_list = AppliedLabelExportSerializer(source='appliedlabel_set', read_only=True, many=True)
-    scene_list = SceneExportSerializer(source='scene_set', read_only=True, many=True)
+    tube_list = TubeExportSerializer(source='tube_set', read_only=True, many=True)
 
     class Meta:
         model = Video

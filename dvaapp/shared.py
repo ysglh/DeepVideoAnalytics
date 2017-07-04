@@ -25,6 +25,7 @@ def create_video_folders(video, create_subdirs=True):
         os.mkdir('{}/{}/segments/'.format(settings.MEDIA_ROOT, video.pk))
         os.mkdir('{}/{}/indexes/'.format(settings.MEDIA_ROOT, video.pk))
         os.mkdir('{}/{}/detections/'.format(settings.MEDIA_ROOT, video.pk))
+        os.mkdir('{}/{}/transforms/'.format(settings.MEDIA_ROOT, video.pk))
         os.mkdir('{}/{}/audio/'.format(settings.MEDIA_ROOT, video.pk))
 
 

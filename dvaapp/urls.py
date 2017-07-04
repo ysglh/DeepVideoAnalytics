@@ -8,7 +8,7 @@ import sys
 router = routers.DefaultRouter()
 router.register(r'users', views.UserViewSet)
 router.register(r'videos', views.VideoViewSet)
-router.register(r'scenes', views.SceneViewSet)
+router.register(r'tubes', views.TubeViewSet)
 router.register(r'frames', views.FrameViewSet)
 router.register(r'segments', views.SegmentViewSet)
 router.register(r'regions', views.RegionViewSet)

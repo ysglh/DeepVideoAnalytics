@@ -140,6 +140,9 @@ class Frame(models.Model):
 
 
 class Segment(models.Model):
+    """
+    A video segment useful for parallel dense decoding+processing as well as streaming
+    """
     video = models.ForeignKey(Video,null=True)
     segment_index = models.IntegerField()
     start_time = models.FloatField(default=0.0)
@@ -159,17 +162,20 @@ class Segment(models.Model):
 
 class Region(models.Model):
     """
-    Any 2D region over an image
+    Any 2D region over an image.
+    Detections & Transforms have an associated image data.
     """
     ANNOTATION = 'A'
     DETECTION = 'D'
     SEGMENTATION = 'S'
+    TRANSFORM = 'T'
     POLYGON = 'P'
     REGION_TYPES = (
         (ANNOTATION, 'Annotation'),
         (DETECTION, 'Detection'),
         (POLYGON, 'Polygon'),
         (SEGMENTATION, 'Segmentation'),
+        (TRANSFORM, 'Transform'),
     )
     region_type = models.CharField(max_length=1,choices=REGION_TYPES)
     video = models.ForeignKey(Video)
@@ -314,12 +320,19 @@ class CustomDetector(models.Model):
     created = models.DateTimeField('date created', auto_now_add=True)
 
 
-class Scene(models.Model):
+class Tube(models.Model):
+    """
+    A tube is a collection of sequential frames / regions that track a certain object
+    or describe a specific scene
+    """
     video = models.ForeignKey(Video,null=True)
+    frame_level = models.BooleanField(default=False)
     start_frame_index = models.IntegerField()
     end_frame_index = models.IntegerField()
     start_frame = models.ForeignKey(Frame,null=True,related_name="start_frame")
     end_frame = models.ForeignKey(Frame,null=True,related_name="end_frame")
+    start_region = models.ForeignKey(Region,null=True,related_name="start_region")
+    end_region = models.ForeignKey(Region,null=True,related_name="end_region")
     metadata_text = models.TextField(default="")
     metadata_json = models.TextField(default="")
     source = models.ForeignKey(TEvent,null=True)
@@ -333,7 +346,7 @@ class AppliedLabel(models.Model):
     SOURCE_CHOICES = (
     (UI, 'User Interface'), (DIRECTORY, 'Directory Name'), (ALGO, 'Algorithm'), (VDN, "Visual Data Network"))
     video = models.ForeignKey(Video)
-    scene = models.ForeignKey(Scene,null=True)
+    tube = models.ForeignKey(Tube,null=True)
     segment = models.ForeignKey(Segment,null=True)
     frame = models.ForeignKey(Frame,null=True)
     region = models.ForeignKey(Region,null=True)

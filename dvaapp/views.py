@@ -7,7 +7,7 @@ import json
 from django.views.generic import ListView, DetailView
 from .forms import UploadFileForm, YTVideoForm, AnnotationForm
 from .models import Video, Frame, Query, QueryResults, TEvent, IndexEntries, VDNDataset, Region, VDNServer, \
-    ClusterCodes, Clusters, AppliedLabel, Scene, CustomDetector, VDNDetector, Segment
+    ClusterCodes, Clusters, AppliedLabel, Tube, CustomDetector, VDNDetector, Segment
 from dva.celery import app
 import serializers
 from rest_framework import viewsets, mixins
@@ -114,10 +114,10 @@ class VDNDatasetViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.VDNDatasetSerializer
 
 
-class SceneViewSet(viewsets.ModelViewSet):
+class TubeViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
-    queryset = Scene.objects.all()
-    serializer_class = serializers.SceneSerializer
+    queryset = Tube.objects.all()
+    serializer_class = serializers.TubeSerializer
 
 
 class ClustersViewSet(viewsets.ModelViewSet):
@@ -385,7 +385,7 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
     context['video_count'] = Video.objects.count() - context['query_count']
     context['index_entries'] = IndexEntries.objects.all()
     context['region_count'] = Region.objects.all().count()
-    context['scene_count'] = Scene.objects.all().count()
+    context['tube_count'] = Tube.objects.all().count()
     context['custom_detector_count'] = CustomDetector.objects.all().count()
     return render(request, 'dashboard.html', context)
 

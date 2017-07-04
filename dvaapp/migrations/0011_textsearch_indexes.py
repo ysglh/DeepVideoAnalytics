@@ -8,7 +8,6 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dvaapp', '0010_indexentries_indexer'),
     ]
 
     operations = [

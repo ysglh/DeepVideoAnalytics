@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 
 from django.db import migrations
 
-
 def forwards_func(apps, schema_editor):
     CustomIndexer = apps.get_model("dvaapp", "CustomIndexer")
     db_alias = schema_editor.connection.alias
@@ -22,9 +21,16 @@ def reverse_func(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
-    dependencies = []
+    initial = False
+    dependencies = [('dvaapp', '0001_initial'),]
 
     operations = [
         migrations.RunPython(forwards_func, reverse_func),
+        migrations.RunSQL(
+            """
+            CREATE INDEX region_text_index ON dvaapp_region USING GIN (to_tsvector('english', metadata_text || ' ' || object_name));
+            CREATE INDEX frame_text_index ON dvaapp_frame USING GIN (to_tsvector('english', name || ' ' || subdir));
+            CREATE INDEX label_text_index ON dvaapp_appliedlabel USING GIN (to_tsvector('english', label_name));
+            """
+        ),
     ]

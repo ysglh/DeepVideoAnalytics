@@ -6,6 +6,9 @@ from django.contrib.postgres.fields import ArrayField
 
 
 class VDNServer(models.Model):
+    """
+    A VDN server
+    """
     url = models.URLField()
     name = models.CharField(max_length=200)
     last_response_datasets = models.TextField(default='[]')
@@ -14,6 +17,9 @@ class VDNServer(models.Model):
 
 
 class VDNDataset(models.Model):
+    """
+    A VDN dataset
+    """
     server = models.ForeignKey(VDNServer)
     response = models.TextField(default="")
     date_imported = models.DateTimeField('date created', auto_now_add=True)
@@ -32,6 +38,9 @@ class VDNDataset(models.Model):
 
 
 class VDNDetector(models.Model):
+    """
+    A VDN detector
+    """
     server = models.ForeignKey(VDNServer)
     response = models.TextField(default="")
     date_imported = models.DateTimeField('date created', auto_now_add=True)
@@ -48,6 +57,9 @@ class VDNDetector(models.Model):
 
 
 class CustomIndexer(models.Model):
+    """
+    A custom indexer that can be used with any TF (eventually pytorch) network
+    """
     name = models.CharField(max_length=100)
     algorithm = models.CharField(max_length=100,default="")
     model_filename = models.CharField(max_length=200,default="")
@@ -60,6 +72,9 @@ class CustomIndexer(models.Model):
 
 
 class Query(models.Model):
+    """
+    A query object with image_data, can have multiple children subspecies
+    """
     created = models.DateTimeField('date created', auto_now_add=True)
     selected_indexers = ArrayField(models.CharField(max_length=30),default=[])
     results_metadata = models.TextField(default="")
@@ -143,6 +158,9 @@ class Segment(models.Model):
 
 
 class Region(models.Model):
+    """
+    Any 2D region over an image
+    """
     ANNOTATION = 'A'
     DETECTION = 'D'
     SEGMENTATION = 'S'

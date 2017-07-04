@@ -16,6 +16,9 @@ services:
   - postgresql
   - rabbitmq
 
+addons:
+  postgresql: "9.6"
+
 virtualenv:
   system_site_packages: true
 

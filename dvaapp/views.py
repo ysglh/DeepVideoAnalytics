@@ -802,7 +802,7 @@ def textsearch(request):
         context['q'] = q
         if SearchVector:
             if request.POST.get('regions'):
-                context['results']['regions'] = Region.objects.annotate(search=SearchVector('object_name','metadata_text')).filter(search=q)
+                context['results']['regions'] = Region.objects.annotate(search=SearchVector('metadata_text','object_name')).filter(search=q)
             if request.POST.get('frames'):
                 context['results']['frames'] = Frame.objects.annotate(search=SearchVector('name','subdir')).filter(search=q)
             if request.POST.get('labels'):

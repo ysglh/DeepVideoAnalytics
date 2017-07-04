@@ -1057,3 +1057,16 @@ def qt():
         extract_frames(TEvent.objects.create(video=v).pk)
         perform_face_detection(TEvent.objects.create(video=v).pk)
         perform_face_indexing(TEvent.objects.create(video=v).pk)
+
+
+@task
+def create_custom_migrations():
+    """
+    Create custom migration files for adding default indexers (inception_v3, facenet)
+    and postgres text search indexes for fulltext search
+
+    To reset postgres on dev machine use "drop schema public cascade;create schema public;"
+    :return:
+    """
+    local('python manage.py makemigrations --empty --name textsearch_indexes dvaapp')
+    local('python manage.py makemigrations --empty --name default_indexers dvaapp')

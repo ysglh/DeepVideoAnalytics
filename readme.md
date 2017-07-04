@@ -5,10 +5,6 @@
 
 
 **Don't be worried by complexity of this banner, with latest version of docker installed correctly, you can run Deep Video Analytics in minutes locally (even without a GPU) using a single command.** 
-### Data & processing model
-![Data model](notebooks/images/infographic.png "graphic")
-
-
 
 #### Author: [Akshay Bhat, Cornell University.](http://www.akshaybhat.com)
 
@@ -43,6 +39,9 @@
 * Nvidia-docker
 * Docker-compose
 * All packages in [requirements.txt](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/requirements.txt) & used in Dockerfiles.
+
+### Data & processing model
+![Data model](notebooks/images/infographic.png "graphic")
 
 
 # License & Copyright

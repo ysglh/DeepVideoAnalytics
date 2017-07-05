@@ -29,7 +29,7 @@
 | LOPQ   |  [Apache 2.0](https://github.com/yahoo/lopq/blob/master/LICENSE)  | 
 | Open Images Pre-trained network |  [Apache 2.0](https://github.com/openimages/dataset/blob/master/LICENSE) |
 
-#### Additionally following libraries & frameworks are installed when building/running the container
+#### Following libraries & frameworks are installed when building/running the container
 
 * FFmpeg (not linked, called via a Subprocess)
 * Tensorflow 

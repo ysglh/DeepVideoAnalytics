@@ -30,11 +30,18 @@ else:
     SECRET_KEY = 'changemeabblasdasbdbrp2$j&^'  # change this in prod
     AUTH_DISABLED = os.environ.get('AUTH_DISABLED', False)
 
+INTERNAL_IPS = ['localhost','127.0.0.1']
+
 # SECURITY WARNING: don't run with debug turned on in production!
 if 'DISABLE_DEBUG' in os.environ or HEROKU_DEPLOY:
     DEBUG = False
 else:
     DEBUG = True
+
+if sys.platform == 'darwin':
+    MACOS = True
+else:
+    MACOS = False
 
 if HEROKU_DEPLOY:
     ALLOWED_HOSTS = [k.strip() for k in os.environ['ALLOWED_HOSTS'].split(',') if k.strip()]
@@ -72,7 +79,7 @@ INSTALLED_APPS = [
                      'vdnapp',
                      'crispy_forms',
                      'rest_framework.authtoken'
-                 ] + (['dvap', ] if DVA_PRIVATE_ENABLE else [])
+                 ] + (['dvap', ] if DVA_PRIVATE_ENABLE else [])+ (['debug_toolbar', ] if MACOS and DEBUG else [])
 
 if VDN_ENABLE:
     MIDDLEWARE_CLASSES = [
@@ -86,6 +93,8 @@ if VDN_ENABLE:
         'django.contrib.messages.middleware.MessageMiddleware',
         'django.middleware.clickjacking.XFrameOptionsMiddleware',
     ]
+    if MACOS and DEBUG:
+        MIDDLEWARE_CLASSES = ['debug_toolbar.middleware.DebugToolbarMiddleware',] +MIDDLEWARE_CLASSES
     CORS_ORIGIN_ALLOW_ALL = True
     CORS_URLS_REGEX = r'^vdn/api/.*$'
     CORS_ALLOW_METHODS = ('POST', 'GET',)
@@ -112,6 +121,8 @@ else:
         'django.contrib.messages.middleware.MessageMiddleware',
         'django.middleware.clickjacking.XFrameOptionsMiddleware',
     ]
+    if MACOS and DEBUG:
+        MIDDLEWARE = ['debug_toolbar.middleware.DebugToolbarMiddleware',] + MIDDLEWARE
     REST_FRAMEWORK = {
         'PAGE_SIZE': 10,
         'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),

@@ -26,6 +26,7 @@
 | Plotly.js |  [MIT License](https://github.com/plotly/plotly.js/blob/master/LICENSE) | 
 | Segment annotator  |   [BSD 3-clause](https://github.com/kyamagu/js-segment-annotator/blob/master/LICENSE) |
 | TF Object detection API  | [Apache 2.0](https://github.com/tensorflow/models/tree/master/object_detection) |
+| CROW   |  [Apache 2.0](https://github.com/yahoo/crow/blob/master/LICENSE)  | 
 | LOPQ   |  [Apache 2.0](https://github.com/yahoo/lopq/blob/master/LICENSE)  | 
 | Open Images Pre-trained network |  [Apache 2.0](https://github.com/openimages/dataset/blob/master/LICENSE) |
 

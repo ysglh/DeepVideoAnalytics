@@ -70,9 +70,9 @@ if __name__ == '__main__':
     parser.add_argument('--caffemodel', dest='caffemodel', type=str, default='vgg/VGG_ILSVRC_16_layers.caffemodel', help='path to model params')
     parser.add_argument('--out', dest='out', type=str, default='', help='path to save output')
     args = parser.parse_args()
-
+    caffe.set_mode_gpu()
+    caffe.set_device(0)
     net = caffe.Net(args.prototxt, args.caffemodel, caffe.TEST)
-
     if not os.path.exists(args.out):
         os.makedirs(args.out)
 

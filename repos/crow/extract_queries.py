@@ -60,6 +60,8 @@ if __name__ == '__main__':
     out_dir = os.path.join(args.dataset, args.out)
 
     # Load networks
+    caffe.set_mode_gpu()
+    caffe.set_device(0)
     net = caffe.Net(args.prototxt, args.caffemodel, caffe.TEST)
 
     if not os.path.exists(out_dir):

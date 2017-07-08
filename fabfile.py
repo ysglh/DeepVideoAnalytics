@@ -1070,3 +1070,14 @@ def create_custom_migrations():
     """
     local('python manage.py makemigrations --empty --name textsearch_indexes dvaapp')
     local('python manage.py makemigrations --empty --name default_indexers dvaapp')
+
+
+@task
+def install_visual_data_notebook():
+    """
+
+    :return:
+    """
+    local('pip install --upgrade jupyter')
+    local('pip install ipywidgets')
+    local('jupyter nbextension enable --py --sys-prefix widgetsnbextension')

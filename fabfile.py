@@ -1081,3 +1081,9 @@ def install_visual_data_notebook():
     local('pip install --upgrade jupyter')
     local('pip install ipywidgets')
     local('jupyter nbextension enable --py --sys-prefix widgetsnbextension')
+
+
+@task
+def benchmark():
+    with lcd('benchmarks/retrieval'):
+        pass

@@ -13,3 +13,6 @@ class DVAContext(object):
 
     def query(self):
         pass
+
+    def create_widget(self):
+        pass

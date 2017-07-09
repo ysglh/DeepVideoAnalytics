@@ -79,7 +79,7 @@ INSTALLED_APPS = [
                      'vdnapp',
                      'crispy_forms',
                      'rest_framework.authtoken'
-                 ] + (['dvap', ] if DVA_PRIVATE_ENABLE else [])+ (['debug_toolbar', ] if MACOS and DEBUG else [])
+                 ] + (['dvap', ] if DVA_PRIVATE_ENABLE else [])+ (['debug_toolbar','explorer',] if MACOS and DEBUG else [])
 
 if VDN_ENABLE:
     MIDDLEWARE_CLASSES = [

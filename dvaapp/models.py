@@ -79,7 +79,7 @@ class Query(models.Model):
     selected_indexers = ArrayField(models.CharField(max_length=30),default=[])
     results_metadata = models.TextField(default="")
     results_available = models.BooleanField(default=False)
-    user = models.ForeignKey(User, null=True)
+    user = models.ForeignKey(User, null=True,related_name="visua_query_user")
     image_data = models.BinaryField(null=True)
 
 

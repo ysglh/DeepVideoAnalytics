@@ -384,6 +384,8 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
     context['index_entries'] = IndexEntries.objects.all()
     context['region_count'] = Region.objects.all().count()
     context['tube_count'] = Tube.objects.all().count()
+    context["videos"] = Video.objects.all().filter(parent_query__isnull=True)
+    context['manual_tasks'] = settings.MANUAL_VIDEO_TASKS
     context['custom_detector_count'] = CustomDetector.objects.all().count()
     return render(request, 'dashboard.html', context)
 

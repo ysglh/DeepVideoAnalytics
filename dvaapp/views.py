@@ -66,7 +66,7 @@ class RegionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Cre
     permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
     queryset = Region.objects.all()
     serializer_class = serializers.RegionSerializer
-    filter_fields = ('video', 'frame', 'object_name')
+    filter_fields = ('video')
 
 
 class QueryViewSet(viewsets.ReadOnlyModelViewSet):

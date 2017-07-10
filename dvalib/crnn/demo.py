@@ -11,7 +11,7 @@ model_path = './data/crnn.pth'
 img_path = './data/demo.png'
 alphabet = '0123456789abcdefghijklmnopqrstuvwxyz'
 
-model = crnn.CRNN(32, 1, 37, 256, 1)
+model = crnn.CRNN(32, 1, 37, 256).cuda()
 print('loading pretrained model from %s' % model_path)
 model.load_state_dict(torch.load(model_path))
 
@@ -19,7 +19,7 @@ converter = utils.strLabelConverter(alphabet)
 
 transformer = dataset.resizeNormalize((100, 32))
 image = Image.open(img_path).convert('L')
-image = transformer(image)
+image = transformer(image).cuda()
 image = image.view(1, *image.size())
 image = Variable(image)
 

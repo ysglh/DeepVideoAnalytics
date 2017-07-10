@@ -27,6 +27,20 @@
        - "127.0.0.1:8500:80"
      volumes:
        - dvadata:/root/DVA/dva/media
+   dva-ocr:
+     image: akshayubhat/dva_ctpn:latest
+     container_name: dva-ocr
+     environment:
+       - GPU_AVAILABLE=1
+       - DOCKER_MODE=true
+       - BROKER_URL=${BROKER_URL}
+       - DATABASE_URL=${DATABASE_URL}
+       - SECRET_KEY=${SECRET_KEY}
+       - MEDIA_BUCKET=${MEDIA_BUCKET}
+       - CELERY_MUTE=1
+     command: bash -c "sleep 60 && git pull && fab startq:qocr"
+     volumes:
+       - dvadata:/root/DVA/dva/media
  volumes:
   dvadata:
     external: true

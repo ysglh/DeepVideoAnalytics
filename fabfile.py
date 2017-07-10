@@ -1010,14 +1010,14 @@ def recognize_text(video_pk):
     import dvalib.crnn.models.crnn as crnn
     model_path = '/root/DVA/dvalib/crnn/data/crnn.pth'
     alphabet = '0123456789abcdefghijklmnopqrstuvwxyz'
-    model = crnn.CRNN(32, 1, 37, 256, 1)
+    model = crnn.CRNN(32, 1, 37, 256, 1).cuda()
     model.load_state_dict(torch.load(model_path))
     converter = utils.strLabelConverter(alphabet)
     transformer = dataset.resizeNormalize((100, 32))
     for r in Region.objects.all().filter(video_id=video_pk,object_name='CTPN_TEXTBOX'):
         img_path = "{}/{}/detections/{}.jpg".format(settings.MEDIA_ROOT,video_pk,r.pk)
         image = Image.open(img_path).convert('L')
-        image = transformer(image)
+        image = transformer(image).cuda()
         image = image.view(1, *image.size())
         image = Variable(image)
         model.eval()

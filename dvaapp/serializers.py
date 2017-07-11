@@ -37,9 +37,11 @@ class AppliedLabelSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class FrameSerializer(serializers.HyperlinkedModelSerializer):
+    region_list = RegionExportSerializer(source='region_set',read_only=True,many=True)
+
     class Meta:
         model = Frame
-        fields = '__all__'
+        fields = ('region_list','video','frame_index','keyframe','t','name','subdir','id','segment_index')
 
 
 class SegmentSerializer(serializers.HyperlinkedModelSerializer):

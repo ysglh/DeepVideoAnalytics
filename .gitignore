@@ -78,3 +78,4 @@ notes/*.mov
 /dvalib/data/facenet.pb
 /shared/facenet.pb
 /shared/old_facenet_model/
+/notebooks/recaptcha.txt

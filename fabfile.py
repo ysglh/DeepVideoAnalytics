@@ -48,6 +48,12 @@ def server():
     """
     local("python manage.py runserver")
 
+@task
+def pull_private():
+    local('aws s3 cp s3://aub3config/.netrc /root/.netrc')
+    local('git clone https://github.com/AKSHAYUBHAT/DeepVideoAnalyticsDemo')
+    local('mv DeepVideoAnalyticsDemo dvap')
+    local('rm /root/.netrc')
 
 @task
 def start_container():

@@ -19,7 +19,8 @@
        - LAUNCH_Q_qclusterer=1
        - LAUNCH_Q_qfacedetector=1
        - CELERY_MUTE=1
-     command: bash -c "youtube-dl -U && git pull && fab start_container"
+       - DVA_PRIVATE_ENABLE=1
+     command: bash -c "youtube-dl -U && git pull && fab pull_private && fab start_container"
      ports:
        - "127.0.0.1:8500:80" # Since Docker messes up iptables, ufw has no effect as a result bind to localhost and tunnel / Port forward through SSH
      volumes:

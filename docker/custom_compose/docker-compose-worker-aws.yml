@@ -22,7 +22,8 @@
        - CELERY_MUTE=1
        - MEDIA_BUCKET=${MEDIA_BUCKET}
        - GPU_AVAILABLE=1
-     command: bash -c "youtube-dl -U && git pull && fab start_container"
+       - DVA_PRIVATE_ENABLE=1
+     command: bash -c "youtube-dl -U && git pull && fab pull_private && fab start_container"
      ports:
        - "127.0.0.1:8500:80"
      volumes:
@@ -38,7 +39,8 @@
        - SECRET_KEY=${SECRET_KEY}
        - MEDIA_BUCKET=${MEDIA_BUCKET}
        - CELERY_MUTE=1
-     command: bash -c "sleep 60 && git pull && fab startq:qocr"
+       - DVA_PRIVATE_ENABLE=1
+     command: bash -c "sleep 60 && git pull && fab pull_private && fab startq:qocr"
      volumes:
        - dvadata:/root/DVA/dva/media
  volumes:

@@ -275,27 +275,9 @@ nvidia-docker-compose -f custom_compose/docker-compose-gpu.yml up
     <div class="row">
         <div class="col-lg-12">
             <div class="alert alert-danger"><h4 class="text-center">Security warning</h4>
-            When deploying on AWS, we recommend that you allow inbound traffic only from your own IP addresses, you can easily change these using AWS security rules even after instance has started.
             When deploying/running on remote Ubuntu machines on VPS services such as Linode etc. beware of the <a href="https://askubuntu.com/questions/652556/uncomplicated-firewall-ufw-is-not-blocking-anything-when-using-docker" target="_blank">Docker/UFW firewall issues</a>.
             Docker bypasses UFW firewall and opens the port 8000 to internet. You can change the behavior by using a loopback interface (127.0.0.1:8000:80) and then forwarding the port (8000) over SSH tunnel, an example of this is <a href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/docker/docker-compose-linode.yml" target="_blank">shown here</a>.
             </div>
-        </div>
-    </div>
-    <div class="row m-t">
-        <div class="col-md-6">
-            <h2>On AWS using a P2.xlarge instance</h2>
-            <p>We provide an AMI with all dependencies such as docker & nvidia drivers pre-installed. To use it start a P2.xlarge instance with <span style="font-weight:bold">AMI ID: (Please email us)</span>  and ports 8000, 6006, 8888 open (preferably to only your IP). Run following commands after logging into the machine via SSH.
-                After approximately 5 ~ 1 minutes the user interface will appear on port 8000 of the instance ip. AMI creation is <a href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/notebooks/notes/ami.md" target="_parent">documented here</a>.</p>
-        </div>
-        <div class="col-md-6 ">
-<pre class="m-t"  style="padding:0"><code class="bash">
-rm -rf deepvideoanalytics
-git clone https://github.com/akshayubhat/deepvideoanalytics
-cd deepvideoanalytics/docker
-./rebuild_gpu.sh
-nvidia-docker-compose -f custom_compose/docker-compose-gpu.yml up
-
-</code></pre>
         </div>
     </div>
 </section>

@@ -54,6 +54,9 @@ def pull_private():
     local('git clone https://github.com/AKSHAYUBHAT/DeepVideoAnalyticsDemo')
     local('mv DeepVideoAnalyticsDemo dvap')
     local('rm /root/.netrc')
+    with lcd('dvap'):
+        local('./setup_private.sh')
+
 
 @task
 def start_container():

@@ -54,6 +54,6 @@
 # Contact
 
 Deep Video Analytics is currently in active development.
-The license will be relaxed once the a stable release version is reached.
+The license will be relaxed once a stable release version is reached.
 Please contact me for more information. For more information see [answer on this issue](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/issues/29)
  

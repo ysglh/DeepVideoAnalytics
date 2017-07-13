@@ -46,6 +46,7 @@
 ![Data model](notebooks/images/infographic.png "graphic")
 
 
+
 # License & Copyright
 
 **Copyright 2016-2017, Akshay Bhat, Cornell University, All rights reserved.**

@@ -86,7 +86,6 @@ def query_approximate(local_path, n, visual_index, clusterer):
             results.append({
                 'rank': i + 1,
                 'dist': i,
-                'detection_primary_key': e.detection_id,
                 'frame_index': e.frame.frame_index,
                 'frame_primary_key': e.frame_id,
                 'video_primary_key': e.video_id,

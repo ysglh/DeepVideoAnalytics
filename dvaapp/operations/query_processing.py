@@ -246,7 +246,7 @@ class QueryProcessing(object):
                 exact = False
         if exact:
             query_task.refresh_index(index_name)
-            results = visual_index.nearest(image_path=local_path)
+            results = visual_index.nearest(image_path=local_path,n=iq.count)
         # TODO: optimize this using batching
         for r in results:
             qr = QueryResults()

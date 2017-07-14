@@ -64,6 +64,8 @@
                 </table>
             </div>
         </div>
+    <div class="col-lg-6">
+
         <div class="box">
             <div class="box-header with-border">
                 <h3>Pending tasks</h3>
@@ -99,6 +101,8 @@
                 </table>
             </div>
         </div>
+    </div>
+    <div class="col-lg-6">
         <div class="box">
             <div class="box-header with-border">
                 <h3>Running / incomplete tasks</h3>
@@ -109,6 +113,7 @@
                     <tr>
                         <th>Video</th>
                         <th>Operation</th>
+                        <th>Started</th>
                         <th>Started</th>
                         <th>Completed</th>
                         <th>timestamp</th>
@@ -123,6 +128,7 @@
                             <td>{{ e.video.name }}</td>
                             <td>{{ e.operation }}</td>
                             <td class="text-center">{{ e.started }}</td>
+                            <td class="text-center">{{ e.started|date:"U" }}</td>
                             <td class="text-center">{{ e.completed }}</td>
                             <td class="text-center">{{ e.created }}</td>
                             <td class="text-right">{{ e.seconds|floatformat }}</td>
@@ -134,6 +140,8 @@
                 </table>
             </div>
         </div>
+    </div>
+    <div class="col-lg-6">
         <div class="box">
             <div class="box-header with-border">
                 <h3>Successful tasks</h3>
@@ -145,6 +153,7 @@
                         <th>Video</th>
                         <th>Operation</th>
                         <th>Started</th>
+                        <th>Seconds</th>
                         <th>Completed</th>
                         <th>timestamp</th>
                         <th>time taken in seconds</th>
@@ -158,6 +167,7 @@
                             <td>{{ e.video.name }}</td>
                             <td>{{ e.operation }}</td>
                             <td class="text-center">{{ e.started }}</td>
+                            <td class="text-center">{{ e.started|date:"U" }}</td>
                             <td class="text-center">{{ e.completed }}</td>
                             <td class="text-center">{{ e.created }}</td>
                             <td class="text-right">{{ e.seconds|floatformat }}</td>

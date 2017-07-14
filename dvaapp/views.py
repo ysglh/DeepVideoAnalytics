@@ -967,3 +967,11 @@ def retry_task(request, pk):
         raise NotImplementedError
 
 
+@user_passes_test(user_check)
+def mark_task_failed(request, pk):
+    event = TEvent.objects.get(pk=int(pk))
+    event.errored = True
+    event.error_message = "Manually marked as failed"
+    event.save()
+    return redirect('/tasks/')
+

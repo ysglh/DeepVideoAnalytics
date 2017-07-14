@@ -113,7 +113,7 @@
                         <th>Completed</th>
                         <th>timestamp</th>
                         <th>time taken in seconds</th>
-                        <th class="text-center">retry task</th>
+                        <th class="text-center">mark as failed</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -126,7 +126,7 @@
                             <td class="text-center">{{ e.completed }}</td>
                             <td class="text-center">{{ e.created }}</td>
                             <td class="text-right">{{ e.seconds|floatformat }}</td>
-                            <td class="text-center"><a href="/retry/{{ e.pk }}/">Retry</a></td>
+                            <td class="text-center"><a href="/failed/{{ e.pk }}/">Mark as failed</a></td>
                         </tr>
                         {% endif %}
                     {% endfor %}

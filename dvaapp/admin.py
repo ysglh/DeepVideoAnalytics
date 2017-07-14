@@ -1,5 +1,11 @@
 from django.contrib import admin
-from .models import Video,Frame,TEvent,IndexEntries,QueryResults,Query,AppliedLabel,VDNServer,VDNDataset, ClusterCodes, Clusters, Region, Tube, CustomDetector, Segment
+from .models import Video, Frame, TEvent, IndexEntries, QueryResults, Query, AppliedLabel, VDNServer,\
+    VDNDataset, ClusterCodes, Clusters, Region, Tube, CustomDetector, Segment, IndexerQuery
+
+
+@admin.register(IndexerQuery)
+class IndexerQueryAdmin(admin.ModelAdmin):
+    pass
 
 
 @admin.register(Segment)

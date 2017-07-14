@@ -68,13 +68,12 @@ class IndexerTask(celery.Task):
 
 def query_approximate(local_path, n, visual_index, clusterer):
     vector = visual_index.apply(local_path)
-    results = {}
-    results[visual_index.name] = []
+    results = []
     coarse, fine, results_indexes = clusterer.apply(vector, n)
     for i, k in enumerate(results_indexes[0]):
         e = ClusterCodes.objects.get(searcher_index=k.id, clusters=clusterer.dc)
         if e.detection_id:
-            results[visual_index.name].append({
+            results.append({
                 'rank': i + 1,
                 'dist': i,
                 'detection_primary_key': e.detection_id,
@@ -84,7 +83,7 @@ def query_approximate(local_path, n, visual_index, clusterer):
                 'type': 'detection',
             })
         else:
-            results[visual_index.name].append({
+            results.append({
                 'rank': i + 1,
                 'dist': i,
                 'detection_primary_key': e.detection_id,
@@ -249,21 +248,22 @@ class QueryProcessing(object):
         if exact:
             query_task.refresh_index(index_name)
             results = visual_index.nearest(image_path=local_path)
-            for r in results:
-                qr = QueryResults()
-                qr.query = self.query
-                qr.indexerquery = iq
-                if 'detection_primary_key' in r:
-                    dd = Region.objects.get(pk=r['detection_primary_key'])
-                    qr.detection = dd
-                    qr.frame_id = dd.frame_id
-                else:
-                    qr.frame_id = r['frame_primary_key']
-                qr.video_id = r['video_primary_key']
-                qr.algorithm = iq.algorithm
-                qr.rank = r['rank']
-                qr.distance = r['dist']
-                qr.save()
+        # TODO: optimize this using batching
+        for r in results:
+            qr = QueryResults()
+            qr.query = self.query
+            qr.indexerquery = iq
+            if 'detection_primary_key' in r:
+                dd = Region.objects.get(pk=r['detection_primary_key'])
+                qr.detection = dd
+                qr.frame_id = dd.frame_id
+            else:
+                qr.frame_id = r['frame_primary_key']
+            qr.video_id = r['video_primary_key']
+            qr.algorithm = iq.algorithm
+            qr.rank = r['rank']
+            qr.distance = r['dist']
+            qr.save()
         iq.results = True
         iq.save()
         self.query.results_available = True

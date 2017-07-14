@@ -114,6 +114,7 @@ POST_OPERATION_TASKS = {
     ],
     'inception_index_regions_by_id':[
         {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'indexes'}},
+        {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'detections'}},
     ],
     'import_vdn_file':[
         {'task_name': 'sync_bucket_video_by_id', 'arguments': {}},

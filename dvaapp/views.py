@@ -953,13 +953,15 @@ def external(request):
 
 
 @user_passes_test(user_check)
-def retry_task(request, pk):
+def retry_task(request):
+    pk = request.POST.get('pk')
     event = TEvent.objects.get(pk=int(pk))
     context = {}
     if settings.TASK_NAMES_TO_TYPE[event.operation] == settings.VIDEO_TASK:
         new_event = TEvent()
         new_event.video_id = event.video_id
         new_event.arguments_json = event.arguments_json
+        new_event.operation = event.operation
         new_event.save()
         result = app.send_task(name=event.operation, args=[new_event.pk],
                                queue=settings.TASK_NAMES_TO_QUEUE[event.operation])
@@ -973,7 +975,8 @@ def retry_task(request, pk):
 
 
 @user_passes_test(user_check)
-def mark_task_failed(request, pk):
+def mark_task_failed(request):
+    pk = request.POST.get('pk')
     event = TEvent.objects.get(pk=int(pk))
     event.errored = True
     event.error_message = "Manually marked as failed"

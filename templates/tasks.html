@@ -22,6 +22,8 @@
                 <h3>Tasks</h3>
             </div>
             <div class="box-body">
+                <form method="post">
+                {% csrf_token %}
                 <table class="table dataTables">
                     <thead>
                     <tr>
@@ -58,12 +60,13 @@
                             <td class="text-center">{{ e.created|date:"U" }}</td>
                             <td class="text-right">{{ e.seconds|floatformat }}</td>
                             <td class="text-right">{{ e.error_message }}</td>
-                            <td class="text-center"><a href="/retry/{{ e.pk }}/">Retry</a></td>
-                            <td class="text-center"><a href="/failed/{{ e.pk }}/">Mark as failed</a></td>
+                            <td class="text-center"><button class="btn btn-primary" name="pk" formaction="/retry/" type="submit" value="{{ e.pk }}">Retry</button></td>
+                            <td class="text-center"><button class="btn btn-warning" name="pk" formaction="/failed/"  type="submit" value="{{ e.pk }}" >Mark as failed</button></td>
                         </tr>
                     {% endfor %}
                     </tbody>
                 </table>
+                </form>
             </div>
         </div>
     </div>

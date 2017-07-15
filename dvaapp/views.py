@@ -975,3 +975,17 @@ def mark_task_failed(request, pk):
     event.save()
     return redirect('/tasks/')
 
+
+@user_passes_test(user_check)
+def delete_video(request):
+    if request.user.is_staff: # currently only staff can delete
+        video_pk = request.POST.get('video_pk')
+        video = Video.objects.get(pk=video_pk)
+        video.delete()
+        delete_task = TEvent()
+        delete_task.arguments_json = json.dumps({'video_pk':video_pk})
+        delete_task.operation = 'delete_video_by_id'
+        delete_task.save()
+        queue = settings.TASK_NAMES_TO_QUEUE[delete_task.operation]
+        _ = app.send_task(name=delete_task.operation, args=[delete_task.pk],queue=queue)
+        return redirect('video_list')

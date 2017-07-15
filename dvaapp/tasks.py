@@ -902,6 +902,48 @@ def sync_bucket_video_by_id(task_id):
     return
 
 
+@app.task(track_started=True, name="delete_video_by_id")
+def delete_video_by_id(task_id):
+    start = TEvent.objects.get(pk=task_id)
+    if celery_40_bug_hack(start):
+        return 0
+    start.task_id = delete_video_by_id.request.id
+    start.started = True
+    start.operation = delete_video_by_id.name
+    start.save()
+    start_time = time.time()
+    args = json.loads(start.arguments_json)
+    video_id = args['video_pk']
+    src = '{}/{}/'.format(settings.MEDIA_ROOT, video_id)
+    args = ['rm','-rf',src]
+    command = " ".join(args)
+    deleter = subprocess.Popen(args)
+    deleter.wait()
+    if deleter.returncode != 0:
+        start.errored = True
+        start.error_message = "Error while executing : {}".format(command)
+        start.save()
+        return
+    if settings.MEDIA_BUCKET.strip():
+        dest = 's3://{}/{}/'.format(settings.MEDIA_BUCKET, video_id)
+        args = ['aws', 's3', 'rm','--quiet','--recursive', dest]
+        command = " ".join(args)
+        syncer = subprocess.Popen(args)
+        syncer.wait()
+        if syncer.returncode != 0:
+            start.errored = True
+            start.error_message = "Error while executing : {}".format(command)
+            start.save()
+            return
+    else:
+        logging.info("Media bucket name not specified, nothing was synced.")
+        start.error_message = "Media bucket name is empty".format(settings.MEDIA_BUCKET)
+    start.completed = True
+    start.seconds = time.time() - start_time
+    start.save()
+    return
+
+
 @app.task(track_started=True, name="detect_custom_objects")
 def detect_custom_objects(task_id):
     """
@@ -962,3 +1004,7 @@ def train_yolo_detector(task_id):
     return 0
 
 
+@app.task(track_started=True,name="update_index")
+def update_index(indexer_entry_pk):
+    logging.info("recieved {}".format(indexer_entry_pk))
+    return 0

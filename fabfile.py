@@ -379,9 +379,9 @@ def startq(queue_name,conc=1):
     mute = '--without-gossip --without-mingle --without-heartbeat' if 'CELERY_MUTE' in os.environ else ''
     if queue_name in settings.QUEUES:
         if queue_name == settings.Q_EXTRACTOR:
-            command = 'celery -A dva worker -l info {} -c {} -Q {} -n {}.%h -f logs/{}.log'.format(mute,int(conc), queue_name,queue_name,queue_name)
+            command = 'celery -A dva worker -l info {} -c {} -Q {},broadcast_tasks -n {}.%h -f logs/{}.log'.format(mute,int(conc), queue_name,queue_name,queue_name)
         else:
-            command = 'celery -A dva worker -l info {} -P solo -c {} -Q {} -n {}.%h -f logs/{}.log'.format(mute,1, queue_name,queue_name,queue_name)
+            command = 'celery -A dva worker -l info {} -P solo -c {} -Q {},broadcast_tasks -n {}.%h -f logs/{}.log'.format(mute,1, queue_name,queue_name,queue_name)
         logging.info(command)
         os.system(command)
     else:

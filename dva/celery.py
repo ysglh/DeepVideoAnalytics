@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import os
 
 from celery import Celery
+from kombu.common import Broadcast
 
 # set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'dva.settings')
@@ -22,6 +23,10 @@ app.conf.update(
     CELERY_RESULT_BACKEND='django-db',
 )
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
+
+app.conf.task_queues = (Broadcast('broadcast_tasks'),)
+app.conf.task_routes = {'update_index': {'queue': 'broadcast_tasks'}}
+
 
 
 @app.task(bind=True)

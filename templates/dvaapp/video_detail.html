@@ -99,6 +99,9 @@
                     <form action="/export_video" method="post"><input type="hidden" value="{{ object.pk }}" name="video_id"><input type="hidden" value="file" name="export_method">{% csrf_token %}
                         <button type="submit" class="btn btn-info"><i class="fa fa-download"></i> Export video / dataset as a file</button>
                     </form>
+                    <form action="/delete_video" method="post"><input type="hidden" value="{{ object.pk }}" name="video_id">{% csrf_token %}
+                        <button type="submit" class="btn btn-danger"><i class="fa fa-delete"></i> Delete video / dataset (only staff users)</button>
+                    </form>
                 </div>
             </div>
             <form action="/export_video" method="post">

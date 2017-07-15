@@ -913,8 +913,8 @@ def delete_video_by_id(task_id):
     start.save()
     start_time = time.time()
     args = json.loads(start.arguments_json)
-    video_id = args['video_pk']
-    src = '{}/{}/'.format(settings.MEDIA_ROOT, video_id)
+    video_id = int(args['video_pk'])
+    src = '{}/{}/'.format(settings.MEDIA_ROOT, int(video_id))
     args = ['rm','-rf',src]
     command = " ".join(args)
     deleter = subprocess.Popen(args)
@@ -925,7 +925,7 @@ def delete_video_by_id(task_id):
         start.save()
         return
     if settings.MEDIA_BUCKET.strip():
-        dest = 's3://{}/{}/'.format(settings.MEDIA_BUCKET, video_id)
+        dest = 's3://{}/{}/'.format(settings.MEDIA_BUCKET, int(video_id))
         args = ['aws', 's3', 'rm','--quiet','--recursive', dest]
         command = " ".join(args)
         syncer = subprocess.Popen(args)

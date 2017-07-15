@@ -1,6 +1,6 @@
 import os, json, requests, base64, logging
 from models import Video, TEvent, AppliedLabel, Region, Frame, VDNDataset, VDNServer, Query, VDNDetector, \
-    CustomDetector, QueryResults, IndexerQuery
+    CustomDetector, QueryResults, IndexerQuery, DeletedVideo
 from django.conf import settings
 from dva.celery import app
 from django_celery_results.models import TaskResult
@@ -46,6 +46,26 @@ def create_annotator_folders(annotator, create_subdirs=True):
         os.mkdir('{}/annotators/{}'.format(settings.MEDIA_ROOT, annotator.pk))
     except:
         pass
+
+
+def delete_video_object(video_pk,deleter,garbage_collection=True):
+    video = Video.objects.get(pk=video_pk)
+    deleted = DeletedVideo()
+    deleted.name = video.name
+    deleted.deleter = deleter
+    deleted.uploader = video.uploader
+    deleted.url = video.url
+    deleted.description = video.description
+    deleted.original_pk = video_pk
+    deleted.save()
+    video.delete()
+    if garbage_collection:
+        delete_task = TEvent()
+        delete_task.arguments_json = json.dumps({'video_pk': video_pk})
+        delete_task.operation = 'delete_video_by_id'
+        delete_task.save()
+        queue = settings.TASK_NAMES_TO_QUEUE[delete_task.operation]
+        _ = app.send_task(name=delete_task.operation, args=[delete_task.pk], queue=queue)
 
 
 def handle_uploaded_file(f, name, extract=True, user=None, rate=30, rescale=0):

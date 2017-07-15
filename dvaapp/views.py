@@ -18,7 +18,7 @@ import math
 from django.db.models import Max
 from shared import handle_uploaded_file, create_annotation, create_child_vdn_dataset, \
     create_root_vdn_dataset, handle_youtube_video, pull_vdn_list, \
-    import_vdn_dataset_url, create_detector_dataset, import_vdn_detector_url, refresh_task_status
+    import_vdn_dataset_url, create_detector_dataset, import_vdn_detector_url, refresh_task_status, delete_video_object
 from operations.query_processing import QueryProcessing
 from django.contrib.auth.decorators import user_passes_test,login_required
 from django.utils.decorators import method_decorator
@@ -985,22 +985,7 @@ def mark_task_failed(request, pk):
 def delete_video(request):
     if request.user.is_staff: # currently only staff can delete
         video_pk = request.POST.get('video_id')
-        video = Video.objects.get(pk=video_pk)
-        deleted = DeletedVideo()
-        deleted.name = video.name
-        deleted.deleter = request.user
-        deleted.uploader = video.uploader
-        deleted.url = video.url
-        deleted.description = video.description
-        deleted.original_pk = video_pk
-        deleted.save()
-        video.delete()
-        delete_task = TEvent()
-        delete_task.arguments_json = json.dumps({'video_pk':video_pk})
-        delete_task.operation = 'delete_video_by_id'
-        delete_task.save()
-        queue = settings.TASK_NAMES_TO_QUEUE[delete_task.operation]
-        _ = app.send_task(name=delete_task.operation, args=[delete_task.pk],queue=queue)
+        delete_video_object(video_pk,request.user)
         return redirect('video_list')
     else:
         return redirect('accounts/login/')

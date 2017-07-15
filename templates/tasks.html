@@ -1,16 +1,6 @@
 {% extends "base.html" %}
 {% load static from staticfiles %}
 {% block page_css %}
-{#  <script type="text/javascript" src={% static 'vis.js' %}></script>#}
-{#  <link href={% static 'vis-network.min.css' %} rel="stylesheet" type="text/css" />#}
-{##}
-{#  <style type="text/css">#}
-{#    #mynetwork {#}
-{#      width: 100%;#}
-{#      height: 200px;#}
-{#      border: 1px solid lightgray;#}
-{#    }#}
-{#  </style>#}
 {% endblock %}
 
 
@@ -26,15 +16,16 @@
 </section>
 <section class="content">
 <div class="row">
-    <div class="col-lg-6">
+    <div class="col-lg-12">
         <div class="box">
             <div class="box-header with-border">
-                <h3>Failed tasks</h3>
+                <h3>Tasks</h3>
             </div>
             <div class="box-body">
                 <table class="table dataTables">
                     <thead>
                     <tr>
+                        <th>Status</th>
                         <th>Video</th>
                         <th>Operation</th>
                         <th>ts</th>
@@ -46,8 +37,20 @@
                     </thead>
                     <tbody>
                     {% for e in events %}
-                        {% if e.errored %}
                         <tr>
+                            <td>
+                                {% if e.errored %}
+                                    <a href="#" class="btn btn-error">Failed</a>
+                                {% elif e.seconds < 0 and not e.started %}
+                                    <a href="#" class="btn btn-warning">Pending</a>
+                                {% elif e.seconds < 0 and e.started and not e.completed%}
+                                    <a href="#" class="btn btn-primary">Running</a>
+                                {% elif e.completed%}
+                                    <a href="#" class="btn btn-success">Completed</a>
+                                {% else %}
+                                    <a href="#" class="btn btn-info">Unknown</a>
+                                {% endif %}
+                            </td>
                             <td>{{ e.video.name }}</td>
                             <td>{{ e.operation }}</td>
                             <td class="text-center">{{ e.created|timesince}}</td>
@@ -56,14 +59,15 @@
                             <td class="text-right">{{ e.error_message }}</td>
                             <td class="text-center"><a href="/retry/{{ e.pk }}/">Retry</a></td>
                         </tr>
-                        {% endif %}
                     {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-    <div class="col-lg-6">
+</div>
+<div class="row">
+    <div class="col-lg-4">
         <div class="box">
             <div class="box-header with-border">
                 <h3>Pending tasks</h3>
@@ -96,9 +100,7 @@
             </div>
         </div>
     </div>
-    </div>
-    <div class="row">
-    <div class="col-lg-6">
+    <div class="col-lg-4">
         <div class="box">
             <div class="box-header with-border">
                 <h3>Running / incomplete tasks</h3>
@@ -131,7 +133,7 @@
             </div>
         </div>
     </div>
-    <div class="col-lg-6">
+    <div class="col-lg-4">
         <div class="box">
             <div class="box-header with-border">
                 <h3>Successful tasks</h3>

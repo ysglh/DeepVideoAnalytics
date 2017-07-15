@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import Video, Frame, TEvent, IndexEntries, QueryResults, Query, AppliedLabel, VDNServer,\
-    VDNDataset, ClusterCodes, Clusters, Region, Tube, CustomDetector, Segment, IndexerQuery
+    VDNDataset, ClusterCodes, Clusters, Region, Tube, CustomDetector, Segment, IndexerQuery, DeletedVideo
 
 
 @admin.register(IndexerQuery)
@@ -25,6 +25,11 @@ class RegionAdmin(admin.ModelAdmin):
 
 @admin.register(Video)
 class VideoAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(DeletedVideo)
+class DeletedVideoAdmin(admin.ModelAdmin):
     pass
 
 

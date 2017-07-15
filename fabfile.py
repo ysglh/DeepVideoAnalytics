@@ -120,6 +120,7 @@ def clean():
                 local('rabbitmqadmin purge queue name={}'.format(qname))
             except:
                 logging.warning("coudnt clear queue {}".format(qname))
+    local('celery amqp exchange.delete broadcast_tasks')
     migrate()
     local('python manage.py flush --no-input')
     migrate()

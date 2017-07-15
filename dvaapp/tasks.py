@@ -1006,5 +1006,11 @@ def train_yolo_detector(task_id):
 
 @app.task(track_started=True,name="update_index")
 def update_index(indexer_entry_pk):
+    """
+    app.send_task('update_index',args=[5,],exchange='broadcast_tasks')
+    :param indexer_entry_pk:
+    :return:
+    """
+    print "TESTSTESTSTSTSTSTST"
     logging.info("recieved {}".format(indexer_entry_pk))
     return 0

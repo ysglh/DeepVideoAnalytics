@@ -353,3 +353,15 @@ class AppliedLabel(models.Model):
     label_name = models.CharField(max_length=200)
     source = models.CharField(max_length=2, choices=SOURCE_CHOICES, default=UI)
     created = models.DateTimeField('date created', auto_now_add=True)
+
+
+class DeletedVideo(models.Model):
+    name = models.CharField(max_length=500,default="")
+    description = models.TextField(default="")
+    uploader = models.ForeignKey(User,null=True,related_name="user_uploader")
+    url = models.TextField(default="")
+    deleter = models.ForeignKey(User,related_name="user_deleter")
+    original_pk = models.IntegerField()
+
+    def __unicode__(self):
+        return u'Deleted {}'.format(self.name)

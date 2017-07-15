@@ -7,7 +7,7 @@ import json
 from django.views.generic import ListView, DetailView
 from .forms import UploadFileForm, YTVideoForm, AnnotationForm
 from .models import Video, Frame, Query, QueryResults, TEvent, IndexEntries, VDNDataset, Region, VDNServer, \
-    ClusterCodes, Clusters, AppliedLabel, Tube, CustomDetector, VDNDetector, Segment
+    ClusterCodes, Clusters, AppliedLabel, Tube, CustomDetector, VDNDetector, Segment, DeletedVideo
 from dva.celery import app
 import serializers
 from rest_framework import viewsets, mixins
@@ -981,6 +981,14 @@ def delete_video(request):
     if request.user.is_staff: # currently only staff can delete
         video_pk = request.POST.get('video_id')
         video = Video.objects.get(pk=video_pk)
+        deleted = DeletedVideo()
+        deleted.name = video.name
+        deleted.deleter = request.user
+        deleted.uploader = video.uploader
+        deleted.url = video.url
+        deleted.description = video.description
+        deleted.original_pk = video_pk
+        deleted.save()
         video.delete()
         delete_task = TEvent()
         delete_task.arguments_json = json.dumps({'video_pk':video_pk})

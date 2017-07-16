@@ -38,7 +38,8 @@ def _parse_resize_vgg_function(filename):
     image_string = tf.read_file(filename)
     image_decoded = tf.image.decode_png(image_string,channels=3)
     image_scaled = tf.image.resize_images(image_decoded, [224, 224])
-    return image_scaled, filename
+    image_ranged= tf.image.convert_image_dtype(image_scaled, dtype=tf.float32)
+    return image_ranged, filename
 
 
 def _parse_scale_standardize_function(filename):

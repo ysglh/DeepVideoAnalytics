@@ -80,4 +80,3 @@ notes/*.mov
 /shared/old_facenet_model/
 /notebooks/recaptcha.txt
 /dvalib/data/vgg.pb
-/shared/vgg16.tfmodel

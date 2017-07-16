@@ -1070,9 +1070,9 @@ def qt():
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
         v = handle_uploaded_file(f, name)
-        extract_frames(TEvent.objects.create(video=v).pk)
-        perform_face_detection(TEvent.objects.create(video=v).pk)
-        perform_face_indexing(TEvent.objects.create(video=v).pk)
+        # extract_frames(TEvent.objects.create(video=v).pk)
+        # perform_face_detection(TEvent.objects.create(video=v).pk)
+        # perform_face_indexing(TEvent.objects.create(video=v).pk)
 
 
 @task

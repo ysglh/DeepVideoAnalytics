@@ -81,6 +81,7 @@ class Query(models.Model):
     results_available = models.BooleanField(default=False)
     user = models.ForeignKey(User, null=True,related_name="visua_query_user")
     image_data = models.BinaryField(null=True)
+    federated = models.BooleanField(default=False)
 
 
 class IndexerQuery(models.Model):
@@ -220,6 +221,18 @@ class QueryResults(models.Model):
     rank = models.IntegerField()
     algorithm = models.CharField(max_length=100)
     distance = models.FloatField(default=0.0)
+
+
+class FederatedQueryResults(models.Model):
+    query = models.ForeignKey(Query)
+    rank = models.IntegerField()
+    user = models.ForeignKey(User)
+    server_name = models.CharField(max_length=100)
+    algorithm = models.CharField(max_length=100)
+    distance = models.FloatField(default=0.0)
+    results_metadata = models.TextField(default="")
+    results_available = models.BooleanField(default=False)
+    result_image_data = models.BinaryField(null=True)
 
 
 class Clusters(models.Model):

@@ -25,12 +25,14 @@
        - RABBIT_USER=dvauser
        - RABBIT_PASS=localpass
        - GPU_AVAILABLE=1
+       - VGG_ENABLE=1
        - DB_HOST=db
        - DB_NAME=postgres
        - DB_USER=pgdbuser
        - DB_PASS=pgdbpass
        - LAUNCH_SERVER_NGINX=1
        - LAUNCH_Q_qindexer=1
+       - LAUNCH_Q_qvgg=1
        - LAUNCH_Q_qretriever=1
        - LAUNCH_Q_qextract=1
        - LAUNCH_Q_qdetector=1

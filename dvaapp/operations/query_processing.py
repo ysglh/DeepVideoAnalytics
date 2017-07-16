@@ -19,9 +19,14 @@ class IndexerTask(celery.Task):
     @property
     def visual_indexer(self):
         if IndexerTask._visual_indexer is None:
-            IndexerTask._visual_indexer = {'inception': indexer.InceptionIndexer(session=self._session),
+            if IndexerTask._session is None:
+                logging.info("Creating a global shared session")
+                config = indexer.tf.ConfigProto()
+                config.gpu_options.per_process_gpu_memory_fraction = 0.2
+                IndexerTask._session = indexer.tf.Session()
+            IndexerTask._visual_indexer = {'inception': indexer.InceptionIndexer(session=IndexerTask._session),
                                            'facenet': indexer.FacenetIndexer(),
-                                           'vgg': indexer.VGGIndexer(session=self._session)
+                                           'vgg': indexer.VGGIndexer(session=IndexerTask._session)
                                            }
         return IndexerTask._visual_indexer
 

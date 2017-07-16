@@ -138,33 +138,36 @@ class InceptionIndexer(BaseIndexer):
         self.gpu_fraction = gpu_fraction
 
     def load(self):
-        network_path = os.path.abspath(__file__).split('indexer.py')[0]+'data/network.pb'
-        self.filenames_placeholder = tf.placeholder("string")
-        dataset = tf.contrib.data.Dataset.from_tensor_slices(self.filenames_placeholder)
-        dataset = dataset.map(_parse_resize_inception_function)
-        dataset = dataset.batch(self.batch_size)
-        self.iterator = dataset.make_initializable_iterator()
-        with gfile.FastGFile(network_path, 'rb') as f:
-            graph_def = tf.GraphDef()
-            graph_def.ParseFromString(f.read())
-            self.image, self.fname = self.iterator.get_next()
-            _ = tf.import_graph_def(graph_def, name='incept', input_map={'ResizeBilinear': self.image})
-            self.pool3 = tf.get_default_graph().get_tensor_by_name('incept/pool_3:0')
-        if self.session is None:
+        if self.graph_def is None:
             logging.warning("Loading the network {} , first apply / query will be slower".format(self.name))
+            network_path = os.path.abspath(__file__).split('indexer.py')[0]+'data/network.pb'
+            with tf.variable_scope("inception_pre"):
+                self.filenames_placeholder = tf.placeholder("string",name="inception_filename")
+                dataset = tf.contrib.data.Dataset.from_tensor_slices(self.filenames_placeholder)
+                dataset = dataset.map(_parse_resize_inception_function)
+                dataset = dataset.batch(self.batch_size)
+                self.iterator = dataset.make_initializable_iterator()
+            with gfile.FastGFile(network_path, 'rb') as f:
+                self.graph_def = tf.GraphDef()
+                self.graph_def.ParseFromString(f.read())
+                self.image, self.fname = self.iterator.get_next()
+                _ = tf.import_graph_def(self.graph_def, name='incept', input_map={'ResizeBilinear': self.image})
+                self.pool3 = tf.get_default_graph().get_tensor_by_name('incept/pool_3:0')
+        if self.session is None:
+            logging.warning("Creating a session {} , first apply / query will be slower".format(self.name))
             config = tf.ConfigProto()
             config.gpu_options.per_process_gpu_memory_fraction = self.gpu_fraction
             self.session = tf.InteractiveSession(config=config)
 
     def apply(self,image_path):
-        if self.session is None:
+        if self.graph_def is None or self.session is None:
             self.load()
         self.session.run(self.iterator.initializer, feed_dict={self.filenames_placeholder: [image_path,]})
         f, pool3_features = self.session.run([self.fname,self.pool3])
         return np.atleast_2d(np.squeeze(pool3_features))
 
     def apply_batch(self,image_paths):
-        if self.session is None:
+        if self.graph_def is None  or self.session is None:
             self.load()
         self.session.run(self.iterator.initializer, feed_dict={self.filenames_placeholder: image_paths})
         embeddings = {}
@@ -205,33 +208,36 @@ class VGGIndexer(BaseIndexer):
         self.gpu_fraction = gpu_fraction
 
     def load(self):
-        network_path = os.path.abspath(__file__).split('indexer.py')[0]+'data/vgg.pb'
-        self.filenames_placeholder = tf.placeholder("string")
-        dataset = tf.contrib.data.Dataset.from_tensor_slices(self.filenames_placeholder)
-        dataset = dataset.map(_parse_resize_vgg_function)
-        dataset = dataset.batch(self.batch_size)
-        self.iterator = dataset.make_initializable_iterator()
-        with gfile.FastGFile(network_path, 'rb') as f:
-            graph_def = tf.GraphDef()
-            graph_def.ParseFromString(f.read())
-            self.image, self.fname = self.iterator.get_next()
-            _ = tf.import_graph_def(graph_def, name='vgg', input_map={'images:0': self.image})
-        self.conv = tf.get_default_graph().get_tensor_by_name('vgg/conv5_3/conv5_3:0')
-        if self.session is None:
+        if self.graph_def is None:
             logging.warning("Loading the network {} , first apply / query will be slower".format(self.name))
+            network_path = os.path.abspath(__file__).split('indexer.py')[0]+'data/vgg.pb'
+            with tf.variable_scope("vgg_pre"):
+                self.filenames_placeholder = tf.placeholder("string",name="vgg_filenames")
+                dataset = tf.contrib.data.Dataset.from_tensor_slices(self.filenames_placeholder)
+                dataset = dataset.map(_parse_resize_vgg_function)
+                dataset = dataset.batch(self.batch_size)
+                self.iterator = dataset.make_initializable_iterator()
+            with gfile.FastGFile(network_path, 'rb') as f:
+                self.graph_def = tf.GraphDef()
+                self.graph_def.ParseFromString(f.read())
+                self.image, self.fname = self.iterator.get_next()
+                _ = tf.import_graph_def(self.graph_def, name='vgg', input_map={'images:0': self.image})
+            self.conv = tf.get_default_graph().get_tensor_by_name('vgg/conv5_3/conv5_3:0')
+        if self.session is None:
+            logging.warning("Creating a session {} , first apply / query will be slower".format(self.name))
             config = tf.ConfigProto()
             config.gpu_options.per_process_gpu_memory_fraction = self.gpu_fraction
             self.session = tf.InteractiveSession(config=config)
 
     def apply(self,image_path):
-        if self.session is None:
+        if self.graph_def is None or self.session is None:
             self.load()
         self.session.run(self.iterator.initializer, feed_dict={self.filenames_placeholder: [image_path,]})
         f, features = self.session.run([self.fname,self.conv])
         return np.atleast_2d(np.squeeze(features).sum(axis=(0,1)))
 
     def apply_batch(self,image_paths):
-        if self.session is None:
+        if self.graph_def is None  or self.session is None:
             self.load()
         self.session.run(self.iterator.initializer, feed_dict={self.filenames_placeholder: image_paths})
         embeddings = {}
@@ -268,11 +274,8 @@ class FacenetIndexer(BaseIndexer):
         self.batch_size = 32
 
     def load(self):
-        if self.session is None:
+        if self.graph_def is None:
             logging.warning("Loading {} , first apply / query will be slower".format(self.name))
-            config = tf.ConfigProto()
-            config.gpu_options.per_process_gpu_memory_fraction = 0.15
-            self.session = tf.InteractiveSession(config=config)
             self.filenames_placeholder = tf.placeholder("string")
             dataset = tf.contrib.data.Dataset.from_tensor_slices(self.filenames_placeholder)
             dataset = dataset.map(_parse_scale_standardize_function)
@@ -280,21 +283,27 @@ class FacenetIndexer(BaseIndexer):
             self.iterator = batched_dataset.make_initializable_iterator()
             false_phase_train = tf.constant(False)
             with gfile.FastGFile(self.network_path, 'rb') as f:
-                graph_def = tf.GraphDef()
-                graph_def.ParseFromString(f.read())
+                self.graph_def = tf.GraphDef()
+                self.graph_def.ParseFromString(f.read())
                 self.image, self.fname = self.iterator.get_next()
-                _ = tf.import_graph_def(graph_def, input_map={'{}:0'.format(self.input_op): self.image,'phase_train:0':false_phase_train})
-                self.emb = self.session.graph.get_tensor_by_name('import/{}:0'.format(self.embedding_op))
+                _ = tf.import_graph_def(self.graph_def, input_map={'{}:0'.format(self.input_op): self.image,'phase_train:0':false_phase_train})
+                self.emb = tf.get_default_graph().get_tensor_by_name('import/{}:0'.format(self.embedding_op))
+        if self.session is None:
+            logging.warning("Creating a session {} , first apply / query will be slower".format(self.name))
+            config = tf.ConfigProto()
+            config.gpu_options.per_process_gpu_memory_fraction = 0.15
+            self.session = tf.InteractiveSession(config=config)
 
     def apply(self, image_path):
-        if self.session is None:
+        if self.graph_def is None  or self.session is None:
             self.load()
         self.session.run(self.iterator.initializer, feed_dict={self.filenames_placeholder: [image_path, ]})
         f, features = self.session.run([self.fname, self.emb])
         return np.atleast_2d(np.squeeze(features))
 
     def index_faces(self, paths, paths_to_pk, output_dir, video_pk):
-        self.load()
+        if self.graph_def is None  or self.session is None:
+            self.load()
         entries = []
         output_dir = os.path.expanduser(output_dir)
         if not os.path.isdir(output_dir):

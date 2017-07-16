@@ -29,6 +29,13 @@ def _parse_resize_inception_function(filename):
     return image_scaled, filename
 
 
+def _parse_resize_vgg_function(filename):
+    image_string = tf.read_file(filename)
+    image_decoded = tf.image.decode_png(image_string,channels=3)
+    image_scaled = tf.image.resize_images(image_decoded, [224, 224])
+    return image_scaled, filename
+
+
 def _parse_scale_standardize_function(filename):
     image_string = tf.read_file(filename)
     image_decoded = tf.image.decode_png(image_string,channels=3)
@@ -108,12 +115,12 @@ class InceptionIndexer(BaseIndexer):
     Batched inception indexer
     """
 
-    def __init__(self,batch_size=8,gpu_fraction=0.2):
+    def __init__(self,batch_size=8,gpu_fraction=0.2,session=None):
         super(InceptionIndexer, self).__init__()
         self.name = "inception"
         self.net = None
         self.tf = True
-        self.session = None
+        self.session = session
         self.graph_def = None
         self.index, self.files, self.findex = None, {}, 0
         self.pool3 = None
@@ -126,23 +133,91 @@ class InceptionIndexer(BaseIndexer):
         self.gpu_fraction = gpu_fraction
 
     def load(self):
+        network_path = os.path.abspath(__file__).split('indexer.py')[0]+'data/network.pb'
+        self.filenames_placeholder = tf.placeholder("string")
+        dataset = tf.contrib.data.Dataset.from_tensor_slices(self.filenames_placeholder)
+        dataset = dataset.map(_parse_resize_inception_function)
+        dataset = dataset.batch(self.batch_size)
+        self.iterator = dataset.make_initializable_iterator()
+        with gfile.FastGFile(network_path, 'rb') as f:
+            graph_def = tf.GraphDef()
+            graph_def.ParseFromString(f.read())
+            self.image, self.fname = self.iterator.get_next()
+            _ = tf.import_graph_def(graph_def, name='incept', input_map={'ResizeBilinear': self.image})
+            self.pool3 = self.session.graph.get_tensor_by_name('incept/pool_3:0')
         if self.session is None:
             logging.warning("Loading the network {} , first apply / query will be slower".format(self.name))
             config = tf.ConfigProto()
             config.gpu_options.per_process_gpu_memory_fraction = self.gpu_fraction
             self.session = tf.InteractiveSession(config=config)
-            network_path = os.path.abspath(__file__).split('indexer.py')[0]+'data/network.pb'
-            self.filenames_placeholder = tf.placeholder("string")
-            dataset = tf.contrib.data.Dataset.from_tensor_slices(self.filenames_placeholder)
-            dataset = dataset.map(_parse_resize_inception_function)
-            dataset = dataset.batch(self.batch_size)
-            self.iterator = dataset.make_initializable_iterator()
-            with gfile.FastGFile(network_path, 'rb') as f:
-                graph_def = tf.GraphDef()
-                graph_def.ParseFromString(f.read())
-                self.image, self.fname = self.iterator.get_next()
-                _ = tf.import_graph_def(graph_def, name='incept', input_map={'ResizeBilinear': self.image})
-                self.pool3 = self.session.graph.get_tensor_by_name('incept/pool_3:0')
+
+    def apply(self,image_path):
+        if self.session is None:
+            self.load()
+        self.session.run(self.iterator.initializer, feed_dict={self.filenames_placeholder: [image_path,]})
+        f, pool3_features = self.session.run([self.fname,self.pool3])
+        return np.atleast_2d(np.squeeze(pool3_features))
+
+    def apply_batch(self,image_paths):
+        if self.session is None:
+            self.load()
+        self.session.run(self.iterator.initializer, feed_dict={self.filenames_placeholder: image_paths})
+        embeddings = {}
+        batch_count = 0
+        while True:
+            try:
+                f, emb = self.session.run([self.fname,self.pool3])
+                for i,fname in enumerate(f):
+                    embeddings[fname] = np.atleast_2d(np.squeeze(emb[i,:,:,:]))
+                batch_count += 1
+                if batch_count % 100 == 0:
+                    logging.info("{} batches containing {} images indexed".format(batch_count, batch_count * self.batch_size))
+            except tf.errors.OutOfRangeError:
+                break
+        return embeddings
+
+
+class VGGIndexer(BaseIndexer):
+    """
+    Batched VGG indexer
+    """
+
+    def __init__(self,batch_size=8,gpu_fraction=0.2,session=None):
+        super(VGGIndexer, self).__init__()
+        self.name = "vgg"
+        self.net = None
+        self.tf = True
+        self.session = session
+        self.graph_def = None
+        self.index, self.files, self.findex = None, {}, 0
+        self.pool3 = None
+        self.filenames_placeholder = None
+        self.fname = None
+        self.image = None
+        self.iterator = None
+        self.support_batching = True
+        self.batch_size = batch_size
+        self.gpu_fraction = gpu_fraction
+
+    def load(self):
+        network_path = os.path.abspath(__file__).split('indexer.py')[0]+'data/vgg.pb'
+        self.filenames_placeholder = tf.placeholder("string")
+        dataset = tf.contrib.data.Dataset.from_tensor_slices(self.filenames_placeholder)
+        dataset = dataset.map(_parse_resize_vgg_function)
+        dataset = dataset.batch(self.batch_size)
+        self.iterator = dataset.make_initializable_iterator()
+        with gfile.FastGFile(network_path, 'rb') as f:
+            graph_def = tf.GraphDef()
+            graph_def.ParseFromString(f.read())
+            self.image, self.fname = self.iterator.get_next()
+            _ = tf.import_graph_def(graph_def, name='vgg', input_map={'ResizeBilinear': self.image})
+            self.pool3 = self.session.graph.get_tensor_by_name('incept/pool_3:0')
+        if self.session is None:
+            logging.warning("Loading the network {} , first apply / query will be slower".format(self.name))
+            config = tf.ConfigProto()
+            config.gpu_options.per_process_gpu_memory_fraction = self.gpu_fraction
+            self.session = tf.InteractiveSession(config=config)
+
 
     def apply(self,image_path):
         if self.session is None:

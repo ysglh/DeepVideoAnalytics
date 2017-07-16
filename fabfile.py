@@ -310,6 +310,7 @@ def launch():
     """
     local('fab startq:qextract &')
     local('fab startq:qindexer &')
+    local('fab startq:qvgg &')
     local('fab startq:qretriever &')
     local('fab startq:qfaceretriever &')
     local('fab startq:qfacedetector &')

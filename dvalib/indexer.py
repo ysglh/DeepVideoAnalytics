@@ -167,7 +167,7 @@ class InceptionIndexer(BaseIndexer):
         return np.atleast_2d(np.squeeze(pool3_features))
 
     def apply_batch(self,image_paths):
-        if self.graph_def is None  or self.session is None:
+        if self.graph_def is None or self.session is None:
             self.load()
         self.session.run(self.iterator.initializer, feed_dict={self.filenames_placeholder: image_paths})
         embeddings = {}
@@ -237,7 +237,7 @@ class VGGIndexer(BaseIndexer):
         return np.atleast_2d(np.squeeze(features).sum(axis=(0,1)))
 
     def apply_batch(self,image_paths):
-        if self.graph_def is None  or self.session is None:
+        if self.graph_def is None or self.session is None:
             self.load()
         self.session.run(self.iterator.initializer, feed_dict={self.filenames_placeholder: image_paths})
         embeddings = {}
@@ -295,7 +295,7 @@ class FacenetIndexer(BaseIndexer):
             self.session = tf.InteractiveSession(config=config)
 
     def apply(self, image_path):
-        if self.graph_def is None  or self.session is None:
+        if self.graph_def is None or self.session is None:
             self.load()
         self.session.run(self.iterator.initializer, feed_dict={self.filenames_placeholder: [image_path, ]})
         f, features = self.session.run([self.fname, self.emb])

@@ -9,12 +9,13 @@ Q_FACE_DETECTOR = 'qfacedetector'
 Q_CLUSTER = 'qclusterer'
 Q_TRAINER = 'qtrainer'
 Q_OCR = 'qocr'
+Q_VGG = 'qvgg'
 
 QUEUES = [Q_EXTRACTOR,Q_INDEXER,Q_DETECTOR,Q_RETRIEVER,Q_FACE_RETRIEVER,Q_FACE_DETECTOR,Q_CLUSTER,Q_TRAINER,Q_OCR]
 
 TASK_NAMES_TO_QUEUE = {
     "inception_index_by_id":Q_INDEXER,
-    "vgg_index_by_id":Q_INDEXER,
+    "vgg_index_by_id":Q_VGG,
     "inception_index_regions_by_id":Q_INDEXER,
     "extract_frames_by_id":Q_EXTRACTOR,
     "perform_ssd_detection_by_id":Q_DETECTOR,
@@ -95,7 +96,6 @@ POST_OPERATION_TASKS = {
     "extract_frames_by_id":[
         {'task_name':'perform_ssd_detection_by_id','arguments':{}},
         {'task_name':'inception_index_by_id','arguments':{}},
-        {'task_name':'vgg_index_by_id','arguments':{}},
         {'task_name':'perform_face_detection','arguments':{}},
         {'task_name':'sync_bucket_video_by_id','arguments':{'dirname':'frames'}},
         {'task_name':'sync_bucket_video_by_id','arguments':{'dirname':'segments'}},
@@ -109,9 +109,6 @@ POST_OPERATION_TASKS = {
         {'task_name': 'perform_text_recognition_by_id', 'arguments': {}},
     ],
     'inception_index_by_id':[
-        {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'indexes'}},
-    ],
-    'vgg_index_by_id':[
         {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'indexes'}},
     ],
     'perform_face_detection':[
@@ -156,25 +153,22 @@ VISUAL_INDEXES = {
             'retriever_queue': Q_FACE_RETRIEVER,
             'detection_specific': True
         },
-    'vgg':
-        {
+    }
+
+
+if 'VGG_ENABLE' in os.environ:
+    VISUAL_INDEXES['vgg']= {
             'indexer_task': "vgg_index_by_id",
-            'indexer_queue': Q_INDEXER,
-            'retriever_queue': Q_RETRIEVER,
+            'indexer_queue': Q_VGG,
+            'retriever_queue': Q_VGG,
             'detection_specific': False
-        },
-    }
-
-
-if 'ALEX_ENABLE' in os.environ:
+        }
     POST_OPERATION_TASKS['extract_frames_by_id'].append(
-        {'task_name':'alexnet_index_by_id','arguments':{}}
+        {
+            'task_name': 'vgg_index_by_id',
+            'arguments': {}
+         }
     )
-    VISUAL_INDEXES['alexnet'] = {
-         'indexer_task': "alexnet_index_by_id",
-         'indexer_queue': Q_INDEXER,
-         'retriever_queue': Q_RETRIEVER,
-         'detection_specific': False
-    }
-
+    POST_OPERATION_TASKS['vgg_index_by_id'] = [{'task_name': 'sync_bucket_video_by_id',
+                                                'arguments': {'dirname': 'indexes'}}]
 

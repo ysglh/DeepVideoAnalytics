@@ -30,6 +30,11 @@ def _parse_resize_inception_function(filename):
 
 
 def _parse_resize_vgg_function(filename):
+    """
+    # TODO: Verify if image channel order and mean image subtraction is done in the imported model
+    :param filename:
+    :return:
+    """
     image_string = tf.read_file(filename)
     image_decoded = tf.image.decode_png(image_string,channels=3)
     image_scaled = tf.image.resize_images(image_decoded, [224, 224])
@@ -144,7 +149,7 @@ class InceptionIndexer(BaseIndexer):
             graph_def.ParseFromString(f.read())
             self.image, self.fname = self.iterator.get_next()
             _ = tf.import_graph_def(graph_def, name='incept', input_map={'ResizeBilinear': self.image})
-            self.pool3 = self.session.graph.get_tensor_by_name('incept/pool_3:0')
+            self.pool3 = tf.get_default_graph().get_tensor_by_name('incept/pool_3:0')
         if self.session is None:
             logging.warning("Loading the network {} , first apply / query will be slower".format(self.name))
             config = tf.ConfigProto()
@@ -190,7 +195,7 @@ class VGGIndexer(BaseIndexer):
         self.session = session
         self.graph_def = None
         self.index, self.files, self.findex = None, {}, 0
-        self.pool3 = None
+        self.conv = None
         self.filenames_placeholder = None
         self.fname = None
         self.image = None
@@ -210,21 +215,20 @@ class VGGIndexer(BaseIndexer):
             graph_def = tf.GraphDef()
             graph_def.ParseFromString(f.read())
             self.image, self.fname = self.iterator.get_next()
-            _ = tf.import_graph_def(graph_def, name='vgg', input_map={'ResizeBilinear': self.image})
-            self.pool3 = self.session.graph.get_tensor_by_name('incept/pool_3:0')
+            _ = tf.import_graph_def(graph_def, name='vgg', input_map={'images:0': self.image})
+        self.conv = tf.get_default_graph().get_tensor_by_name('vgg/conv5_3/conv5_3:0')
         if self.session is None:
             logging.warning("Loading the network {} , first apply / query will be slower".format(self.name))
             config = tf.ConfigProto()
             config.gpu_options.per_process_gpu_memory_fraction = self.gpu_fraction
             self.session = tf.InteractiveSession(config=config)
 
-
     def apply(self,image_path):
         if self.session is None:
             self.load()
         self.session.run(self.iterator.initializer, feed_dict={self.filenames_placeholder: [image_path,]})
-        f, pool3_features = self.session.run([self.fname,self.pool3])
-        return np.atleast_2d(np.squeeze(pool3_features))
+        f, features = self.session.run([self.fname,self.conv])
+        return np.atleast_2d(np.squeeze(features).sum(axis=(0,1)))
 
     def apply_batch(self,image_paths):
         if self.session is None:
@@ -234,9 +238,9 @@ class VGGIndexer(BaseIndexer):
         batch_count = 0
         while True:
             try:
-                f, emb = self.session.run([self.fname,self.pool3])
+                f, emb = self.session.run([self.fname,self.conv])
                 for i,fname in enumerate(f):
-                    embeddings[fname] = np.atleast_2d(np.squeeze(emb[i,:,:,:]))
+                    embeddings[fname] = np.atleast_2d(np.squeeze(emb[i,:,:,:]).sum(axis=(0,1)))
                 batch_count += 1
                 if batch_count % 100 == 0:
                     logging.info("{} batches containing {} images indexed".format(batch_count, batch_count * self.batch_size))

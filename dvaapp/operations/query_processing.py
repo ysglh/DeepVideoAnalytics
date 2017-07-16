@@ -14,18 +14,23 @@ from collections import defaultdict
 class IndexerTask(celery.Task):
     _visual_indexer = None
     _clusterer = None
+    _session = None
 
     @property
     def visual_indexer(self):
         if IndexerTask._visual_indexer is None:
-            IndexerTask._visual_indexer = {'inception': indexer.InceptionIndexer(),
-                                           'facenet': indexer.FacenetIndexer()}
+            IndexerTask._visual_indexer = {'inception': indexer.InceptionIndexer(session=self._session),
+                                           'facenet': indexer.FacenetIndexer(),
+                                           'vgg': indexer.VGGIndexer(session=self._session)
+                                           }
         return IndexerTask._visual_indexer
 
     @property
     def clusterer(self):
         if IndexerTask._clusterer is None:
-            IndexerTask._clusterer = {'inception': None, 'facenet': None}
+            IndexerTask._clusterer = {'inception': None,
+                                      'facenet': None,
+                                      'vgg':None}
         return IndexerTask._clusterer
 
     def refresh_index(self, index_name):

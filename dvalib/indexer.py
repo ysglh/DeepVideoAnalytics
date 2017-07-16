@@ -225,7 +225,7 @@ class VGGIndexer(BaseIndexer):
                 self.graph_def.ParseFromString(f.read())
                 self.image, self.fname = self.iterator.get_next()
                 _ = tf.import_graph_def(self.graph_def, name='vgg', input_map={'images:0': self.image})
-            self.conv = tf.get_default_graph().get_tensor_by_name('vgg/conv5_3/conv5_3:0')
+            self.conv = tf.get_default_graph().get_tensor_by_name('vgg/pool5:0')
         if self.session is None:
             logging.warning("Creating a session {} , first apply / query will be slower".format(self.name))
             config = tf.ConfigProto()

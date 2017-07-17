@@ -19,7 +19,7 @@
                     <h4>Train custom YOLO detector</h4>
                 </div>
                 <div class="box-body">
-                    <form role="form" action="/detections/"  method="post" >
+                    <form role="form" action="/detectors/"  method="post" >
                             <div class="row">
                             <div class="col-lg-6"><div class="form-group">
                                 <label for="name">Detector name</label>
@@ -65,7 +65,7 @@
                     <h4>Detect objects using custom detector</h4>
                 </div>
                 <div class="box-body">
-                            <form role="form" action="/detections/"  method="post" >
+                            <form role="form" action="/detectors/"  method="post" >
                             <div class="row">
                             <div class="col-lg-6"><div class="form-group">
                                     <label for="excluded_videos">Select detector</label>
@@ -131,7 +131,7 @@
                         <td class="text-right">{{ d.frames_count }} </td>
                         <td class="text-right">{{ d.boxes_count }} </td>
                         <td>{{ d.classes }} </td>
-                        <td class="text-center"><a href="/detections/{{ d.pk }}">details</a></td>
+                        <td class="text-center"><a href="/detectors/{{ d.pk }}">details</a></td>
                     </tr>
                 {% endfor %}
                 </tbody>

@@ -804,20 +804,14 @@ def textsearch(request):
     if request.method == 'POST':
         q = request.POST.get('q')
         context['q'] = q
-        if SearchVector:
-            if request.POST.get('regions'):
-                context['results']['regions'] = Region.objects.annotate(search=SearchVector('metadata_text','object_name')).filter(search=q)
-            if request.POST.get('frames'):
-                context['results']['frames'] = Frame.objects.annotate(search=SearchVector('name','subdir')).filter(search=q)
-            if request.POST.get('labels'):
-                context['results']['labels'] = AppliedLabel.objects.annotate(search=SearchVector('label_name')).filter(search=q)
-        else:
-            if request.POST.get('regions'):
-                context['results']['regions'] = Region.objects.all().filter(metadata_text__contains=q)
-            if request.POST.get('frames'):
-                context['results']['frames'] = Frame.objects.all().filter(name__contains=q)
-            if request.POST.get('labels'):
-                context['results']['labels'] = AppliedLabel.objects.all().filter(label_name__contains=q)
+        if request.POST.get('regions'):
+            context['results']['regions_meta'] = Region.objects.filter(metadata_text__search=q)
+            context['results']['regions_name'] = Region.objects.filter(name__search=q)
+        if request.POST.get('frames'):
+            context['results']['frames_name'] = Frame.objects.filter(name__search=q)
+            context['results']['frames_subdir'] = Frame.objects.filter(subdir__search=q)
+        if request.POST.get('labels'):
+            context['results']['labels'] = AppliedLabel.objects.filter(label_name__search=q)
     return render(request, 'textsearch.html', context)
 
 

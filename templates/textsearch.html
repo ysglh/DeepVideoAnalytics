@@ -55,7 +55,7 @@
             {% if results %}
                 {% if results.regions %}
                 <div class="box box-primary">
-                    <div class="box-header"><h4>Results: regions</h4></div>
+                    <div class="box-header"><h4>Results: regions metadata text</h4></div>
                     <div class="box-body">
                     <table class="table dataTables">
                     <thead>
@@ -68,7 +68,34 @@
                     </tr>
                     </thead>
                     <tbody>
-                    {% for r in results.regions %}
+                    {% for r in results.regions_meta %}
+                        <tr>
+                            <td>{{ r.video.name }}</td>
+                            <td>{{ r.frame.frame_index }}</td>
+                            <td>{{ r.object_name }}</td>
+                            <td>{{ r.metadata_text }}</td>
+                            <td class="text-center"><a href="/frames/{{ r.frame.pk }}">details</a></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    </table>
+                    </div>
+                </div>
+                <div class="box box-primary">
+                    <div class="box-header"><h4>Results: regions object name</h4></div>
+                    <div class="box-body">
+                    <table class="table dataTables">
+                    <thead>
+                    <tr>
+                        <th class="text-center">Video</th>
+                        <th class="text-center">Frame index</th>
+                        <th class="text-center">Object name</th>
+                        <th class="text-center">Text</th>
+                        <th class="text-center">details</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for r in results.regions_name %}
                         <tr>
                             <td>{{ r.video.name }}</td>
                             <td>{{ r.frame.frame_index }}</td>
@@ -113,7 +140,7 @@
                 {% endif %}
                 {% if results.frames %}
                 <div class="box box-primary">
-                    <div class="box-header"><h4>Results: frames</h4></div>
+                    <div class="box-header"><h4>Results: frame names</h4></div>
                     <div class="box-body">
                     <table class="table dataTables">
                     <thead>
@@ -124,7 +151,30 @@
                     </tr>
                     </thead>
                     <tbody>
-                    {% for f in results.frames %}
+                    {% for f in results.frames_name %}
+                        <tr>
+                            <td>{{ f.name }}</td>
+                            <td>{{ f.subdir }}</td>
+                            <td class="text-center"><a href="/frames/{{ f.pk }}">details</a></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    </table>
+                    </div>
+                </div>
+                <div class="box box-primary">
+                    <div class="box-header"><h4>Results: frame subdirs</h4></div>
+                    <div class="box-body">
+                    <table class="table dataTables">
+                    <thead>
+                    <tr>
+                        <th class="text-center">Name</th>
+                        <th class="text-center">Directory</th>
+                        <th class="text-center">details</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for f in results.frames_subdir %}
                         <tr>
                             <td>{{ f.name }}</td>
                             <td>{{ f.subdir }}</td>

@@ -10,6 +10,7 @@ def forwards_func(apps, schema_editor):
     CustomIndexer.objects.using(db_alias).bulk_create([
         CustomIndexer(name="inception",algorithm="inception"),
         CustomIndexer(name="facenet",algorithm="facenet"),
+        CustomIndexer(name="vgg",algorithm="vgg"),
     ])
 
 
@@ -28,8 +29,10 @@ class Migration(migrations.Migration):
         migrations.RunPython(forwards_func, reverse_func),
         migrations.RunSQL(
             """
-            CREATE INDEX region_text_index ON dvaapp_region USING GIN (to_tsvector('english', metadata_text || ' ' || object_name));
-            CREATE INDEX frame_text_index ON dvaapp_frame USING GIN (to_tsvector('english', name || ' ' || subdir));
+            CREATE INDEX region_text_index_metatext ON dvaapp_region USING GIN (to_tsvector('english', metadata_text));
+            CREATE INDEX region_text_index_object_name ON dvaapp_region USING GIN (to_tsvector('english', object_name));
+            CREATE INDEX frame_text_index_name ON dvaapp_frame USING GIN (to_tsvector('english', name ));
+            CREATE INDEX frame_text_index_subdir ON dvaapp_frame USING GIN (to_tsvector('english', subdir));
             CREATE INDEX label_text_index ON dvaapp_appliedlabel USING GIN (to_tsvector('english', label_name));
             """
         ),

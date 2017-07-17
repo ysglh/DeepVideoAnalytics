@@ -171,9 +171,9 @@ def crop_regions_by_id(task_id):
         queryset = Region.objects.filter(video_id=video_id,object_name__startswith=arguments['prefix'],materialized=False)
     else:
         raise NotImplementedError
-    for dd in queryset:
-        path = "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,video_id,dd.parent_frame_index)
-        paths_to_regions[path].append()
+    for dr in queryset:
+        path = "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,video_id,dr.parent_frame_index)
+        paths_to_regions[path].append(dr)
     for path,regions in paths_to_regions.iteritems():
         img = PIL.Image.open(path)
         for dr in regions:

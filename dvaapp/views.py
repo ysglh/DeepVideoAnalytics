@@ -801,12 +801,14 @@ def training(request):
 @user_passes_test(user_check)
 def textsearch(request):
     context = {'results': {}, "videos": Video.objects.all().filter(parent_query__isnull=True)}
-    if request.method == 'POST':
-        q = request.POST.get('q')
-        offset = int(request.POST.get('offset',0))
-        limit = offset + 100
+    q = request.GET.get('q')
+    if q:
+        offset = int(request.GET.get('offset',0))
+        delta = int(request.GET.get('delta',25))
+        limit = offset + delta
         context['q'] = q
         context['next'] = limit
+        context['delta'] = delta
         context['offset'] = offset
         context['limit'] = limit
         if request.POST.get('regions'):

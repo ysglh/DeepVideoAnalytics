@@ -16,7 +16,7 @@
         <div class="col-lg-6 text-center col-lg-offset-3">
             <div class="box-primary box">
                 <div class="box-body">
-                <form action="." method="post">
+                <form action="." method="get">
                     <div class="row">
                         {% if q %}
                             <div class="col-lg-12"><input class="form-control" id="q" name="q" required="required" value="{{ q }}" placeholder="enter text to search" /></div>
@@ -45,9 +45,10 @@
                 {% if q %}
                 <div class="box-footer text-center">
                     <h4>Showing results for: {{ q }} from {{ offset }} to {{ limit }}</h4>
-                    <form action="." method="post">
+                    <form action="." method="get">
+                    <input type="hidden" name="q" value="{{ q }}" />
                     <input type="hidden" name="offset" value="{{ next }}" />
-                    <button type="submit" class="btn btn-primary"><i class="fa fa-forward"></i> Next 100</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa fa-forward"></i> Next {{ delta }}</button>
                     {% csrf_token %}
                     </form>
                 </div>

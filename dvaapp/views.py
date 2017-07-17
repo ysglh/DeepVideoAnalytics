@@ -678,7 +678,7 @@ def indexes(request):
 
 
 @user_passes_test(user_check)
-def detections(request):
+def detectors(request):
     context = {}
     context["videos"] = Video.objects.all().filter(parent_query__isnull=True)
     context["detectors"] = CustomDetector.objects.all()
@@ -746,7 +746,7 @@ def detections(request):
             detector.source = train_event
             detector.save()
             app.send_task(name=task_name, args=[train_event.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
-    return render(request, 'detections.html', context)
+    return render(request, 'detectors.html', context)
 
 
 @user_passes_test(user_check)
@@ -893,7 +893,7 @@ def import_detector(request):
         import_vdn_detector_url(server, url, user)
     else:
         raise NotImplementedError
-    return redirect('detections')
+    return redirect('detectors')
 
 
 @user_passes_test(user_check)

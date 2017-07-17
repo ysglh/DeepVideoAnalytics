@@ -379,7 +379,7 @@ def perform_face_detection(task_id):
     input_paths = {}
     for df in Frame.objects.all().filter(video_id=video_id):
         input_paths["{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,video_id,df.frame_index)] = df.pk
-    faces_dir = '{}/{}/detections'.format(settings.MEDIA_ROOT, video_id)
+    faces_dir = '{}/{}/regions'.format(settings.MEDIA_ROOT, video_id)
     aligned_paths = {}
     for image_path in input_paths:
         aligned_paths[image_path] = detector.detect(image_path)

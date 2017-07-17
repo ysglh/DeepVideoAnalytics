@@ -102,10 +102,10 @@ POST_OPERATION_TASKS = {
     ],
     'perform_ssd_detection_by_id':[
         {'task_name':'inception_index_regions_by_id','arguments':{'region_type':'D','object_name__startswith':'SSD_', 'w__gte':50,'h__gte':50}},
-        {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'detections'}},
+        {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'regions'}},
     ],
     'perform_textbox_detection_by_id':[
-        {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'detections'}},
+        {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'regions'}},
         {'task_name': 'perform_text_recognition_by_id', 'arguments': {}},
     ],
     'inception_index_by_id':[
@@ -113,14 +113,14 @@ POST_OPERATION_TASKS = {
     ],
     'perform_face_detection':[
         {'task_name': 'perform_face_indexing', 'arguments': {}},
-        {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'detections'}},
+        {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'regions'}},
     ],
     'perform_face_indexing':[
         {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'indexes'}},
     ],
     'inception_index_regions_by_id':[
         {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'indexes'}},
-        {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'detections'}},
+        {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'regions'}},
     ],
     'import_vdn_file':[
         {'task_name': 'sync_bucket_video_by_id', 'arguments': {}},
@@ -133,7 +133,7 @@ POST_OPERATION_TASKS = {
     'import_vdn_detector_file':[
     ],
     'detect_custom_objects':[
-        {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'detections'}},
+        {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'regions'}},
     ]
 }
 # execute_index_subquery

@@ -197,6 +197,9 @@ class Region(models.Model):
     vdn_key = models.IntegerField(default=-1)
     object_name = models.CharField(max_length=100)
     confidence = models.FloatField(default=0.0)
+    materialized = models.BooleanField(default=False)
+    png = models.BooleanField(default=False)
+
 
     def clean(self):
         if self.parent_frame_index == -1 or self.parent_frame_index is None:

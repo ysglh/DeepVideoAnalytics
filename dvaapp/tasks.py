@@ -145,6 +145,44 @@ def inception_index_regions_by_id(task_id):
     process_next(task_id)
 
 
+@app.task(track_started=True, name="crop_regions_by_id")
+def crop_regions_by_id(task_id):
+    """
+    Crop detected or annotated regions
+    :param task_id:
+    :return:
+    """
+    start = TEvent.objects.get(pk=task_id)
+    if celery_40_bug_hack(start):
+        return 0
+    start.task_id = crop_regions_by_id.request.id
+    start.started = True
+    start.operation = crop_regions_by_id.name
+    video_id = start.video_id
+    dv = Video.objects.get(id=video_id)
+    arguments = json.loads(start.arguments_json)
+    paths_to_regions = defaultdict(list)
+    if arguments['selector'] == 'object_name__startswith':
+        queryset = Region.objects.filter(video_id=video_id,object_name__startswith=arguments['prefix'],materialized=False)
+    else:
+        raise NotImplementedError
+    for dd in queryset:
+        path = "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,video_id,dd.parent_frame_index)
+        paths_to_regions[path].append()
+    for path,regions in paths_to_regions.iteritems():
+        img = PIL.Image.open(path)
+        for dr in regions:
+            img2 = img.crop((dr.x, dr.y,dr.x + dr.w, dr.y + dr.h))
+            img2.save("{}/{}/regions/{}.jpg".format(settings.MEDIA_ROOT, video_id, dr.id))
+            dr.materialized = True
+    start.save()
+    start_time = time.time()
+    start.completed = True
+    start.seconds = time.time() - start_time
+    start.save()
+    process_next(task_id)
+
+
 @app.task(track_started=True, name="execute_index_subquery", base=IndexerTask)
 def execute_index_subquery(query_id):
     iq = IndexerQuery.objects.get(id=query_id)
@@ -296,10 +334,6 @@ def perform_ssd_detection_by_id(task_id):
             dd_list.append(dd)
             path_list.append(local_path)
     dd_ids = Region.objects.bulk_create(dd_list,1000)
-    for i,dd in enumerate(dd_list):
-        img = PIL.Image.open(path_list[i])
-        img2 = img.crop((dd.x, dd.y,dd.x + dd.w, dd.y + dd.h))
-        img2.save("{}/{}/regions/{}.jpg".format(settings.MEDIA_ROOT, video_id, dd_ids[i].id))
     process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time

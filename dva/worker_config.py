@@ -20,6 +20,7 @@ TASK_NAMES_TO_QUEUE = {
     "extract_frames_by_id":Q_EXTRACTOR,
     "perform_ssd_detection_by_id":Q_DETECTOR,
     "detect_custom_objects":Q_DETECTOR,
+    "crop_regions_by_id":Q_DETECTOR,
     "perform_face_detection":Q_FACE_DETECTOR,
     "perform_face_indexing":Q_FACE_RETRIEVER,  # to save GPU memory, ideally they should be on different queue
     "alexnet_index_by_id":Q_INDEXER,
@@ -101,6 +102,10 @@ POST_OPERATION_TASKS = {
         {'task_name':'sync_bucket_video_by_id','arguments':{'dirname':'segments'}},
     ],
     'perform_ssd_detection_by_id':[
+        {'task_name':'crop_regions_by_id','arguments':{'selector':'object_name__startswith','prefix':'SSD_'}},
+        {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'regions'}},
+    ],
+    'crop_regions_by_id':[
         {'task_name':'inception_index_regions_by_id','arguments':{'region_type':'D','object_name__startswith':'SSD_', 'w__gte':50,'h__gte':50}},
         {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'regions'}},
     ],

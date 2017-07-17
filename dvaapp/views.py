@@ -803,15 +803,18 @@ def textsearch(request):
     context = {'results': {}, "videos": Video.objects.all().filter(parent_query__isnull=True)}
     if request.method == 'POST':
         q = request.POST.get('q')
+        offset = int(request.POST.get('offset',0))
+        limit = offset + 100
         context['q'] = q
+        context['offset'] = limit
         if request.POST.get('regions'):
-            context['results']['regions_meta'] = Region.objects.filter(metadata_text__search=q)
-            context['results']['regions_name'] = Region.objects.filter(name__search=q)
+            context['results']['regions_meta'] = Region.objects.filter(metadata_text__search=q)[offset:limit]
+            context['results']['regions_name'] = Region.objects.filter(name__search=q)[offset:limit]
         if request.POST.get('frames'):
-            context['results']['frames_name'] = Frame.objects.filter(name__search=q)
-            context['results']['frames_subdir'] = Frame.objects.filter(subdir__search=q)
+            context['results']['frames_name'] = Frame.objects.filter(name__search=q)[offset:limit]
+            context['results']['frames_subdir'] = Frame.objects.filter(subdir__search=q)[offset:limit]
         if request.POST.get('labels'):
-            context['results']['labels'] = AppliedLabel.objects.filter(label_name__search=q)
+            context['results']['labels'] = AppliedLabel.objects.filter(label_name__search=q)[offset:limit]
     return render(request, 'textsearch.html', context)
 
 

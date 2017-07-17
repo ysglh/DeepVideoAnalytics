@@ -40,6 +40,8 @@ before_install:
   - pip install -q https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.2.0-cp27-none-linux_x86_64.whl
   - pip install -q --no-deps keras
   - pip install -q --no-deps h5py
+  - pip install -q --no-cache-dir http://download.pytorch.org/whl/cu75/torch-0.1.12.post2-cp27-none-linux_x86_64.whl
+  - pip install -q torchvision
 install: "pip install -q -r requirements.txt > /dev/null"
 
 

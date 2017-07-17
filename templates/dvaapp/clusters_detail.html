@@ -50,12 +50,12 @@
                             <td class="text-center">{{ k.coarse_text }}</td>
                             <td class="text-right">{{ k.count }}</td>
                             {% if k.first.detection %}
-                                <td class="text-center">Detection<img style="height:100px;margin: auto" src="{{ MEDIA_URL }}{{ k.first.video.pk }}/detections/{{ k.first.detection.pk }}.jpg" class="img-responsive"/></td>
+                                <td class="text-center">Detection<img style="height:100px;margin: auto" src="{{ MEDIA_URL }}{{ k.first.video.pk }}/regions/{{ k.first.detection.pk }}.jpg" class="img-responsive"/></td>
                             {% else %}
                                 <td class="text-center">Frame<img style="height:100px;margin: auto" src="{{ MEDIA_URL }}{{ k.first.video.pk }}/frames/{{ k.first.frame.frame_index }}.jpg" class="img-responsive"/></td>
                             {% endif %}
                             {% if k.last.detection %}
-                                <td class="text-center">Detection<img style="height:100px;margin: auto" src="{{ MEDIA_URL }}{{ k.last.video.pk }}/detections/{{ k.last.detection.pk }}.jpg" class="img-responsive"/></td>
+                                <td class="text-center">Detection<img style="height:100px;margin: auto" src="{{ MEDIA_URL }}{{ k.last.video.pk }}/regions/{{ k.last.detection.pk }}.jpg" class="img-responsive"/></td>
                             {% else %}
                                 <td class="text-center">Frame<img style="height:100px;margin: auto" src="{{ MEDIA_URL }}{{ k.last.video.pk }}/frames/{{ k.last.frame.frame_index }}.jpg" class="img-responsive"/></td>
                             {% endif %}

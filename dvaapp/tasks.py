@@ -299,7 +299,7 @@ def perform_ssd_detection_by_id(task_id):
     for i,dd in enumerate(dd_list):
         img = PIL.Image.open(path_list[i])
         img2 = img.crop((dd.x, dd.y,dd.x + dd.w, dd.y + dd.h))
-        img2.save("{}/{}/detections/{}.jpg".format(settings.MEDIA_ROOT, video_id, dd_ids[i].id))
+        img2.save("{}/{}/regions/{}.jpg".format(settings.MEDIA_ROOT, video_id, dd_ids[i].id))
     process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time
@@ -428,7 +428,7 @@ def perform_face_indexing(task_id):
     faces = []
     f_to_pk = {}
     for dd in Region.objects.all().filter(object_name='MTCNN_face',video=dv):
-        path = '{}/{}/detections/{}.jpg'.format(settings.MEDIA_ROOT,video_id,dd.pk)
+        path = '{}/{}/regions/{}.jpg'.format(settings.MEDIA_ROOT,video_id,dd.pk)
         faces.append(path)
         f_to_pk[path] = dd.pk
     if faces:

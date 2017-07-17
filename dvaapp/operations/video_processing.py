@@ -148,7 +148,7 @@ class WVideo(object):
                 'index': i,
                 'type': d.region_type
             }
-            path = "{}/{}/detections/{}.jpg".format(self.media_dir, self.primary_key, d.pk)
+            path = "{}/{}/regions/{}.jpg".format(self.media_dir, self.primary_key, d.pk)
             if os.path.isfile(path=path):
                 paths.append(path)
             else:

@@ -215,7 +215,7 @@ class QueryProcessing(object):
         self.context = defaultdict(list)
         for r in QueryResults.objects.all().filter(query=self.query):
             self.context[r.algorithm].append((r.rank,
-                                         {'url': '{}{}/detections/{}.jpg'.format(settings.MEDIA_URL, r.video_id,
+                                         {'url': '{}{}/regions/{}.jpg'.format(settings.MEDIA_URL, r.video_id,
                                                                                  r.detection_id) if r.detection_id else '{}{}/frames/{}.jpg'.format(
                                              settings.MEDIA_URL, r.video_id, r.frame.frame_index),
                                           'result_type': "Region" if r.detection_id else "Frame",

@@ -80,7 +80,7 @@ results = tasks.inception_query_by_image(query.pk)
 for k in results['inception'][:20]:
     if k[u'type'] == 'D' or k[u'type'] == 'A':
         print "Detection"
-        display(Image(filename="{}/{}/detections/{}.jpg".format(settings.MEDIA_ROOT,k[u'video_primary_key'],k[u'detection_primary_key'])))
+        display(Image(filename="{}/{}/regions/{}.jpg".format(settings.MEDIA_ROOT,k[u'video_primary_key'],k[u'detection_primary_key'])))
     else:
         print "Frame"
         display(Image(filename="{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,k[u'video_primary_key'],k[u'frame_index'])))

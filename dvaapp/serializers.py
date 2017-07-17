@@ -313,12 +313,12 @@ def import_video_json(video_obj,video_json,video_root_dir):
     detection_to_pk, frame_to_pk = {}, {}
     bulk_import_frames(video_json['frame_list'], video_obj, frame_to_pk, detection_to_pk, vdn_dataset)
     for k,v in detection_to_pk.iteritems():
-        original = '{}/detections/{}.jpg'.format(video_root_dir, k)
-        temp_file = "{}/detections/d_{}.jpg".format(video_root_dir,v)
+        original = '{}/regions/{}.jpg'.format(video_root_dir, k)
+        temp_file = "{}/regions/d_{}.jpg".format(video_root_dir,v)
         os.rename(original, temp_file)
     for k, v in detection_to_pk.iteritems():
-        temp_file = "{}/detections/d_{}.jpg".format(video_root_dir, v)
-        converted = "{}/detections/{}.jpg".format(video_root_dir, v)
+        temp_file = "{}/regions/d_{}.jpg".format(video_root_dir, v)
+        converted = "{}/regions/{}.jpg".format(video_root_dir, v)
         os.rename(temp_file, converted)
     previous_transformed = set()
     for i in video_json['index_entries_list']:

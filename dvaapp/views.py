@@ -374,7 +374,7 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
         context['initial_url'] = '{}{}/frames/{}.jpg'.format(settings.MEDIA_URL, frame.video.pk, frame.frame_index)
     elif detection_pk:
         detection = Region.objects.get(pk=detection_pk)
-        context['initial_url'] = '{}{}/detections/{}.jpg'.format(settings.MEDIA_URL, detection.video.pk, detection.pk)
+        context['initial_url'] = '{}{}/regions/{}.jpg'.format(settings.MEDIA_URL, detection.video.pk, detection.pk)
     context['frame_count'] = Frame.objects.count()
     context['query_count'] = Query.objects.count()
     context['index_entries_count'] = IndexEntries.objects.count()

@@ -845,7 +845,7 @@ def detect_custom_objects(detector_pk,video_pk):
         bottom = r.h + r.y
         img = Image.open(path)
         img2 = img.crop((r.x,r.y,right, bottom))
-        img2.save("{}/{}/detections/{}.jpg".format(settings.MEDIA_ROOT, video_pk, r.pk))
+        img2.save("{}/{}/regions/{}.jpg".format(settings.MEDIA_ROOT, video_pk, r.pk))
 
 
 @task
@@ -1001,7 +1001,7 @@ def detect_text_boxes(video_pk,cpu_mode=False):
             bottom = r.h + r.y
             img = Image.open(path)
             img2 = img.crop((left,top,right,bottom))
-            img2.save("{}/{}/detections/{}.jpg".format(settings.MEDIA_ROOT, video_pk, r.pk))
+            img2.save("{}/{}/regions/{}.jpg".format(settings.MEDIA_ROOT, video_pk, r.pk))
 
 
 @task
@@ -1031,7 +1031,7 @@ def recognize_text(video_pk):
     converter = utils.strLabelConverter(alphabet)
     transformer = dataset.resizeNormalize((100, 32))
     for r in Region.objects.all().filter(video_id=video_pk,object_name='CTPN_TEXTBOX'):
-        img_path = "{}/{}/detections/{}.jpg".format(settings.MEDIA_ROOT,video_pk,r.pk)
+        img_path = "{}/{}/regions/{}.jpg".format(settings.MEDIA_ROOT,video_pk,r.pk)
         image = Image.open(img_path).convert('L')
         image = transformer(image).cuda()
         image = image.view(1, *image.size())

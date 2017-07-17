@@ -36,7 +36,7 @@ Temporary solution simply redirect to S3 bucket.
 ## Media folder schema
 
  - One directory per video or dataset (a set of images)
- - Extracted frames and detections are stored in detections/ & frames/ under the video directory
+ - Extracted frames and detections are stored in regions/ & frames/ under the video directory
  - Indexes (numpy arrays) and list of corresponding frames & detections are stored 
  - Query images are also stored inside media/queries/ named using primary key of the query object.
  - Designed to enables rapid sync with S3 or processing via a third party program.

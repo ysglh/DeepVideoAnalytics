@@ -44,11 +44,19 @@
                 </div>
                 {% if q %}
                 <div class="box-footer text-center">
-                    <h4>Showing results for: {{ q }} from {{ offset }} to {{ limit }}</h4>
                     <form action="." method="get">
                     <input type="hidden" name="q" value="{{ q }}" />
                     <input type="hidden" name="offset" value="{{ next }}" />
-                    <button type="submit" class="btn btn-primary"><i class="fa fa-forward"></i> Next {{ delta }}</button>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h4>Query: {{ q }} </h4>
+                        </div>
+                        <div class="col-md-2"><h4>{{ offset }} to {{ limit }}</h4></div>
+                        <div class="col-md-1 form-group"><label for="regions" class="form-group text-center">Regions<input type="checkbox" checked="checked"  class=""  id="regions" name="regions"/></label></div>
+                        <div class="col-md-1 form-group"><label for="labels" class="form-group text-center">Labels<input type="checkbox" checked="checked"  class=""  id="labels" name="labels"/></label></div>
+                        <div class="col-md-1 form-group"><label for="frames" class="form-group text-center">Frames<input type="checkbox" checked="checked"  class="" id="frames" name="frames"/></label></div>
+                        <div class="col-md-3 text-center form-group"><button style="margin-top:10px" type="submit" class="btn btn-primary"><i class="fa fa-forward"></i> Next {{ delta }}</button></div>
+                    </div>
                     {% csrf_token %}
                     </form>
                 </div>

@@ -811,13 +811,13 @@ def textsearch(request):
         context['delta'] = delta
         context['offset'] = offset
         context['limit'] = limit
-        if request.POST.get('regions'):
+        if request.GET.get('regions'):
             context['results']['regions_meta'] = Region.objects.filter(metadata_text__search=q)[offset:limit]
             context['results']['regions_name'] = Region.objects.filter(object_name__search=q)[offset:limit]
-        if request.POST.get('frames'):
+        if request.GET.get('frames'):
             context['results']['frames_name'] = Frame.objects.filter(name__search=q)[offset:limit]
             context['results']['frames_subdir'] = Frame.objects.filter(subdir__search=q)[offset:limit]
-        if request.POST.get('labels'):
+        if request.GET.get('labels'):
             context['results']['labels'] = AppliedLabel.objects.filter(label_name__search=q)[offset:limit]
     return render(request, 'textsearch.html', context)
 

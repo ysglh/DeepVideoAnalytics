@@ -94,13 +94,15 @@
 <div class="col-lg-6">
     <div class="box box-primary" >
         <div class="box-body">
+            <div class="text-center"><h5 >Delete currently requires retrieval workers to be restarted to purge index loaded in memory (a fix is pending)</h5></div>
             <div class="row">
-                <div class="col-sm-12 text-center">
+                <div class="col-sm-6 text-center">
                     <form action="/export_video" method="post"><input type="hidden" value="{{ object.pk }}" name="video_id"><input type="hidden" value="file" name="export_method">{% csrf_token %}
                         <button type="submit" class="btn btn-info"><i class="fa fa-download"></i> Export video / dataset as a file</button>
                     </form>
+                </div>
+                <div class="col-sm-6 text-center">
                     <form action="/delete_video" method="post"><input type="hidden" value="{{ object.pk }}" name="video_id">{% csrf_token %}
-                        <h4>Delete breaks the current retrieval design (a fix is pending)</h4>
                         <button type="submit" class="btn btn-danger"><i class="fa fa-delete"></i> Delete video / dataset (only staff users)</button>
                     </form>
                 </div>

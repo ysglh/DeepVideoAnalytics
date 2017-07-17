@@ -333,6 +333,7 @@ def import_video_json(video_obj,video_json,video_root_dir):
     bulk_import_frames(video_json['frame_list'], video_obj, frame_to_pk, detection_to_pk, vdn_dataset)
     if os.path.isdir('{}/detections/'.format(video_root_dir)):
         source_subdir = 'detections' # temporary for previous version imports
+        os.mkdir('{}/regions'.format(video_root_dir))
     else:
         source_subdir = 'regions'
     for k,v in detection_to_pk.iteritems():

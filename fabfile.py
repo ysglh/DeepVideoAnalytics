@@ -1066,7 +1066,7 @@ def qt():
     from dvaapp.views import handle_uploaded_file
     from dvaapp.models import Video, TEvent
     from dvaapp.tasks import extract_frames,perform_face_detection,perform_face_indexing
-    for fname in glob.glob('tests/example*.zip'):
+    for fname in glob.glob('tests/ci/*.mp4'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
         v = handle_uploaded_file(f, name)

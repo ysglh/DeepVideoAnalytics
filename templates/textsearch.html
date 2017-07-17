@@ -43,8 +43,13 @@
                 </form>
                 </div>
                 {% if q %}
-                <div class="box-footer">
-                    <h4>Showing results for: {{ q }}</h4>
+                <div class="box-footer text-center">
+                    <h4>Showing results for: {{ q }} from {{ offset }} to {{ limit }}</h4>
+                    <form action="." method="post">
+                    <input type="hidden" name="offset" value="{{ next }}" />
+                    <button type="submit" class="btn btn-primary btn-block"><i class="fa fa-forward"></i> Next 100</button>
+                    {% csrf_token %}
+                    </form>
                 </div>
                 {% endif %}
             </div>
@@ -53,7 +58,7 @@
     <div class="row" style="margin-top:20px">
         <div class="col-lg-12">
             {% if results %}
-                {% if results.regions %}
+                {% if results.regions_meta or results.regions_name %}
                 <div class="box box-primary">
                     <div class="box-header"><h4>Results: regions metadata text</h4></div>
                     <div class="box-body">
@@ -138,7 +143,7 @@
                     </div>
                 </div>
                 {% endif %}
-                {% if results.frames %}
+                {% if results.frames_name or results.frames_subdir %}
                 <div class="box box-primary">
                     <div class="box-header"><h4>Results: frame names</h4></div>
                     <div class="box-body">

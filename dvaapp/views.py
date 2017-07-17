@@ -806,10 +806,12 @@ def textsearch(request):
         offset = int(request.POST.get('offset',0))
         limit = offset + 100
         context['q'] = q
-        context['offset'] = limit
+        context['next'] = limit
+        context['offset'] = offset
+        context['limit'] = limit
         if request.POST.get('regions'):
             context['results']['regions_meta'] = Region.objects.filter(metadata_text__search=q)[offset:limit]
-            context['results']['regions_name'] = Region.objects.filter(name__search=q)[offset:limit]
+            context['results']['regions_name'] = Region.objects.filter(object_name__search=q)[offset:limit]
         if request.POST.get('frames'):
             context['results']['frames_name'] = Frame.objects.filter(name__search=q)[offset:limit]
             context['results']['frames_subdir'] = Frame.objects.filter(subdir__search=q)[offset:limit]

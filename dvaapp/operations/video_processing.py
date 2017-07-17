@@ -149,13 +149,15 @@ class WVideo(object):
                 'type': d.region_type
             }
             path = "{}/{}/regions/{}.jpg".format(self.media_dir, self.primary_key, d.pk)
-            if os.path.isfile(path=path):
+            if d.materialized:
                 paths.append(path)
             else:
                 img = Image.open("{}/{}/frames/{}.jpg".format(self.media_dir, self.primary_key, d.frame.frame_index))
                 img2 = img.crop((d.x, d.y, d.x+d.w, d.y+d.h))
                 img2.save(path)
                 paths.append(path)
+                d.materialized = True
+                d.save()
             entries.append(entry)
         features = visual_index.index_paths(paths)
         feat_fname = "{}/{}/indexes/{}_{}.npy".format(self.media_dir, self.primary_key,regions_name, visual_index.name)

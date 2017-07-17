@@ -28,10 +28,15 @@ def process_next(task_id):
     logging.info("next tasks for {}".format(dt.operation))
     if dt.operation in settings.POST_OPERATION_TASKS:
         for k in settings.POST_OPERATION_TASKS[dt.operation]:
-            logging.info("launching for {} : {}".format(dt.operation, k))
-            next_task = TEvent.objects.create(video=dt.video, operation=k['task_name'],arguments_json=json.dumps(k['arguments']),parent=dt)
+            logging.info("launching for {} : {} as specified in worker_config".format(dt.operation, k))
+            next_task = TEvent.objects.create(video=dt.video,operation=k['task_name'],arguments_json=json.dumps(k['arguments']),parent=dt)
             app.send_task(k['task_name'], args=[next_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[k['task_name']])
-
+    arguments = json.loads(dt.arguments_json)
+    if 'next_tasks' in arguments:
+        for k in arguments['next_tasks']:
+            logging.info("launching for {} : {} as specified in next_tasks".format(dt.operation, k))
+            next_task = TEvent.objects.create(video=dt.video,operation=k['task_name'], arguments_json=json.dumps(k['arguments']), parent=dt)
+            app.send_task(k['task_name'], args=[next_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[k['task_name']])
 
 def celery_40_bug_hack(start):
     """
@@ -204,12 +209,6 @@ def execute_index_subquery(query_id):
     start.seconds = time.time() - start_time
     start.save()
     return 0
-
-
-
-
-
-
 
 
 @app.task(track_started=True, name="extract_frames_by_id")

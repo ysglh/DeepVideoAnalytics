@@ -397,7 +397,7 @@ def perform_ssd_detection_by_id(task_id):
             dd.y = d['y']
             dd.w = d['w']
             dd.h = d['h']
-            dd.parent_event_id = task_id
+            dd.event_id = task_id
             dd_list.append(dd)
             path_list.append(local_path)
     dd_ids = Region.objects.bulk_create(dd_list,1000)

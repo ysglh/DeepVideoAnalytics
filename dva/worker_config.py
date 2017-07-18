@@ -114,7 +114,7 @@ POST_OPERATION_TASKS = {
     ],
     'perform_ssd_detection_by_id':[
         {'task_name':'crop_regions_by_id','arguments':{
-            'arguments':{'event_id':'__parent__'},
+            'event_id':'__parent__',
             'next_tasks':[
                 {'task_name':'inception_index_regions_by_id',
                  'arguments':{'event_id':'__grand_parent__','w__gte':50,'h__gte':50}

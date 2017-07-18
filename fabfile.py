@@ -386,7 +386,7 @@ def startq(queue_name,conc=3):
     mute = '--without-gossip --without-mingle --without-heartbeat' if 'CELERY_MUTE' in os.environ else ''
     if queue_name in settings.QUEUES:
         if queue_name == settings.Q_EXTRACTOR:
-            command = 'celery -A dva worker -l info {} -c {} -Q {} -n {}.%h -f logs/{}.log'.format(mute,int(conc), queue_name,queue_name,queue_name)
+            command = 'celery -A dva worker -l info {} -c {} -Q {} -n {}.%h -f logs/{}.log'.format(mute,max(int(conc),2), queue_name,queue_name,queue_name)
             # TODO: worker fails due to
             # https://github.com/celery/celery/issues/3620
             # since the worker consumes from multiple queues

@@ -24,11 +24,11 @@ from .shared import handle_downloaded_file, create_video_folders, create_detecto
 from celery import group
 
 def perform_substitution(args,dt):
-    for k,v in args.items():
+    for k,v in args.get('filters',{}).items():
         if v == '__parent__':
-            args[k] = dt.pk
+            args['filters'][k] = dt.pk
         elif v == '__grand_parent__':
-            args[k] = dt.parent.pk
+            args['filters'][k] = dt.parent.pk
     return args
 
 def process_next(task_id):
@@ -131,7 +131,7 @@ def inception_index_regions_by_id(task_id):
     start.operation = inception_index_regions_by_id.name
     video_id = start.video_id
     dv = Video.objects.get(id=video_id)
-    arguments = json.loads(start.arguments_json)
+    arguments = json.loads(start.arguments_json)['filters']
     start.save()
     start_time = time.time()
     video = WVideo(dv, settings.MEDIA_ROOT)
@@ -171,7 +171,7 @@ def crop_regions_by_id(task_id):
     start.started = True
     start.operation = crop_regions_by_id.name
     video_id = start.video_id
-    kwargs = {k:v for k,v in json.loads(start.arguments_json).iteritems() if k != 'next_tasks'}
+    kwargs = json.loads(start.arguments_json)['filters']
     paths_to_regions = defaultdict(list)
     kwargs['video_id'] = start.video_id
     kwargs['materialized'] = False

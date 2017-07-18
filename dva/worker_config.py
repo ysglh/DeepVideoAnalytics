@@ -113,11 +113,14 @@ POST_OPERATION_TASKS = {
         {'task_name':'sync_bucket_video_by_id','arguments':{'dirname':'segments'}},
     ],
     'perform_ssd_detection_by_id':[
-        {'task_name':'crop_regions_by_id','arguments':{
-            'event_id':'__parent__',
+        {'task_name':'crop_regions_by_id',
+         'arguments':{
+            'filters':{'event_id':'__parent__'},
             'next_tasks':[
                 {'task_name':'inception_index_regions_by_id',
-                 'arguments':{'event_id':'__grand_parent__','w__gte':50,'h__gte':50}
+                    'arguments':{
+                        'filters':{'event_id':'__grand_parent__','w__gte':50,'h__gte':50}
+                    }
                  }
             ]
         }},

@@ -665,7 +665,7 @@ def indexes(request):
             for optional_key in ['h__lte', 'w__lte']:
                 if request.POST.get(optional_key, None):
                     arguments[optional_key] = int(request.POST.get(optional_key))
-            index_event.arguments_json = json.dumps(arguments)
+            index_event.arguments_json = json.dumps({'filters':arguments})
             index_event.video_id = request.POST.get('video_id')
             index_event.save()
             app.send_task(name=index_event.operation, args=[index_event.pk, ],

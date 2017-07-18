@@ -277,7 +277,7 @@ def segment_video(task_id):
         else:
             decodes.append(next_task.pk)
     if decodes:
-        callback = join_decode.s(task_id,start_time).set(queue=settings.TASK_NAMES_TO_QUEUE['join_decode'])
+        callback = join_decode.s().set(queue=settings.TASK_NAMES_TO_QUEUE['join_decode'])
         header = [decode_segment.s(i).set(queue=settings.TASK_NAMES_TO_QUEUE['decode_segment']) for i in decodes]
         r = chord(header)(callback)
     return 0

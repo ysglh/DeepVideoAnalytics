@@ -34,19 +34,16 @@ def perform_substitution(args,dt):
 def process_next(task_id):
     dt = TEvent.objects.get(pk=task_id)
     logging.info("next tasks for {}".format(dt.operation))
-    if dt.operation in settings.POST_OPERATION_TASKS:
-        for k in settings.POST_OPERATION_TASKS[dt.operation]:
-            args = json.dumps(perform_substitution(k['arguments'], dt))
-            logging.info("launching for {} : {} as specified in worker_config".format(dt.operation, k))
-            next_task = TEvent.objects.create(video=dt.video,operation=k['task_name'],arguments_json=args,parent=dt)
-            app.send_task(k['task_name'], args=[next_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[k['task_name']])
-    arguments = json.loads(dt.arguments_json)
-    if 'next_tasks' in arguments:
-        for k in arguments['next_tasks']:
-            args = json.dumps(perform_substitution(k['arguments'], dt))
-            logging.info("launching for {} : {} as specified in next_tasks".format(dt.operation, k))
-            next_task = TEvent.objects.create(video=dt.video,operation=k['task_name'], arguments_json=args,parent=dt)
-            app.send_task(k['task_name'], args=[next_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[k['task_name']])
+    for k in settings.POST_OPERATION_TASKS.get(dt.operation,[]):
+        args = json.dumps(perform_substitution(k['arguments'], dt))
+        logging.info("launching {} : {} as specified in worker_config".format(dt.operation, args))
+        next_task = TEvent.objects.create(video=dt.video,operation=k['task_name'],arguments_json=args,parent=dt)
+        app.send_task(k['task_name'], args=[next_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[k['task_name']])
+    for k in json.loads(dt.arguments_json).get('next_tasks',[]):
+        args = json.dumps(perform_substitution(k['arguments'], dt))
+        logging.info("launching {} : {} as specified in next_tasks".format(dt.operation, args))
+        next_task = TEvent.objects.create(video=dt.video,operation=k['task_name'], arguments_json=args,parent=dt)
+        app.send_task(k['task_name'], args=[next_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[k['task_name']])
 
 def celery_40_bug_hack(start):
     """
@@ -174,7 +171,7 @@ def crop_regions_by_id(task_id):
     start.started = True
     start.operation = crop_regions_by_id.name
     video_id = start.video_id
-    kwargs = {k:v for k,v in json.loads(start.arguments_json).iteritems() if k!='next_tasks'}
+    kwargs = {k:v for k,v in json.loads(start.arguments_json).iteritems() if k != 'next_tasks'}
     paths_to_regions = defaultdict(list)
     kwargs['video_id'] = start.video_id
     kwargs['materialized'] = False

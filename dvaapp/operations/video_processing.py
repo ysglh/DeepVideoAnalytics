@@ -109,7 +109,6 @@ class WVideo(object):
         self.dvideo.width = self.width
         self.dvideo.save()
 
-
     def index_frames(self,frames,visual_index):
         results = {}
         wframes = [WFrame(video=self, frame_index=df.frame_index,primary_key=df.pk) for df in frames]
@@ -178,49 +177,52 @@ class WVideo(object):
             self.extract_zip_dataset()
         else:
             self.get_metadata()
-            self.segment_video(denominator,rescale)
+            self.segment_video()
 
-    def extract_segment_frames(self,segment_id,start_index,denominator,rescale,line):
+    def decode_segment(self,ds,denominator,rescale):
         output_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'frames')
-        input_segment = "{}/{}/{}/{}.mp4".format(self.media_dir, self.primary_key, 'segments', segment_id)
+        segments_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'segments',)
+        input_segment = "{}{}.mp4".format(self.segments_dir, ds.segment_index)
         ffmpeg_command = 'ffmpeg -fflags +igndts -loglevel panic -i {} -vf'.format(input_segment) # Alternative to igndts is setting vsync vfr
         df_list = []
         if rescale:
             filter_command = '"select=not(mod(n\,{}))+eq(pict_type\,PICT_TYPE_I),scale={}:-1" -vsync 0'.format(denominator,rescale)
         else:
             filter_command = '"select=not(mod(n\,{}))+eq(pict_type\,PICT_TYPE_I)" -vsync 0'.format(denominator)
-        output_command = "{}/segment_{}_%d_b.jpg".format(output_dir,segment_id)
+        output_command = "{}/segment_{}_%d_b.jpg".format(output_dir,ds.segment_index)
         command = " ".join([ffmpeg_command,filter_command,output_command])
         logging.info(command)
         try:
             _ = sp.check_output(shlex.split(command), stderr=sp.STDOUT)
         except:
-            raise ValueError,"{} for {} could not run {}".format(line,self.dvideo.name,command)
-        ordered_frames = sorted([(k,v) for k,v in self.segment_frames_dict[segment_id].iteritems() if k%denominator == 0 or v['type'] == 'I'])
+            raise ValueError,"for {} could not run {}".format(self.dvideo.name,command)
+        with open("{}/{}.txt".format(segments_dir, input_segment.split('.')[0])) as framesout:
+            segment_frames_dict = self.parse_segment_framelist(ds.segment_index, framesout.read())
+        ordered_frames = sorted([(k,v) for k,v in segment_frames_dict if k%denominator == 0 or v['type'] == 'I'])
         frame_width, frame_height = 0, 0
         for i,f_id in enumerate(ordered_frames):
             frame_index, frame_data = f_id
-            src = "{}/segment_{}_{}_b.jpg".format(output_dir,segment_id,i+1)
-            dst = "{}/{}.jpg".format(output_dir,frame_index+start_index)
+            src = "{}/segment_{}_{}_b.jpg".format(output_dir,ds.pk,i+1)
+            dst = "{}/{}.jpg".format(output_dir,frame_index+ds.start_index)
             try:
                 os.rename(src,dst)
             except:
-                raise ValueError,str((src, dst, frame_index, start_index))
+                raise ValueError,str((src, dst, frame_index, ds.start_index))
             if i ==0:
                 im = Image.open(dst)
                 frame_width, frame_height = im.size  # this remains constant for all frames
             df = Frame()
-            df.frame_index = int(frame_index+start_index)
+            df.frame_index = int(frame_index+ds.start_index)
             df.video_id = self.dvideo.pk
             df.keyframe = True if frame_data['type'] == 'I' else False
             df.t = frame_data['ts']
-            df.segment_index = segment_id
+            df.segment_index = ds.segment_index
             df.h = frame_height
             df.w = frame_width
             df_list.append(df)
-        return df_list
+        _ = Frame.objects.bulk_create(df_list, batch_size=1000)
 
-    def segment_video(self,denominator,rescale):
+    def segment_video(self):
         segments_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'segments')
         command = 'ffmpeg -loglevel panic -i {} -c copy -map 0 -segment_time 1 -f segment ' \
                   '-segment_list_type csv -segment_list {}/segments.csv ' \
@@ -228,7 +230,6 @@ class WVideo(object):
         logging.info(command)
         segmentor = sp.Popen(shlex.split(command))
         segmentor.wait()
-        df_list = []
         if segmentor.returncode != 0:
             raise ValueError
         else:
@@ -247,7 +248,6 @@ class WVideo(object):
                     framesout.write(framelist)
                 self.segment_frames_dict[segment_id] = self.parse_segment_framelist(segment_id,framelist)
                 logging.warning("Processing line {}".format(line))
-                df_list += self.extract_segment_frames(segment_id, start_index, denominator, rescale,line)
                 start_index += len(self.segment_frames_dict[segment_id])
                 start_time = float(start_time)
                 end_time = float(end_time)
@@ -261,7 +261,6 @@ class WVideo(object):
                 ds.metadata = segment_json
                 ds.save()
             logging.info("Took {} seconds to process {} segments".format(time.time() - timer_start,len(self.segment_frames_dict)))
-        _ = Frame.objects.bulk_create(df_list,batch_size=1000)
         self.dvideo.frames = sum([len(c) for c in self.segment_frames_dict.itervalues()])
         self.dvideo.segments = len(self.segment_frames_dict)
         self.dvideo.save()

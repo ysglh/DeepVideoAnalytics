@@ -178,7 +178,7 @@ def crop_regions_by_id(task_id):
     paths_to_regions = defaultdict(list)
     arguments['video_id'] = start.video_id
     arguments['materialized'] = False
-    queryset = Region.objects.filter(**arguments)
+    queryset = Region.objects.all().filter(**arguments)
     for dr in queryset:
         path = "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,video_id,dr.parent_frame_index)
         paths_to_regions[path].append(dr)
@@ -219,7 +219,7 @@ def execute_index_subquery(query_id):
     return 0
 
 
-@app.task(track_started=True, name="extract_frames_by_id")
+@app.task(track_started=True, name="extract_frames")
 def extract_frames(task_id):
     start = TEvent.objects.get(pk=task_id)
     if celery_40_bug_hack(start):
@@ -244,8 +244,64 @@ def extract_frames(task_id):
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
-    if dv.dataset:
-        os.remove("{}/{}/video/{}.zip".format(settings.MEDIA_ROOT, dv.pk, dv.pk))
+    os.remove("{}/{}/video/{}.zip".format(settings.MEDIA_ROOT, dv.pk, dv.pk))
+    return 0
+
+
+@app.task(track_started=True, name="segment_video")
+def segment_video(task_id):
+    start = TEvent.objects.get(pk=task_id)
+    if celery_40_bug_hack(start):
+        return 0
+    start.task_id = segment_video.request.id
+    start.started = True
+    start.operation = segment_video.name
+    args = json.loads(start.arguments_json)
+    if args == {}:
+        args['rescale'] = 0
+        args['rate'] = 30
+        start.arguments_json = json.dumps(args)
+    start.save()
+    start_time = time.time()
+    video_id = start.video_id
+    dv = Video.objects.get(id=video_id)
+    if dv.youtube_video:
+        create_video_folders(dv)
+    v = WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
+    v.segment_video()
+    decodes = []
+    for ds in Segment.objects.all().filter(video=dv):
+        next_args = json.dumps({'rescale':args['rescale'],'rate':args['rate'],'segment_id':ds.pk})
+        next_task = TEvent.objects.create(video=dv, operation='decode_segment', arguments_json=next_args, parent=start)
+        decodes.append(app.send_task('decode_segment', args=[next_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE['decode_segment']))
+    for k in decodes:
+        _ = k.get()
+    process_next(task_id)
+    start.completed = True
+    start.seconds = time.time() - start_time
+    start.save()
+    return 0
+
+
+@app.task(track_started=True, name="decode_segment")
+def decode_segment(task_id):
+    start = TEvent.objects.get(pk=task_id)
+    if celery_40_bug_hack(start):
+        return 0
+    start.task_id = decode_segment.request.id
+    start.started = True
+    start.operation = decode_segment.name
+    args = json.loads(start.arguments_json)
+    start.save()
+    start_time = time.time()
+    video_id = start.video_id
+    dv = Video.objects.get(id=video_id)
+    v = WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
+    v.decode_segment(ds=args['segment_id'],denominator=args['rate'],rescale=args['rescale'])
+    process_next(task_id)
+    start.completed = True
+    start.seconds = time.time() - start_time
+    start.save()
     return 0
 
 

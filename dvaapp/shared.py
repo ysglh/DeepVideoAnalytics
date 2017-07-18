@@ -104,7 +104,7 @@ def handle_uploaded_file(f, name, extract=True, user=None, rate=30, rescale=0):
             extract_frames_task = TEvent()
             extract_frames_task.arguments_json = json.dumps({'rate': rate,'rescale': rescale})
             extract_frames_task.video = video
-            task_name = 'extract_frames_by_id'
+            task_name = 'extract_frames' if video.dataset else 'segment_video'
             extract_frames_task.operation = task_name
             extract_frames_task.save()
             app.send_task(name=task_name, args=[extract_frames_task.pk, ],
@@ -141,7 +141,7 @@ def handle_downloaded_file(downloaded, video, name, extract=True, user=None, rat
             extract_frames_task = TEvent()
             extract_frames_task.arguments_json = json.dumps({'rate': rate, 'rescale': rescale})
             extract_frames_task.video = video
-            task_name = 'extract_frames_by_id'
+            task_name = 'extract_frames' if video.dataset else 'segment_video'
             extract_frames_task.operation = task_name
             extract_frames_task.save()
             app.send_task(name=task_name, args=[extract_frames_task.pk, ],
@@ -191,7 +191,7 @@ def handle_youtube_video(name, url, extract=True, user=None, rate=30, rescale=0)
     video.url = url
     video.youtube_video = True
     video.save()
-    task_name = 'extract_frames_by_id'
+    task_name = 'segment_video'
     extract_frames_task = TEvent()
     extract_frames_task.video = video
     extract_frames_task.operation = task_name

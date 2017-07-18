@@ -14,10 +14,12 @@ Q_VGG = 'qvgg'
 QUEUES = [Q_EXTRACTOR,Q_INDEXER,Q_DETECTOR,Q_RETRIEVER,Q_FACE_RETRIEVER,Q_FACE_DETECTOR,Q_CLUSTER,Q_TRAINER,Q_OCR,Q_VGG]
 
 TASK_NAMES_TO_QUEUE = {
+    "segment_video":Q_EXTRACTOR,
+    "decode_segment":Q_EXTRACTOR,
     "inception_index_by_id":Q_INDEXER,
     "vgg_index_by_id":Q_VGG,
     "inception_index_regions_by_id":Q_INDEXER,
-    "extract_frames_by_id":Q_EXTRACTOR,
+    "extract_frames":Q_EXTRACTOR,
     "perform_ssd_detection_by_id":Q_DETECTOR,
     "detect_custom_objects":Q_DETECTOR,
     "crop_regions_by_id":Q_EXTRACTOR,
@@ -51,10 +53,12 @@ TRAIN_TASK = 'trainining'
 IMPORT_TASK = 'import'
 
 TASK_NAMES_TO_TYPE = {
+    "segment_video": VIDEO_TASK,
+    "decode_segment": VIDEO_TASK,
     "inception_index_by_id":VIDEO_TASK,
     "vgg_index_by_id":VIDEO_TASK,
     "inception_index_regions_by_id":VIDEO_TASK,
-    "extract_frames_by_id":VIDEO_TASK,
+    "extract_frames":VIDEO_TASK,
     "import_vdn_file":VIDEO_TASK,
     "import_vdn_detector_file":IMPORT_TASK,
     "import_vdn_s3":VIDEO_TASK,
@@ -94,7 +98,14 @@ OCR_VIDEO_TASKS = ['perform_textbox_detection_by_id',]
 
 
 POST_OPERATION_TASKS = {
-    "extract_frames_by_id":[
+    "extract_frames":[
+        {'task_name':'perform_ssd_detection_by_id','arguments':{}},
+        {'task_name':'inception_index_by_id','arguments':{}},
+        {'task_name':'perform_face_detection','arguments':{}},
+        {'task_name':'sync_bucket_video_by_id','arguments':{'dirname':'frames'}},
+        {'task_name':'sync_bucket_video_by_id','arguments':{'dirname':'segments'}},
+    ],
+    "segment_video":[
         {'task_name':'perform_ssd_detection_by_id','arguments':{}},
         {'task_name':'inception_index_by_id','arguments':{}},
         {'task_name':'perform_face_detection','arguments':{}},
@@ -179,7 +190,13 @@ if 'VGG_ENABLE' in os.environ:
             'retriever_queue': Q_VGG,
             'detection_specific': False
         }
-    POST_OPERATION_TASKS['extract_frames_by_id'].append(
+    POST_OPERATION_TASKS['extract_frames'].append(
+        {
+            'task_name': 'vgg_index_by_id',
+            'arguments': {}
+         }
+    )
+    POST_OPERATION_TASKS['segment_video'].append(
         {
             'task_name': 'vgg_index_by_id',
             'arguments': {}

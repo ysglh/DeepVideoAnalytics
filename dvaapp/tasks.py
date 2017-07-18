@@ -174,11 +174,13 @@ def crop_regions_by_id(task_id):
     start.started = True
     start.operation = crop_regions_by_id.name
     video_id = start.video_id
-    arguments = json.loads(start.arguments_json)
+    kwargs = json.loads(start.arguments_json)
     paths_to_regions = defaultdict(list)
-    arguments['video_id'] = start.video_id
-    arguments['materialized'] = False
-    queryset = Region.objects.all().filter(**arguments)
+    kwargs['video_id'] = start.video_id
+    kwargs['materialized'] = False
+    logging.info(kwargs)
+    args = []
+    queryset = Region.objects.all().filter(*args,**kwargs)
     for dr in queryset:
         path = "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,video_id,dr.parent_frame_index)
         paths_to_regions[path].append(dr)

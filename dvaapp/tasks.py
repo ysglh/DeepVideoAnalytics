@@ -36,12 +36,12 @@ def process_next(task_id):
     logging.info("next tasks for {}".format(dt.operation))
     for k in settings.POST_OPERATION_TASKS.get(dt.operation,[]):
         args = json.dumps(perform_substitution(k['arguments'], dt))
-        logging.info("launching {} : {} as specified in worker_config".format(dt.operation, args))
+        logging.info("launching {}, {} with args {} as specified in config".format(dt.operation, k['task_name'], args))
         next_task = TEvent.objects.create(video=dt.video,operation=k['task_name'],arguments_json=args,parent=dt)
         app.send_task(k['task_name'], args=[next_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[k['task_name']])
     for k in json.loads(dt.arguments_json).get('next_tasks',[]):
         args = json.dumps(perform_substitution(k['arguments'], dt))
-        logging.info("launching {} : {} as specified in next_tasks".format(dt.operation, args))
+        logging.info("launching {}, {} with args {} as specified in next_tasks".format(dt.operation, k['task_name'], args))
         next_task = TEvent.objects.create(video=dt.video,operation=k['task_name'], arguments_json=args,parent=dt)
         app.send_task(k['task_name'], args=[next_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[k['task_name']])
 
@@ -175,7 +175,6 @@ def crop_regions_by_id(task_id):
     paths_to_regions = defaultdict(list)
     kwargs['video_id'] = start.video_id
     kwargs['materialized'] = False
-    logging.info(kwargs)
     args = []
     queryset = Region.objects.all().filter(*args,**kwargs)
     for dr in queryset:

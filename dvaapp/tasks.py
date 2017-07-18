@@ -280,18 +280,18 @@ def segment_video(task_id):
         callback = join_decode.s(task_id,start_time)
         header = [decode_segment.s(i).set(queue=settings.TASK_NAMES_TO_QUEUE['decode_segment']) for i in decodes]
         r = chord(header)(callback)
-        r.get()
     return 0
 
 
 @app.task(track_started=True,name="join_decode")
-def join_decode(task_id,start_time):
+def join_decode(*args):
+    task_id = args[0]
     start = TEvent.objects.get(pk=task_id)
     if celery_40_bug_hack(start):
         return 0
     process_next(task_id)
     start.completed = True
-    start.seconds = time.time() - start_time
+    start.seconds = 0
     start.save()
     return 0
 
@@ -316,7 +316,7 @@ def decode_segment(task_id):
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
-    return 0
+    return task_id
 
 
 @app.task(track_started=True, name="perform_yolo_detection_by_id")

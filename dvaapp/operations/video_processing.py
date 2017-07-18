@@ -198,11 +198,11 @@ class WVideo(object):
             raise ValueError,"for {} could not run {}".format(self.dvideo.name,command)
         with open("{}{}.txt".format(segments_dir, ds.segment_index)) as framelist:
             segment_frames_dict = self.parse_segment_framelist(ds.segment_index, framelist.read())
-        ordered_frames = sorted([(k,v) for k,v in segment_frames_dict if k%denominator == 0 or v['type'] == 'I'])
+        ordered_frames = sorted([(k,v) for k,v in segment_frames_dict.iteritems() if k%denominator == 0 or v['type'] == 'I'])
         frame_width, frame_height = 0, 0
         for i,f_id in enumerate(ordered_frames):
             frame_index, frame_data = f_id
-            src = "{}/segment_{}_{}_b.jpg".format(output_dir,ds.pk,i+1)
+            src = "{}/segment_{}_{}_b.jpg".format(output_dir,ds.segment_index,i+1)
             dst = "{}/{}.jpg".format(output_dir,frame_index+ds.start_index)
             try:
                 os.rename(src,dst)

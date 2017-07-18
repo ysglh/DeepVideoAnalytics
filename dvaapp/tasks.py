@@ -296,7 +296,7 @@ def join_decode(args):
     return 0
 
 
-@app.task(track_started=True, name="decode_segment")
+@app.task(track_started=True,name="decode_segment",ignore_result=False)
 def decode_segment(task_id):
     start = TEvent.objects.get(pk=task_id)
     if celery_40_bug_hack(start):

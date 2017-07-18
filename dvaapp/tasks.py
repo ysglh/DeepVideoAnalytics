@@ -277,14 +277,14 @@ def segment_video(task_id):
         else:
             decodes.append(next_task.pk)
     if decodes:
-        callback = join_decode.s(task_id,start_time)
+        callback = join_decode.s(task_id,start_time).set(queue=settings.TASK_NAMES_TO_QUEUE['join_decode'])
         header = [decode_segment.s(i).set(queue=settings.TASK_NAMES_TO_QUEUE['decode_segment']) for i in decodes]
         r = chord(header)(callback)
     return 0
 
 
 @app.task(track_started=True,name="join_decode")
-def join_decode(*args):
+def join_decode(args):
     task_id = args[0]
     start = TEvent.objects.get(pk=task_id)
     if celery_40_bug_hack(start):

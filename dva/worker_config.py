@@ -14,6 +14,7 @@ Q_VGG = 'qvgg'
 QUEUES = [Q_EXTRACTOR,Q_INDEXER,Q_DETECTOR,Q_RETRIEVER,Q_FACE_RETRIEVER,Q_FACE_DETECTOR,Q_CLUSTER,Q_TRAINER,Q_OCR,Q_VGG]
 
 TASK_NAMES_TO_QUEUE = {
+    "join_decode":Q_EXTRACTOR,
     "segment_video":Q_EXTRACTOR,
     "decode_segment":Q_EXTRACTOR,
     "inception_index_by_id":Q_INDEXER,

@@ -276,7 +276,8 @@ def segment_video(task_id):
             decode_segment(next_task.pk) # decode it synchronously for testing in Travis
         else:
             decodes.append(next_task.pk)
-    group(decode_segment.s(i).set(queue=settings.TASK_NAMES_TO_QUEUE['decode_segment']) for i in decodes)()
+    result = group(decode_segment.s(i).set(queue=settings.TASK_NAMES_TO_QUEUE['decode_segment']) for i in decodes).apply_async()
+    result.ready()
     process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time

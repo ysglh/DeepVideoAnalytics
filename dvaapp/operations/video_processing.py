@@ -47,10 +47,14 @@ class WVideo(object):
         self.csv_format = None
 
     def detect_csv_segment_format(self):
-        self.csv_format = {}
-        command ="ffprobe -i {}1.mp4 -show_frames -select_streams v:0 -print_format csv=nokey=0".format(self.segments_dir)
-        csv_format_lines = sp.check_output(shlex.split(command))
-        for line in csv_format_lines.splitlines():
+        format_path = "{}format.txt".format(self.segments_dir)
+        if not os.path.isfile(format_path):
+            self.csv_format = {}
+            command ="ffprobe -i {}0.mp4 -show_frames -select_streams v:0 -print_format csv=nokey=0".format(self.segments_dir)
+            csv_format_lines = sp.check_output(shlex.split(command))
+            with open(format_path,'w') as formatfile:
+                formatfile.write(csv_format_lines)
+        for line in file(format_path).read().splitlines():
             if line.strip():
                 for i,kv in enumerate(line.strip().split(',')):
                     if '=' in kv:
@@ -255,6 +259,7 @@ class WVideo(object):
         self.dvideo.frames = sum([len(c) for c in self.segment_frames_dict.itervalues()])
         self.dvideo.segments = len(self.segment_frames_dict)
         self.dvideo.save()
+        self.detect_csv_segment_format() # detect and save
 
     def extract_zip_dataset(self):
         frames = []

@@ -27,7 +27,6 @@ app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 # TODO: Waiting for https://github.com/celery/celery/issues/3620 to be resolved
 # app.conf.task_queues = (Broadcast('broadcast_tasks'),)
 # app.conf.task_routes = {'update_index': {'queue': 'broadcast_tasks'}}
-app.conf.task_routes = {'join_decode': {'queue': 'qextract'}}
 
 
 

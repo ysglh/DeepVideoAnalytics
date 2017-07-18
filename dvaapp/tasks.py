@@ -21,7 +21,8 @@ import boto3
 import random
 from botocore.exceptions import ClientError
 from .shared import handle_downloaded_file, create_video_folders, create_detector_folders, create_detector_dataset
-from celery import chord
+from celery import group
+from celery.result import allow_join_result
 
 def perform_substitution(args,dt):
     for k,v in args.get('filters',{}).items():
@@ -277,21 +278,12 @@ def segment_video(task_id):
         else:
             decodes.append(next_task.pk)
     if decodes:
-        callback = join_decode.s().set(queue=settings.TASK_NAMES_TO_QUEUE['join_decode'])
-        header = [decode_segment.s(i).set(queue=settings.TASK_NAMES_TO_QUEUE['decode_segment']) for i in decodes]
-        r = chord(header)(callback)
-    return 0
-
-
-@app.task(track_started=True,name="join_decode")
-def join_decode(args):
-    task_id = args[0]
-    start = TEvent.objects.get(pk=task_id)
-    if celery_40_bug_hack(start):
-        return 0
+        result = group([decode_segment.s(i).set(queue=settings.TASK_NAMES_TO_QUEUE['decode_segment']) for i in decodes]).apply_async()
+        with allow_join_result():
+            result.join()
     process_next(task_id)
     start.completed = True
-    start.seconds = 0
+    start.seconds = time.time() - start_time
     start.save()
     return 0
 

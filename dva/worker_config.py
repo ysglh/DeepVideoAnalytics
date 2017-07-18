@@ -106,7 +106,6 @@ POST_OPERATION_TASKS = {
         {'task_name':'sync_bucket_video_by_id','arguments':{'dirname':'segments'}},
     ],
     "segment_video":[
-        {'task_name':'perform_ssd_detection_by_id','arguments':{}},
         {'task_name':'inception_index_by_id','arguments':{}},
         {'task_name':'perform_face_detection','arguments':{}},
         {'task_name':'sync_bucket_video_by_id','arguments':{'dirname':'frames'}},

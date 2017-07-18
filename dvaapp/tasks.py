@@ -282,6 +282,16 @@ def segment_video(task_id):
         result = group([decode_segment.s(i).set(queue=settings.TASK_NAMES_TO_QUEUE['decode_segment']) for i in decodes]).apply_async()
         with allow_join_result():
             result.join()
+    step = 10
+    for gte,lt in [(k,k+step) for k in range(0,dv.segments,step)]:
+        if lt < dv.segments:
+            next_args = json.dumps({'filters': {'segment_index__gte':gte,'segment_index__lt':lt}})
+        else: # ensures off by one error does not happes
+            next_args = json.dumps({'filters': {'segment_index__gte': gte}})
+        operation = 'perform_ssd_detection_by_id'
+        next_task = TEvent.objects.create(video=dv, operation=operation, arguments_json=next_args, parent=start)
+        logging.info('launching {} with args {}'.format(operation,next_args))
+        app.send_task(operation, args=[next_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[operation])
     process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time
@@ -378,11 +388,17 @@ def perform_ssd_detection_by_id(task_id):
     start_time = time.time()
     video_id = start.video_id
     detector = perform_ssd_detection_by_id.get_static_detectors['coco_mobilenet']
+    args = json.loads(start.arguments_json)
     if detector.session is None:
         logging.info("loading detection model")
         detector.load()
     dv = Video.objects.get(id=video_id)
-    frames = Frame.objects.all().filter(video=dv)
+    if 'filters' in args:
+        kwargs = args['filters']
+        kwargs['video_id'] = video_id
+        frames = Frame.objects.all().filter(**kwargs)
+    else:
+        frames = Frame.objects.all().filter(video=dv)
     dd_list = []
     path_list = []
     for df in frames:

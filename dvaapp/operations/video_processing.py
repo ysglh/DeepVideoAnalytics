@@ -196,8 +196,8 @@ class WVideo(object):
             _ = sp.check_output(shlex.split(command), stderr=sp.STDOUT)
         except:
             raise ValueError,"for {} could not run {}".format(self.dvideo.name,command)
-        with open("{}/{}.txt".format(segments_dir, input_segment.split('.')[0])) as framesout:
-            segment_frames_dict = self.parse_segment_framelist(ds.segment_index, framesout.read())
+        with open("{}{}.txt".format(segments_dir, ds.segment_index)) as framelist:
+            segment_frames_dict = self.parse_segment_framelist(ds.segment_index, framelist.read())
         ordered_frames = sorted([(k,v) for k,v in segment_frames_dict if k%denominator == 0 or v['type'] == 'I'])
         frame_width, frame_height = 0, 0
         for i,f_id in enumerate(ordered_frames):

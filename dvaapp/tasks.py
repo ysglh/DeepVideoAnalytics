@@ -300,8 +300,9 @@ def decode_segment(task_id):
     start_time = time.time()
     video_id = start.video_id
     dv = Video.objects.get(id=video_id)
+    ds = Segment.objects.get(id=args['segment_id'])
     v = WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
-    v.decode_segment(ds=args['segment_id'],denominator=args['rate'],rescale=args['rescale'])
+    v.decode_segment(ds=ds,denominator=args['rate'],rescale=args['rescale'])
     process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time

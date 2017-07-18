@@ -370,7 +370,7 @@ def add_default_vdn_server():
 
 
 @task
-def startq(queue_name,conc=2):
+def startq(queue_name,conc=3):
     """
     Start worker to handle a queue, Usage: fab startq:indexer
     Concurrency is set to 1 but you can edit code to change.

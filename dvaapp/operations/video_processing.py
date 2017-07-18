@@ -168,16 +168,7 @@ class WVideo(object):
         return visual_index.name,entries,feat_fname,entries_fname
 
     def extract(self,args,start):
-        if args['rate']:
-            denominator = int(args['rate'])
-        else:
-            denominator = 30
-        rescale = args['rescale'] if 'rescale' in args else 0
-        if self.dvideo.dataset:
-            self.extract_zip_dataset()
-        else:
-            self.get_metadata()
-            self.segment_video()
+        self.extract_zip_dataset()
 
     def decode_segment(self,ds,denominator,rescale):
         output_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'frames')

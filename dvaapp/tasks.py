@@ -268,6 +268,7 @@ def segment_video(task_id):
     if dv.youtube_video:
         create_video_folders(dv)
     v = WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
+    v.get_metadata()
     v.segment_video()
     decodes = []
     for ds in Segment.objects.all().filter(video=dv):

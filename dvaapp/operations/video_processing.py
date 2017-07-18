@@ -54,6 +54,7 @@ class WVideo(object):
             csv_format_lines = sp.check_output(shlex.split(command))
             with open(format_path,'w') as formatfile:
                 formatfile.write(csv_format_lines)
+            logging.info("Generated csv format {}".format(self.csv_format))
         for line in file(format_path).read().splitlines():
             if line.strip():
                 for i,kv in enumerate(line.strip().split(',')):
@@ -64,10 +65,8 @@ class WVideo(object):
                         self.csv_format[kv] = i
                 break
         self.field_count = len(self.csv_format)
-        # self.frame_index_index = self.csv_format['coded_picture_number'] # decode order (e.g. B frames requrire next P frame) AND NOT!!! frame order show frames provides ordered frames
         self.pict_type_index = self.csv_format['pict_type']
         self.time_index = self.csv_format['best_effort_timestamp_time']
-        logging.info(self.csv_format)
 
     def parse_segment_framelist(self,segment_id, framelist):
         if self.csv_format is None:

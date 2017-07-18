@@ -23,19 +23,29 @@ from botocore.exceptions import ClientError
 from .shared import handle_downloaded_file, create_video_folders, create_detector_folders, create_detector_dataset
 
 
+def perform_substitution(args,dt):
+    for k,v in args.items():
+        if v == '__parent__':
+            args[k] = dt.pk
+        elif v == '__grand_parent__':
+            args[k] = dt.parent.pk
+    return args
+
 def process_next(task_id):
     dt = TEvent.objects.get(pk=task_id)
     logging.info("next tasks for {}".format(dt.operation))
     if dt.operation in settings.POST_OPERATION_TASKS:
         for k in settings.POST_OPERATION_TASKS[dt.operation]:
+            args = json.dumps(perform_substitution(k['arguments'], dt))
             logging.info("launching for {} : {} as specified in worker_config".format(dt.operation, k))
-            next_task = TEvent.objects.create(video=dt.video,operation=k['task_name'],arguments_json=json.dumps(k['arguments']),parent=dt)
+            next_task = TEvent.objects.create(video=dt.video,operation=k['task_name'],arguments_json=args,parent=dt)
             app.send_task(k['task_name'], args=[next_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[k['task_name']])
     arguments = json.loads(dt.arguments_json)
     if 'next_tasks' in arguments:
         for k in arguments['next_tasks']:
+            args = json.dumps(perform_substitution(k['arguments'], dt))
             logging.info("launching for {} : {} as specified in next_tasks".format(dt.operation, k))
-            next_task = TEvent.objects.create(video=dt.video,operation=k['task_name'], arguments_json=json.dumps(k['arguments']), parent=dt)
+            next_task = TEvent.objects.create(video=dt.video,operation=k['task_name'], arguments_json=args,parent=dt)
             app.send_task(k['task_name'], args=[next_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[k['task_name']])
 
 def celery_40_bug_hack(start):
@@ -164,13 +174,11 @@ def crop_regions_by_id(task_id):
     start.started = True
     start.operation = crop_regions_by_id.name
     video_id = start.video_id
-    dv = Video.objects.get(id=video_id)
     arguments = json.loads(start.arguments_json)
     paths_to_regions = defaultdict(list)
-    if arguments['selector'] == 'object_name__startswith':
-        queryset = Region.objects.filter(video_id=video_id,object_name__startswith=arguments['prefix'],materialized=False)
-    else:
-        raise NotImplementedError
+    arguments['video_id'] = start.video_id
+    arguments['materialized'] = False
+    queryset = Region.objects.filter(**arguments)
     for dr in queryset:
         path = "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,video_id,dr.parent_frame_index)
         paths_to_regions[path].append(dr)

@@ -257,10 +257,11 @@ def segment_video(task_id):
     start.started = True
     start.operation = segment_video.name
     args = json.loads(start.arguments_json)
-    if args == {}:
+    if 'rescale' not in args:
         args['rescale'] = 0
+    if 'rate' not in args:
         args['rate'] = 30
-        start.arguments_json = json.dumps(args)
+    start.arguments_json = json.dumps(args)
     start.save()
     start_time = time.time()
     video_id = start.video_id
@@ -273,7 +274,10 @@ def segment_video(task_id):
     for ds in Segment.objects.all().filter(video=dv):
         next_args = json.dumps({'rescale':args['rescale'],'rate':args['rate'],'segment_id':ds.pk})
         next_task = TEvent.objects.create(video=dv, operation='decode_segment', arguments_json=next_args, parent=start)
-        decodes.append(app.send_task('decode_segment', args=[next_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE['decode_segment']))
+        if 'sync' in args and args['sync']:
+            decode_segment(next_task.pk) # decode it synchronously for testing in Travis
+        else:
+            decodes.append(app.send_task('decode_segment', args=[next_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE['decode_segment']))
     for k in decodes:
         _ = k.get()
     process_next(task_id)

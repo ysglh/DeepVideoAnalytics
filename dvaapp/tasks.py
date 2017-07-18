@@ -330,6 +330,7 @@ def perform_ssd_detection_by_id(task_id):
             dd.y = d['y']
             dd.w = d['w']
             dd.h = d['h']
+            dd.parent_event_id = task_id
             dd_list.append(dd)
             path_list.append(local_path)
     dd_ids = Region.objects.bulk_create(dd_list,1000)
@@ -543,7 +544,6 @@ def import_video_by_id(task_id):
             s3import = TEvent()
             s3import.video = video_obj
             s3import.key = video_obj.vdn_dataset.aws_key
-            s3import.region = video_obj.vdn_dataset.aws_region
             s3import.bucket = video_obj.vdn_dataset.aws_bucket
             s3import.requester_pays = True
             s3import.operation = "import_video_from_s3"

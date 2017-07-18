@@ -997,11 +997,6 @@ def detect_text_boxes(video_pk,cpu_mode=False):
             r.frame_id = f.pk
             r.video_id = video_pk
             r.save()
-            right = r.w + r.x
-            bottom = r.h + r.y
-            img = Image.open(path)
-            img2 = img.crop((left,top,right,bottom))
-            img2.save("{}/{}/regions/{}.jpg".format(settings.MEDIA_ROOT, video_pk, r.pk))
 
 
 @task

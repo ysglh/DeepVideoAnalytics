@@ -122,6 +122,49 @@ class Video(models.Model):
         return u'{}'.format(self.name)
 
 
+class Clusters(models.Model):
+    excluded_index_entries_pk = ArrayField(models.IntegerField(), default=[])
+    included_index_entries_pk = ArrayField(models.IntegerField(), default=[])
+    train_fraction = models.FloatField(default=0.8) # by default use 80% of data for training
+    algorithm = models.CharField(max_length=50,default='LOPQ')    # LOPQ
+    indexer_algorithm = models.CharField(max_length=50)
+    cluster_count = models.IntegerField(default=0)
+    pca_file_name = models.CharField(max_length=200,default="")
+    model_file_name = models.CharField(max_length=200, default="")
+    components = models.IntegerField(default=64) # computer 64 principal components
+    started = models.DateTimeField('date created', auto_now_add=True)
+    completed = models.BooleanField(default=False)
+    m = models.IntegerField(default=16)
+    v = models.IntegerField(default=16)
+    sub = models.IntegerField(default=256)
+
+
+class TEvent(models.Model):
+    VIDEO = 'V'
+    S3EXPORT = 'SE'
+    S3IMPORT = 'SI'
+    EXPORT = 'E'
+    CLUSTERING = 'CL'
+    TYPE_CHOICES = ((VIDEO, 'Video'), (S3EXPORT, 'S3 export'), (S3IMPORT, 'S3 import'), (CLUSTERING, 'Clustering'),(EXPORT,'Export as file'))
+    event_type = models.CharField(max_length=2, choices=TYPE_CHOICES, default=VIDEO, )
+    started = models.BooleanField(default=False)
+    completed = models.BooleanField(default=False)
+    errored = models.BooleanField(default=False)
+    error_message = models.TextField(default="")
+    video = models.ForeignKey(Video, null=True)
+    operation = models.CharField(max_length=100, default="")
+    created = models.DateTimeField('date created', auto_now_add=True)
+    seconds = models.FloatField(default=-1)
+    file_name = models.CharField(max_length=200,default="")  # FILENAME FOR EXPORT
+    key = models.CharField(max_length=300, default="")
+    bucket = models.CharField(max_length=300, default="")
+    requester_pays = models.BooleanField(default=False)
+    clustering = models.ForeignKey(Clusters,null=True)
+    arguments_json = models.TextField(default="{}")
+    task_id = models.TextField(null=True)
+    parent = models.ForeignKey('self',null=True)
+
+
 class Frame(models.Model):
     video = models.ForeignKey(Video,null=True)
     frame_index = models.IntegerField()
@@ -182,8 +225,10 @@ class Region(models.Model):
     video = models.ForeignKey(Video)
     user = models.ForeignKey(User,null=True)
     frame = models.ForeignKey(Frame,null=True)
+    event = models.ForeignKey(TEvent, null=True)  # TEvent that created this region
     parent_frame_index = models.IntegerField(default=-1)
     parent_segment_index = models.IntegerField(default=-1,null=True)
+
     metadata_text = models.TextField(default="")
     metadata_json = models.TextField(default="")
     full_frame = models.BooleanField(default=False)
@@ -199,7 +244,6 @@ class Region(models.Model):
     confidence = models.FloatField(default=0.0)
     materialized = models.BooleanField(default=False)
     png = models.BooleanField(default=False)
-
 
     def clean(self):
         if self.parent_frame_index == -1 or self.parent_frame_index is None:
@@ -238,21 +282,6 @@ class FederatedQueryResults(models.Model):
     result_image_data = models.BinaryField(null=True)
 
 
-class Clusters(models.Model):
-    excluded_index_entries_pk = ArrayField(models.IntegerField(), default=[])
-    included_index_entries_pk = ArrayField(models.IntegerField(), default=[])
-    train_fraction = models.FloatField(default=0.8) # by default use 80% of data for training
-    algorithm = models.CharField(max_length=50,default='LOPQ')    # LOPQ
-    indexer_algorithm = models.CharField(max_length=50)
-    cluster_count = models.IntegerField(default=0)
-    pca_file_name = models.CharField(max_length=200,default="")
-    model_file_name = models.CharField(max_length=200, default="")
-    components = models.IntegerField(default=64) # computer 64 principal components
-    started = models.DateTimeField('date created', auto_now_add=True)
-    completed = models.BooleanField(default=False)
-    m = models.IntegerField(default=16)
-    v = models.IntegerField(default=16)
-    sub = models.IntegerField(default=256)
 
 
 class ClusterCodes(models.Model):
@@ -269,33 +298,6 @@ class ClusterCodes(models.Model):
     class Meta:
         unique_together = ('searcher_index', 'clusters')
         index_together = [["clusters", "searcher_index"],] # Very important manually verify in Postgres
-
-
-class TEvent(models.Model):
-    VIDEO = 'V'
-    S3EXPORT = 'SE'
-    S3IMPORT = 'SI'
-    EXPORT = 'E'
-    CLUSTERING = 'CL'
-    TYPE_CHOICES = ((VIDEO, 'Video'), (S3EXPORT, 'S3 export'), (S3IMPORT, 'S3 import'), (CLUSTERING, 'Clustering'),(EXPORT,'Export as file'))
-    event_type = models.CharField(max_length=2, choices=TYPE_CHOICES, default=VIDEO, )
-    started = models.BooleanField(default=False)
-    completed = models.BooleanField(default=False)
-    errored = models.BooleanField(default=False)
-    error_message = models.TextField(default="")
-    video = models.ForeignKey(Video, null=True)
-    operation = models.CharField(max_length=100, default="")
-    created = models.DateTimeField('date created', auto_now_add=True)
-    seconds = models.FloatField(default=-1)
-    file_name = models.CharField(max_length=200,default="")  # FILENAME FOR EXPORT
-    key = models.CharField(max_length=300, default="")
-    bucket = models.CharField(max_length=300, default="")
-    region = models.CharField(max_length=300, default="")
-    requester_pays = models.BooleanField(default=False)
-    clustering = models.ForeignKey(Clusters,null=True)
-    arguments_json = models.TextField(default="{}")
-    task_id = models.TextField(null=True)
-    parent = models.ForeignKey('self',null=True)
 
 
 class IndexEntries(models.Model):

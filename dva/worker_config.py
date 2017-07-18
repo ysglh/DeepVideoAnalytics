@@ -110,14 +110,19 @@ POST_OPERATION_TASKS = {
                  'arguments':{'region_type':'D','object_name__startswith':'SSD_', 'w__gte':50,'h__gte':50}
                  }]
         }},
-        {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'regions'}},
     ],
     'crop_regions_by_id':[
         {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'regions'}},
     ],
     'perform_textbox_detection_by_id':[
-        {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'regions'}},
-        {'task_name': 'perform_text_recognition_by_id', 'arguments': {}},
+        {'task_name': 'crop_regions_by_id', 'arguments': {
+            'selector': 'object_name__startswith',
+            'prefix': 'CTPN_TEXTBOX',
+            'next_tasks': [
+                {'task_name': 'perform_text_recognition_by_id',
+                 'arguments': {}
+                 }]
+        }},
     ],
     'inception_index_by_id':[
         {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'indexes'}},

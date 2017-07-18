@@ -519,7 +519,6 @@ def export_video(request):
                 s3export.event_type = TEvent.S3EXPORT
                 s3export.video = video
                 s3export.key = key
-                s3export.region = region
                 s3export.bucket = bucket
                 s3export.save()
                 task_name = 'backup_video_to_s3'
@@ -592,7 +591,6 @@ def push(request, video_id):
             s3export.event_type = TEvent.S3EXPORT
             s3export.video = video
             s3export.key = key
-            s3export.region = region
             s3export.bucket = bucket
             s3export.save()
             create_root_vdn_dataset(s3export, server, headers, name, description)
@@ -907,7 +905,6 @@ def import_s3(request):
                 s3import = TEvent()
                 s3import.event_type = TEvent.S3IMPORT
                 s3import.key = key.strip()
-                s3import.region = region
                 s3import.bucket = bucket
                 video = Video()
                 user = request.user if request.user.is_authenticated else None

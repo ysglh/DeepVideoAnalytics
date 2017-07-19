@@ -95,6 +95,7 @@ class IndexerQuery(models.Model):
     query_int_vector = ArrayField(models.IntegerField(), default=[])
     results = models.BooleanField(default=False)
     metadata = models.TextField(default="")
+    source_filter_json = models.TextField(default="")
     approximate = models.BooleanField(default=False)
     user = models.ForeignKey(User, null=True)
 

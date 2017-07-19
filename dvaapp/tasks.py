@@ -72,38 +72,6 @@ def celery_40_bug_hack(start):
     return start.started
 
 
-@app.task(track_started=True, name="vgg_index_by_id", base=IndexerTask)
-def vgg_index_by_id(task_id):
-    start = TEvent.objects.get(pk=task_id)
-    if celery_40_bug_hack(start):
-        return 0
-    start.task_id = vgg_index_by_id.request.id
-    start.started = True
-    start.operation = vgg_index_by_id.name
-    start.save()
-    video_id = start.video_id
-    start_time = time.time()
-    dv = Video.objects.get(id=video_id)
-    video = WVideo(dv, settings.MEDIA_ROOT)
-    frames = Frame.objects.all().filter(video=dv)
-    visual_index = vgg_index_by_id.visual_indexer['vgg']
-    index_name, index_results, feat_fname, entries_fname = video.index_frames(frames, visual_index,start.pk)
-    i = IndexEntries()
-    i.video = dv
-    i.count = len(index_results)
-    i.contains_frames = True
-    i.detection_name = 'Frame'
-    i.algorithm = index_name
-    i.entries_file_name = entries_fname.split('/')[-1]
-    i.features_file_name = feat_fname.split('/')[-1]
-    i.source = start
-    i.save()
-    process_next(task_id)
-    start.completed = True
-    start.seconds = time.time() - start_time
-    start.save()
-
-
 @app.task(track_started=True, name="perform_indexing", base=IndexerTask)
 def perform_indexing(task_id):
     start = TEvent.objects.get(pk=task_id)
@@ -149,6 +117,7 @@ def perform_indexing(task_id):
     i.entries_file_name = entries_fname.split('/')[-1]
     i.features_file_name = feat_fname.split('/')[-1]
     i.source = start
+    i.source_filter_json = json.dumps(arguments)
     i.save()
     start.completed = True
     start.seconds = time.time() - start_time

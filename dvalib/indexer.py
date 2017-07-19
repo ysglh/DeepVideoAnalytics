@@ -304,7 +304,7 @@ class FacenetIndexer(BaseIndexer):
         f, features = self.session.run([self.fname, self.emb])
         return np.atleast_2d(np.squeeze(features))
 
-    def index_faces(self, paths, paths_to_pk, output_dir, video_pk):
+    def index_faces(self, paths, paths_to_pk, output_dir, video_pk, tvent_pk):
         if self.graph_def is None  or self.session is None:
             self.load()
         entries = []
@@ -331,8 +331,8 @@ class FacenetIndexer(BaseIndexer):
                     entries.append(entry)
             except tf.errors.OutOfRangeError:
                 break
-        feat_fname = os.path.join(output_dir, "facenet.npy")
-        entries_fname = os.path.join(output_dir, "facenet.json")
+        feat_fname = os.path.join(output_dir, "regions_facenet_{}.npy".format(tvent_pk))
+        entries_fname = os.path.join(output_dir, "regions_facenet_{}.json".format(tvent_pk))
         if embeddings:
             embeddings = np.squeeze(np.vstack(embeddings))
             # print embeddings.shape

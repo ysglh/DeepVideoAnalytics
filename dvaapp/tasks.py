@@ -107,7 +107,7 @@ def perform_indexing(task_id):
                 faces.append(path)
                 f_to_pk[path] = dd.pk
             indexes_dir = '{}/{}/indexes'.format(settings.MEDIA_ROOT, video_id)
-            _, _, index_results, feat_fname, entries_fname = visual_index.index_faces(faces, f_to_pk,indexes_dir, video_id)
+            _, _, index_results, feat_fname, entries_fname = visual_index.index_faces(faces, f_to_pk,indexes_dir, video_id, start.pk)
             detection_name = "Faces_subset_by_{}".format(start.pk)
             contains_frames = False
             contains_detections = True

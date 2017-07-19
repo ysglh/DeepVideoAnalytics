@@ -343,11 +343,11 @@ def import_video_json(video_obj,video_json,video_root_dir):
     convert_list = []
     for k,v in detection_to_pk.iteritems():
         dd = Region.objects.get(pk=v)
-        if dd.materialized:
+        original = '{}/{}/{}.jpg'.format(video_root_dir, source_subdir, k)
+        temp_file = "{}/regions/d_{}.jpg".format(video_root_dir, v)
+        converted = "{}/regions/{}.jpg".format(video_root_dir, v)
+        if dd.materialized or os.path.isfile(original):
             try:
-                original = '{}/{}/{}.jpg'.format(video_root_dir, source_subdir, k)
-                temp_file = "{}/regions/d_{}.jpg".format(video_root_dir, v)
-                converted = "{}/regions/{}.jpg".format(video_root_dir, v)
                 os.rename(original, temp_file)
                 convert_list.append((temp_file,converted))
             except:

@@ -25,6 +25,15 @@ from celery import group
 from celery.result import allow_join_result
 
 
+def get_queue_name(operation,args):
+    if operation in settings.TASK_NAMES_TO_QUEUE:
+        return settings.TASK_NAMES_TO_QUEUE[operation]
+    elif 'index' in args:
+        return settings.VISUAL_INDEXES[args['index']]['indexer_queue']
+    else:
+        raise NotImplementedError,"{}, {}".format(operation,args)
+
+
 def perform_substitution(args,dt):
     for k,v in args.get('filters',{}).items():
         if v == '__parent__':
@@ -38,15 +47,17 @@ def process_next(task_id):
     dt = TEvent.objects.get(pk=task_id)
     logging.info("next tasks for {}".format(dt.operation))
     for k in settings.POST_OPERATION_TASKS.get(dt.operation,[]):
-        args = json.dumps(perform_substitution(k['arguments'], dt))
+        args = perform_substitution(k['arguments'], dt)
+        jargs = json.dumps(args)
         logging.info("launching {}, {} with args {} as specified in config".format(dt.operation, k['task_name'], args))
-        next_task = TEvent.objects.create(video=dt.video,operation=k['task_name'],arguments_json=args,parent=dt)
-        app.send_task(k['task_name'], args=[next_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[k['task_name']])
+        next_task = TEvent.objects.create(video=dt.video,operation=k['task_name'],arguments_json=jargs,parent=dt)
+        app.send_task(k['task_name'], args=[next_task.pk, ], queue=get_queue_name(k['task_name'],args))
     for k in json.loads(dt.arguments_json).get('next_tasks',[]):
-        args = json.dumps(perform_substitution(k['arguments'], dt))
+        args = perform_substitution(k['arguments'], dt)
+        jargs = json.dumps(args)
         logging.info("launching {}, {} with args {} as specified in next_tasks".format(dt.operation, k['task_name'], args))
-        next_task = TEvent.objects.create(video=dt.video,operation=k['task_name'], arguments_json=args,parent=dt)
-        app.send_task(k['task_name'], args=[next_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[k['task_name']])
+        next_task = TEvent.objects.create(video=dt.video,operation=k['task_name'], arguments_json=jargs,parent=dt)
+        app.send_task(k['task_name'], args=[next_task.pk, ], queue=get_queue_name(k['task_name'],args))
 
 
 def celery_40_bug_hack(start):
@@ -93,25 +104,27 @@ def vgg_index_by_id(task_id):
     start.save()
 
 
-@app.task(track_started=True, name="inception_index", base=IndexerTask)
-def inception_index(task_id):
+@app.task(track_started=True, name="perform_indexing", base=IndexerTask)
+def perform_indexing(task_id):
     start = TEvent.objects.get(pk=task_id)
     if celery_40_bug_hack(start):
         return 0
-    start.task_id = inception_index.request.id
+    start.task_id = perform_indexing.request.id
     start.started = True
-    start.operation = inception_index.name
+    start.operation = perform_indexing.name
     video_id = start.video_id
     dv = Video.objects.get(id=video_id)
-    target = json.loads(start.arguments_json).get('target','frames')
-    arguments = json.loads(start.arguments_json).get('filters',{})
+    json_args = json.loads(start.arguments_json)
+    target = json_args.get('target','frames')
+    arguments = json_args.get('filters',{})
+    index_name = json_args['index']
     start.save()
     start_time = time.time()
     video = WVideo(dv, settings.MEDIA_ROOT)
     arguments['video_id'] = dv.pk
     if target == 'frames':
         frames = Frame.objects.all().filter(**arguments)
-        visual_index = inception_index.visual_indexer['inception']
+        visual_index = perform_indexing.visual_indexer[index_name]
         index_name, index_results, feat_fname, entries_fname = video.index_frames(frames, visual_index,start.pk)
         detection_name = 'Frames_subset_by_{}'.format(start.pk)
         contains_frames = True
@@ -119,7 +132,7 @@ def inception_index(task_id):
     elif target == 'regions':
         detections = Region.objects.all().filter(**arguments)
         logging.info("Indexing {} Regions".format(detections.count()))
-        visual_index = inception_index.visual_indexer['inception']
+        visual_index = perform_indexing.visual_indexer[index_name]
         detection_name = 'Regions_subset_by_{}'.format(start.pk)
         index_name, index_results, feat_fname, entries_fname = video.index_regions(detections, detection_name, visual_index)
         contains_frames = False

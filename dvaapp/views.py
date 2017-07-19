@@ -651,27 +651,25 @@ def indexes(request):
         "region_types": Region.REGION_TYPES
     }
     if request.method == 'POST':
-        if request.POST.get('visual_index_name') == 'inception':
-            index_event = TEvent()
-            index_event.operation = 'inception_index'
-            arguments = {
-                'region_type__in': request.POST.getlist('region_type__in', []),
-                'w__gte': int(request.POST.get('w__gte')),
-                'h__gte': int(request.POST.get('h__gte'))
-            }
-            for optional_key in ['metadata_text__contains', 'object_name__contains', 'object_name']:
-                if request.POST.get(optional_key, None):
-                    arguments[optional_key] = request.POST.get(optional_key)
-            for optional_key in ['h__lte', 'w__lte']:
-                if request.POST.get(optional_key, None):
-                    arguments[optional_key] = int(request.POST.get(optional_key))
-            index_event.arguments_json = json.dumps({'filters':arguments})
-            index_event.video_id = request.POST.get('video_id')
-            index_event.save()
-            app.send_task(name=index_event.operation, args=[index_event.pk, ],
-                          queue=settings.TASK_NAMES_TO_QUEUE[index_event.operation])
-        else:
-            raise NotImplementedError
+        index_event = TEvent()
+        index_event.operation = 'perform_indexing'
+        arguments = {
+            'region_type__in': request.POST.getlist('region_type__in', []),
+            'w__gte': int(request.POST.get('w__gte')),
+            'h__gte': int(request.POST.get('h__gte'))
+        }
+        for optional_key in ['metadata_text__contains', 'object_name__contains', 'object_name']:
+            if request.POST.get(optional_key, None):
+                arguments[optional_key] = request.POST.get(optional_key)
+        for optional_key in ['h__lte', 'w__lte']:
+            if request.POST.get(optional_key, None):
+                arguments[optional_key] = int(request.POST.get(optional_key))
+        args = {'filters':arguments,'index':request.POST.get('visual_index_name')}
+        queue = settings.VISUAL_INDEXES[args['index']]['indexer_queue']
+        index_event.arguments_json = json.dumps(args)
+        index_event.video_id = request.POST.get('video_id')
+        index_event.save()
+        app.send_task(name=index_event.operation, args=[index_event.pk, ],queue=queue)
     return render(request, 'indexes.html', context)
 
 

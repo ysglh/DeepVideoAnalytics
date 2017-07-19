@@ -177,7 +177,7 @@ def ci():
     from dvaapp.models import Video, Clusters,IndexEntries,TEvent,VDNServer
     from django.conf import settings
     from dvaapp.operations.query_processing import QueryProcessing
-    from dvaapp.tasks import extract_frames, inception_index, perform_ssd_detection_by_id, export_video_by_id, import_video_by_id,\
+    from dvaapp.tasks import extract_frames, perform_indexing, perform_ssd_detection_by_id, export_video_by_id, import_video_by_id,\
         execute_index_subquery, perform_clustering, assign_open_images_text_tags_by_id, perform_face_detection,\
         segment_video, crop_regions_by_id
     for fname in glob.glob('tests/ci/*.mp4'):
@@ -200,15 +200,16 @@ def ci():
         else:
             arguments_json = json.dumps({'sync':True})
             segment_video(TEvent.objects.create(video=v,arguments_json=arguments_json).pk)
-            inception_index(TEvent.objects.create(video=v).pk)
+            arguments_json = json.dumps({'index': 'inception'})
+            perform_indexing(TEvent.objects.create(video=v,arguments_json=arguments_json).pk)
         if i ==0: # save travis time by just running detection on first video
             dt = TEvent.objects.create(video=v)
             perform_ssd_detection_by_id(dt.pk)
             perform_face_detection(TEvent.objects.create(video=v).pk)
             arguments_json = json.dumps({'filters':{'event_id':dt.pk},})
             crop_regions_by_id(TEvent.objects.create(video=v,arguments_json=arguments_json).pk)
-            arguments_json = json.dumps({'target': 'regions','filters': {'event_id': dt.pk, 'w__gte': 50, 'h__gte': 50}})
-            inception_index(TEvent.objects.create(video=v,arguments_json=arguments_json).pk)
+            arguments_json = json.dumps({'index':'inception','target': 'regions','filters': {'event_id': dt.pk, 'w__gte': 50, 'h__gte': 50}})
+            perform_indexing(TEvent.objects.create(video=v,arguments_json=arguments_json).pk)
             assign_open_images_text_tags_by_id(TEvent.objects.create(video=v).pk)
         fname = export_video_by_id(TEvent.objects.create(video=v,event_type=TEvent.EXPORT).pk)
         f = SimpleUploadedFile(fname, file("{}/exports/{}".format(settings.MEDIA_ROOT,fname)).read(), content_type="application/zip")

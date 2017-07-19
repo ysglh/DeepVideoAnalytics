@@ -93,7 +93,7 @@ def vgg_index_by_id(task_id):
     start.save()
 
 
-@app.task(track_started=True, name="incpetion_index", base=IndexerTask)
+@app.task(track_started=True, name="inception_index", base=IndexerTask)
 def inception_index(task_id):
     start = TEvent.objects.get(pk=task_id)
     if celery_40_bug_hack(start):

@@ -93,29 +93,15 @@ POST_OPERATION_TASKS = {
     "extract_frames":[
         {'task_name':'perform_ssd_detection_by_id','arguments':{}},
         {'task_name': 'perform_indexing',
-         'arguments': {
-             'index': 'inception',
-             'target': 'frames',
-            }
-         },
-        {'task_name': 'perform_indexing',
-         'arguments': {
-             'index': 'vgg',
-             'target': 'frames',
-            }
+         'arguments': {'index': 'inception', 'target': 'frames',}
          },
         {'task_name':'perform_face_detection','arguments':{}},
         {'task_name':'sync_bucket_video_by_id','arguments':{'dirname':'frames'}},
         {'task_name':'sync_bucket_video_by_id','arguments':{'dirname':'segments'}},
     ],
     "segment_video":[
-        {
-            'task_name':'perform_indexing',
+        {'task_name':'perform_indexing',
             'arguments':{'index':'inception','target': 'frames'}
-         },
-        {
-            'task_name':'perform_indexing',
-            'arguments':{'index':'vgg','target': 'frames'}
          },
         {'task_name':'perform_face_detection','arguments':{}},
         {'task_name':'sync_bucket_video_by_id','arguments':{'dirname':'frames'}},
@@ -128,18 +114,11 @@ POST_OPERATION_TASKS = {
             'next_tasks':[
                 {'task_name':'perform_indexing',
                     'arguments':{
-                        'index':'incpetion',
+                        'index':'inception',
                         'target':'regions',
                         'filters':{'event_id':'__grand_parent__','w__gte':50,'h__gte':50}
                     }
                  },
-                {'task_name':'perform_indexing',
-                    'arguments':{
-                        'index':'vgg',
-                        'target':'regions',
-                        'filters':{'event_id':'__grand_parent__','w__gte':50,'h__gte':50}
-                    }
-                 }
             ]
         }},
     ],
@@ -209,16 +188,22 @@ if 'VGG_ENABLE' in os.environ:
         }
     POST_OPERATION_TASKS['extract_frames'].append(
         {
-            'task_name': 'vgg_index_by_id',
-            'arguments': {}
-         }
+            'task_name':'perform_indexing',
+            'arguments':{'index':'vgg','target': 'frames'}
+         },
     )
     POST_OPERATION_TASKS['segment_video'].append(
         {
-            'task_name': 'vgg_index_by_id',
-            'arguments': {}
-         }
+            'task_name':'perform_indexing',
+            'arguments':{'index':'vgg','target': 'frames'}
+         },
     )
-    POST_OPERATION_TASKS['vgg_index_by_id'] = [{'task_name': 'sync_bucket_video_by_id',
-                                                'arguments': {'dirname': 'indexes'}}]
+    POST_OPERATION_TASKS['perform_ssd_detection_by_id'][0]['arguments']['next_tasks'].append({
+        'task_name': 'perform_indexing',
+         'arguments': {
+             'index': 'vgg',
+             'target': 'regions',
+             'filters': {'event_id': '__grand_parent__', 'w__gte': 50, 'h__gte': 50}
+         }}
+    )
 

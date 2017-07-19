@@ -304,45 +304,23 @@ class FacenetIndexer(BaseIndexer):
         f, features = self.session.run([self.fname, self.emb])
         return np.atleast_2d(np.squeeze(features))
 
-    def index_faces(self, paths, paths_to_pk, output_dir, video_pk, tvent_pk):
-        if self.graph_def is None  or self.session is None:
+    def apply_batch(self,image_paths):
+        if self.graph_def is None or self.session is None:
             self.load()
-        entries = []
-        output_dir = os.path.expanduser(output_dir)
-        if not os.path.isdir(output_dir):
-            os.makedirs(output_dir)
-        path_count = 0
-        self.session.run(self.iterator.initializer, feed_dict={self.filenames_placeholder:paths})
-        embeddings = []
+        self.session.run(self.iterator.initializer, feed_dict={self.filenames_placeholder: image_paths})
+        embeddings = {}
+        batch_count = 0
         while True:
             try:
-                fnames, emb_array = self.session.run([self.fname, self.emb])
-                embeddings.append(emb_array)
-                # print len(fnames),emb_array.shape
-                for eindex, fname in enumerate(fnames):
-                    entry = {
-                        'path': fname,
-                        'detection_primary_key': paths_to_pk[fname],
-                        'index': path_count,
-                        'type': 'detection',
-                        'video_primary_key': video_pk
-                    }
-                    path_count += 1
-                    entries.append(entry)
+                f, emb = self.session.run([self.fname,self.emb])
+                for i,fname in enumerate(f):
+                    embeddings[fname] = np.atleast_2d(np.squeeze(emb[i,:,:,:]).sum(axis=(0,1)))
+                batch_count += 1
+                if batch_count % 100 == 0:
+                    logging.info("{} batches containing {} images indexed".format(batch_count, batch_count * self.batch_size))
             except tf.errors.OutOfRangeError:
                 break
-        feat_fname = os.path.join(output_dir, "regions_facenet_{}.npy".format(tvent_pk))
-        entries_fname = os.path.join(output_dir, "regions_facenet_{}.json".format(tvent_pk))
-        if embeddings:
-            embeddings = np.squeeze(np.vstack(embeddings))
-            # print embeddings.shape
-            np.save(feat_fname, embeddings)
-            fh = open(entries_fname, 'w')
-            json.dump(entries, fh)
-            fh.close()
-        else:
-            embeddings = None
-        return path_count, embeddings, entries, feat_fname, entries_fname
+        return embeddings
 
 
 class BaseCustomIndexer(object):

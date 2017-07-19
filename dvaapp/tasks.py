@@ -98,26 +98,12 @@ def perform_indexing(task_id):
         contains_frames = True
         contains_detections = False
     elif target == 'regions':
-        if index_name == 'facenet':
-            faces = []
-            f_to_pk = {}
-            detections = Region.objects.all().filter(**arguments)
-            for dd in detections:
-                path = '{}/{}/regions/{}.jpg'.format(settings.MEDIA_ROOT, video_id, dd.pk)
-                faces.append(path)
-                f_to_pk[path] = dd.pk
-            indexes_dir = '{}/{}/indexes'.format(settings.MEDIA_ROOT, video_id)
-            _, _, index_results, feat_fname, entries_fname = visual_index.index_faces(faces, f_to_pk,indexes_dir, video_id, start.pk)
-            detection_name = "Faces_subset_by_{}".format(start.pk)
-            contains_frames = False
-            contains_detections = True
-        else:
-            detections = Region.objects.all().filter(**arguments)
-            logging.info("Indexing {} Regions".format(detections.count()))
-            detection_name = 'Regions_subset_by_{}'.format(start.pk)
-            index_name, index_results, feat_fname, entries_fname = video.index_regions(detections, detection_name, visual_index)
-            contains_frames = False
-            contains_detections = True
+        detections = Region.objects.all().filter(**arguments)
+        logging.info("Indexing {} Regions".format(detections.count()))
+        detection_name = 'Faces_subset_by_{}'.format(start.pk) if index_name == 'facenet' else 'Regions_subset_by_{}'.format(start.pk)
+        index_name, index_results, feat_fname, entries_fname = video.index_regions(detections, detection_name, visual_index)
+        contains_frames = False
+        contains_detections = True
     else:
         raise NotImplementedError
     i = IndexEntries()
@@ -471,6 +457,7 @@ def perform_face_detection(task_id):
             d.confidence = 100.0
             d.frame_id = input_paths[path]
             d.object_name = "MTCNN_face"
+            d.materialized = True
             d.y = v['y']
             d.x = v['x']
             d.w = v['w']

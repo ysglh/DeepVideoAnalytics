@@ -339,7 +339,10 @@ def import_video_json(video_obj,video_json,video_root_dir):
     for k,v in detection_to_pk.iteritems():
         original = '{}/{}/{}.jpg'.format(video_root_dir,source_subdir, k)
         temp_file = "{}/regions/d_{}.jpg".format(video_root_dir,v)
-        os.rename(original, temp_file)
+        try:
+            os.rename(original, temp_file)
+        except:
+            raise ValueError,"could not copy {} to {}".format(original,temp_file)
     for k, v in detection_to_pk.iteritems():
         temp_file = "{}/regions/d_{}.jpg".format(video_root_dir, v)
         converted = "{}/regions/{}.jpg".format(video_root_dir, v)

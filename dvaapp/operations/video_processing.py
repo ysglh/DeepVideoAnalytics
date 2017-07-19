@@ -242,13 +242,13 @@ class WVideo(object):
                     framesout.write(framelist)
                 self.segment_frames_dict[segment_id] = self.parse_segment_framelist(segment_id,framelist)
                 logging.warning("Processing line {}".format(line))
-                start_index += len(self.segment_frames_dict[segment_id])
                 start_time = float(start_time)
                 end_time = float(end_time)
                 ds = Segment()
                 ds.segment_index = segment_id
                 ds.start_time = start_time
                 ds.start_index = start_index
+                start_index += len(self.segment_frames_dict[segment_id])
                 ds.frame_count = len(self.segment_frames_dict[segment_id])
                 ds.end_time = end_time
                 ds.video_id = self.dvideo.pk

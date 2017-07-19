@@ -34,6 +34,7 @@
                         <th>unix ts</th>
                         <th>duration</th>
                         <th>error</th>
+                        <th class="text-center">details</th>
                         <th class="text-center">retry task</th>
                         <th class="text-center">mark as failed</th>
                     </tr>
@@ -60,6 +61,7 @@
                             <td class="text-center">{{ e.created|date:"U" }}</td>
                             <td class="text-right">{{ e.seconds|floatformat }}</td>
                             <td class="text-right">{{ e.error_message }}</td>
+                            <td class="text-center"><a class="btn btn-primary" data-toggle="modal" data-target="#modal_{{ e.pk }}" href="#" >arguments</a></td>
                             <td class="text-center"><button class="btn btn-primary" name="pk" formaction="/retry/" type="submit" value="{{ e.pk }}">Retry</button></td>
                             <td class="text-center"><button class="btn btn-warning" name="pk" formaction="/failed/"  type="submit" value="{{ e.pk }}" >Mark as failed</button></td>
                         </tr>
@@ -71,6 +73,45 @@
         </div>
     </div>
 </div>
+{% for e in events %}
+<div class="modal fade" tabindex="-1" role="dialog" id="modal_{{ e.pk }}">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span></button><h4 class="modal-title">{{ e.operation }} on {{ e.video.name }} </h4>
+        </div>
+        <div class="modal-body">
+            <div class="row">
+                <div class="col-lg-6">
+                {% if e.errored %}
+                    <a href="#" class="btn btn-danger btn-block">Failed</a>
+                {% elif e.seconds < 0 and not e.started %}
+                    <a href="#" class="btn btn-warning btn-block">Pending</a>
+                {% elif e.seconds < 0 and e.started and not e.completed%}
+                    <a href="#" class="btn btn-primary btn-block">Running</a>
+                {% elif e.completed%}
+                    <a href="#" class="btn btn-success btn-block">Completed</a>
+                {% else %}
+                    <a href="#" class="btn btn-disabled btn-block">Unknown</a>
+                {% endif %}
+                </div>
+                <div class="col-lg-6">
+                    {{ e.created|timesince }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12">
+                    <textarea rows="5" contenteditable="false">{{ e.json_arguments }}</textarea>
+                    <textarea rows="5" contenteditable="false">{{ e.error_message }}</textarea>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
 <div class="row">
     <div class="col-lg-6">
         <div class="box">

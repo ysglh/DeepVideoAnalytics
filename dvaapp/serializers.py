@@ -166,7 +166,10 @@ class VideoExportSerializer(serializers.ModelSerializer):
                   'uploader','segments','url','youtube_video','frame_list','segment_list','event_list','label_list','tube_list','index_entries_list')
 
 
-def create_region(a,video_obj,vdn_dataset):
+def create_region(a,video_obj,vdn_dataset,old_task_to_new=None):
+    """
+    # TODO: old_task_to_new
+    """
     da = Region()
     da.video = video_obj
     da.x = a['x']
@@ -176,13 +179,14 @@ def create_region(a,video_obj,vdn_dataset):
     da.vdn_key = a['id']
     da.metadata_text = a['metadata_text']
     da.metadata_json = a['metadata_json']
+    da.materialized = a.get('materialized',False)
+    da.png = a.get('png',False)
     da.region_type = a['region_type']
     da.confidence = a['confidence']
     da.object_name = a['object_name']
     da.full_frame = a['full_frame']
     da.parent_frame_index = a['parent_frame_index']
-    if 'parent_segment_index' in a:
-        da.parent_frame_index = a['parent_segment_index']
+    da.parent_segment_index = a.get('parent_segment_index',-1)
     if vdn_dataset:
         da.vdn_dataset = vdn_dataset
     return da
@@ -336,16 +340,19 @@ def import_video_json(video_obj,video_json,video_root_dir):
         os.mkdir('{}/regions'.format(video_root_dir))
     else:
         source_subdir = 'regions'
+    convert_list = []
     for k,v in detection_to_pk.iteritems():
-        original = '{}/{}/{}.jpg'.format(video_root_dir,source_subdir, k)
-        temp_file = "{}/regions/d_{}.jpg".format(video_root_dir,v)
-        try:
-            os.rename(original, temp_file)
-        except:
-            raise ValueError,"could not copy {} to {}".format(original,temp_file)
-    for k, v in detection_to_pk.iteritems():
-        temp_file = "{}/regions/d_{}.jpg".format(video_root_dir, v)
-        converted = "{}/regions/{}.jpg".format(video_root_dir, v)
+        dd = Region.objects.get(pk=v)
+        if dd.materialized:
+            try:
+                original = '{}/{}/{}.jpg'.format(video_root_dir, source_subdir, k)
+                temp_file = "{}/regions/d_{}.jpg".format(video_root_dir, v)
+                converted = "{}/regions/{}.jpg".format(video_root_dir, v)
+                os.rename(original, temp_file)
+                convert_list.append((temp_file,converted))
+            except:
+                raise ValueError,"could not copy {} to {}".format(original,temp_file)
+    for temp_file,converted in convert_list:
         os.rename(temp_file, converted)
     previous_transformed = set()
     for i in video_json['index_entries_list']:

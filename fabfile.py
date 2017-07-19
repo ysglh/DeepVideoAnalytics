@@ -180,7 +180,7 @@ def ci():
     from dvaapp.tasks import extract_frames, inception_index, perform_ssd_detection_by_id,\
         perform_yolo_detection_by_id, export_video_by_id, import_video_by_id,\
         execute_index_subquery, perform_clustering, assign_open_images_text_tags_by_id, perform_face_detection,\
-        perform_face_indexing, segment_video
+        perform_face_indexing, segment_video, crop_regions_by_id
     for fname in glob.glob('tests/ci/*.mp4'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")
@@ -202,9 +202,13 @@ def ci():
             segment_video(TEvent.objects.create(video=v,arguments_json=arguments_json).pk)
             inception_index(TEvent.objects.create(video=v).pk)
         if i ==0: # save travis time by just running detection on first video
-            perform_ssd_detection_by_id(TEvent.objects.create(video=v).pk)
+            dt = TEvent.objects.create(video=v)
+            perform_ssd_detection_by_id(dt.pk)
             perform_face_detection(TEvent.objects.create(video=v).pk)
-            inception_index(TEvent.objects.create(video=v).pk)
+            arguments_json = json.dumps({'filters':{'event_id':dt.pk},})
+            crop_regions_by_id(TEvent.objects.create(video=v,arguments_json=arguments_json).pk)
+            arguments_json = json.dumps({'target': 'regions','filters': {'event_id': dt.pk, 'w__gte': 50, 'h__gte': 50}})
+            inception_index(TEvent.objects.create(video=v,arguments_json=arguments_json).pk)
             assign_open_images_text_tags_by_id(TEvent.objects.create(video=v).pk)
         fname = export_video_by_id(TEvent.objects.create(video=v,event_type=TEvent.EXPORT).pk)
         f = SimpleUploadedFile(fname, file("{}/exports/{}".format(settings.MEDIA_ROOT,fname)).read(), content_type="application/zip")

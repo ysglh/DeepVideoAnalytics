@@ -24,6 +24,7 @@ from .shared import handle_downloaded_file, create_video_folders, create_detecto
 from celery import group
 from celery.result import allow_join_result
 
+
 def perform_substitution(args,dt):
     for k,v in args.get('filters',{}).items():
         if v == '__parent__':
@@ -31,6 +32,7 @@ def perform_substitution(args,dt):
         elif v == '__grand_parent__':
             args['filters'][k] = dt.parent.pk
     return args
+
 
 def process_next(task_id):
     dt = TEvent.objects.get(pk=task_id)
@@ -46,6 +48,7 @@ def process_next(task_id):
         next_task = TEvent.objects.create(video=dt.video,operation=k['task_name'], arguments_json=args,parent=dt)
         app.send_task(k['task_name'], args=[next_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[k['task_name']])
 
+
 def celery_40_bug_hack(start):
     """
     Celery 4.0.2 retries tasks due to ACK issues when running in solo mode,
@@ -56,38 +59,6 @@ def celery_40_bug_hack(start):
     :return:
     """
     return start.started
-
-
-@app.task(track_started=True, name="inception_index_by_id", base=IndexerTask)
-def inception_index_by_id(task_id):
-    start = TEvent.objects.get(pk=task_id)
-    if celery_40_bug_hack(start):
-        return 0
-    start.task_id = inception_index_by_id.request.id
-    start.started = True
-    start.operation = inception_index_by_id.name
-    start.save()
-    video_id = start.video_id
-    start_time = time.time()
-    dv = Video.objects.get(id=video_id)
-    video = WVideo(dv, settings.MEDIA_ROOT)
-    frames = Frame.objects.all().filter(video=dv)
-    visual_index = inception_index_by_id.visual_indexer['inception']
-    index_name, index_results, feat_fname, entries_fname = video.index_frames(frames, visual_index)
-    i = IndexEntries()
-    i.video = dv
-    i.count = len(index_results)
-    i.contains_frames = True
-    i.detection_name = 'Frame'
-    i.algorithm = index_name
-    i.entries_file_name = entries_fname.split('/')[-1]
-    i.features_file_name = feat_fname.split('/')[-1]
-    i.source = start
-    i.save()
-    process_next(task_id)
-    start.completed = True
-    start.seconds = time.time() - start_time
-    start.save()
 
 
 @app.task(track_started=True, name="vgg_index_by_id", base=IndexerTask)
@@ -105,7 +76,7 @@ def vgg_index_by_id(task_id):
     video = WVideo(dv, settings.MEDIA_ROOT)
     frames = Frame.objects.all().filter(video=dv)
     visual_index = vgg_index_by_id.visual_indexer['vgg']
-    index_name, index_results, feat_fname, entries_fname = video.index_frames(frames, visual_index)
+    index_name, index_results, feat_fname, entries_fname = video.index_frames(frames, visual_index,start.pk)
     i = IndexEntries()
     i.video = dv
     i.count = len(index_results)
@@ -122,30 +93,44 @@ def vgg_index_by_id(task_id):
     start.save()
 
 
-@app.task(track_started=True, name="inception_index_regions_by_id", base=IndexerTask)
-def inception_index_regions_by_id(task_id):
+@app.task(track_started=True, name="incpetion_index", base=IndexerTask)
+def inception_index(task_id):
     start = TEvent.objects.get(pk=task_id)
     if celery_40_bug_hack(start):
         return 0
-    start.task_id = inception_index_regions_by_id.request.id
+    start.task_id = inception_index.request.id
     start.started = True
-    start.operation = inception_index_regions_by_id.name
+    start.operation = inception_index.name
     video_id = start.video_id
     dv = Video.objects.get(id=video_id)
+    target = json.loads(start.arguments_json).get('target','frames')
     arguments = json.loads(start.arguments_json).get('filters',{})
     start.save()
     start_time = time.time()
     video = WVideo(dv, settings.MEDIA_ROOT)
     arguments['video_id'] = dv.pk
-    detections = Region.objects.all().filter(**arguments)
-    logging.info("Indexing {} Regions".format(detections.count()))
-    visual_index = inception_index_regions_by_id.visual_indexer['inception']
-    detection_name = 'Regions_subset_by_{}'.format(start.pk)
-    index_name, index_results, feat_fname, entries_fname = video.index_regions(detections, detection_name, visual_index)
+    if target == 'frames':
+        frames = Frame.objects.all().filter(**arguments)
+        visual_index = inception_index.visual_indexer['inception']
+        index_name, index_results, feat_fname, entries_fname = video.index_frames(frames, visual_index,start.pk)
+        detection_name = 'Frames_subset_by_{}'.format(start.pk)
+        contains_frames = True
+        contains_detections = False
+    elif target == 'regions':
+        detections = Region.objects.all().filter(**arguments)
+        logging.info("Indexing {} Regions".format(detections.count()))
+        visual_index = inception_index.visual_indexer['inception']
+        detection_name = 'Regions_subset_by_{}'.format(start.pk)
+        index_name, index_results, feat_fname, entries_fname = video.index_regions(detections, detection_name, visual_index)
+        contains_frames = False
+        contains_detections = True
+    else:
+        raise NotImplementedError
     i = IndexEntries()
     i.video = dv
     i.count = len(index_results)
-    i.contains_detections = True
+    i.contains_detections = contains_detections
+    i.contains_frames = contains_frames
     i.detection_name = detection_name
     i.algorithm = index_name
     i.entries_file_name = entries_fname.split('/')[-1]

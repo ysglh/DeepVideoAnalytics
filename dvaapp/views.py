@@ -653,7 +653,7 @@ def indexes(request):
     if request.method == 'POST':
         if request.POST.get('visual_index_name') == 'inception':
             index_event = TEvent()
-            index_event.operation = 'inception_index_regions_by_id'
+            index_event.operation = 'inception_index'
             arguments = {
                 'region_type__in': request.POST.getlist('region_type__in', []),
                 'w__gte': int(request.POST.get('w__gte')),

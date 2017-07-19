@@ -177,8 +177,8 @@ def ci():
     from dvaapp.models import Video, Clusters,IndexEntries,TEvent,VDNServer
     from django.conf import settings
     from dvaapp.operations.query_processing import QueryProcessing
-    from dvaapp.tasks import extract_frames, inception_index_by_id, perform_ssd_detection_by_id,\
-        perform_yolo_detection_by_id, inception_index_regions_by_id, export_video_by_id, import_video_by_id,\
+    from dvaapp.tasks import extract_frames, inception_index, perform_ssd_detection_by_id,\
+        perform_yolo_detection_by_id, export_video_by_id, import_video_by_id,\
         execute_index_subquery, perform_clustering, assign_open_images_text_tags_by_id, perform_face_detection,\
         perform_face_indexing, segment_video
     for fname in glob.glob('tests/ci/*.mp4'):
@@ -200,11 +200,11 @@ def ci():
         else:
             arguments_json =  json.dumps({'sync':True})
             segment_video(TEvent.objects.create(video=v,arguments_json=arguments_json).pk)
-        inception_index_by_id(TEvent.objects.create(video=v).pk)
+            inception_index(TEvent.objects.create(video=v).pk)
         if i ==0: # save travis time by just running detection on first video
             perform_ssd_detection_by_id(TEvent.objects.create(video=v).pk)
             perform_face_detection(TEvent.objects.create(video=v).pk)
-            inception_index_regions_by_id(TEvent.objects.create(video=v).pk)
+            inception_index(TEvent.objects.create(video=v).pk)
             assign_open_images_text_tags_by_id(TEvent.objects.create(video=v).pk)
         fname = export_video_by_id(TEvent.objects.create(video=v,event_type=TEvent.EXPORT).pk)
         f = SimpleUploadedFile(fname, file("{}/exports/{}".format(settings.MEDIA_ROOT,fname)).read(), content_type="application/zip")

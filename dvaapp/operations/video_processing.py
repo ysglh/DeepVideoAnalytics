@@ -112,7 +112,7 @@ class WVideo(object):
         self.dvideo.width = self.width
         self.dvideo.save()
 
-    def index_frames(self,frames,visual_index):
+    def index_frames(self,frames,visual_index,task_pk):
         results = {}
         wframes = [WFrame(video=self, frame_index=df.frame_index,primary_key=df.pk) for df in frames]
         visual_index.load()
@@ -129,8 +129,8 @@ class WVideo(object):
             paths.append(f.local_path())
             entries.append(entry)
         features = visual_index.index_paths(paths)
-        feat_fname = "{}/{}/indexes/frames_{}.npy".format(self.media_dir, self.primary_key, visual_index.name)
-        entries_fname = "{}/{}/indexes/frames_{}.json".format(self.media_dir, self.primary_key, visual_index.name)
+        feat_fname = "{}/{}/indexes/frames_{}_{}.npy".format(self.media_dir, self.primary_key, visual_index.name,task_pk)
+        entries_fname = "{}/{}/indexes/frames_{}_{}.json".format(self.media_dir, self.primary_key, visual_index.name,task_pk)
         with open(feat_fname, 'w') as feats:
             np.save(feats, np.array(features))
         with open(entries_fname, 'w') as entryfile:

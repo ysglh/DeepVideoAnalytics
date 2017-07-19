@@ -137,7 +137,7 @@ POST_OPERATION_TASKS = {
     ],
     'perform_face_detection':[
         {'task_name': 'perform_indexing',
-         'arguments': {'index': 'facnet',
+         'arguments': {'index': 'facenet',
                        'target': 'regions',
                        'filter':{'object_name__startswith':'MTCNN_face'}}
          },

@@ -177,28 +177,28 @@ def ci():
     from dvaapp.models import Video, Clusters,IndexEntries,TEvent,VDNServer
     from django.conf import settings
     from dvaapp.operations.query_processing import QueryProcessing
-    from dvaapp.tasks import extract_frames, inception_index, perform_ssd_detection_by_id,\
-        perform_yolo_detection_by_id, export_video_by_id, import_video_by_id,\
+    from dvaapp.tasks import extract_frames, inception_index, perform_ssd_detection_by_id, export_video_by_id, import_video_by_id,\
         execute_index_subquery, perform_clustering, assign_open_images_text_tags_by_id, perform_face_detection,\
-        perform_face_indexing, segment_video, crop_regions_by_id
+        segment_video, crop_regions_by_id
     for fname in glob.glob('tests/ci/*.mp4'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")
         handle_uploaded_file(f, name, False)
-    for fname in glob.glob('tests/*.mp4'):
-        name = fname.split('/')[-1].split('.')[0]
-        f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")
-        handle_uploaded_file(f, name, False)
-    for fname in glob.glob('tests/*.zip'):
-        name = fname.split('/')[-1].split('.')[0]
-        f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
-        handle_uploaded_file(f, name)
+    if sys.platform != 'darwin':
+        for fname in glob.glob('tests/*.mp4'):
+            name = fname.split('/')[-1].split('.')[0]
+            f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")
+            handle_uploaded_file(f, name, False)
+        for fname in glob.glob('tests/*.zip'):
+            name = fname.split('/')[-1].split('.')[0]
+            f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
+            handle_uploaded_file(f, name)
     # handle_youtube_video('world is not enough', 'https://www.youtube.com/watch?v=P-oNz3Nf50Q') # Temporarily disabled due error in travis
     for i,v in enumerate(Video.objects.all()):
         if v.dataset:
             extract_frames(TEvent.objects.create(video=v).pk)
         else:
-            arguments_json =  json.dumps({'sync':True})
+            arguments_json = json.dumps({'sync':True})
             segment_video(TEvent.objects.create(video=v,arguments_json=arguments_json).pk)
             inception_index(TEvent.objects.create(video=v).pk)
         if i ==0: # save travis time by just running detection on first video

@@ -86,7 +86,6 @@ MANUAL_VIDEO_TASKS = ['inception_index',
                       'perform_textbox_detection_by_id',
                       'perform_face_detection',
                       'perform_face_indexing',
-                      'perform_yolo_detection_by_id',
                       'assign_open_images_text_tags_by_id',
                       'sync_bucket_video_by_id'
                       ]

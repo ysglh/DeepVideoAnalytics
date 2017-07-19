@@ -1073,14 +1073,16 @@ def qt():
     from django.core.files.uploadedfile import SimpleUploadedFile
     from dvaapp.views import handle_uploaded_file
     from dvaapp.models import Video, TEvent
-    from dvaapp.tasks import extract_frames,perform_face_detection,perform_face_indexing
+    from dvaapp.tasks import extract_frames,perform_face_detection,perform_indexing,segment_video
     for fname in glob.glob('tests/ci/*.mp4'):
         name = fname.split('/')[-1].split('.')[0]
-        f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
+        f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/mp4")
         v = handle_uploaded_file(f, name)
-        # extract_frames(TEvent.objects.create(video=v).pk)
-        # perform_face_detection(TEvent.objects.create(video=v).pk)
-        # perform_face_indexing(TEvent.objects.create(video=v).pk)
+        arguments_json = json.dumps({'sync': True})
+        segment_video(TEvent.objects.create(video=v, arguments_json=arguments_json).pk)
+        perform_face_detection(TEvent.objects.create(video=v).pk)
+        args = json.dumps({'index': 'facenet','target': 'regions','filter':{'object_name__startswith':'MTCNN_face'}})
+        perform_indexing(TEvent.objects.create(video=v,arguments_json=args).pk)
 
 
 @task

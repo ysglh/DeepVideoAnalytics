@@ -271,10 +271,14 @@ def ci_face():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from dvaapp.models import Video, TEvent
-    from dvaapp.tasks import perform_face_indexing
+    from dvaapp.tasks import perform_indexing
     for i,v in enumerate(Video.objects.all()):
         if i ==0: # save travis time by just running detection on first video
-            perform_face_indexing(TEvent.objects.create(video=v).pk)
+            args = json.dumps({
+                'filter':{'object_name__startswith':'MTCNN_face'},
+                'index':'facenet',
+                'target':'regions'})
+            perform_indexing(TEvent.objects.create(video=v,arguments_json=args).pk)
 
 
 @task

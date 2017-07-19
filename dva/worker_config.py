@@ -22,7 +22,6 @@ TASK_NAMES_TO_QUEUE = {
     "detect_custom_objects":Q_DETECTOR,
     "crop_regions_by_id":Q_EXTRACTOR,
     "perform_face_detection":Q_FACE_DETECTOR,
-    "perform_face_indexing":Q_FACE_RETRIEVER,  # to save GPU memory, ideally they should be on different queue
     "alexnet_index_by_id":Q_INDEXER,
     "alexnet_query_by_image":Q_RETRIEVER,
     "export_video_by_id":Q_EXTRACTOR,
@@ -62,7 +61,6 @@ TASK_NAMES_TO_TYPE = {
     "perform_textbox_detection_by_id":VIDEO_TASK,
     "perform_text_recognition_by_id":VIDEO_TASK,
     "perform_face_detection":VIDEO_TASK,
-    "perform_face_indexing":VIDEO_TASK,
     "alexnet_index_by_id":VIDEO_TASK,
     "alexnet_query_by_image":QUERY_TASK,
     "export_video_by_id": VIDEO_TASK,
@@ -81,7 +79,6 @@ MANUAL_VIDEO_TASKS = ['perform_indexing',
                       'perform_ssd_detection_by_id',
                       'perform_textbox_detection_by_id',
                       'perform_face_detection',
-                      'perform_face_indexing',
                       'assign_open_images_text_tags_by_id',
                       'sync_bucket_video_by_id'
                       ]
@@ -139,11 +136,12 @@ POST_OPERATION_TASKS = {
         {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'indexes'}},
     ],
     'perform_face_detection':[
-        {'task_name': 'perform_face_indexing', 'arguments': {}},
+        {'task_name': 'perform_indexing',
+         'arguments': {'index': 'facnet',
+                       'target': 'regions',
+                       'filter':{'object_name__startswith':'MTCNN_face'}}
+         },
         {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'regions'}},
-    ],
-    'perform_face_indexing':[
-        {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'indexes'}},
     ],
     'import_vdn_file':[
         {'task_name': 'sync_bucket_video_by_id', 'arguments': {}},
@@ -171,8 +169,8 @@ VISUAL_INDEXES = {
         },
     'facenet':
         {
-            'indexer_task': "perform_face_detection_indexing_by_id",
-            'indexer_queue': Q_FACE_DETECTOR,
+            'indexer_task': "perform_indexing",
+            'indexer_queue': Q_FACE_RETRIEVER,
             'retriever_queue': Q_FACE_RETRIEVER,
             'detection_specific': True
         },

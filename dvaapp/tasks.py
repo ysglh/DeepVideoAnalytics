@@ -90,21 +90,34 @@ def perform_indexing(task_id):
     start_time = time.time()
     video = WVideo(dv, settings.MEDIA_ROOT)
     arguments['video_id'] = dv.pk
+    visual_index = perform_indexing.visual_indexer[index_name]
     if target == 'frames':
         frames = Frame.objects.all().filter(**arguments)
-        visual_index = perform_indexing.visual_indexer[index_name]
         index_name, index_results, feat_fname, entries_fname = video.index_frames(frames, visual_index,start.pk)
         detection_name = 'Frames_subset_by_{}'.format(start.pk)
         contains_frames = True
         contains_detections = False
     elif target == 'regions':
-        detections = Region.objects.all().filter(**arguments)
-        logging.info("Indexing {} Regions".format(detections.count()))
-        visual_index = perform_indexing.visual_indexer[index_name]
-        detection_name = 'Regions_subset_by_{}'.format(start.pk)
-        index_name, index_results, feat_fname, entries_fname = video.index_regions(detections, detection_name, visual_index)
-        contains_frames = False
-        contains_detections = True
+        if index_name == 'facenet':
+            faces = []
+            f_to_pk = {}
+            detections = Region.objects.all().filter(**arguments)
+            for dd in detections:
+                path = '{}/{}/regions/{}.jpg'.format(settings.MEDIA_ROOT, video_id, dd.pk)
+                faces.append(path)
+                f_to_pk[path] = dd.pk
+            indexes_dir = '{}/{}/indexes'.format(settings.MEDIA_ROOT, video_id)
+            _, _, index_results, feat_fname, entries_fname = visual_index.index_faces(faces, f_to_pk,indexes_dir, video_id)
+            detection_name = "Faces_subset_by_{}".format(start.pk)
+            contains_frames = False
+            contains_detections = True
+        else:
+            detections = Region.objects.all().filter(**arguments)
+            logging.info("Indexing {} Regions".format(detections.count()))
+            detection_name = 'Regions_subset_by_{}'.format(start.pk)
+            index_name, index_results, feat_fname, entries_fname = video.index_regions(detections, detection_name, visual_index)
+            contains_frames = False
+            contains_detections = True
     else:
         raise NotImplementedError
     i = IndexEntries()
@@ -469,45 +482,6 @@ def perform_face_detection(task_id):
             im.save(output_filename)
             faces.append(face_path)
             faces_to_pk[face_path] = d.pk
-    process_next(task_id)
-    start.completed = True
-    start.seconds = time.time() - start_time
-    start.save()
-    return 0
-
-
-@app.task(track_started=True, name="perform_face_indexing",base=IndexerTask)
-def perform_face_indexing(task_id):
-    start = TEvent.objects.get(pk=task_id)
-    if celery_40_bug_hack(start):
-        return 0
-    start.task_id = perform_face_indexing.request.id
-    start.started = True
-    start.operation = perform_face_indexing.name
-    start.save()
-    start_time = time.time()
-    video_id = start.video_id
-    visual_index = perform_face_indexing.visual_indexer['facenet']
-    dv = Video.objects.get(id=video_id)
-    faces = []
-    f_to_pk = {}
-    for dd in Region.objects.all().filter(object_name='MTCNN_face',video=dv):
-        path = '{}/{}/regions/{}.jpg'.format(settings.MEDIA_ROOT,video_id,dd.pk)
-        faces.append(path)
-        f_to_pk[path] = dd.pk
-    if faces:
-        indexes_dir = '{}/{}/indexes'.format(settings.MEDIA_ROOT, video_id)
-        path_count, emb , entries, feat_fname, entries_fname = visual_index.index_faces(faces, f_to_pk, indexes_dir, video_id)
-        i = IndexEntries()
-        i.video = dv
-        i.count = len(entries)
-        i.contains_frames = False
-        i.contains_detections = True
-        i.detection_name = "Face"
-        i.algorithm = 'facenet'
-        i.entries_file_name = entries_fname.split('/')[-1]
-        i.features_file_name = feat_fname.split('/')[-1]
-        i.save()
     process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time

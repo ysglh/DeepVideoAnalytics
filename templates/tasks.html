@@ -27,14 +27,13 @@
                 <table class="table dataTables">
                     <thead>
                     <tr>
-                        <th>Status</th>
                         <th>Video</th>
                         <th>Operation</th>
                         <th>ts</th>
                         <th>unix ts</th>
                         <th>duration</th>
                         <th>error</th>
-                        <th class="text-center">details</th>
+                        <th class="text-center">status and details</th>
                         <th class="text-center">retry task</th>
                         <th class="text-center">mark as failed</th>
                     </tr>
@@ -42,26 +41,25 @@
                     <tbody>
                     {% for e in events %}
                         <tr>
-                            <td>
-                                {% if e.errored %}
-                                    <a href="#" class="btn btn-danger btn-block">Failed</a>
-                                {% elif e.seconds < 0 and not e.started %}
-                                    <a href="#" class="btn btn-warning btn-block">Pending</a>
-                                {% elif e.seconds < 0 and e.started and not e.completed%}
-                                    <a href="#" class="btn btn-primary btn-block">Running</a>
-                                {% elif e.completed%}
-                                    <a href="#" class="btn btn-success btn-block">Completed</a>
-                                {% else %}
-                                    <a href="#" class="btn btn-disabled btn-block">Unknown</a>
-                                {% endif %}
-                            </td>
                             <td>{{ e.video.name }}</td>
                             <td>{{ e.operation }}</td>
                             <td class="text-center">{{ e.created|timesince}}</td>
                             <td class="text-center">{{ e.created|date:"U" }}</td>
                             <td class="text-right">{{ e.seconds|floatformat }}</td>
                             <td class="text-right">{{ e.error_message }}</td>
-                            <td class="text-center"><a class="btn btn-primary" data-toggle="modal" data-target="#modal_{{ e.pk }}" href="#" >Detail</a></td>
+                            <td>
+                                {% if e.errored %}
+                                    <a href="#" data-toggle="modal" data-target="#modal_{{ e.pk }}" class="btn btn-danger btn-block">Failed</a>
+                                {% elif e.seconds < 0 and not e.started %}
+                                    <a href="#" data-toggle="modal" data-target="#modal_{{ e.pk }}" class="btn btn-warning btn-block">Pending</a>
+                                {% elif e.seconds < 0 and e.started and not e.completed%}
+                                    <a href="#" data-toggle="modal" data-target="#modal_{{ e.pk }}" class="btn btn-primary btn-block">Running</a>
+                                {% elif e.completed%}
+                                    <a href="#" data-toggle="modal" data-target="#modal_{{ e.pk }}" class="btn btn-success btn-block">Completed</a>
+                                {% else %}
+                                    <a href="#" data-toggle="modal" data-target="#modal_{{ e.pk }}" class="btn btn-info btn-block">Unknown</a>
+                                {% endif %}
+                            </td>
                             <td class="text-center"><button class="btn btn-warning" name="pk" formaction="/retry/" type="submit" value="{{ e.pk }}">Retry</button></td>
                             <td class="text-center"><button class="btn btn-warning" name="pk" formaction="/failed/"  type="submit" value="{{ e.pk }}" >Mark as failed</button></td>
                         </tr>

@@ -269,15 +269,16 @@ def segment_video(task_id):
     v.get_metadata()
     v.segment_video()
     decodes = []
-    for ds in Segment.objects.all().filter(video=dv):
-        next_args = json.dumps({'rescale':args['rescale'],'rate':args['rate'],'segment_id':ds.pk})
-        next_task = TEvent.objects.create(video=dv, operation='decode_segment', arguments_json=next_args, parent=start)
-        if 'sync' in args and args['sync']:
-            decode_segment(next_task.pk) # decode it synchronously for testing in Travis
-        else:
+    if args.get('sync',False):
+        next_args = json.dumps({'rescale': args['rescale'], 'rate': args['rate']})
+        next_task = TEvent.objects.create(video=dv, operation='decode_video', arguments_json=next_args, parent=start)
+        decode_video(next_task.pk)  # decode it synchronously for testing in Travis
+    else:
+        for ds in Segment.objects.all().filter(video=dv):
+            next_args = json.dumps({'rescale':args['rescale'],'rate':args['rate'],'filter':{'id':ds.pk}})
+            next_task = TEvent.objects.create(video=dv, operation='decode_video', arguments_json=next_args, parent=start)
             decodes.append(next_task.pk)
-    if decodes:
-        result = group([decode_segment.s(i).set(queue=settings.TASK_NAMES_TO_QUEUE['decode_segment']) for i in decodes]).apply_async()
+        result = group([decode_video.s(i).set(queue=settings.TASK_NAMES_TO_QUEUE['decode_video']) for i in decodes]).apply_async()
         with allow_join_result():
             result.join()
     step = 10
@@ -297,22 +298,24 @@ def segment_video(task_id):
     return 0
 
 
-@app.task(track_started=True,name="decode_segment",ignore_result=False)
-def decode_segment(task_id):
+@app.task(track_started=True,name="decode_video",ignore_result=False)
+def decode_video(task_id):
     start = TEvent.objects.get(pk=task_id)
     if celery_40_bug_hack(start):
         return 0
-    start.task_id = decode_segment.request.id
+    start.task_id = decode_video.request.id
     start.started = True
-    start.operation = decode_segment.name
+    start.operation = decode_video.name
     args = json.loads(start.arguments_json)
     start.save()
     start_time = time.time()
     video_id = start.video_id
     dv = Video.objects.get(id=video_id)
-    ds = Segment.objects.get(id=args['segment_id'])
+    kwargs = args.get('filter',{})
+    kwargs['video_id'] = video_id
     v = WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
-    v.decode_segment(ds=ds,denominator=args['rate'],rescale=args['rescale'])
+    for ds in Segment.objects.filter(**kwargs):
+        v.decode_segment(ds=ds,denominator=args['rate'],rescale=args['rescale'])
     process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time

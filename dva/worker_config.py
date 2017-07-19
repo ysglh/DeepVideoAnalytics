@@ -16,7 +16,7 @@ INDEXER_TASKS = {'perform_indexing',}
 
 TASK_NAMES_TO_QUEUE = {
     "segment_video":Q_EXTRACTOR,
-    "decode_segment":Q_EXTRACTOR,
+    "decode_video":Q_EXTRACTOR,
     "extract_frames":Q_EXTRACTOR,
     "perform_ssd_detection_by_id":Q_DETECTOR,
     "detect_custom_objects":Q_DETECTOR,
@@ -52,7 +52,7 @@ IMPORT_TASK = 'import'
 
 TASK_NAMES_TO_TYPE = {
     "segment_video": VIDEO_TASK,
-    "decode_segment": VIDEO_TASK,
+    "decode_video": VIDEO_TASK,
     "extract_frames":VIDEO_TASK,
     "import_vdn_file":VIDEO_TASK,
     "import_vdn_detector_file":IMPORT_TASK,

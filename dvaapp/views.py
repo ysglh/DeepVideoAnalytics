@@ -151,6 +151,42 @@ class VideoList(UserPassesTestMixin, ListView):
         return user_check(self.request.user)
 
 
+class TEventList(UserPassesTestMixin, ListView):
+    model = TEvent
+    paginate_by = 500
+
+    def get_queryset(self):
+        if len(self.args) > 0:
+            if self.args[0] == 'running':
+                new_context = TEvent.objects.filter(seconds__lt=0,started=True,completed=False,errored=False).order_by('-created')
+            if self.args[0] == 'successful':
+                new_context = TEvent.objects.filter(completed=True).order_by('-created')
+            elif self.args[0] == 'pending':
+                new_context = TEvent.objects.filter(seconds__lt=0,started=False,errored=False).order_by('-created')
+            elif self.args[0] == 'failed':
+                new_context = TEvent.objects.filter(errored=True).order_by('-created')
+        else:
+            new_context = TEvent.objects.filter().order_by('-created')
+        return new_context
+
+    def get_context_data(self, **kwargs):
+        refresh_task_status()
+        context = super(TEventList, self).get_context_data(**kwargs)
+        context['settings_queues'] = set(settings.TASK_NAMES_TO_QUEUE.values())
+        task_list = []
+        for k, v in settings.TASK_NAMES_TO_TYPE.iteritems():
+            task_list.append({'name': k,
+                              'type': v,
+                              'queue': settings.TASK_NAMES_TO_QUEUE[k],
+                              'edges': settings.POST_OPERATION_TASKS[k] if k in settings.POST_OPERATION_TASKS else []
+                              })
+        context['task_list'] = task_list
+        return context
+
+    def test_func(self):
+        return user_check(self.request.user)
+
+
 class VideoDetail(UserPassesTestMixin, DetailView):
     model = Video
 
@@ -610,36 +646,12 @@ def push(request, video_id):
 
 
 @user_passes_test(user_check)
-def render_tasks(request, context):
-    refresh_task_status()
-    context['events'] = TEvent.objects.all()
-    context['settings_queues'] = set(settings.TASK_NAMES_TO_QUEUE.values())
-    task_list = []
-    for k, v in settings.TASK_NAMES_TO_TYPE.iteritems():
-        task_list.append({'name': k,
-                          'type': v,
-                          'queue': settings.TASK_NAMES_TO_QUEUE[k],
-                          'edges': settings.POST_OPERATION_TASKS[k] if k in settings.POST_OPERATION_TASKS else []
-                          })
-    context['task_list'] = task_list
-    context["videos"] = Video.objects.all().filter(parent_query__isnull=True)
-    context['manual_tasks'] = settings.MANUAL_VIDEO_TASKS
-    return render(request, 'tasks.html', context)
-
-
-@user_passes_test(user_check)
 def status(request):
     context = {}
     context['logs'] = []
     for fname in glob.glob('logs/*.log'):
         context['logs'].append((fname,file(fname).read()))
     return render(request, 'status.html', context)
-
-
-@user_passes_test(user_check)
-def tasks(request):
-    context = {}
-    return render_tasks(request, context)
 
 
 @user_passes_test(user_check)
@@ -963,7 +975,7 @@ def retry_task(request):
                                queue=settings.TASK_NAMES_TO_QUEUE[event.operation])
         context['alert'] = "Operation {} on {} submitted".format(event.operation, event.video.name,
                                                                  queue=settings.TASK_NAMES_TO_QUEUE[event.operation])
-        return render_tasks(request, context)
+        return redirect('tasks')
     elif settings.TASK_NAMES_TO_TYPE[event.operation] == settings.QUERY_TASK:
         return redirect("/requery/{}/".format(event.video.parent_query_id))
     else:

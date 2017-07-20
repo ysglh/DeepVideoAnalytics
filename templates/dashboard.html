@@ -272,16 +272,16 @@
 
                         <div class="row text-center">
                             <div class="col-xs-3">
-                                <a class="btn btn-warning" href="/tasks" style="margin: 10px auto" > <i class="fa fa-clock-o"></i> {{ pending_tasks }} pending</a>
+                                <a class="btn btn-warning" href="/tasks/pending/" style="margin: 10px auto" > <i class="fa fa-clock-o"></i> {{ pending_tasks }} pending</a>
                             </div>
                             <div class="col-xs-3">
-                                <a class="btn btn-primary" href="/tasks" style="margin: 10px auto" > <i class="fa fa-gears"></i> {{ running_tasks }} running</a>
+                                <a class="btn btn-primary" href="/tasks/running/" style="margin: 10px auto" > <i class="fa fa-gears"></i> {{ running_tasks }} running</a>
                             </div>
                             <div class="col-xs-3">
-                                <a class="btn btn-success" href="/tasks" style="margin: 10px auto" > <i class="fa fa-check"></i> {{ successful_tasks }} done</a>
+                                <a class="btn btn-success" href="/tasks/successful/" style="margin: 10px auto" > <i class="fa fa-check"></i> {{ successful_tasks }} done</a>
                             </div>
                             <div class="col-xs-3">
-                                <a class="btn btn-danger" href="/tasks" style="margin: 10px auto" > <i class="fa fa-close"></i> {{ errored_tasks }} failed</a>
+                                <a class="btn btn-danger" href="/tasks/failed/" style="margin: 10px auto" > <i class="fa fa-close"></i> {{ errored_tasks }} failed</a>
                             </div>
                         </div>
                     </div>

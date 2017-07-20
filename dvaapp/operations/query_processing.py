@@ -52,7 +52,7 @@ class IndexerTask(celery.Task):
                 vectors = indexer.np.load(fname)
                 vector_entries = json.load(file("{}/{}/indexes/{}".format(settings.MEDIA_ROOT, index_entry.video_id,
                                                                           index_entry.entries_file_name)))
-                logging.info("Starting {} in {}".format(index_entry.video_id, visual_index.name))
+                logging.info("Starting {} in {} with shape {}".format(index_entry.video_id, visual_index.name,vectors.shape))
                 start_index = visual_index.findex
                 visual_index.load_index(vectors, vector_entries)
                 # except:

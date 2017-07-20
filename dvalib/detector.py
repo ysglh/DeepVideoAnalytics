@@ -128,7 +128,7 @@ class TFDetector(BaseDetector):
                 self.image, self.fname = self.iterator.get_next()
                 tf.import_graph_def(self.od_graph_def, name='',input_map={'image_tensor': self.image})
             config = tf.ConfigProto()
-            config.gpu_options.per_process_gpu_memory_fraction = 0.15
+            config.gpu_options.per_process_gpu_memory_fraction = 0.20
             self.session = tf.Session(graph=self.detection_graph,config=config)
             self.boxes = self.detection_graph.get_tensor_by_name('detection_boxes:0')
             self.scores = self.detection_graph.get_tensor_by_name('detection_scores:0')
@@ -141,7 +141,7 @@ class FaceDetector():
     def __init__(self,session=None):
         self.image_size = 182
         self.margin = 44
-        self.gpu_memory_fraction = 0.15
+        self.gpu_memory_fraction = 0.20
         self.session = session
         self.minsize = 20
         self.threshold = [0.6, 0.7, 0.7]

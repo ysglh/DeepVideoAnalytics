@@ -54,10 +54,9 @@ class IndexerTask(celery.Task):
                                                                           index_entry.entries_file_name)))
                 logging.info("Starting {} in {}".format(index_entry.video_id, visual_index.name))
                 start_index = visual_index.findex
-                try:
-                    visual_index.load_index(vectors, vector_entries)
-                except:
-                    logging.info("ERROR Failed to load {} ".format(index_entry.video_id))
+                visual_index.load_index(vectors, vector_entries)
+                # except:
+                #     logging.info("ERROR Failed to load {} vectors shape {} entries {}".format(index_entry.video_id,vectors.shape,len(vector_entries)))
                 visual_index.loaded_entries[index_entry.pk] = indexer.IndexRange(start=start_index,
                                                                                  end=visual_index.findex - 1)
                 logging.info("finished {} in {}, current shape {}, range".format(index_entry.video_id,

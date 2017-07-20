@@ -70,11 +70,10 @@ class BaseIndexer(object):
             self.files[self.findex] = e
             self.findex += 1
         if self.index is None:
-            self.index = np.concatenate(temp_index)
-            self.index = self.index.squeeze()
+            self.index = np.atleast_2d(np.concatenate(temp_index).squeeze())
             logging.info(self.index.shape)
         else:
-            self.index = np.concatenate([self.index, np.concatenate(temp_index).squeeze()])
+            self.index = np.concatenate([self.index, np.atleast_2d(np.concatenate(temp_index).squeeze())])
             logging.info(self.index.shape)
 
     def nearest(self, image_path, n=12, query_vector=None):

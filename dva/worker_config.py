@@ -97,12 +97,13 @@ POST_OPERATION_TASKS = {
         {'task_name':'sync_bucket_video_by_id','arguments':{'dirname':'segments'}},
     ],
     "segment_video":[
-        {'task_name':'perform_indexing',
-            'arguments':{'index':'inception','target': 'frames'}
-         },
-        {'task_name':'perform_face_detection','arguments':{}},
-        {'task_name':'sync_bucket_video_by_id','arguments':{'dirname':'frames'}},
         {'task_name':'sync_bucket_video_by_id','arguments':{'dirname':'segments'}},
+    ],
+    "decode_video":[
+        {'task_name': 'perform_ssd_detection_by_id','arguments': {'filters':'__parent__'}},
+        {'task_name': 'perform_indexing','arguments': {'index': 'inception', 'target': 'frames','filters':'__parent__'}},
+        {'task_name': 'perform_face_detection', 'arguments': {'filters':'__parent__'}},
+        {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'frames'}},
     ],
     'perform_ssd_detection_by_id':[
         {'task_name':'crop_regions_by_id',
@@ -137,9 +138,7 @@ POST_OPERATION_TASKS = {
     ],
     'perform_face_detection':[
         {'task_name': 'perform_indexing',
-         'arguments': {'index': 'facenet',
-                       'target': 'regions',
-                       'filter':{'object_name__startswith':'MTCNN_face'}}
+         'arguments': {'index': 'facenet','target': 'regions','filter':{'event_id':'__parent__'}}
          },
         {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'regions'}},
     ],

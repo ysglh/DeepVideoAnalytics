@@ -34,12 +34,16 @@ def get_queue_name(operation,args):
         raise NotImplementedError,"{}, {}".format(operation,args)
 
 
-def perform_substitution(args,dt):
-    for k,v in args.get('filters',{}).items():
-        if v == '__parent__':
-            args['filters'][k] = dt.pk
-        elif v == '__grand_parent__':
-            args['filters'][k] = dt.parent.pk
+def perform_substitution(args,parent_task):
+    filters = args.get('filters',{})
+    if filters == '__parent__':
+        args['filters'] = parent_task.arguments_json['filters']
+    elif filters:
+        for k,v in args.get('filters',{}).items():
+            if v == '__parent__':
+                args['filters'][k] = parent_task.pk
+            elif v == '__grand_parent__':
+                args['filters'][k] = parent_task.parent.pk
     return args
 
 
@@ -243,22 +247,12 @@ def segment_video(task_id):
         decode_video(next_task.pk)  # decode it synchronously for testing in Travis
     else:
         for ds in Segment.objects.all().filter(video=dv):
-            next_args = json.dumps({'rescale':args['rescale'],'rate':args['rate'],'filter':{'id':ds.pk}})
+            next_args = json.dumps({'rescale':args['rescale'],'rate':args['rate'],'filter':{'segment_index':ds.segment_index}})
             next_task = TEvent.objects.create(video=dv, operation='decode_video', arguments_json=next_args, parent=start)
             decodes.append(next_task.pk)
         result = group([decode_video.s(i).set(queue=settings.TASK_NAMES_TO_QUEUE['decode_video']) for i in decodes]).apply_async()
         with allow_join_result():
             result.join()
-    step = 10
-    for gte,lt in [(k,k+step) for k in range(0,dv.segments,step)]:
-        if lt < dv.segments:
-            next_args = json.dumps({'filters': {'segment_index__gte':gte,'segment_index__lt':lt}})
-        else: # ensures off by one error does not happes
-            next_args = json.dumps({'filters': {'segment_index__gte': gte}})
-        operation = 'perform_ssd_detection_by_id'
-        next_task = TEvent.objects.create(video=dv, operation=operation, arguments_json=next_args, parent=start)
-        logging.info('launching {} with args {}'.format(operation,next_args))
-        app.send_task(operation, args=[next_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[operation])
     process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time
@@ -339,6 +333,7 @@ def perform_ssd_detection_by_id(task_id):
         kwargs = args['filters']
         kwargs['video_id'] = video_id
         frames = Frame.objects.all().filter(**kwargs)
+        logging.info("Performing SSD Using filters {}".format(kwargs))
     else:
         frames = Frame.objects.all().filter(video=dv)
     dd_list = []
@@ -440,7 +435,10 @@ def perform_face_detection(task_id):
         logging.info("loading detection model")
         detector.load()
     input_paths = {}
-    for df in Frame.objects.all().filter(video_id=video_id):
+    args = json.loads(start.arguments_json)
+    filters_kwargs = args.get('filters',{})
+    filters_kwargs['video_id'] = video_id
+    for df in Frame.objects.all().filter(**filters_kwargs):
         input_paths["{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,video_id,df.frame_index)] = df.pk
     faces_dir = '{}/{}/regions'.format(settings.MEDIA_ROOT, video_id)
     aligned_paths = {}
@@ -458,6 +456,7 @@ def perform_face_detection(task_id):
             d.frame_id = input_paths[path]
             d.object_name = "MTCNN_face"
             d.materialized = True
+            d.event = start
             d.y = v['y']
             d.x = v['x']
             d.w = v['w']

@@ -48,6 +48,7 @@ S3_TASK = 's3task'
 CLUSTER_TASK = 'cluster'
 TRAIN_TASK = 'trainining'
 IMPORT_TASK = 'import'
+DEFAULT_SEGMENTS_BATCH_SIZE = 5
 
 TASK_NAMES_TO_TYPE = {
     "segment_video": VIDEO_TASK,

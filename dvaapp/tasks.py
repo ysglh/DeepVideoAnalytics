@@ -256,8 +256,21 @@ def segment_video(task_id):
         next_task = TEvent.objects.create(video=dv, operation='decode_video', arguments_json=next_args, parent=start)
         decode_video(next_task.pk)  # decode it synchronously for testing in Travis
     else:
-        for ds in Segment.objects.all().filter(video=dv):
-            next_args = json.dumps({'rescale':args['rescale'],'rate':args['rate'],'filters':{'segment_index':ds.segment_index}})
+        step = args.get("segments_batch_size",settings.DEFAULT_SEGMENTS_BATCH_SIZE)
+        for gte, lt in [(k, k + step) for k in range(0, dv.segments, step)]:
+            if lt < dv.segments:
+                next_args = json.dumps({
+                    'rescale':args['rescale'],
+                    'rate':args['rate'],
+                    'filters': {'segment_index__gte': gte, 'segment_index__lt': lt}
+                })
+            else:
+                # ensures off by one error does not happens [gte->
+                next_args = json.dumps({
+                    'rescale':args['rescale'],
+                    'rate':args['rate'],
+                    'filters': {'segment_index__gte': gte}
+                })
             next_task = TEvent.objects.create(video=dv, operation='decode_video', arguments_json=next_args, parent=start)
             decodes.append(next_task.pk)
         result = group([decode_video.s(i).set(queue=settings.TASK_NAMES_TO_QUEUE['decode_video']) for i in decodes]).apply_async()

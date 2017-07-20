@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-import subprocess, sys, shutil, os, glob, time, logging
+import subprocess, sys, shutil, os, glob, time, logging, copy
 import PIL
 from django.conf import settings
 from dva.celery import app
@@ -41,7 +41,7 @@ def perform_substitution(args,parent_task):
     :param parent_task:
     :return:
     """
-    args = args.copy() # IMPORTANT otherwise the first task to execute on the worker will fill the filters
+    args = copy.deepcopy(args) # IMPORTANT otherwise the first task to execute on the worker will fill the filters
     filters = args.get('filters',{})
     parent_args = json.loads(parent_task.arguments_json)
     if filters == '__parent__':

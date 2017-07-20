@@ -196,7 +196,8 @@ def ci():
     # handle_youtube_video('world is not enough', 'https://www.youtube.com/watch?v=P-oNz3Nf50Q') # Temporarily disabled due error in travis
     for i,v in enumerate(Video.objects.all()):
         if v.dataset:
-            extract_frames(TEvent.objects.create(video=v).pk)
+            arguments_json = json.dumps({'sync':True})
+            extract_frames(TEvent.objects.create(video=v,arguments_json=arguments_json).pk)
         else:
             arguments_json = json.dumps({'sync':True})
             segment_video(TEvent.objects.create(video=v,arguments_json=arguments_json).pk)

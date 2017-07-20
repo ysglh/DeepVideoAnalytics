@@ -35,6 +35,13 @@ def get_queue_name(operation,args):
 
 
 def perform_substitution(args,parent_task):
+    """
+    Its important to do a deep copy of args before executing any mutations.
+    :param args:
+    :param parent_task:
+    :return:
+    """
+    args = args.copy() # IMPORTANT otherwise the first task to execute on the worker will fill the filters
     filters = args.get('filters',{})
     parent_args = json.loads(parent_task.arguments_json)
     if filters == '__parent__':

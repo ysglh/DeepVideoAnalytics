@@ -88,11 +88,9 @@ OCR_VIDEO_TASKS = ['perform_textbox_detection_by_id',]
 
 POST_OPERATION_TASKS = {
     "extract_frames":[
-        {'task_name':'perform_ssd_detection_by_id','arguments':{}},
-        {'task_name': 'perform_indexing',
-         'arguments': {'index': 'inception', 'target': 'frames',}
-         },
-        {'task_name':'perform_face_detection','arguments':{}},
+        {'task_name':'perform_ssd_detection_by_id','arguments':{'filters':'__parent__'}},
+        {'task_name':'perform_indexing','arguments': {'index': 'inception', 'target': 'frames','filters':'__parent__'}},
+        {'task_name':'perform_face_detection','arguments':{'filters':'__parent__'}},
         {'task_name':'sync_bucket_video_by_id','arguments':{'dirname':'frames'}},
         {'task_name':'sync_bucket_video_by_id','arguments':{'dirname':'segments'}},
     ],
@@ -184,17 +182,9 @@ if 'VGG_ENABLE' in os.environ:
             'detection_specific': False
         }
     POST_OPERATION_TASKS['extract_frames'].append(
-        {
-            'task_name':'perform_indexing',
-            'arguments':{'index':'vgg','target': 'frames'}
-         },
-    )
-    POST_OPERATION_TASKS['segment_video'].append(
-        {
-            'task_name':'perform_indexing',
-            'arguments':{'index':'vgg','target': 'frames'}
-         },
-    )
+        {'task_name': 'perform_indexing', 'arguments': {'index': 'vgg', 'target': 'frames', 'filters': '__parent__'}})
+    POST_OPERATION_TASKS['decode_video'].append(
+        {'task_name': 'perform_indexing', 'arguments': {'index': 'vgg', 'target': 'frames', 'filters': '__parent__'}})
     POST_OPERATION_TASKS['perform_ssd_detection_by_id'][0]['arguments']['next_tasks'].append({
         'task_name': 'perform_indexing',
          'arguments': {

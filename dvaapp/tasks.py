@@ -36,8 +36,9 @@ def get_queue_name(operation,args):
 
 def perform_substitution(args,parent_task):
     filters = args.get('filters',{})
+    parent_args = json.loads(parent_task.arguments_json)
     if filters == '__parent__':
-        args['filters'] = parent_task.arguments_json['filters']
+        args['filters'] = parent_args.get('filters',{})
     elif filters:
         for k,v in args.get('filters',{}).items():
             if v == '__parent__':

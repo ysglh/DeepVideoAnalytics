@@ -38,7 +38,9 @@ def perform_substitution(args,parent_task):
     filters = args.get('filters',{})
     parent_args = json.loads(parent_task.arguments_json)
     if filters == '__parent__':
-        args['filters'] = parent_args.get('filters',{})
+        parent_filters = parent_args.get('filters',{})
+        logging.info('using filters from parent arguments: {}'.format(parent_args))
+        args['filters'] = parent_filters
     elif filters:
         for k,v in args.get('filters',{}).items():
             if v == '__parent__':
@@ -248,7 +250,7 @@ def segment_video(task_id):
         decode_video(next_task.pk)  # decode it synchronously for testing in Travis
     else:
         for ds in Segment.objects.all().filter(video=dv):
-            next_args = json.dumps({'rescale':args['rescale'],'rate':args['rate'],'filter':{'segment_index':ds.segment_index}})
+            next_args = json.dumps({'rescale':args['rescale'],'rate':args['rate'],'filters':{'segment_index':ds.segment_index}})
             next_task = TEvent.objects.create(video=dv, operation='decode_video', arguments_json=next_args, parent=start)
             decodes.append(next_task.pk)
         result = group([decode_video.s(i).set(queue=settings.TASK_NAMES_TO_QUEUE['decode_video']) for i in decodes]).apply_async()
@@ -274,7 +276,7 @@ def decode_video(task_id):
     start_time = time.time()
     video_id = start.video_id
     dv = Video.objects.get(id=video_id)
-    kwargs = args.get('filter',{})
+    kwargs = args.get('filters',{})
     kwargs['video_id'] = video_id
     v = WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
     for ds in Segment.objects.filter(**kwargs):

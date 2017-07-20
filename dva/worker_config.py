@@ -136,7 +136,7 @@ POST_OPERATION_TASKS = {
     ],
     'perform_face_detection':[
         {'task_name': 'perform_indexing',
-         'arguments': {'index': 'facenet','target': 'regions','filter':{'event_id':'__parent__'}}
+         'arguments': {'index': 'facenet','target': 'regions','filters':{'event_id':'__parent__'}}
          },
         {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'regions'}},
     ],

@@ -156,22 +156,35 @@ class TEventList(UserPassesTestMixin, ListView):
     paginate_by = 500
 
     def get_queryset(self):
-        if len(self.args) > 0:
-            if self.args[0] == 'running':
-                new_context = TEvent.objects.filter(seconds__lt=0,started=True,completed=False,errored=False).order_by('-created')
-            if self.args[0] == 'successful':
-                new_context = TEvent.objects.filter(completed=True).order_by('-created')
-            elif self.args[0] == 'pending':
-                new_context = TEvent.objects.filter(seconds__lt=0,started=False,errored=False).order_by('-created')
-            elif self.args[0] == 'failed':
-                new_context = TEvent.objects.filter(errored=True).order_by('-created')
-        else:
-            new_context = TEvent.objects.filter().order_by('-created')
+        kwargs = {}
+        if self.kwargs.get('pk',None):
+            kwargs['video_id']=self.kwargs['pk']
+        if self.kwargs.get('status',None):
+            if self.kwargs['status'] == 'running':
+                kwargs['seconds__lt'] = 0
+                kwargs['started'] = True
+                kwargs['completed'] = False
+                kwargs['errored'] = False
+            elif self.kwargs['status'] == 'successful':
+                kwargs['completed'] = True
+            elif self.kwargs['status'] == 'pending':
+                kwargs['seconds__lt'] = 0
+                kwargs['started'] = False
+                kwargs['errored'] = False
+            elif self.kwargs['status'] == 'failed':
+                kwargs['errored'] = True
+        new_context = TEvent.objects.filter(**kwargs).order_by('-created')
         return new_context
 
     def get_context_data(self, **kwargs):
         refresh_task_status()
         context = super(TEventList, self).get_context_data(**kwargs)
+        context['header'] = ""
+        if self.kwargs.get('pk',None):
+            context['video'] = Video.objects.get(pk=self.kwargs['pk'])
+            context['header'] = "video/dataset : {}".format(context['video'].name)
+        if self.kwargs.get('status',None):
+            context['header'] += " with status {}".format(self.kwargs['status'])
         context['settings_queues'] = set(settings.TASK_NAMES_TO_QUEUE.values())
         task_list = []
         for k, v in settings.TASK_NAMES_TO_TYPE.iteritems():

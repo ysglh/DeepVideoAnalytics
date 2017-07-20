@@ -12,9 +12,14 @@ from celery.exceptions import TimeoutError
 
 def refresh_task_status():
     for t in TEvent.objects.all().filter(started=True, completed=False, errored=False):
-        if TaskResult.objects.get(task_id=t.task_id).status == 'FAILURE':
-            t.errored = True
-            t.save()
+        try:
+            tr = TaskResult.objects.get(task_id=t.task_id)
+        except TaskResult.DoesNotExist:
+            pass
+        else:
+            if tr.status == 'FAILURE':
+                t.errored = True
+                t.save()
 
 
 def create_video_folders(video, create_subdirs=True):

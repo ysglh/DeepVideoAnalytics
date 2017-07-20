@@ -38,6 +38,11 @@ class IndexerTask(celery.Task):
         return IndexerTask._clusterer
 
     def refresh_index(self, index_name):
+        """
+        # TODO: speed this up by skipping refreshes when count is unchanged.
+        :param index_name:
+        :return:
+        """
         index_entries = IndexEntries.objects.all()
         visual_index = self.visual_indexer[index_name]
         for index_entry in index_entries:

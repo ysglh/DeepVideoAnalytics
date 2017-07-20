@@ -91,13 +91,14 @@ class BaseIndexer(object):
         if temp:
             temp = np.transpose(np.dstack(temp)[0])
             dist.append(spatial.distance.cdist(query_vector,temp))
-        dist = np.hstack(dist)
-        ranked = np.squeeze(dist.argsort())
         results = []
-        for i, k in enumerate(ranked[:n]):
-            temp = {'rank':i+1,'algo':self.name,'dist':float(dist[0,k])}
-            temp.update(self.files[k])
-            results.append(temp)
+        if dist:
+            dist = np.hstack(dist)
+            ranked = np.squeeze(dist.argsort())
+            for i, k in enumerate(ranked[:n]):
+                temp = {'rank':i+1,'algo':self.name,'dist':float(dist[0,k])}
+                temp.update(self.files[k])
+                results.append(temp)
         return results # Next also return computed query_vector
 
     def apply(self,path):

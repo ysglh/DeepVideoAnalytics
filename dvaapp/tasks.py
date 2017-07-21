@@ -852,7 +852,7 @@ def import_video_from_s3(s3_import_id):
             start.seconds = time.time() - start_time
             start.save()
             raise ValueError, start.error_message
-        handle_downloaded_file("{}/{}".format(settings.MEDIA_ROOT, fname), start.video, fname)
+        handle_downloaded_file("{}/{}".format(settings.MEDIA_ROOT, fname), start.video, "s3://{}/{}".format(start.bucket,start.key))
         start.completed = True
         start.seconds = time.time() - start_time
         start.save()

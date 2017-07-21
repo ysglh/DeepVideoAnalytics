@@ -250,6 +250,10 @@ class VideoDetail(UserPassesTestMixin, DetailView):
                                               range(int(math.ceil(max_frame_index / float(delta))))]
         context['frame_first'] = context['frame_list'].first()
         context['frame_last'] = context['frame_list'].last()
+        context['pending_tasks'] = TEvent.objects.all().filter(video=self.object,started=False).count()
+        context['running_tasks'] = TEvent.objects.all().filter(video=self.object,started=True, completed=False, errored=False).count()
+        context['successful_tasks'] = TEvent.objects.all().filter(video=self.object,completed=True).count()
+        context['errored_tasks'] = TEvent.objects.all().filter(video=self.object,errored=True).count()
         if context['limit'] > max_frame_index:
             context['limit'] = max_frame_index
         context['max_frame_index'] = max_frame_index
@@ -562,7 +566,6 @@ def export_video(request):
         if video:
             if export_method == 's3':
                 key = request.POST.get('key')
-                region = request.POST.get('region')
                 bucket = request.POST.get('bucket')
                 s3export = TEvent()
                 s3export.event_type = TEvent.S3EXPORT
@@ -1010,6 +1013,19 @@ def delete_video(request):
     if request.user.is_staff: # currently only staff can delete
         video_pk = request.POST.get('video_id')
         delete_video_object(video_pk,request.user)
+        return redirect('video_list')
+    else:
+        return redirect('accounts/login/')
+
+
+@user_passes_test(user_check)
+def rename_video(request):
+    if request.user.is_staff: # currently only staff can rename
+        video_pk = request.POST.get('video_id')
+        name = request.POST.get('name')
+        v = Video.objects.get(pk=int(video_pk))
+        v.name = name
+        v.save()
         return redirect('video_list')
     else:
         return redirect('accounts/login/')

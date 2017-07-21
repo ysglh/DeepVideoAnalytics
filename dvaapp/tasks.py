@@ -288,8 +288,10 @@ def segment_video(task_id):
             next_task = TEvent.objects.create(video=dv, operation='decode_video', arguments_json=next_args, parent=start)
             decodes.append(next_task.pk)
         result = group([decode_video.s(i).set(queue=settings.TASK_NAMES_TO_QUEUE['decode_video']) for i in decodes]).apply_async()
-        with allow_join_result():
-            result.join()
+        # Do not wait for all segments to decode this risks creating a deadlock,
+        # e.g. when number of videos being segmented == number of qextract worker processes
+        # with allow_join_result():
+        #     result.join()
     process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time
@@ -928,6 +930,13 @@ def perform_clustering(cluster_task_id, test=False):
 
 @app.task(track_started=True, name="sync_bucket_video_by_id")
 def sync_bucket_video_by_id(task_id):
+    """
+    TODO: Determine a way to rate limit consecutive sync bucket for a given
+    (video,directory). As an alternative perform sync at a more granular level,
+    e.g. individual files. This is most important when syncing regions and frames.
+    :param task_id:
+    :return:
+    """
     start = TEvent.objects.get(pk=task_id)
     if celery_40_bug_hack(start):
         return 0

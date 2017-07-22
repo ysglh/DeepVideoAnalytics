@@ -41,7 +41,6 @@ TASK_NAMES_TO_QUEUE = {
     "perform_text_recognition_by_id": Q_OCR,
 }
 
-
 VIDEO_TASK = 'video'
 QUERY_TASK = 'query'
 S3_TASK = 's3task'
@@ -124,11 +123,10 @@ POST_OPERATION_TASKS = {
     ],
     'perform_textbox_detection_by_id':[
         {'task_name': 'crop_regions_by_id', 'arguments': {
-            'selector': 'object_name__startswith',
-            'prefix': 'CTPN_TEXTBOX',
+            'filters': {'event_id': '__parent_event__'},
             'next_tasks': [
                 {'task_name': 'perform_text_recognition_by_id',
-                 'arguments': {}
+                 'arguments': {'filters': {'event_id': '__grand_parent_event__'}}
                  }]
         }},
     ],

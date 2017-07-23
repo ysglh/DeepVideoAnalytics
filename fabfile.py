@@ -178,7 +178,7 @@ def ci():
     from django.conf import settings
     from dvaapp.operations.query_processing import QueryProcessing
     from dvaapp.tasks import extract_frames, perform_indexing, export_video_by_id, import_video_by_id,\
-        execute_index_subquery, perform_clustering, assign_open_images_text_tags_by_id, perform_detection,\
+        execute_index_subquery, perform_clustering, perform_analysis, perform_detection,\
         segment_video, crop_regions_by_id
     for fname in glob.glob('tests/ci/*.mp4'):
         name = fname.split('/')[-1].split('.')[0]

@@ -251,7 +251,7 @@ class VideoDetail(UserPassesTestMixin, DetailView):
                                               range(int(math.ceil(max_frame_index / float(delta))))]
         context['frame_first'] = context['frame_list'].first()
         context['frame_last'] = context['frame_list'].last()
-        context['pending_tasks'] = TEvent.objects.all().filter(video=self.object,started=False).count()
+        context['pending_tasks'] = TEvent.objects.all().filter(video=self.object,started=False, errored=False).count()
         context['running_tasks'] = TEvent.objects.all().filter(video=self.object,started=True, completed=False, errored=False).count()
         context['successful_tasks'] = TEvent.objects.all().filter(video=self.object,completed=True).count()
         context['errored_tasks'] = TEvent.objects.all().filter(video=self.object,errored=True).count()
@@ -435,7 +435,7 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
     context['external_datasets_count'] = VDNDataset.objects.count()
     context['external_servers_count'] = VDNServer.objects.count()
     context['task_events_count'] = TEvent.objects.count()
-    context['pending_tasks'] = TEvent.objects.all().filter(started=False).count()
+    context['pending_tasks'] = TEvent.objects.all().filter(started=False, errored=False).count()
     context['running_tasks'] = TEvent.objects.all().filter(started=True, completed=False, errored=False).count()
     context['successful_tasks'] = TEvent.objects.all().filter(started=True, completed=True).count()
     context['errored_tasks'] = TEvent.objects.all().filter(errored=True).count()

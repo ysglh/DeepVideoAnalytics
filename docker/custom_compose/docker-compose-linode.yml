@@ -50,5 +50,4 @@
  volumes:
   dvapgdata:
   dvadata:
-    external: true
   dvarabbit:

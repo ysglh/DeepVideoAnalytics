@@ -198,7 +198,7 @@ class FaceDetector():
 class TextBoxDetector():
 
     def __init__(self):
-        self.text_detector = None
+        self.session = None
 
     def load(self):
         logging.info('Creating networks and loading parameters')
@@ -207,10 +207,10 @@ class TextBoxDetector():
         caffe.set_mode_gpu()
         caffe.set_device(cfg.TEST_GPU_ID)
         text_proposals_detector = TextProposalDetector(CaffeModel(NET_DEF_FILE, MODEL_FILE))
-        self.text_detector = TextDetector(text_proposals_detector)
+        self.session = TextDetector(text_proposals_detector)
 
     def detect(self,image_path):
-        if self.text_detector is None:
+        if self.session is None:
             self.load()
         regions = []
         im = cv2.imread(image_path)
@@ -219,7 +219,7 @@ class TextBoxDetector():
         new_h, new_w, channels = im.shape
         mul_h = float(old_h) / float(new_h)
         mul_w = float(old_w) / float(new_w)
-        text_lines = self.text_detector.detect(im)
+        text_lines = self.session.detect(im)
         for k in text_lines:
             left, top, right, bottom, score = k
             left, top, right, bottom = int(left * mul_w), int(top * mul_h), int(right * mul_w), int(bottom * mul_h)

@@ -18,7 +18,8 @@ import math
 from django.db.models import Max
 from shared import handle_uploaded_file, create_annotation, create_child_vdn_dataset, \
     create_root_vdn_dataset, handle_youtube_video, pull_vdn_list, \
-    import_vdn_dataset_url, create_detector_dataset, import_vdn_detector_url, refresh_task_status, delete_video_object
+    import_vdn_dataset_url, create_detector_dataset, import_vdn_detector_url, refresh_task_status, \
+    delete_video_object,get_queue_name
 from operations.query_processing import QueryProcessing
 from django.contrib.auth.decorators import user_passes_test,login_required
 from django.utils.decorators import method_decorator
@@ -951,11 +952,13 @@ def import_s3(request):
 def video_send_task(request):
     if request.method == 'POST':
         video_id = int(request.POST.get('video_id'))
+        args = json.loads(request.POST.get('arguments_json','{}'))
         task_name = request.POST.get('task_name')
         manual_event = TEvent()
         manual_event.video_id = video_id
+        manual_event.arguments_json = json.dumps(args)
         manual_event.save()
-        app.send_task(name=task_name, args=[manual_event.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+        app.send_task(name=task_name, args=[manual_event.pk, ], queue=get_queue_name(task_name,args))
     else:
         raise NotImplementedError
     return redirect('video_list')

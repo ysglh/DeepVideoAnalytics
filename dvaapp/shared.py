@@ -10,6 +10,17 @@ import boto3
 from celery.exceptions import TimeoutError
 
 
+def get_queue_name(operation,args):
+    if operation in settings.TASK_NAMES_TO_QUEUE:
+        return settings.TASK_NAMES_TO_QUEUE[operation]
+    elif 'index' in args:
+        return settings.VISUAL_INDEXES[args['index']]['indexer_queue']
+    elif 'detector' in args:
+        return settings.DETECTORS[args['detector']]['queue']
+    else:
+        raise NotImplementedError,"{}, {}".format(operation,args)
+
+
 def refresh_task_status():
     for t in TEvent.objects.all().filter(started=True, completed=False, errored=False):
         try:

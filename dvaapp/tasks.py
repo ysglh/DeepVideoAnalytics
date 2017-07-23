@@ -20,20 +20,9 @@ from . import serializers
 import boto3
 import random
 from botocore.exceptions import ClientError
-from .shared import handle_downloaded_file, create_video_folders, create_detector_folders, create_detector_dataset
+from .shared import handle_downloaded_file, create_video_folders, create_detector_folders, create_detector_dataset, get_queue_name
 from celery import group
 from celery.result import allow_join_result
-
-
-def get_queue_name(operation,args):
-    if operation in settings.TASK_NAMES_TO_QUEUE:
-        return settings.TASK_NAMES_TO_QUEUE[operation]
-    elif 'index' in args:
-        return settings.VISUAL_INDEXES[args['index']]['indexer_queue']
-    elif 'detector' in args:
-        return settings.DETECTORS[args['detector']]['queue']
-    else:
-        raise NotImplementedError,"{}, {}".format(operation,args)
 
 
 def perform_substitution(args,parent_task,inject_filters):

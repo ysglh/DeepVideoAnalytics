@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 import subprocess, sys, shutil, os, glob, time, logging, copy
-import PIL
+from PIL import Image
 from django.conf import settings
 from dva.celery import app
 from .models import Video, Frame, TEvent, Query, IndexEntries, QueryResults, AppliedLabel, VDNDataset, Clusters, \
@@ -164,23 +164,25 @@ def crop_regions_by_id(task_id):
     args = json.loads(start.arguments_json)
     resize = args.get('resize',None)
     kwargs = args.get('filters',{})
-    logging.info("Launching crop with {} \n {}".format(args, resize))
     paths_to_regions = defaultdict(list)
     kwargs['video_id'] = start.video_id
     kwargs['materialized'] = False
-    args = []
-    queryset = Region.objects.all().filter(*args,**kwargs)
+    logging.info("executing crop with kwargs {}".format(kwargs))
+    queryset = Region.objects.all().filter(**kwargs)
     for dr in queryset:
         path = "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,video_id,dr.parent_frame_index)
         paths_to_regions[path].append(dr)
     for path,regions in paths_to_regions.iteritems():
-        img = PIL.Image.open(path)
+        img = Image.open(path)
         for dr in regions:
-            img2 = img.crop((dr.x, dr.y,dr.x + dr.w, dr.y + dr.h))
+            cropped = img.crop((dr.x, dr.y,dr.x + dr.w, dr.y + dr.h))
             if resize:
-                img2 = img2.resize(size=resize)
-            img2.save("{}/{}/regions/{}.jpg".format(settings.MEDIA_ROOT, video_id, dr.id))
+                resized = cropped.resize(tuple(resize),Image.BICUBIC)
+                resized.save("{}/{}/regions/{}.jpg".format(settings.MEDIA_ROOT, video_id, dr.id))
+            else:
+                cropped.save("{}/{}/regions/{}.jpg".format(settings.MEDIA_ROOT, video_id, dr.id))
             dr.materialized = True
+            dr.save() # TODO: convert this into batched updated.
     start.save()
     start_time = time.time()
     start.completed = True
@@ -364,10 +366,6 @@ def assign_open_images_text_tags_by_id(task_id):
 @app.task(track_started=True, name="perform_detection",base=DetectorTask)
 def perform_detection(task_id):
     """
-
-    1. coco_mobilenet
-    2. face_mtcnn
-
     :param task_id:
     :return:
     """
@@ -391,7 +389,7 @@ def perform_detection(task_id):
         kwargs = args['filters']
         kwargs['video_id'] = video_id
         frames = Frame.objects.all().filter(**kwargs)
-        logging.info("Performing SSD Using filters {}".format(kwargs))
+        logging.info("Running {} Using filters {}".format(detector_name,kwargs))
     else:
         frames = Frame.objects.all().filter(video=dv)
     dd_list = []

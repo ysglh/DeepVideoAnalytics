@@ -181,11 +181,8 @@ class FaceDetector():
                     bb[1] = np.maximum(det[1] - self.margin / 2, 0)
                     bb[2] = np.minimum(det[2] + self.margin / 2, img_size[1])
                     bb[3] = np.minimum(det[3] + self.margin / 2, img_size[0])
-                    cropped = img[bb[1]:bb[3], bb[0]:bb[2], :]
-                    scaled = misc.imresize(cropped, (self.image_size, self.image_size), interp='bilinear')
                     left, top, right, bottom = bb[0], bb[1], bb[2], bb[3]
                     aligned.append({
-                        'scaled':scaled,
                         'x': left,
                         'y':top,
                         'w':right-left,

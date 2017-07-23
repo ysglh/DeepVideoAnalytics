@@ -30,6 +30,8 @@ def get_queue_name(operation,args):
         return settings.TASK_NAMES_TO_QUEUE[operation]
     elif 'index' in args:
         return settings.VISUAL_INDEXES[args['index']]['indexer_queue']
+    elif 'detector' in args:
+        return settings.DETECTORS[args['detector']]['queue']
     else:
         raise NotImplementedError,"{}, {}".format(operation,args)
 
@@ -62,7 +64,9 @@ def perform_substitution(args,parent_task,inject_filters):
     return args
 
 
-def process_next(task_id,inject_filters=None):
+def process_next(task_id,inject_filters=None,custom_next_tasks=None):
+    if custom_next_tasks is None:
+        custom_next_tasks = []
     dt = TEvent.objects.get(pk=task_id)
     logging.info("next tasks for {}".format(dt.operation))
     for k in settings.POST_OPERATION_TASKS.get(dt.operation,[]):
@@ -71,7 +75,7 @@ def process_next(task_id,inject_filters=None):
         logging.info("launching {}, {} with args {} as specified in config".format(dt.operation, k['task_name'], args))
         next_task = TEvent.objects.create(video=dt.video,operation=k['task_name'],arguments_json=jargs,parent=dt)
         app.send_task(k['task_name'], args=[next_task.pk, ], queue=get_queue_name(k['task_name'],args))
-    for k in json.loads(dt.arguments_json).get('next_tasks',[]):
+    for k in json.loads(dt.arguments_json).get('next_tasks',[])+custom_next_tasks:
         args = perform_substitution(k['arguments'], dt,inject_filters)
         jargs = json.dumps(args)
         logging.info("launching {}, {} with args {} as specified in next_tasks".format(dt.operation, k['task_name'], args))
@@ -157,7 +161,9 @@ def crop_regions_by_id(task_id):
     start.started = True
     start.operation = crop_regions_by_id.name
     video_id = start.video_id
-    kwargs = json.loads(start.arguments_json).get('filters',{})
+    args = json.loads(start.arguments_json)
+    resize = args.get('resize',None)
+    kwargs = args.get('filters',{})
     paths_to_regions = defaultdict(list)
     kwargs['video_id'] = start.video_id
     kwargs['materialized'] = False
@@ -170,6 +176,8 @@ def crop_regions_by_id(task_id):
         img = PIL.Image.open(path)
         for dr in regions:
             img2 = img.crop((dr.x, dr.y,dr.x + dr.w, dr.y + dr.h))
+            if resize:
+                img2 = img2.resize(size=resize)
             img2.save("{}/{}/regions/{}.jpg".format(settings.MEDIA_ROOT, video_id, dr.id))
             dr.materialized = True
     start.save()
@@ -225,7 +233,8 @@ def extract_frames(task_id):
     v = WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
     v.extract(args=args,start=start)
     if args.get('sync',False):
-        process_next(task_id) # No need to inject just process everything together
+        # No need to inject just process everything together
+        process_next(task_id,custom_next_tasks = settings.DEFAULT_PROCESSING_PLAN)
     else:
         step = args.get("frames_batch_size",settings.DEFAULT_FRAMES_BATCH_SIZE)
         for gte, lt in [(k, k + step) for k in range(0, dv.frames, step)]:
@@ -233,7 +242,7 @@ def extract_frames(task_id):
                 filters = {'frame_index__gte': gte, 'frame_index__lt': lt}
             else:
                 filters = {'frame_index__gte': gte}
-            process_next(task_id,inject_filters=filters)
+            process_next(task_id,inject_filters=filters,custom_next_tasks=settings.DEFAULT_PROCESSING_PLAN)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
@@ -317,7 +326,7 @@ def decode_video(task_id):
     v = WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
     for ds in Segment.objects.filter(**kwargs):
         v.decode_segment(ds=ds,denominator=args['rate'],rescale=args['rescale'])
-    process_next(task_id)
+    process_next(task_id,custom_next_tasks = settings.DEFAULT_PROCESSING_PLAN)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
@@ -351,19 +360,28 @@ def assign_open_images_text_tags_by_id(task_id):
     return 0
 
 
-@app.task(track_started=True, name="perform_ssd_detection_by_id",base=DetectorTask)
-def perform_ssd_detection_by_id(task_id):
+@app.task(track_started=True, name="perform_detection",base=DetectorTask)
+def perform_detection(task_id):
+    """
+
+    1. coco_mobilenet
+    2. face_mtcnn
+
+    :param task_id:
+    :return:
+    """
     start = TEvent.objects.get(pk=task_id)
     if celery_40_bug_hack(start):
         return 0
-    start.task_id = perform_ssd_detection_by_id.request.id
+    start.task_id = perform_detection.request.id
     start.started = True
-    start.operation = perform_ssd_detection_by_id.name
+    start.operation = perform_detection.name
     start.save()
     start_time = time.time()
     video_id = start.video_id
-    detector = perform_ssd_detection_by_id.get_static_detectors['coco_mobilenet']
     args = json.loads(start.arguments_json)
+    detector_name = args['detector']
+    detector = perform_detection.get_static_detectors[detector_name]
     if detector.session is None:
         logging.info("loading detection model")
         detector.load()
@@ -387,8 +405,14 @@ def perform_ssd_detection_by_id(task_id):
             dd.frame_id = df.pk
             dd.parent_frame_index = df.frame_index
             dd.parent_segment_index = df.segment_index
-            dd.object_name = 'SSD_{}'.format(d['object_name'])
-            dd.confidence = 100.0*d['score']
+            if detector_name == 'coco_mobilenet':
+                dd.object_name = 'SSD_{}'.format(d['object_name'])
+                dd.confidence = 100.0 * d['score']
+            elif detector_name == 'face_mtcnn':
+                dd.object_name = 'MTCNN_face'
+                dd.confidence = 100.0
+            else:
+                raise NotImplementedError
             dd.x = d['x']
             dd.y = d['y']
             dd.w = d['w']
@@ -396,7 +420,7 @@ def perform_ssd_detection_by_id(task_id):
             dd.event_id = task_id
             dd_list.append(dd)
             path_list.append(local_path)
-    dd_ids = Region.objects.bulk_create(dd_list,1000)
+    _ = Region.objects.bulk_create(dd_list,1000)
     process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time
@@ -458,60 +482,6 @@ def perform_text_recognition_by_id(task_id):
     return 0
 
 
-@app.task(track_started=True, name="perform_face_detection",base=DetectorTask)
-def perform_face_detection(task_id):
-    start = TEvent.objects.get(pk=task_id)
-    if celery_40_bug_hack(start):
-        return 0
-    start.task_id = perform_face_detection.request.id
-    start.started = True
-    start.operation = perform_face_detection.name
-    start.save()
-    start_time = time.time()
-    video_id = start.video_id
-    detector = perform_face_detection.get_static_detectors['face_mtcnn']
-    if detector.session is None:
-        logging.info("loading detection model")
-        detector.load()
-    input_paths = {}
-    args = json.loads(start.arguments_json)
-    filters_kwargs = args.get('filters',{})
-    filters_kwargs['video_id'] = video_id
-    for df in Frame.objects.all().filter(**filters_kwargs):
-        input_paths["{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,video_id,df.frame_index)] = df.pk
-    faces_dir = '{}/{}/regions'.format(settings.MEDIA_ROOT, video_id)
-    aligned_paths = {}
-    for image_path in input_paths:
-        aligned_paths[image_path] = detector.detect(image_path)
-    logging.info(len(aligned_paths))
-    faces = []
-    faces_to_pk = {}
-    for path, vlist in aligned_paths.iteritems():
-        for v in vlist:
-            d = Region()
-            d.region_type = Region.DETECTION
-            d.video_id = video_id
-            d.confidence = 100.0
-            d.frame_id = input_paths[path]
-            d.object_name = "MTCNN_face"
-            d.materialized = True
-            d.event = start
-            d.y = v['y']
-            d.x = v['x']
-            d.w = v['w']
-            d.h = v['h']
-            d.save()
-            face_path = '{}/{}.jpg'.format(faces_dir, d.pk)
-            output_filename = os.path.join(faces_dir, face_path)
-            im = PIL.Image.fromarray(v['scaled'])
-            im.save(output_filename)
-            faces.append(face_path)
-            faces_to_pk[face_path] = d.pk
-    process_next(task_id)
-    start.completed = True
-    start.seconds = time.time() - start_time
-    start.save()
-    return 0
 
 
 @app.task(track_started=True, name="export_video_by_id")

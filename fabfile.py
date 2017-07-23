@@ -177,8 +177,8 @@ def ci():
     from dvaapp.models import Video, Clusters,IndexEntries,TEvent,VDNServer
     from django.conf import settings
     from dvaapp.operations.query_processing import QueryProcessing
-    from dvaapp.tasks import extract_frames, perform_indexing, perform_ssd_detection_by_id, export_video_by_id, import_video_by_id,\
-        execute_index_subquery, perform_clustering, assign_open_images_text_tags_by_id, perform_face_detection,\
+    from dvaapp.tasks import extract_frames, perform_indexing, export_video_by_id, import_video_by_id,\
+        execute_index_subquery, perform_clustering, assign_open_images_text_tags_by_id, perform_detection,\
         segment_video, crop_regions_by_id
     for fname in glob.glob('tests/ci/*.mp4'):
         name = fname.split('/')[-1].split('.')[0]
@@ -204,9 +204,11 @@ def ci():
             arguments_json = json.dumps({'index': 'inception'})
             perform_indexing(TEvent.objects.create(video=v,arguments_json=arguments_json).pk)
         if i ==0: # save travis time by just running detection on first video
+            arguments_json = json.dumps({'detector': 'face_mtcnn'})
             dt = TEvent.objects.create(video=v)
-            perform_ssd_detection_by_id(dt.pk)
-            perform_face_detection(TEvent.objects.create(video=v).pk)
+            perform_detection(dt.pk,arguments_json=arguments_json)
+            arguments_json = json.dumps({'detector': 'coco_mobilenet'})
+            perform_detection(TEvent.objects.create(video=v).pk,arguments_json=arguments_json)
             arguments_json = json.dumps({'filters':{'event_id':dt.pk},})
             crop_regions_by_id(TEvent.objects.create(video=v,arguments_json=arguments_json).pk)
             arguments_json = json.dumps({'index':'inception','target': 'regions','filters': {'event_id': dt.pk, 'w__gte': 50, 'h__gte': 50}})
@@ -1074,14 +1076,15 @@ def qt():
     from django.core.files.uploadedfile import SimpleUploadedFile
     from dvaapp.views import handle_uploaded_file
     from dvaapp.models import Video, TEvent
-    from dvaapp.tasks import extract_frames,perform_face_detection,perform_indexing,segment_video
+    from dvaapp.tasks import extract_frames,perform_detection,perform_indexing,segment_video
     for fname in glob.glob('tests/ci/*.mp4'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/mp4")
         v = handle_uploaded_file(f, name)
         arguments_json = json.dumps({'sync': True})
         segment_video(TEvent.objects.create(video=v, arguments_json=arguments_json).pk)
-        perform_face_detection(TEvent.objects.create(video=v).pk)
+        arguments_json = json.dumps({'detector': 'face_mtcnn'})
+        perform_detection(TEvent.objects.create(video=v).pk)
         args = json.dumps({'index': 'facenet','target': 'regions','filter':{'object_name__startswith':'MTCNN_face'}})
         perform_indexing(TEvent.objects.create(video=v,arguments_json=args).pk)
 

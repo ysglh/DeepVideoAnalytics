@@ -18,7 +18,6 @@ TASK_NAMES_TO_QUEUE = {
     "segment_video":Q_EXTRACTOR,
     "decode_video":Q_EXTRACTOR,
     "extract_frames":Q_EXTRACTOR,
-    "perform_ssd_detection_by_id":Q_DETECTOR,
     "detect_custom_objects":Q_DETECTOR,
     "crop_regions_by_id":Q_EXTRACTOR,
     "perform_face_detection":Q_FACE_DETECTOR,
@@ -57,7 +56,6 @@ TASK_NAMES_TO_TYPE = {
     "import_vdn_file":VIDEO_TASK,
     "import_vdn_detector_file":IMPORT_TASK,
     "import_vdn_s3":VIDEO_TASK,
-    "perform_ssd_detection_by_id":VIDEO_TASK,
     "detect_custom_objects":VIDEO_TASK,
     "perform_textbox_detection_by_id":VIDEO_TASK,
     "perform_text_recognition_by_id":VIDEO_TASK,
@@ -77,7 +75,7 @@ TASK_NAMES_TO_TYPE = {
 
 # List of tasks which can be called manually
 MANUAL_VIDEO_TASKS = ['perform_indexing',
-                      'perform_ssd_detection_by_id',
+                      'perform_detection',
                       'perform_textbox_detection_by_id',
                       'perform_face_detection',
                       'assign_open_images_text_tags_by_id',
@@ -86,37 +84,67 @@ MANUAL_VIDEO_TASKS = ['perform_indexing',
 
 OCR_VIDEO_TASKS = ['perform_textbox_detection_by_id',]
 
+DEFAULT_PROCESSING_PLAN =[
+    {'task_name': 'perform_detection', 'arguments': {
+        'filters':'__parent__',
+        'detector':'coco_mobilenet',
+        'next_tasks':[
+            {'task_name': 'crop_regions_by_id',
+             'arguments': {
+                 'filters': {'event_id': '__parent_event__'},
+                 'next_tasks': [
+                     {'task_name': 'perform_indexing',
+                      'arguments': {
+                          'index': 'inception',
+                          'target': 'regions',
+                          'filters': {'event_id': '__grand_parent_event__', 'w__gte': 50, 'h__gte': 50}
+                      }
+                      },
+                 ]
+             }},
+        ]}
+     },
+    {'task_name': 'perform_detection', 'arguments': {
+        'filters':'__parent__',
+        'detector':'face_mtcnn',
+        'next_tasks':[
+            {'task_name': 'crop_regions_by_id',
+             'arguments': {
+                 'resize':[182,182],
+                 'filters': {'event_id': '__parent_event__'},
+                 'next_tasks': [
+                     {'task_name': 'perform_indexing',
+                      'arguments': {
+                          'index': 'facenet',
+                          'target': 'regions',
+                          'filters': {'event_id': '__grand_parent_event__'}
+                      }
+                      },
+                 ]
+             }},
+        ]}
+     },
+    {'task_name': 'perform_indexing', 'arguments':
+        {'index': 'inception',
+         'target': 'frames',
+         'filters':'__parent__'
+     }},
+]
+
+
+
 
 POST_OPERATION_TASKS = {
     "extract_frames":[
-        {'task_name':'perform_ssd_detection_by_id','arguments':{}},
-        {'task_name':'perform_indexing','arguments': {'index': 'inception', 'target': 'frames',}},
-        {'task_name':'perform_face_detection','arguments':{}},
         {'task_name':'sync_bucket_video_by_id','arguments':{'dirname':'frames'}},
     ],
     "segment_video":[
         {'task_name':'sync_bucket_video_by_id','arguments':{'dirname':'segments'}},
     ],
     "decode_video":[
-        {'task_name': 'perform_ssd_detection_by_id','arguments': {'filters':'__parent__'}},
-        {'task_name': 'perform_indexing','arguments': {'index': 'inception', 'target': 'frames','filters':'__parent__'}},
-        {'task_name': 'perform_face_detection', 'arguments': {'filters':'__parent__'}},
         {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'frames'}},
     ],
-    'perform_ssd_detection_by_id':[
-        {'task_name':'crop_regions_by_id',
-         'arguments':{
-            'filters':{'event_id':'__parent_event__'},
-            'next_tasks':[
-                {'task_name':'perform_indexing',
-                    'arguments':{
-                        'index':'inception',
-                        'target':'regions',
-                        'filters':{'event_id':'__grand_parent_event__','w__gte':50,'h__gte':50}
-                    }
-                 },
-            ]
-        }},
+    'perform_detection':[
     ],
     'crop_regions_by_id':[
         {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'regions'}},
@@ -134,9 +162,6 @@ POST_OPERATION_TASKS = {
         {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'indexes'}},
     ],
     'perform_face_detection':[
-        {'task_name': 'perform_indexing',
-         'arguments': {'index': 'facenet','target': 'regions','filters':{'event_id':'__parent_event__'}}
-         },
         {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'regions'}},
     ],
     'import_vdn_file':[
@@ -172,24 +197,37 @@ VISUAL_INDEXES = {
         },
     }
 
+DETECTORS = {
+    'face_mtcnn':
+        {
+            'task':"perform_detection",
+            'queue':Q_FACE_DETECTOR,
+        },
+    'coco_mobilenet':
+        {
+            'task':"perform_detection",
+            'queue':Q_DETECTOR,
+        },
+    }
 
-if 'VGG_ENABLE' in os.environ:
-    VISUAL_INDEXES['vgg']= {
-            'indexer_task': "perform_indexing",
-            'indexer_queue': Q_VGG,
-            'retriever_queue': Q_VGG,
-            'detection_specific': False
-        }
-    POST_OPERATION_TASKS['extract_frames'].append(
-        {'task_name': 'perform_indexing', 'arguments': {'index': 'vgg', 'target': 'frames', 'filters': '__parent__'}})
-    POST_OPERATION_TASKS['decode_video'].append(
-        {'task_name': 'perform_indexing', 'arguments': {'index': 'vgg', 'target': 'frames', 'filters': '__parent__'}})
-    POST_OPERATION_TASKS['perform_ssd_detection_by_id'][0]['arguments']['next_tasks'].append({
-        'task_name': 'perform_indexing',
-         'arguments': {
-             'index': 'vgg',
-             'target': 'regions',
-             'filters': {'event_id': '__grand_parent_event__', 'w__gte': 50, 'h__gte': 50}
-         }}
-    )
+
+# if 'VGG_ENABLE' in os.environ:
+#     VISUAL_INDEXES['vgg']= {
+#             'indexer_task': "perform_indexing",
+#             'indexer_queue': Q_VGG,
+#             'retriever_queue': Q_VGG,
+#             'detection_specific': False
+#         }
+#     POST_OPERATION_TASKS['extract_frames'].append(
+#         {'task_name': 'perform_indexing', 'arguments': {'index': 'vgg', 'target': 'frames', 'filters': '__parent__'}})
+#     POST_OPERATION_TASKS['decode_video'].append(
+#         {'task_name': 'perform_indexing', 'arguments': {'index': 'vgg', 'target': 'frames', 'filters': '__parent__'}})
+#     POST_OPERATION_TASKS['perform_detection'][0]['arguments']['next_tasks'].append({
+#         'task_name': 'perform_indexing',
+#          'arguments': {
+#              'index': 'vgg',
+#              'target': 'regions',
+#              'filters': {'event_id': '__grand_parent_event__', 'w__gte': 50, 'h__gte': 50}
+#          }}
+#     )
 

@@ -403,10 +403,13 @@ def perform_detection(task_id):
             dd.frame_id = df.pk
             dd.parent_frame_index = df.frame_index
             dd.parent_segment_index = df.segment_index
-            if detector_name == 'coco_mobilenet':
+            if detector_name == 'coco':
                 dd.object_name = 'SSD_{}'.format(d['object_name'])
                 dd.confidence = 100.0 * d['score']
-            elif detector_name == 'face_mtcnn':
+            elif detector_name == 'textbox':
+                dd.object_name = 'TEXTBOX'
+                dd.confidence = 100.0 * d['score']
+            elif detector_name == 'face':
                 dd.object_name = 'MTCNN_face'
                 dd.confidence = 100.0
             else:
@@ -419,33 +422,6 @@ def perform_detection(task_id):
             dd_list.append(dd)
             path_list.append(local_path)
     _ = Region.objects.bulk_create(dd_list,1000)
-    process_next(task_id)
-    start.completed = True
-    start.seconds = time.time() - start_time
-    start.save()
-    return 0
-
-
-@app.task(track_started=True, name="perform_textbox_detection_by_id")
-def perform_textbox_detection_by_id(task_id):
-    start = TEvent.objects.get(pk=task_id)
-    if celery_40_bug_hack(start):
-        return 0
-    start.task_id = perform_textbox_detection_by_id.request.id
-    start.started = True
-    start.operation = perform_textbox_detection_by_id.name
-    start.save()
-    start_time = time.time()
-    video_id = start.video_id
-    detector = subprocess.Popen(['fab', 'detect_text_boxes:{}'.format(video_id)],
-                                cwd=os.path.join(os.path.abspath(__file__).split('tasks.py')[0], '../'))
-    detector.wait()
-    if detector.returncode != 0:
-        start.errored = True
-        start.error_message = "fab detect_text_boxes failed with return code {}".format(detector.returncode)
-        start.seconds = time.time() - start_time
-        start.save()
-        raise ValueError, start.error_message
     process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time

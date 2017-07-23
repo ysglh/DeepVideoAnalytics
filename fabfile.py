@@ -205,13 +205,13 @@ def ci():
             perform_indexing(TEvent.objects.create(video=v,arguments_json=arguments_json).pk)
         if i ==0: # save travis time by just running detection on first video
             # face_mtcnn
-            arguments_json = json.dumps({'detector': 'face_mtcnn'})
+            arguments_json = json.dumps({'detector': 'face'})
             dt = TEvent.objects.create(video=v,arguments_json=arguments_json)
             perform_detection(dt.pk)
             arguments_json = json.dumps({'filters':{'event_id':dt.pk},})
             crop_regions_by_id(TEvent.objects.create(video=v,arguments_json=arguments_json).pk)
             # coco_mobilenet
-            arguments_json = json.dumps({'detector': 'coco_mobilenet'})
+            arguments_json = json.dumps({'detector': 'coco'})
             dt = TEvent.objects.create(video=v, arguments_json=arguments_json)
             perform_detection(dt.pk)
             arguments_json = json.dumps({'filters':{'event_id':dt.pk},})
@@ -965,60 +965,6 @@ def temp_import_detector(path="/Users/aub3/tempd"):
     d.save()
     create_detector_folders(d)
     shutil.copy("{}/phase_2_best.h5".format(path),"{}/detectors/{}/phase_2_best.h5".format(settings.MEDIA_ROOT,d.pk))
-
-
-@task
-def detect_text_boxes(video_pk,cpu_mode=False):
-    """
-    Detect Text Boxes in frames for a video using CTPN, must be run in dva_ctpn container
-    :param detector_pk
-    :param video_pk
-    :return:
-    """
-    setup_django()
-    from dvaapp.models import Region, Frame
-    from django.conf import settings
-    from PIL import Image
-    import sys
-    video_pk = int(video_pk)
-    sys.path.append('/opt/ctpn/CTPN/tools/')
-    sys.path.append('/opt/ctpn/CTPN/src/')
-    from cfg import Config as cfg
-    from other import resize_im, CaffeModel
-    import cv2, caffe
-    from detectors import TextProposalDetector, TextDetector
-    NET_DEF_FILE = "/opt/ctpn/CTPN/models/deploy.prototxt"
-    MODEL_FILE = "/opt/ctpn/CTPN/models/ctpn_trained_model.caffemodel"
-    if cpu_mode:  # Set this to true for CPU only mode
-        caffe.set_mode_cpu()
-    else:
-        caffe.set_mode_gpu()
-        caffe.set_device(cfg.TEST_GPU_ID)
-    text_proposals_detector = TextProposalDetector(CaffeModel(NET_DEF_FILE, MODEL_FILE))
-    text_detector = TextDetector(text_proposals_detector)
-    for f in Frame.objects.all().filter(video_id=video_pk):
-        path = "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,video_pk,f.frame_index)
-        im=cv2.imread(path)
-        old_h,old_w, channels = im.shape
-        im, _=resize_im(im, cfg.SCALE, cfg.MAX_SCALE)
-        new_h, new_w, channels = im.shape
-        mul_h = float(old_h)/float(new_h)
-        mul_w = float(old_w)/float(new_w)
-        text_lines=text_detector.detect(im)
-        for k in text_lines:
-            left, top, right, bottom ,score = k
-            left, top, right, bottom = int(left*mul_w), int(top*mul_h), int(right*mul_w), int(bottom*mul_h)
-            r = Region()
-            r.region_type = r.DETECTION
-            r.confidence = int(100.0 * score)
-            r.object_name = "CTPN_TEXTBOX"
-            r.y = top
-            r.x = left
-            r.w = right - left
-            r.h = bottom - top
-            r.frame_id = f.pk
-            r.video_id = video_pk
-            r.save()
 
 
 @task

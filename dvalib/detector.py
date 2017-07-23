@@ -1,5 +1,15 @@
-import os,logging,subprocess, time
-import tensorflow as tf
+import os,logging,subprocess, time, sys
+if os.path.isdir('/opt/ctpn/'):
+    sys.path.append('/opt/ctpn/CTPN/tools/')
+    sys.path.append('/opt/ctpn/CTPN/src/')
+    from cfg import Config as cfg
+    from other import resize_im, CaffeModel
+    import cv2, caffe
+    from detectors import TextProposalDetector, TextDetector
+    tf = None
+    logging.info("Using Caffe only mode")
+else:
+    import tensorflow as tf
 import PIL
 import numpy as np
 from scipy import misc
@@ -182,10 +192,38 @@ class FaceDetector():
                     bb[2] = np.minimum(det[2] + self.margin / 2, img_size[1])
                     bb[3] = np.minimum(det[3] + self.margin / 2, img_size[0])
                     left, top, right, bottom = bb[0], bb[1], bb[2], bb[3]
-                    aligned.append({
-                        'x': left,
-                        'y':top,
-                        'w':right-left,
-                        'h':bottom-top,
-                    })
+                    aligned.append({'x': left,'y':top,'w':right-left,'h':bottom-top})
             return aligned
+
+
+class TextBoxDetector():
+
+    def __init__(self):
+        self.text_detector = None
+
+    def load(self):
+        logging.info('Creating networks and loading parameters')
+        NET_DEF_FILE = "/opt/ctpn/CTPN/models/deploy.prototxt"
+        MODEL_FILE = "/opt/ctpn/CTPN/models/ctpn_trained_model.caffemodel"
+        caffe.set_mode_gpu()
+        caffe.set_device(cfg.TEST_GPU_ID)
+        text_proposals_detector = TextProposalDetector(CaffeModel(NET_DEF_FILE, MODEL_FILE))
+        self.text_detector = TextDetector(text_proposals_detector)
+
+    def detect(self,image_path):
+        if self.text_detector is None:
+            self.load()
+        regions = []
+        im = cv2.imread(image_path)
+        old_h, old_w, channels = im.shape
+        im, _ = resize_im(im, cfg.SCALE, cfg.MAX_SCALE)
+        new_h, new_w, channels = im.shape
+        mul_h = float(old_h) / float(new_h)
+        mul_w = float(old_w) / float(new_w)
+        text_lines = self.text_detector.detect(im)
+        for k in text_lines:
+            left, top, right, bottom, score = k
+            left, top, right, bottom = int(left * mul_w), int(top * mul_h), int(right * mul_w), int(bottom * mul_h)
+            r = {'score':float(score),'y':top,'x':left,'w':right - left,'h':bottom - top,}
+            regions.append(r)
+        return regions

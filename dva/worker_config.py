@@ -87,7 +87,7 @@ OCR_VIDEO_TASKS = ['perform_textbox_detection_by_id',]
 DEFAULT_PROCESSING_PLAN =[
     {'task_name': 'perform_detection', 'arguments': {
         'filters':'__parent__',
-        'detector':'coco_mobilenet',
+        'detector':'coco',
         'next_tasks':[
             {'task_name': 'crop_regions_by_id',
              'arguments': {
@@ -106,7 +106,7 @@ DEFAULT_PROCESSING_PLAN =[
      },
     {'task_name': 'perform_detection', 'arguments': {
         'filters':'__parent__',
-        'detector':'face_mtcnn',
+        'detector':'face',
         'next_tasks':[
             {'task_name': 'crop_regions_by_id',
              'arguments': {
@@ -198,15 +198,20 @@ VISUAL_INDEXES = {
     }
 
 DETECTORS = {
-    'face_mtcnn':
+    'face':
         {
             'task':"perform_detection",
             'queue':Q_FACE_DETECTOR,
         },
-    'coco_mobilenet':
+    'coco':
         {
             'task':"perform_detection",
             'queue':Q_DETECTOR,
+        },
+    'textbox':
+        {
+            'task':"perform_detection",
+            'queue':Q_OCR,
         },
     }
 

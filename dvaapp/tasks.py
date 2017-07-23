@@ -181,8 +181,6 @@ def crop_regions_by_id(task_id):
                 resized.save("{}/{}/regions/{}.jpg".format(settings.MEDIA_ROOT, video_id, dr.id))
             else:
                 cropped.save("{}/{}/regions/{}.jpg".format(settings.MEDIA_ROOT, video_id, dr.id))
-            # dr.materialized = True
-            # dr.save() # TODO: convert this into batched updated.
     queryset.update(materialized=True)
     start.save()
     start_time = time.time()

@@ -1,4 +1,7 @@
 import os,logging,subprocess, time, sys
+from collections import defaultdict
+import random
+from time import sleep
 if os.path.isdir('/opt/ctpn/'):
     sys.path.append('/opt/ctpn/CTPN/tools/')
     sys.path.append('/opt/ctpn/CTPN/src/')
@@ -10,15 +13,11 @@ if os.path.isdir('/opt/ctpn/'):
     logging.info("Using Caffe only mode")
 else:
     import tensorflow as tf
-import PIL
-import numpy as np
-from scipy import misc
-from collections import defaultdict
-from .facenet import facenet
-from .facenet.align import detect_face
-import random
-from time import sleep
-
+    from .facenet import facenet
+    from .facenet.align import detect_face
+    from scipy import misc
+    import PIL
+    import numpy as np
 
 def _parse_function(filename):
     image_string = tf.read_file(filename)

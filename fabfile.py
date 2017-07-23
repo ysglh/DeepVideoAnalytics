@@ -204,16 +204,19 @@ def ci():
             arguments_json = json.dumps({'index': 'inception'})
             perform_indexing(TEvent.objects.create(video=v,arguments_json=arguments_json).pk)
         if i ==0: # save travis time by just running detection on first video
+            # face_mtcnn
             arguments_json = json.dumps({'detector': 'face_mtcnn'})
             dt = TEvent.objects.create(video=v,arguments_json=arguments_json)
             perform_detection(dt.pk)
             arguments_json = json.dumps({'filters':{'event_id':dt.pk},})
             crop_regions_by_id(TEvent.objects.create(video=v,arguments_json=arguments_json).pk)
+            # coco_mobilenet
             arguments_json = json.dumps({'detector': 'coco_mobilenet'})
             dt = TEvent.objects.create(video=v, arguments_json=arguments_json)
-            perform_detection(dt.pk,arguments_json=arguments_json)
+            perform_detection(dt.pk)
             arguments_json = json.dumps({'filters':{'event_id':dt.pk},})
             crop_regions_by_id(TEvent.objects.create(video=v,arguments_json=arguments_json).pk)
+            # inception on crops from detector
             arguments_json = json.dumps({'index':'inception','target': 'regions','filters': {'event_id': dt.pk, 'w__gte': 50, 'h__gte': 50}})
             perform_indexing(TEvent.objects.create(video=v,arguments_json=arguments_json).pk)
             assign_open_images_text_tags_by_id(TEvent.objects.create(video=v).pk)

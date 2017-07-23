@@ -34,10 +34,7 @@ TASK_NAMES_TO_QUEUE = {
     "import_video_by_id":Q_EXTRACTOR,
     "import_video_from_s3":Q_EXTRACTOR,
     "perform_clustering": Q_CLUSTER,
-    "assign_open_images_text_tags_by_id": Q_DETECTOR,
     "train_yolo_detector": Q_TRAINER,
-    "perform_textbox_detection_by_id": Q_OCR,
-    "perform_text_recognition_by_id": Q_OCR,
 }
 
 VIDEO_TASK = 'video'
@@ -57,11 +54,6 @@ TASK_NAMES_TO_TYPE = {
     "import_vdn_detector_file":IMPORT_TASK,
     "import_vdn_s3":VIDEO_TASK,
     "detect_custom_objects":VIDEO_TASK,
-    "perform_textbox_detection_by_id":VIDEO_TASK,
-    "perform_text_recognition_by_id":VIDEO_TASK,
-    "perform_face_detection":VIDEO_TASK,
-    "alexnet_index_by_id":VIDEO_TASK,
-    "alexnet_query_by_image":QUERY_TASK,
     "export_video_by_id": VIDEO_TASK,
     "delete_video_by_id": VIDEO_TASK,
     "import_video_by_id": VIDEO_TASK,
@@ -69,16 +61,13 @@ TASK_NAMES_TO_TYPE = {
     "push_video_to_vdn_s3": S3_TASK,
     "import_video_from_s3": S3_TASK,
     "perform_clustering": CLUSTER_TASK,
-    "assign_open_images_text_tags_by_id": VIDEO_TASK,
     "train_yolo_detector": TRAIN_TASK,
 }
 
 # List of tasks which can be called manually
 MANUAL_VIDEO_TASKS = ['perform_indexing',
                       'perform_detection',
-                      'perform_textbox_detection_by_id',
-                      'perform_face_detection',
-                      'assign_open_images_text_tags_by_id',
+                      'perform_analysis',
                       'sync_bucket_video_by_id'
                       ]
 
@@ -132,8 +121,6 @@ DEFAULT_PROCESSING_PLAN =[
 ]
 
 
-
-
 POST_OPERATION_TASKS = {
     "extract_frames":[
         {'task_name':'sync_bucket_video_by_id','arguments':{'dirname':'frames'}},
@@ -148,15 +135,6 @@ POST_OPERATION_TASKS = {
     ],
     'crop_regions_by_id':[
         {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'regions'}},
-    ],
-    'perform_textbox_detection_by_id':[
-        {'task_name': 'crop_regions_by_id', 'arguments': {
-            'filters': {'event_id': '__parent_event__'},
-            'next_tasks': [
-                {'task_name': 'perform_text_recognition_by_id',
-                 'arguments': {'filters': {'event_id': '__grand_parent_event__'}}
-                 }]
-        }},
     ],
     'perform_indexing':[
         {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'indexes'}},
@@ -211,6 +189,20 @@ DETECTORS = {
     'textbox':
         {
             'task':"perform_detection",
+            'queue':Q_OCR,
+        },
+    }
+
+
+ANALYZERS = {
+    'tag':
+        {
+            'task':"perform_analysis",
+            'queue':Q_DETECTOR,
+        },
+    'ocr':
+        {
+            'task':"perform_analysis",
             'queue':Q_OCR,
         },
     }

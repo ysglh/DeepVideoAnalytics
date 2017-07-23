@@ -7,7 +7,7 @@ from .models import Video, Frame, TEvent, Query, IndexEntries, QueryResults, App
     ClusterCodes, Region, Tube, CustomDetector, Segment, IndexerQuery
 
 from .operations.query_processing import IndexerTask,QueryProcessing
-from .operations.detection_processing import DetectorTask
+from .operations.detection import DetectorTask
 from .operations.video_processing import WFrame,WVideo
 from dvalib import clustering
 
@@ -324,33 +324,6 @@ def decode_video(task_id):
     return task_id
 
 
-@app.task(track_started=True, name="assign_open_images_text_tags_by_id")
-def assign_open_images_text_tags_by_id(task_id):
-    start = TEvent.objects.get(pk=task_id)
-    if celery_40_bug_hack(start):
-        return 0
-    start.task_id = assign_open_images_text_tags_by_id.request.id
-    start.started = True
-    start.operation = assign_open_images_text_tags_by_id.name
-    start.save()
-    start_time = time.time()
-    video_id = start.video_id
-    annotator_process = subprocess.Popen(['fab', 'assign_tags:{}'.format(video_id)],
-                                         cwd=os.path.join(os.path.abspath(__file__).split('tasks.py')[0], '../'))
-    annotator_process.wait()
-    if annotator_process.returncode != 0:
-        start.errored = True
-        start.error_message = "assign_text_tags_by_id failed with return code {}".format(annotator_process.returncode)
-        start.seconds = time.time() - start_time
-        start.save()
-        raise ValueError, start.error_message
-    process_next(task_id)
-    start.completed = True
-    start.seconds = time.time() - start_time
-    start.save()
-    return 0
-
-
 @app.task(track_started=True, name="perform_detection",base=DetectorTask)
 def perform_detection(task_id):
     """
@@ -418,33 +391,27 @@ def perform_detection(task_id):
     return 0
 
 
-@app.task(track_started=True, name="perform_text_recognition_by_id")
-def perform_text_recognition_by_id(task_id):
+@app.task(track_started=True, name="perform_analysis") # Add base_task as AnalysisTask
+def perform_analysis(task_id):
     start = TEvent.objects.get(pk=task_id)
     if celery_40_bug_hack(start):
         return 0
-    start.task_id = perform_text_recognition_by_id.request.id
+    start.task_id = perform_analysis.request.id
     start.started = True
-    start.operation = perform_text_recognition_by_id.name
+    start.operation = perform_analysis.name
     start.save()
     start_time = time.time()
     video_id = start.video_id
-    detector = subprocess.Popen(['fab', 'recognize_text:{}'.format(video_id)],
-                                cwd=os.path.join(os.path.abspath(__file__).split('tasks.py')[0], '../'))
-    detector.wait()
-    if detector.returncode != 0:
-        start.errored = True
-        start.error_message = "fab recognize_text failed with return code {}".format(detector.returncode)
-        start.seconds = time.time() - start_time
-        start.save()
-        raise ValueError, start.error_message
+    # tags = algorithm.apply(f.local_path())
+    # a.object_name = "OpenImagesTag"
+    # a.metadata_text = " ".join([t for t,v in tags.iteritems() if v > 0.1])
+    # a.metadata_json = json.dumps({t:100.0*v for t,v in tags.iteritems() if v > 0.1})
+    # a.full_frame = True
     process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
     return 0
-
-
 
 
 @app.task(track_started=True, name="export_video_by_id")

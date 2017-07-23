@@ -219,7 +219,7 @@ def ci():
             # inception on crops from detector
             arguments_json = json.dumps({'index':'inception','target': 'regions','filters': {'event_id': dt.pk, 'w__gte': 50, 'h__gte': 50}})
             perform_indexing(TEvent.objects.create(video=v,arguments_json=arguments_json).pk)
-            assign_open_images_text_tags_by_id(TEvent.objects.create(video=v).pk)
+            # assign_open_images_text_tags_by_id(TEvent.objects.create(video=v).pk)
         fname = export_video_by_id(TEvent.objects.create(video=v,event_type=TEvent.EXPORT).pk)
         f = SimpleUploadedFile(fname, file("{}/exports/{}".format(settings.MEDIA_ROOT,fname)).read(), content_type="application/zip")
         vimported = handle_uploaded_file(f, fname)
@@ -522,35 +522,6 @@ def process_video_list(filename):
         handle_youtube_video(video['name'],video['url'])
 
 
-@task
-def assign_tags(video_id):
-    import django
-    from PIL import Image
-    sys.path.append(os.path.dirname(__file__))
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
-    django.setup()
-    from django.conf import settings
-    from dvaapp.models import Video,Frame,Region
-    from dvalib import annotator
-    from dvaapp.operations.video_processing import WVideo, WFrame
-    dv = Video.objects.get(id=video_id)
-    frames = Frame.objects.all().filter(video=dv)
-    v = WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
-    wframes = {df.pk: WFrame(video=v, frame_index=df.frame_index, primary_key=df.pk) for df in frames}
-    algorithm = annotator.OpenImagesAnnotator()
-    logging.info("starting annotation {}".format(algorithm.name))
-    for k,f in wframes.items():
-        tags = algorithm.apply(f.local_path())
-        a = Region()
-        a.region_type = Region.ANNOTATION
-        a.frame_id = k
-        a.video_id = video_id
-        a.object_name = "OpenImagesTag"
-        a.metadata_text = " ".join([t for t,v in tags.iteritems() if v > 0.1])
-        a.metadata_json = json.dumps({t:100.0*v for t,v in tags.iteritems() if v > 0.1})
-        a.full_frame = True
-        a.save()
-        print a.metadata_text
 
 
 def setup_django():
@@ -965,58 +936,6 @@ def temp_import_detector(path="/Users/aub3/tempd"):
     d.save()
     create_detector_folders(d)
     shutil.copy("{}/phase_2_best.h5".format(path),"{}/detectors/{}/phase_2_best.h5".format(settings.MEDIA_ROOT,d.pk))
-
-
-@task
-def recognize_text(video_pk):
-    """
-    Recognize text in regions with name CTPN_TEXTBOX using CRNN
-    :param detector_pk
-    :param video_pk
-    :return:
-    """
-    setup_django()
-    from dvaapp.models import Region
-    from django.conf import settings
-    from PIL import Image
-    import sys
-    video_pk = int(video_pk)
-    import dvalib.crnn.utils as utils
-    import dvalib.crnn.dataset as dataset
-    import torch
-    from torch.autograd import Variable
-    from PIL import Image
-    import dvalib.crnn.models.crnn as crnn
-    model_path = '/root/DVA/dvalib/crnn/data/crnn.pth'
-    alphabet = '0123456789abcdefghijklmnopqrstuvwxyz'
-    model = crnn.CRNN(32, 1, 37, 256, 1).cuda()
-    model.load_state_dict(torch.load(model_path))
-    converter = utils.strLabelConverter(alphabet)
-    transformer = dataset.resizeNormalize((100, 32))
-    for r in Region.objects.all().filter(video_id=video_pk,object_name='CTPN_TEXTBOX'):
-        img_path = "{}/{}/regions/{}.jpg".format(settings.MEDIA_ROOT,video_pk,r.pk)
-        image = Image.open(img_path).convert('L')
-        image = transformer(image).cuda()
-        image = image.view(1, *image.size())
-        image = Variable(image)
-        model.eval()
-        preds = model(image)
-        _, preds = preds.max(2)
-        preds = preds.squeeze(2)
-        preds = preds.transpose(1, 0).contiguous().view(-1)
-        preds_size = Variable(torch.IntTensor([preds.size(0)]))
-        sim_pred = converter.decode(preds.data, preds_size.data, raw=False)
-        dr = Region()
-        dr.video_id = r.video_id
-        dr.object_name = "CRNN_TEXT"
-        dr.x = r.x
-        dr.y = r.y
-        dr.w = r.w
-        dr.h = r.h
-        dr.region_type = Region.ANNOTATION
-        dr.metadata_text = sim_pred
-        dr.frame_id = r.frame_id
-        dr.save()
 
 
 @task

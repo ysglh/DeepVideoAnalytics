@@ -22,7 +22,7 @@ coco_class_index_to_string = {1: u'person', 2: u'bicycle', 3: u'car', 4: u'motor
                               80: u'toaster', 81: u'sink', 82: u'refrigerator', 84: u'book', 85: u'clock', 86: u'vase',
                               87: u'scissors', 88: u'teddy bear', 89: u'hair drier', 90: u'toothbrush'}
 
-model_path = os.path.abspath(__file__).split('detection_processing.py')[0]+"../../dvalib/object_detection/ssd_mobilenet_v1_coco_11_06_2017/frozen_inference_graph.pb"
+model_path = os.path.abspath(__file__).split('detection.py')[0]+"../../dvalib/object_detection/ssd_mobilenet_v1_coco_11_06_2017/frozen_inference_graph.pb"
 
 class DetectorTask(celery.Task):
     _detectors = None

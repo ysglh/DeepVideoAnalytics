@@ -164,6 +164,7 @@ def crop_regions_by_id(task_id):
     args = json.loads(start.arguments_json)
     resize = args.get('resize',None)
     kwargs = args.get('filters',{})
+    logging.info("Launching crop with {} \n {}".format(args, resize))
     paths_to_regions = defaultdict(list)
     kwargs['video_id'] = start.video_id
     kwargs['materialized'] = False

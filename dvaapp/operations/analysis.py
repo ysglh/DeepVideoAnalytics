@@ -7,11 +7,10 @@ except ImportError:
 
 
 class AnalyzerTask(celery.Task):
-    _detectors = None
-    _clusterer = None
+    _analyzers = None
 
     @property
-    def get_static_detectors(self):
+    def get_static_analyzers(self):
         if AnalyzerTask._analyzers is None:
             AnalyzerTask._analyzers = {'tag': analyzer.OpenImagesAnnotator(),
                                        'text': analyzer.CRNNAnnotator()}

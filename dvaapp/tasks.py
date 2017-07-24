@@ -8,6 +8,7 @@ from .models import Video, Frame, TEvent, Query, IndexEntries, QueryResults, App
 
 from .operations.query_processing import IndexerTask,QueryProcessing
 from .operations.detection import DetectorTask
+from .operations.analysis import AnalyzerTask
 from .operations.video_processing import WFrame,WVideo
 from dvalib import clustering
 
@@ -391,7 +392,7 @@ def perform_detection(task_id):
     return 0
 
 
-@app.task(track_started=True, name="perform_analysis") # Add base_task as AnalysisTask
+@app.task(track_started=True, name="perform_analysis",base_task=AnalyzerTask)
 def perform_analysis(task_id):
     start = TEvent.objects.get(pk=task_id)
     if celery_40_bug_hack(start):
@@ -402,11 +403,30 @@ def perform_analysis(task_id):
     start.save()
     start_time = time.time()
     video_id = start.video_id
-    # tags = algorithm.apply(f.local_path())
-    # a.object_name = "OpenImagesTag"
-    # a.metadata_text = " ".join([t for t,v in tags.iteritems() if v > 0.1])
-    # a.metadata_json = json.dumps({t:100.0*v for t,v in tags.iteritems() if v > 0.1})
-    # a.full_frame = True
+    args = json.loads(start.arguments_json)
+    target = args['target']
+    analyzer_name = args['analyzer']
+    analyzer = perform_analysis.get_static_analyzers[analyzer_name]
+    kwargs = args.get('filters',{})
+    kwargs['video_id'] = video_id
+    regions_batch = []
+    if target == 'frames':
+        queryset = Frame.objects.all().filter(**kwargs)
+        for f in queryset:
+            path = '{}/{}/frames/{}.jpg'.format(settings.MEDIA_ROOT,video_id,f.frame_index)
+            tags = analyzer.apply(path)
+            a = Region()
+            a.object_name = "OpenImagesTag"
+            a.metadata_text = " ".join([t for t,v in tags.iteritems() if v > 0.1])
+            a.metadata_json = json.dumps({t:100.0*v for t,v in tags.iteritems() if v > 0.1})
+            a.frame_id = f.id
+            a.full_frame = True
+            regions_batch.append(a)
+    elif target == 'regions':
+        queryset = Region.objects.all().filter(**kwargs)
+        raise NotImplementedError
+    else:
+        raise NotImplementedError
     process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time

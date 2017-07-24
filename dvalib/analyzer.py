@@ -4,19 +4,22 @@ from __future__ import print_function
 import math
 import sys
 import os.path
-import PIL
+from PIL import Image
+import logging
+import numpy as np
 
 try:
-    import dvalib.crnn.utils as utils
-    import dvalib.crnn.dataset as dataset
-    import torch
-    from torch.autograd import Variable
-    from PIL import Image
-    import dvalib.crnn.models.crnn as crnn
+    if os.environ.get('PYTORCH_MODE',True):
+        import dvalib.crnn.utils as utils
+        import dvalib.crnn.dataset as dataset
+        import torch
+        from torch.autograd import Variable
+        import dvalib.crnn.models.crnn as crnn
+        logging.info("In pytorch mode, not importing TF")
+    else:
+        logging.warning("Not importing anything assuming Caffe mode")
 except ImportError:
-    import numpy as np
     import tensorflow as tf
-    import logging
     from tensorflow.contrib.slim.python.slim.nets import inception
     from tensorflow.python.training import saver as tf_saver
     slim = tf.contrib.slim
@@ -82,13 +85,8 @@ class OpenImagesAnnotator(BaseAnnotator):
                 saver.restore(self.session, network_path)
 
     def apply(self,image_path):
-        self.load()
-        if image_path.endswith('.png'):
-            im = PIL.Image.open(image_path)
-            bg = PIL.Image.new("RGB", im.size, (255, 255, 255))
-            bg.paste(im, im)
-            image_path = image_path.replace('.png','.jpg')
-            bg.save(image_path)
+        if self.session is None:
+            self.load()
         img_data = tf.gfile.FastGFile(image_path).read()
         predictions_eval = np.squeeze(self.session.run(self.predictions, {self.input_image: img_data}))
         results = {self.label_dict.get(self.labelmap[idx], 'unknown'):predictions_eval[idx]

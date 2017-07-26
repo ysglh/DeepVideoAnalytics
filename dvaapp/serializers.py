@@ -121,7 +121,7 @@ class FrameExportSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Frame
-        fields = ('region_list','video','frame_index','keyframe','t','name','subdir','id','segment_index')
+        fields = ('region_list','video','frame_index','keyframe','w','h','t','name','subdir','id','segment_index')
 
 
 class IndexEntryExportSerializer(serializers.ModelSerializer):
@@ -168,10 +168,7 @@ class VideoExportSerializer(serializers.ModelSerializer):
                   'uploader','segments','url','youtube_video','frame_list','segment_list','event_list','label_list','tube_list','index_entries_list')
 
 
-def create_region(a,video_obj,vdn_dataset,old_task_to_new=None):
-    """
-    # TODO: old_task_to_new
-    """
+def create_region(a,video_obj,vdn_dataset,event_to_pk=None):
     da = Region()
     da.video = video_obj
     da.x = a['x']
@@ -187,6 +184,8 @@ def create_region(a,video_obj,vdn_dataset,old_task_to_new=None):
     da.confidence = a['confidence']
     da.object_name = a['object_name']
     da.full_frame = a['full_frame']
+    if a.get('event',None):
+        da.event_id = event_to_pk[a['event']]
     da.parent_frame_index = a['parent_frame_index']
     da.parent_segment_index = a.get('parent_segment_index',-1)
     if vdn_dataset:
@@ -227,17 +226,6 @@ def import_tubes(tubes,video_obj):
     raise NotImplementedError
 
 
-def import_frame(f,video_obj,detection_to_pk,vdn_dataset=None):
-    df = create_frame(f, video_obj)
-    df.save()
-    if 'region_list' in f:
-        for a in f['region_list']:
-            da = import_region(a,video_obj,df,detection_to_pk,vdn_dataset)
-    elif 'detection_list' in f or 'annotation_list' in f:
-            raise NotImplementedError, "Older format no longer supported"
-    return df
-
-
 def import_detector(dd):
     dd.phase_1_log = file("{}/detectors/{}/phase_1.log".format(settings.MEDIA_ROOT, dd.pk)).read()
     dd.phase_2_log = file("{}/detectors/{}/phase_2.log".format(settings.MEDIA_ROOT, dd.pk)).read()
@@ -251,7 +239,6 @@ def import_detector(dd):
 
 
 def create_event(e,v):
-    print e
     de = TEvent()
     de.event_type = e.get('event_type',de.VIDEO)
     de.started = e.get('started',False)
@@ -410,7 +397,7 @@ class VideoImporter(object):
             frame_index_to_fid[i] = f['id']
             if 'region_list' in f:
                 for a in f['region_list']:
-                    ra = create_region(a, self.video, vdn_dataset)
+                    ra = create_region(a, self.video, vdn_dataset,self.event_to_pk)
                     if ra.region_type == Region.DETECTION:
                         frame_regions[i].append((ra, a['id']))
                     else:

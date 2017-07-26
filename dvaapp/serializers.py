@@ -321,7 +321,7 @@ class VideoImporter(object):
         events = []
         for e in self.json.get('event_list', []):
             old_ids.append(e['id'])
-            if e['parent']:
+            if 'parent' in e:
                 children_ids[e['parent']].append(e['id'])
             events.append(create_event(e,self.video))
         event_ids = TEvent.objects.bulk_create(events,1000)

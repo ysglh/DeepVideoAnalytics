@@ -251,14 +251,36 @@ def import_detector(dd):
 
 
 def create_event(e,v):
-    de = TEventExportSerializer(data=e)
-    de.video_id = v.video_id
+    print e
+    de = TEvent()
+    de.event_type = e.get('event_type',de.VIDEO)
+    de.started = e.get('started',False)
+    de.completed = e.get('completed',False)
+    de.errored = e.get('errored',False)
+    de.error_message = e.get('error_message',"")
+    de.video_id = v.pk
+    de.operation = e.get('operation',"")
+    de.created = e['created']
+    de.seconds = e.get('seconds',-1)
+    de.file_name = e.get('file_name',"")
+    de.key = e.get('key',"")
+    de.bucket = e.get('bucket',"")
+    de.requester_pays = e.get('requester_pays',False)
+    de.clustering = e.get('clustering',None)
+    de.arguments_json = e.get('arguments_json',"")
+    de.task_id = e.get('task_id',"")
     return de
 
 
 def create_segment(s,v):
-    ds = SegmentExportSerializer(data=s)
-    ds.video_id = v.video_id
+    ds = Segment()
+    ds.video_id = v.pk
+    ds.segment_index = s.get('segment_index','-1')
+    ds.start_time = s.get('start_time',0)
+    ds.end_time = s.get('end_time',0)
+    ds.metadata = s.get('metadata',"")
+    ds.frame_count = s.get('frame_count',0)
+    ds.start_index = s.get('start_index',0)
     return ds
 
 
@@ -291,6 +313,7 @@ class VideoImporter(object):
             new_video_path = "{}/video/{}.mp4".format(self.root, self.video.pk)
             os.rename(old_video_path, new_video_path)
         self.import_events()
+        self.import_segments()
         self.bulk_import_frames()
         self.convert_regions_files()
         self.import_index_entries()
@@ -307,14 +330,22 @@ class VideoImporter(object):
 
     def import_events(self):
         old_ids = []
+        children_ids = defaultdict(list)
         events = []
         for e in self.json.get('event_list', []):
             old_ids.append(e['id'])
+            if e['parent']:
+                children_ids[e['parent']].append(e['id'])
             events.append(create_event(e,self.video))
         event_ids = TEvent.objects.bulk_create(events,1000)
         for i,k in enumerate(event_ids):
             self.event_to_pk[old_ids[i]] = k.id
-
+        for old_id in old_ids:
+            parent_id = self.event_to_pk[old_id]
+            for child_old_id in children_ids[old_ids]:
+                ce = TEvent.objects.get(pk=self.event_to_pk[child_old_id])
+                ce.parent_id = parent_id
+                ce.save()
 
     def convert_regions_files(self):
         if os.path.isdir('{}/detections/'.format(self.root)):

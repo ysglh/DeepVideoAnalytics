@@ -201,41 +201,6 @@ def import_region(a,video_obj,frame,detection_to_pk,vdn_dataset=None):
     return da
 
 
-def import_index_entries(i,video_obj,previous_transformed,detection_to_pk,frame_to_pk,video_root_dir):
-    di = IndexEntries()
-    di.video = video_obj
-    di.algorithm = i['algorithm']
-    di.count = i['count']
-    di.contains_detections = i['contains_detections']
-    di.contains_frames = i['contains_frames']
-    di.approximate = i['approximate']
-    di.created = i['created']
-    di.features_file_name = i['features_file_name']
-    di.entries_file_name = i['entries_file_name']
-    di.detection_name = i['detection_name']
-    signature = "{}".format(di.entries_file_name)
-    if signature in previous_transformed:
-        logging.warning("repeated index entries found, skipping {}".format(signature))
-    else:
-        previous_transformed.add(signature)
-        transform_index_entries(di, detection_to_pk, frame_to_pk, video_obj.pk, video_root_dir)
-        di.save()
-
-
-def transform_index_entries(di,detection_to_pk,frame_to_pk,video_id,video_root_dir):
-    entries = json.load(file('{}/indexes/{}'.format(video_root_dir, di.entries_file_name)))
-    transformed = []
-    for entry in entries:
-        entry['video_primary_key'] = video_id
-        if 'detection_primary_key' in entry:
-            entry['detection_primary_key'] = detection_to_pk[entry['detection_primary_key']]
-        if 'frame_primary_key' in entry:
-            entry['frame_primary_key'] = frame_to_pk[entry['frame_primary_key']]
-        transformed.append(entry)
-    with open('{}/indexes/{}'.format(video_root_dir, di.entries_file_name),'w') as output:
-        json.dump(transformed,output)
-
-
 def create_frame(f,video_obj):
     df = Frame()
     df.video = video_obj
@@ -276,87 +241,6 @@ def import_frame(f,video_obj,detection_to_pk,vdn_dataset=None):
     return df
 
 
-def bulk_import_frames(flist, video_obj, frame_to_pk, detection_to_pk, vdn_dataset):
-    frame_regions = defaultdict(list)
-    frames = []
-    frame_index_to_fid = {}
-    for i,f in enumerate(flist):
-        frames.append(create_frame(f, video_obj))
-        frame_index_to_fid[i] = f['id']
-        if 'region_list' in f:
-            for a in f['region_list']:
-                ra = create_region(a, video_obj, vdn_dataset)
-                if ra.region_type == Region.DETECTION:
-                    frame_regions[i].append((ra,a['id']))
-                else:
-                    frame_regions[i].append((ra, None))
-        elif 'detection_list' in f or 'annotation_list' in f:
-            raise NotImplementedError,"Older format no longer supported"
-    bulk_frames = Frame.objects.bulk_create(frames)
-    regions = []
-    regions_index_to_rid = {}
-    region_index = 0
-    bulk_regions = []
-    for i,k in enumerate(bulk_frames):
-        frame_to_pk[frame_index_to_fid[i]] = k.id
-        for r,rid in frame_regions[i]:
-            r.frame_id = k.id
-            regions.append(r)
-            regions_index_to_rid[region_index] = rid
-            region_index += 1
-            if len(regions) == 1000:
-                bulk_regions.extend(Region.objects.bulk_create(regions))
-                regions = []
-    bulk_regions.extend(Region.objects.bulk_create(regions))
-    regions = []
-    for i,k in enumerate(bulk_regions):
-        if regions_index_to_rid[i]:
-            detection_to_pk[regions_index_to_rid[i]] = k.id
-
-
-def import_video_json(video_obj,video_json,video_root_dir):
-    video_obj.name = video_json['name']
-    video_obj.frames = video_json['frames']
-    video_obj.height = video_json['height']
-    video_obj.width = video_json['width']
-    if 'segments' in video_json:
-        video_obj.segments = video_json['segments']
-    video_obj.youtube_video = video_json['youtube_video']
-    video_obj.dataset = video_json['dataset']
-    video_obj.url = video_json['url']
-    video_obj.description = video_json['description']
-    video_obj.metadata = video_json['metadata']
-    video_obj.length_in_seconds = video_json['length_in_seconds']
-    video_obj.save()
-    vdn_dataset = video_obj.vdn_dataset
-    if not video_obj.dataset:
-        old_video_path = [fname for fname in glob.glob("{}/video/*.mp4".format(video_root_dir))][0]
-        new_video_path = "{}/video/{}.mp4".format(video_root_dir,video_obj.pk)
-        os.rename(old_video_path,new_video_path)
-    detection_to_pk, frame_to_pk = {}, {}
-    bulk_import_frames(video_json['frame_list'], video_obj, frame_to_pk, detection_to_pk, vdn_dataset)
-    if os.path.isdir('{}/detections/'.format(video_root_dir)):
-        source_subdir = 'detections' # temporary for previous version imports
-        os.mkdir('{}/regions'.format(video_root_dir))
-    else:
-        source_subdir = 'regions'
-    convert_list = []
-    for k,v in detection_to_pk.iteritems():
-        dd = Region.objects.get(pk=v)
-        original = '{}/{}/{}.jpg'.format(video_root_dir, source_subdir, k)
-        temp_file = "{}/regions/d_{}.jpg".format(video_root_dir, v)
-        converted = "{}/regions/{}.jpg".format(video_root_dir, v)
-        if dd.materialized or os.path.isfile(original):
-            try:
-                os.rename(original, temp_file)
-                convert_list.append((temp_file,converted))
-            except:
-                raise ValueError,"could not copy {} to {}".format(original,temp_file)
-    for temp_file,converted in convert_list:
-        os.rename(temp_file, converted)
-    previous_transformed = set()
-    for i in video_json['index_entries_list']:
-        import_index_entries(i, video_obj, previous_transformed, detection_to_pk, frame_to_pk, video_root_dir)
 
 
 def import_detector(dd):
@@ -369,3 +253,126 @@ def import_detector(dd):
     else:
         dd.class_distribution = json.dumps(metadata['class_names'])
     dd.class_names = json.dumps(metadata['class_names'])
+    
+
+class VideoImporter(object):
+    
+    def __init__(self,video,json,root_dir):
+        self.video = video
+        self.json = json
+        self.root = root_dir
+        self.region_to_pk = {}
+        self.frame_to_pk = {}
+        self.event_to_pk = {}
+
+    def import_video(self):
+        self.video.name = self.json['name']
+        self.video.frames = self.json['frames']
+        self.video.height = self.json['height']
+        self.video.width = self.json['width']
+        self.video.segments = self.json.get('segments',0)
+        self.video.youtube_video = self.json['youtube_video']
+        self.video.dataset = self.json['dataset']
+        self.video.url = self.json['url']
+        self.video.description = self.json['description']
+        self.video.metadata = self.json['metadata']
+        self.video.length_in_seconds = self.json['length_in_seconds']
+        self.video.save()
+        if not self.video.dataset:
+            old_video_path = [fname for fname in glob.glob("{}/video/*.mp4".format(self.root))][0]
+            new_video_path = "{}/video/{}.mp4".format(self.root, self.video.pk)
+            os.rename(old_video_path, new_video_path)
+        self.bulk_import_frames()
+        self.convert_regions_files()
+        self.import_index_entries()
+
+    def convert_regions_files(self):
+        if os.path.isdir('{}/detections/'.format(self.root)):
+            source_subdir = 'detections'  # temporary for previous version imports
+            os.mkdir('{}/regions'.format(self.root))
+        else:
+            source_subdir = 'regions'
+        convert_list = []
+        for k, v in self.region_to_pk.iteritems():
+            dd = Region.objects.get(pk=v)
+            original = '{}/{}/{}.jpg'.format(self.root, source_subdir, k)
+            temp_file = "{}/regions/d_{}.jpg".format(self.root, v)
+            converted = "{}/regions/{}.jpg".format(self.root, v)
+            if dd.materialized or os.path.isfile(original):
+                try:
+                    os.rename(original, temp_file)
+                    convert_list.append((temp_file, converted))
+                except:
+                    raise ValueError, "could not copy {} to {}".format(original, temp_file)
+        for temp_file, converted in convert_list:
+            os.rename(temp_file, converted)
+
+    def import_index_entries(self):
+        previous_transformed = set()
+        for i in self.json['index_entries_list']:
+            di = IndexEntries()
+            di.video = self.video
+            di.algorithm = i['algorithm']
+            di.count = i['count']
+            di.contains_detections = i['contains_detections']
+            di.contains_frames = i['contains_frames']
+            di.approximate = i['approximate']
+            di.created = i['created']
+            di.features_file_name = i['features_file_name']
+            di.entries_file_name = i['entries_file_name']
+            di.detection_name = i['detection_name']
+            signature = "{}".format(di.entries_file_name)
+            if signature in previous_transformed:
+                logging.warning("repeated index entries found, skipping {}".format(signature))
+            else:
+                previous_transformed.add(signature)
+                entries = json.load(file('{}/indexes/{}'.format(self.root, di.entries_file_name)))
+                transformed = []
+                for entry in entries:
+                    entry['video_primary_key'] = self.video.pk
+                    if 'detection_primary_key' in entry:
+                        entry['detection_primary_key'] = self.region_to_pk[entry['detection_primary_key']]
+                    if 'frame_primary_key' in entry:
+                        entry['frame_primary_key'] = self.frame_to_pk[entry['frame_primary_key']]
+                    transformed.append(entry)
+                with open('{}/indexes/{}'.format(self.root, di.entries_file_name), 'w') as output:
+                    json.dump(transformed, output)
+                di.save()
+
+    def bulk_import_frames(self):
+        vdn_dataset = self.video.vdn_dataset
+        frame_regions = defaultdict(list)
+        frames = []
+        frame_index_to_fid = {}
+        for i, f in enumerate(self.json['frame_list']):
+            frames.append(create_frame(f, self.video))
+            frame_index_to_fid[i] = f['id']
+            if 'region_list' in f:
+                for a in f['region_list']:
+                    ra = create_region(a, self.video, vdn_dataset)
+                    if ra.region_type == Region.DETECTION:
+                        frame_regions[i].append((ra, a['id']))
+                    else:
+                        frame_regions[i].append((ra, None))
+            elif 'detection_list' in f or 'annotation_list' in f:
+                raise NotImplementedError, "Older format no longer supported"
+        bulk_frames = Frame.objects.bulk_create(frames)
+        regions = []
+        regions_index_to_rid = {}
+        region_index = 0
+        bulk_regions = []
+        for i, k in enumerate(bulk_frames):
+            self.frame_to_pk[frame_index_to_fid[i]] = k.id
+            for r, rid in frame_regions[i]:
+                r.frame_id = k.id
+                regions.append(r)
+                regions_index_to_rid[region_index] = rid
+                region_index += 1
+                if len(regions) == 1000:
+                    bulk_regions.extend(Region.objects.bulk_create(regions))
+                    regions = []
+        bulk_regions.extend(Region.objects.bulk_create(regions))
+        regions = []
+        for i, k in enumerate(bulk_regions):
+            if regions_index_to_rid[i]:
+                self.detection_to_pk[regions_index_to_rid[i]] = k.id

@@ -342,7 +342,7 @@ class VideoImporter(object):
             self.event_to_pk[old_ids[i]] = k.id
         for old_id in old_ids:
             parent_id = self.event_to_pk[old_id]
-            for child_old_id in children_ids[old_ids]:
+            for child_old_id in children_ids[old_id]:
                 ce = TEvent.objects.get(pk=self.event_to_pk[child_old_id])
                 ce.parent_id = parent_id
                 ce.save()

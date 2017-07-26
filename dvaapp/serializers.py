@@ -333,6 +333,11 @@ class VideoImporter(object):
                 ce = TEvent.objects.get(pk=self.event_to_pk[child_old_id])
                 ce.parent_id = parent_id
                 ce.save()
+        if old_ids:
+            # This is the export task that led to the video being exported and hence should be deleted
+            last = TEvent.objects.get(pk=self.event_to_pk[max(old_ids)])
+            last.completed = True
+            last.save()
 
     def convert_regions_files(self):
         if os.path.isdir('{}/detections/'.format(self.root)):

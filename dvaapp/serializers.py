@@ -209,17 +209,12 @@ def create_frame(f,video_obj):
     df.name = f['name']
     df.frame_index = f['frame_index']
     df.subdir = f['subdir']
+    df.h = f.get('h',0)
+    df.w = f.get('w',0)
+    df.t = f.get('t',0)
+    df.segment_index = f.get('segment_index',0)
+    df.keyframe = f.get('keyframe',False)
     return df
-
-
-def import_segments(segments,video_obj):
-    """
-    :param segments:
-    :param video_obj:
-    :return:
-    """
-    # TODO: Implement this
-    raise NotImplementedError
 
 
 def import_tubes(tubes,video_obj):
@@ -261,6 +256,12 @@ def create_event(e,v):
     return de
 
 
+def create_segment(s,v):
+    ds = SegmentExportSerializer(data=s)
+    ds.video_id = v.video_id
+    return ds
+
+
 class VideoImporter(object):
     
     def __init__(self,video,json,root_dir):
@@ -270,6 +271,7 @@ class VideoImporter(object):
         self.region_to_pk = {}
         self.frame_to_pk = {}
         self.event_to_pk = {}
+        self.segment_to_pk = {}
 
     def import_video(self):
         self.video.name = self.json['name']
@@ -288,14 +290,30 @@ class VideoImporter(object):
             old_video_path = [fname for fname in glob.glob("{}/video/*.mp4".format(self.root))][0]
             new_video_path = "{}/video/{}.mp4".format(self.root, self.video.pk)
             os.rename(old_video_path, new_video_path)
+        self.import_events()
         self.bulk_import_frames()
         self.convert_regions_files()
         self.import_index_entries()
 
+    def import_segments(self):
+        old_ids = []
+        segments = []
+        for s in self.json.get('segment_list', []):
+            old_ids.append(s['id'])
+            segments.append(create_segment(s,self.video))
+        segment_ids = Segment.objects.bulk_create(segments, 1000)
+        for i, k in enumerate(segment_ids):
+            self.segment_to_pk[old_ids[i]] = k.id
+
     def import_events(self):
-        events = [create_event(e,self.video) for e in self.json.get('event_list',[])]
+        old_ids = []
+        events = []
+        for e in self.json.get('event_list', []):
+            old_ids.append(e['id'])
+            events.append(create_event(e,self.video))
         event_ids = TEvent.objects.bulk_create(events,1000)
-        pass
+        for i,k in enumerate(event_ids):
+            self.event_to_pk[old_ids[i]] = k.id
 
 
     def convert_regions_files(self):

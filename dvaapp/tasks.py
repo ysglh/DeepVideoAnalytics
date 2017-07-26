@@ -517,7 +517,8 @@ def import_video_by_id(task_id):
             break
     with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, video_id)) as input_json:
         video_json = json.load(input_json)
-    serializers.import_video_json(video_obj, video_json, video_root_dir)
+    importer = serializers.VideoImporter(video=video_obj,json=video_json,root_dir=video_root_dir)
+    importer.import_video()
     source_zip = "{}/{}.zip".format(video_root_dir, video_obj.pk)
     os.remove(source_zip)
     start.completed = True
@@ -560,7 +561,8 @@ def import_vdn_file(task_id):
             break
     with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, dv.pk)) as input_json:
         video_json = json.load(input_json)
-    serializers.import_video_json(dv, video_json, video_root_dir)
+    importer = serializers.VideoImporter(video=dv,json=video_json,root_dir=video_root_dir)
+    importer.import_video()
     source_zip = "{}/{}.zip".format(video_root_dir, dv.pk)
     os.remove(source_zip)
     dv.uploaded = True
@@ -647,7 +649,8 @@ def import_vdn_s3(task_id):
         os.rmdir(os.path.join(path, key))
     with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, dv.pk)) as input_json:
         video_json = json.load(input_json)
-    serializers.import_video_json(dv, video_json, video_root_dir)
+    importer = serializers.VideoImporter(video=dv,json=video_json,root_dir=video_root_dir)
+    importer.import_video()
     dv.uploaded = True
     dv.save()
     process_next(task_id)
@@ -794,7 +797,8 @@ def import_video_from_s3(s3_import_id):
             raise ValueError, start.error_message
         with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, start.video.pk)) as input_json:
             video_json = json.load(input_json)
-        serializers.import_video_json(start.video, video_json, path)
+        importer = serializers.VideoImporter(video=start.video, json=video_json, root_dir=path)
+        importer.import_video()
     start.completed = True
     start.save()
     start.completed = True

@@ -167,7 +167,7 @@ class TEvent(models.Model):
 
 
 class Frame(models.Model):
-    video = models.ForeignKey(Video,null=True)
+    video = models.ForeignKey(Video)
     frame_index = models.IntegerField()
     name = models.CharField(max_length=200,null=True)
     subdir = models.TextField(default="") # Retains information if the source is a dataset for labeling
@@ -188,7 +188,7 @@ class Segment(models.Model):
     """
     A video segment useful for parallel dense decoding+processing as well as streaming
     """
-    video = models.ForeignKey(Video,null=True)
+    video = models.ForeignKey(Video)
     segment_index = models.IntegerField()
     start_time = models.FloatField(default=0.0)
     end_time = models.FloatField(default=0.0)

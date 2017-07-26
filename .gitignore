@@ -81,3 +81,4 @@ notes/*.mov
 /notebooks/recaptcha.txt
 /dvalib/data/vgg.pb
 /shared/*
+/tests/bunny.mp4

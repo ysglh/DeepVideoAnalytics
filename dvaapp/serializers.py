@@ -336,6 +336,7 @@ class VideoImporter(object):
         if old_ids:
             # This is the export task that led to the video being exported and hence should be deleted
             last = TEvent.objects.get(pk=self.event_to_pk[max(old_ids)])
+            last.seconds = 0
             last.completed = True
             last.save()
 

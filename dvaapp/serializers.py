@@ -4,6 +4,8 @@ from models import Video, AppliedLabel, Frame, Region, Query, QueryResults, TEve
 import os, json, logging, glob
 from collections import defaultdict
 from django.conf import settings
+from StringIO import StringIO
+from rest_framework.parsers import JSONParser
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -241,8 +243,6 @@ def import_frame(f,video_obj,detection_to_pk,vdn_dataset=None):
     return df
 
 
-
-
 def import_detector(dd):
     dd.phase_1_log = file("{}/detectors/{}/phase_1.log".format(settings.MEDIA_ROOT, dd.pk)).read()
     dd.phase_2_log = file("{}/detectors/{}/phase_2.log".format(settings.MEDIA_ROOT, dd.pk)).read()
@@ -253,7 +253,13 @@ def import_detector(dd):
     else:
         dd.class_distribution = json.dumps(metadata['class_names'])
     dd.class_names = json.dumps(metadata['class_names'])
-    
+
+
+def create_event(e,v):
+    de = TEventExportSerializer(data=e)
+    de.video_id = v.video_id
+    return de
+
 
 class VideoImporter(object):
     
@@ -285,6 +291,12 @@ class VideoImporter(object):
         self.bulk_import_frames()
         self.convert_regions_files()
         self.import_index_entries()
+
+    def import_events(self):
+        events = [create_event(e,self.video) for e in self.json.get('event_list',[])]
+        event_ids = TEvent.objects.bulk_create(events,1000)
+        pass
+
 
     def convert_regions_files(self):
         if os.path.isdir('{}/detections/'.format(self.root)):
@@ -375,4 +387,4 @@ class VideoImporter(object):
         regions = []
         for i, k in enumerate(bulk_regions):
             if regions_index_to_rid[i]:
-                self.detection_to_pk[regions_index_to_rid[i]] = k.id
+                self.region_to_pk[regions_index_to_rid[i]] = k.id

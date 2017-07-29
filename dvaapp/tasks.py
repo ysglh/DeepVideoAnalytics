@@ -106,10 +106,8 @@ def perform_indexing(task_id):
     if target == 'query':
         iq = IndexerQuery.objects.get(id=json_args['iq_id'])
         qp = QueryProcessing()
-        qp.load_from_db(start.video.parent_query_id, settings.MEDIA_ROOT)
-        qp.execute_sub_query(iq, iq.algorithm, visual_index)
-        temp = RetrieverTask.visual_retriever
-        qp.perform_retrieval(iq, iq.algorithm, temp)
+        qp.load_from_db(start.video.parent_query, settings.MEDIA_ROOT)
+        qp.execute_sub_query(iq, visual_index)
         sync = False
     else:
         arguments = json_args.get('filters', {})
@@ -192,14 +190,16 @@ def crop_regions_by_id(task_id):
 
 
 @app.task(track_started=True, name="perform_retrieval", base=RetrieverTask)
-def perform_retrieval(query_id):
-    iq = IndexerQuery.objects.get(id=query_id)
-    start = TEvent()
+def perform_retrieval(task_id):
+    start = TEvent.objects.get(pk=task_id)
+    if celery_40_bug_hack(start):
+        return 0
+    args = json.loads(start.arguments_json)
     start.task_id = perform_retrieval.request.id
-    start.video_id = Video.objects.get(parent_query=iq.parent_query).pk
     start.started = True
     start.operation = perform_retrieval.name
     start.save()
+    iq = IndexerQuery.objects.get(pk=args['iq_id'])
     qp = QueryProcessing()
     qp.load_from_db(iq.parent_query,settings.MEDIA_ROOT)
     qp.perform_retrieval(iq,iq.algorithm,perform_retrieval)

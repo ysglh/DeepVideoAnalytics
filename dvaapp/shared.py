@@ -13,6 +13,8 @@ from celery.exceptions import TimeoutError
 def get_queue_name(operation,args):
     if operation in settings.TASK_NAMES_TO_QUEUE:
         return settings.TASK_NAMES_TO_QUEUE[operation]
+    elif 'index' in args and operation == 'perform_retrieval':
+        return settings.VISUAL_INDEXES[args['index']]['retriever_queue']
     elif 'index' in args:
         return settings.VISUAL_INDEXES[args['index']]['indexer_queue']
     elif 'detector' in args:

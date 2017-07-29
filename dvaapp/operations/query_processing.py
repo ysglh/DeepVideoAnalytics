@@ -271,7 +271,7 @@ class QueryProcessing(object):
 
     def send_tasks(self):
         for iq in self.indexer_queries:
-            task_name = 'execute_index_subquery'
+            task_name = 'perform_indexing'
             queue_name = self.visual_indexes[iq.algorithm]['indexer_queue']
             jargs = json.dumps({
                 'iq_id':iq.pk,
@@ -279,12 +279,12 @@ class QueryProcessing(object):
                 'target':'query',
                 'next_tasks':[
                     { 'task_name': 'perform_retrieval',
-                      'arguments': {'iq_id': iq.pk}
+                      'arguments': {'iq_id': iq.pk,'index':iq.algorithm}
                      }
                 ]
             })
             next_task = TEvent.objects.create(video=self.dv, operation=task_name, arguments_json=jargs)
-            app.send_task(task_name, args=[next_task.pk, ], queue=queue_name)
+            self.task_results[iq.algorithm] = app.send_task(task_name, args=[next_task.pk, ], queue=queue_name, priority=5)
             self.context[iq.algorithm] = []
 
     def wait(self,timeout=120):
@@ -328,7 +328,7 @@ class QueryProcessing(object):
         with open(local_path, 'w') as fh:
             fh.write(str(self.query.image_data))
         vector = visual_index.apply(local_path)
-        iq.query_float_vector = vector.tostring()
+        iq.vector = vector.tostring()
         iq.save()
         self.query.results_available = True
         self.query.save()
@@ -338,7 +338,7 @@ class QueryProcessing(object):
         retriever = retrieval_task.visual_retriever[index_name]
         exact = True
         results = []
-        vector = np.fromstring(iq.query_float_vector)
+        vector = np.fromstring(iq.vector)
         if iq.approximate:
             if retrieval_task.clusterer[index_name] is None:
                 retrieval_task.load_clusterer(index_name)

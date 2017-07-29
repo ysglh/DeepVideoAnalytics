@@ -4,12 +4,14 @@ from django.conf import settings
 import celery
 from dva.celery import app
 try:
-    from dvalib import indexer,clustering
+    from dvalib import indexer, clustering, retriever
 except ImportError:
     logging.warning("Could not import indexer / clustering assuming running in front-end mode / Heroku")
 
+
 from ..models import IndexEntries,Clusters,Video,Query,IndexerQuery,QueryResults,Region,ClusterCodes
 from collections import defaultdict
+
 
 class IndexerTask(celery.Task):
     _visual_indexer = None
@@ -45,6 +47,70 @@ class IndexerTask(celery.Task):
         """
         index_entries = IndexEntries.objects.all()
         visual_index = self.visual_indexer[index_name]
+        for index_entry in index_entries:
+            if index_entry.pk not in visual_index.loaded_entries and index_entry.algorithm == index_name and index_entry.count > 0:
+                fname = "{}/{}/indexes/{}".format(settings.MEDIA_ROOT, index_entry.video_id,
+                                                  index_entry.features_file_name)
+                vectors = indexer.np.load(fname)
+                vector_entries = json.load(file("{}/{}/indexes/{}".format(settings.MEDIA_ROOT, index_entry.video_id,
+                                                                          index_entry.entries_file_name)))
+                logging.info("Starting {} in {} with shape {}".format(index_entry.video_id, visual_index.name,vectors.shape))
+                start_index = visual_index.findex
+                try:
+                    visual_index.load_index(vectors, vector_entries)
+                except:
+                    logging.info("ERROR Failed to load {} vectors shape {} entries {}".format(index_entry.video_id,vectors.shape,len(vector_entries)))
+                visual_index.loaded_entries[index_entry.pk] = indexer.IndexRange(start=start_index,
+                                                                                 end=visual_index.findex - 1)
+                logging.info("finished {} in {}, current shape {}, range".format(index_entry.video_id,
+                                                                                 visual_index.name,
+                                                                                 visual_index.index.shape,
+                                                                                 visual_index.loaded_entries[
+                                                                                     index_entry.pk].start,
+                                                                                 visual_index.loaded_entries[
+                                                                                     index_entry.pk].end,
+                                                                                 ))
+
+    def load_clusterer(self, algorithm):
+        dc = Clusters.objects.all().filter(completed=True, indexer_algorithm=algorithm).last()
+        if dc:
+            model_file_name = "{}/clusters/{}.proto".format(settings.MEDIA_ROOT, dc.pk)
+            IndexerTask._clusterer[algorithm] = clustering.Clustering(fnames=[], m=None, v=None, sub=None,n_components=None,model_proto_filename=model_file_name, dc=dc)
+            logging.warning("loading clusterer {}".format(model_file_name))
+            IndexerTask._clusterer[algorithm].load()
+        else:
+            logging.warning("No clusterer found switching to exact search for {}".format(algorithm))
+
+
+class RetrieverTask(celery.Task):
+    _clusterer = None
+    _visual_retriever =  None
+
+    @property
+    def visual_retriever(self):
+        if IndexerTask._visual_retriever is None:
+            IndexerTask._visual_retriever = {'inception': retriever.BaseRetriever(name="inception"),
+                                           'vgg': retriever.BaseRetriever(name="vgg"),
+                                           'facenet': retriever.BaseRetriever(name="facenet")
+                                            }
+        return IndexerTask._visual_indexer
+
+    @property
+    def clusterer(self):
+        if IndexerTask._clusterer is None:
+            IndexerTask._clusterer = {'inception': None,
+                                      'facenet': None,
+                                      'vgg':None}
+        return IndexerTask._clusterer
+
+    def refresh_index(self, index_name):
+        """
+        # TODO: speed this up by skipping refreshes when count is unchanged.
+        :param index_name:
+        :return:
+        """
+        index_entries = IndexEntries.objects.all()
+        visual_index = self.visual_retriever[index_name]
         for index_entry in index_entries:
             if index_entry.pk not in visual_index.loaded_entries and index_entry.algorithm == index_name and index_entry.count > 0:
                 fname = "{}/{}/indexes/{}".format(settings.MEDIA_ROOT, index_entry.video_id,
@@ -261,6 +327,43 @@ class QueryProcessing(object):
         if exact:
             query_task.refresh_index(index_name)
             results = visual_index.nearest(image_path=local_path,n=iq.count)
+        # TODO: optimize this using batching
+        for r in results:
+            qr = QueryResults()
+            qr.query = self.query
+            qr.indexerquery = iq
+            if 'detection_primary_key' in r:
+                dd = Region.objects.get(pk=r['detection_primary_key'])
+                qr.detection = dd
+                qr.frame_id = dd.frame_id
+            else:
+                qr.frame_id = r['frame_primary_key']
+            qr.video_id = r['video_primary_key']
+            qr.algorithm = iq.algorithm
+            qr.rank = r['rank']
+            qr.distance = r['dist']
+            qr.save()
+        iq.results = True
+        iq.save()
+        self.query.results_available = True
+        self.query.save()
+        return 0
+
+    def perform_retrieval(self,iq,index_name,retrieval_task):
+        retriever = retrieval_task.visual_retriever[index_name]
+        exact = True
+        results = []
+        vector = None
+        if iq.approximate:
+            if retrieval_task.clusterer[index_name] is None:
+                retrieval_task.load_clusterer(index_name)
+            clusterer = retrieval_task.clusterer[index_name]
+            if clusterer:
+                results = query_approximate(retrieval_task, iq.count, visual_index, clusterer)
+                exact = False
+        if exact:
+            retrieval_task.refresh_index(index_name)
+            results = retriever.nearest(vector=vector,n=iq.count)
         # TODO: optimize this using batching
         for r in results:
             qr = QueryResults()

@@ -6,7 +6,7 @@ from dva.celery import app
 from .models import Video, Frame, TEvent, Query, IndexEntries, QueryResults, AppliedLabel, VDNDataset, Clusters, \
     ClusterCodes, Region, Tube, CustomDetector, Segment, IndexerQuery
 
-from .operations.query_processing import IndexerTask,QueryProcessing
+from .operations.query_processing import IndexerTask,QueryProcessing,RetrieverTask
 from .operations.detection import DetectorTask
 from .operations.analysis import AnalyzerTask
 from .operations.video_processing import WFrame,WVideo
@@ -196,6 +196,29 @@ def execute_index_subquery(query_id):
     # execute_index_subquery inherits IndexerTask which has "static" indexer objects. This ensures that
     # the network is only loaded once. A similar pattern can also be observed in inception_index_by_id .
     qp.execute_sub_query(iq,iq.algorithm,execute_index_subquery)
+    start_time = time.time()
+    start.completed = True
+    start.seconds = time.time() - start_time
+    start.save()
+    return 0
+
+
+@app.task(track_started=True, name="perform_retrieval", base=RetrieverTask)
+def perform_retrieval(query_id):
+    iq = IndexerQuery.objects.get(id=query_id)
+    start = TEvent()
+    start.task_id = execute_index_subquery.request.id
+    start.video_id = Video.objects.get(parent_query=iq.parent_query).pk
+    start.started = True
+    start.operation = execute_index_subquery.name
+    start.save()
+    qp = QueryProcessing()
+    qp.load_from_db(iq.parent_query,settings.MEDIA_ROOT)
+    # Its natural to question why "execute_index_subquery" is passed as an argument to the method below.
+    # The reason behind this is to ensure that the network is loaded only once per SOLO celery worker process.
+    # execute_index_subquery inherits IndexerTask which has "static" indexer objects. This ensures that
+    # the network is only loaded once. A similar pattern can also be observed in inception_index_by_id .
+    qp.perform_retrieval(iq,iq.algorithm,execute_index_subquery)
     start_time = time.time()
     start.completed = True
     start.seconds = time.time() - start_time

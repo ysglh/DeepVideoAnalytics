@@ -58,6 +58,7 @@ def process_next(task_id,inject_filters=None,custom_next_tasks=None,sync=True):
     if custom_next_tasks is None:
         custom_next_tasks = []
     dt = TEvent.objects.get(pk=task_id)
+    launched = []
     logging.info("next tasks for {}".format(dt.operation))
     if sync:
         for k in settings.SYNC_TASKS.get(dt.operation,[]):
@@ -65,13 +66,14 @@ def process_next(task_id,inject_filters=None,custom_next_tasks=None,sync=True):
             jargs = json.dumps(args)
             logging.info("launching {}, {} with args {} as specified in config".format(dt.operation, k['task_name'], args))
             next_task = TEvent.objects.create(video=dt.video,operation=k['task_name'],arguments_json=jargs,parent=dt)
-            app.send_task(k['task_name'], args=[next_task.pk, ], queue=get_queue_name(k['task_name'],args))
+            launched.append(app.send_task(k['task_name'], args=[next_task.pk, ], queue=get_queue_name(k['task_name'],args)).id)
     for k in json.loads(dt.arguments_json).get('next_tasks',[])+custom_next_tasks:
         args = perform_substitution(k['arguments'], dt,inject_filters)
         jargs = json.dumps(args)
         logging.info("launching {}, {} with args {} as specified in next_tasks".format(dt.operation, k['task_name'], args))
         next_task = TEvent.objects.create(video=dt.video,operation=k['task_name'], arguments_json=jargs,parent=dt)
-        app.send_task(k['task_name'], args=[next_task.pk, ], queue=get_queue_name(k['task_name'],args))
+        launched.append(app.send_task(k['task_name'], args=[next_task.pk, ], queue=get_queue_name(k['task_name'],args)).id)
+    return launched
 
 
 def celery_40_bug_hack(start):
@@ -143,7 +145,7 @@ def perform_indexing(task_id):
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
-    process_next(task_id,sync=sync)
+    return process_next(task_id,sync=sync)
 
 
 @app.task(track_started=True, name="crop_regions_by_id")

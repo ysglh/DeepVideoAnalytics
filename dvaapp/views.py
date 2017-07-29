@@ -192,7 +192,7 @@ class TEventList(UserPassesTestMixin, ListView):
             task_list.append({'name': k,
                               'type': v,
                               'queue': settings.TASK_NAMES_TO_QUEUE[k],
-                              'edges': settings.POST_OPERATION_TASKS[k] if k in settings.POST_OPERATION_TASKS else []
+                              'edges': []
                               })
         context['task_list'] = task_list
         return context

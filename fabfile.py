@@ -178,7 +178,7 @@ def ci():
     from django.conf import settings
     from dvaapp.operations.query_processing import QueryProcessing
     from dvaapp.tasks import extract_frames, perform_indexing, export_video_by_id, import_video_by_id,\
-        execute_index_subquery, perform_clustering, perform_analysis, perform_detection,\
+        perform_clustering, perform_analysis, perform_detection,\
         segment_video, crop_regions_by_id
     for fname in glob.glob('tests/ci/*.mp4'):
         name = fname.split('/')[-1].split('.')[0]
@@ -247,7 +247,7 @@ def ci():
     }
     qp = QueryProcessing()
     qp.create_from_json(query_dict)
-    execute_index_subquery(qp.indexer_queries[0].pk)
+    # execute_index_subquery(qp.indexer_queries[0].pk)
     query_dict = {
         'image_data_b64':base64.encodestring(file('tests/query.png').read()),
         'indexers':[
@@ -260,7 +260,7 @@ def ci():
     }
     qp = QueryProcessing()
     qp.create_from_json(query_dict)
-    execute_index_subquery(qp.indexer_queries[0].pk)
+    # execute_index_subquery(qp.indexer_queries[0].pk)
     server, datasets, detectors = pull_vdn_list(1)
     for k in datasets:
         if k['name'] == 'MSCOCO_Sample_500':

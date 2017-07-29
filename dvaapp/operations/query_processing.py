@@ -13,6 +13,8 @@ except ImportError:
 
 from ..models import IndexEntries,Clusters,Video,Query,IndexerQuery,QueryResults,Region,ClusterCodes,TEvent
 from collections import defaultdict
+from celery.result import AsyncResult
+import io
 
 
 class IndexerTask(celery.Task):
@@ -290,8 +292,11 @@ class QueryProcessing(object):
     def wait(self,timeout=120):
         for visual_index_name, result in self.task_results.iteritems():
             try:
-                logging.info("Waiting for {}".format(visual_index_name))
-                _ = result.get(timeout=timeout)
+                next_task_ids = result.get(timeout=timeout)
+                if next_task_ids:
+                    for next_task_id in next_task_ids:
+                        next_result = AsyncResult(id=next_task_id)
+                        _ = next_result.get()
             except Exception, e:
                 raise ValueError(e)
 
@@ -328,7 +333,9 @@ class QueryProcessing(object):
         with open(local_path, 'w') as fh:
             fh.write(str(self.query.image_data))
         vector = visual_index.apply(local_path)
-        iq.vector = vector.tostring()
+        s = io.BytesIO()
+        np.save(s,vector) # TODO: figure out a better way to store numpy arrays.
+        iq.vector = s.getvalue()
         iq.save()
         self.query.results_available = True
         self.query.save()
@@ -338,7 +345,7 @@ class QueryProcessing(object):
         retriever = retrieval_task.visual_retriever[index_name]
         exact = True
         results = []
-        vector = np.fromstring(iq.vector)
+        vector = np.load(io.BytesIO(iq.vector)) # TODO: figure out a better way to store numpy arrays.
         if iq.approximate:
             if retrieval_task.clusterer[index_name] is None:
                 retrieval_task.load_clusterer(index_name)

@@ -90,20 +90,20 @@ class RetrieverTask(celery.Task):
 
     @property
     def visual_retriever(self):
-        if IndexerTask._visual_retriever is None:
-            IndexerTask._visual_retriever = {'inception': retriever.BaseRetriever(name="inception"),
+        if RetrieverTask._visual_retriever is None:
+            RetrieverTask._visual_retriever = {'inception': retriever.BaseRetriever(name="inception"),
                                            'vgg': retriever.BaseRetriever(name="vgg"),
                                            'facenet': retriever.BaseRetriever(name="facenet")
                                             }
-        return IndexerTask._visual_indexer
+        return RetrieverTask._visual_indexer
 
     @property
     def clusterer(self):
-        if IndexerTask._clusterer is None:
-            IndexerTask._clusterer = {'inception': None,
+        if RetrieverTask._clusterer is None:
+            RetrieverTask._clusterer = {'inception': None,
                                       'facenet': None,
                                       'vgg':None}
-        return IndexerTask._clusterer
+        return RetrieverTask._clusterer
 
     def refresh_index(self, index_name):
         """
@@ -141,9 +141,9 @@ class RetrieverTask(celery.Task):
         dc = Clusters.objects.all().filter(completed=True, indexer_algorithm=algorithm).last()
         if dc:
             model_file_name = "{}/clusters/{}.proto".format(settings.MEDIA_ROOT, dc.pk)
-            IndexerTask._clusterer[algorithm] = clustering.Clustering(fnames=[], m=None, v=None, sub=None,n_components=None,model_proto_filename=model_file_name, dc=dc)
+            RetrieverTask._clusterer[algorithm] = clustering.Clustering(fnames=[], m=None, v=None, sub=None,n_components=None,model_proto_filename=model_file_name, dc=dc)
             logging.warning("loading clusterer {}".format(model_file_name))
-            IndexerTask._clusterer[algorithm].load()
+            RetrieverTask._clusterer[algorithm].load()
         else:
             logging.warning("No clusterer found switching to exact search for {}".format(algorithm))
 

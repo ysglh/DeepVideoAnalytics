@@ -54,17 +54,18 @@ def perform_substitution(args,parent_task,inject_filters):
     return args
 
 
-def process_next(task_id,inject_filters=None,custom_next_tasks=None):
+def process_next(task_id,inject_filters=None,custom_next_tasks=None,sync=True):
     if custom_next_tasks is None:
         custom_next_tasks = []
     dt = TEvent.objects.get(pk=task_id)
     logging.info("next tasks for {}".format(dt.operation))
-    for k in settings.POST_OPERATION_TASKS.get(dt.operation,[]):
-        args = perform_substitution(k['arguments'], dt,inject_filters)
-        jargs = json.dumps(args)
-        logging.info("launching {}, {} with args {} as specified in config".format(dt.operation, k['task_name'], args))
-        next_task = TEvent.objects.create(video=dt.video,operation=k['task_name'],arguments_json=jargs,parent=dt)
-        app.send_task(k['task_name'], args=[next_task.pk, ], queue=get_queue_name(k['task_name'],args))
+    if sync:
+        for k in settings.SYNC_TASKS.get(dt.operation,[]):
+            args = perform_substitution(k['arguments'], dt,inject_filters)
+            jargs = json.dumps(args)
+            logging.info("launching {}, {} with args {} as specified in config".format(dt.operation, k['task_name'], args))
+            next_task = TEvent.objects.create(video=dt.video,operation=k['task_name'],arguments_json=jargs,parent=dt)
+            app.send_task(k['task_name'], args=[next_task.pk, ], queue=get_queue_name(k['task_name'],args))
     for k in json.loads(dt.arguments_json).get('next_tasks',[])+custom_next_tasks:
         args = perform_substitution(k['arguments'], dt,inject_filters)
         jargs = json.dumps(args)
@@ -97,44 +98,54 @@ def perform_indexing(task_id):
     dv = Video.objects.get(id=video_id)
     json_args = json.loads(start.arguments_json)
     target = json_args.get('target','frames')
-    arguments = json_args.get('filters',{})
     index_name = json_args['index']
     start.save()
     start_time = time.time()
-    video = WVideo(dv, settings.MEDIA_ROOT)
-    arguments['video_id'] = dv.pk
     visual_index = perform_indexing.visual_indexer[index_name]
-    if target == 'frames':
-        frames = Frame.objects.all().filter(**arguments)
-        index_name, index_results, feat_fname, entries_fname = video.index_frames(frames, visual_index,start.pk)
-        detection_name = 'Frames_subset_by_{}'.format(start.pk)
-        contains_frames = True
-        contains_detections = False
-    elif target == 'regions':
-        detections = Region.objects.all().filter(**arguments)
-        logging.info("Indexing {} Regions".format(detections.count()))
-        detection_name = 'Faces_subset_by_{}'.format(start.pk) if index_name == 'facenet' else 'Regions_subset_by_{}'.format(start.pk)
-        index_name, index_results, feat_fname, entries_fname = video.index_regions(detections, detection_name, visual_index)
-        contains_frames = False
-        contains_detections = True
+    sync = True
+    if target == 'query':
+        iq = IndexerQuery.objects.get(id=json_args['iq_id'])
+        qp = QueryProcessing()
+        qp.load_from_db(start.video.parent_query_id, settings.MEDIA_ROOT)
+        qp.execute_sub_query(iq, iq.algorithm, visual_index)
+        temp = RetrieverTask.visual_retriever
+        qp.perform_retrieval(iq, iq.algorithm, temp)
+        sync = False
     else:
-        raise NotImplementedError
-    i = IndexEntries()
-    i.video = dv
-    i.count = len(index_results)
-    i.contains_detections = contains_detections
-    i.contains_frames = contains_frames
-    i.detection_name = detection_name
-    i.algorithm = index_name
-    i.entries_file_name = entries_fname.split('/')[-1]
-    i.features_file_name = feat_fname.split('/')[-1]
-    i.source = start
-    i.source_filter_json = json.dumps(arguments)
-    i.save()
+        arguments = json_args.get('filters', {})
+        arguments['video_id'] = dv.pk
+        video = WVideo(dv, settings.MEDIA_ROOT)
+        if target == 'frames':
+            frames = Frame.objects.all().filter(**arguments)
+            index_name, index_results, feat_fname, entries_fname = video.index_frames(frames, visual_index,start.pk)
+            detection_name = 'Frames_subset_by_{}'.format(start.pk)
+            contains_frames = True
+            contains_detections = False
+        elif target == 'regions':
+            detections = Region.objects.all().filter(**arguments)
+            logging.info("Indexing {} Regions".format(detections.count()))
+            detection_name = 'Faces_subset_by_{}'.format(start.pk) if index_name == 'facenet' else 'Regions_subset_by_{}'.format(start.pk)
+            index_name, index_results, feat_fname, entries_fname = video.index_regions(detections, detection_name, visual_index)
+            contains_frames = False
+            contains_detections = True
+        else:
+            raise NotImplementedError
+        i = IndexEntries()
+        i.video = dv
+        i.count = len(index_results)
+        i.contains_detections = contains_detections
+        i.contains_frames = contains_frames
+        i.detection_name = detection_name
+        i.algorithm = index_name
+        i.entries_file_name = entries_fname.split('/')[-1]
+        i.features_file_name = feat_fname.split('/')[-1]
+        i.source = start
+        i.source_filter_json = json.dumps(arguments)
+        i.save()
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
-    process_next(task_id)
+    process_next(task_id,sync=sync)
 
 
 @app.task(track_started=True, name="crop_regions_by_id")
@@ -180,45 +191,18 @@ def crop_regions_by_id(task_id):
     process_next(task_id)
 
 
-@app.task(track_started=True, name="execute_index_subquery", base=IndexerTask)
-def execute_index_subquery(query_id):
-    iq = IndexerQuery.objects.get(id=query_id)
-    start = TEvent()
-    start.task_id = execute_index_subquery.request.id
-    start.video_id = Video.objects.get(parent_query=iq.parent_query).pk
-    start.started = True
-    start.operation = execute_index_subquery.name
-    start.save()
-    qp = QueryProcessing()
-    qp.load_from_db(iq.parent_query,settings.MEDIA_ROOT)
-    # Its natural to question why "execute_index_subquery" is passed as an argument to the method below.
-    # The reason behind this is to ensure that the network is loaded only once per SOLO celery worker process.
-    # execute_index_subquery inherits IndexerTask which has "static" indexer objects. This ensures that
-    # the network is only loaded once. A similar pattern can also be observed in inception_index_by_id .
-    qp.execute_sub_query(iq,iq.algorithm,execute_index_subquery)
-    start_time = time.time()
-    start.completed = True
-    start.seconds = time.time() - start_time
-    start.save()
-    return 0
-
-
 @app.task(track_started=True, name="perform_retrieval", base=RetrieverTask)
 def perform_retrieval(query_id):
     iq = IndexerQuery.objects.get(id=query_id)
     start = TEvent()
-    start.task_id = execute_index_subquery.request.id
+    start.task_id = perform_retrieval.request.id
     start.video_id = Video.objects.get(parent_query=iq.parent_query).pk
     start.started = True
-    start.operation = execute_index_subquery.name
+    start.operation = perform_retrieval.name
     start.save()
     qp = QueryProcessing()
     qp.load_from_db(iq.parent_query,settings.MEDIA_ROOT)
-    # Its natural to question why "execute_index_subquery" is passed as an argument to the method below.
-    # The reason behind this is to ensure that the network is loaded only once per SOLO celery worker process.
-    # execute_index_subquery inherits IndexerTask which has "static" indexer objects. This ensures that
-    # the network is only loaded once. A similar pattern can also be observed in inception_index_by_id .
-    qp.perform_retrieval(iq,iq.algorithm,execute_index_subquery)
+    qp.perform_retrieval(iq,iq.algorithm,perform_retrieval)
     start_time = time.time()
     start.completed = True
     start.seconds = time.time() - start_time
@@ -875,8 +859,8 @@ def perform_clustering(cluster_task_id, test=False):
     start.save()
 
 
-@app.task(track_started=True, name="sync_bucket_video_by_id")
-def sync_bucket_video_by_id(task_id):
+@app.task(track_started=True, name="sync_bucket")
+def sync_bucket(task_id):
     """
     TODO: Determine a way to rate limit consecutive sync bucket for a given
     (video,directory). As an alternative perform sync at a more granular level,
@@ -887,9 +871,9 @@ def sync_bucket_video_by_id(task_id):
     start = TEvent.objects.get(pk=task_id)
     if celery_40_bug_hack(start):
         return 0
-    start.task_id = sync_bucket_video_by_id.request.id
+    start.task_id = sync_bucket.request.id
     start.started = True
-    start.operation = sync_bucket_video_by_id.name
+    start.operation = sync_bucket.name
     start.save()
     start_time = time.time()
     video_id = start.video_id

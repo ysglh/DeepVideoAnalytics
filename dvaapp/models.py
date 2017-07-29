@@ -91,7 +91,7 @@ class IndexerQuery(models.Model):
     algorithm = models.CharField(max_length=500,default="")
     indexer = models.ForeignKey(CustomIndexer,null=True)
     excluded_index_entries_pk = ArrayField(models.IntegerField(), default=[])
-    query_float_vector = ArrayField(models.FloatField(), default=[])
+    query_float_vector = models.BinaryField(null=True)
     query_int_vector = ArrayField(models.IntegerField(), default=[])
     results = models.BooleanField(default=False)
     metadata = models.TextField(default="")

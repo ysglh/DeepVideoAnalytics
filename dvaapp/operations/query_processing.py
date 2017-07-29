@@ -5,11 +5,13 @@ import celery
 from dva.celery import app
 try:
     from dvalib import indexer, clustering, retriever
+    import numpy as np
 except ImportError:
+    np = None
     logging.warning("Could not import indexer / clustering assuming running in front-end mode / Heroku")
 
 
-from ..models import IndexEntries,Clusters,Video,Query,IndexerQuery,QueryResults,Region,ClusterCodes
+from ..models import IndexEntries,Clusters,Video,Query,IndexerQuery,QueryResults,Region,ClusterCodes,TEvent
 from collections import defaultdict
 
 
@@ -182,24 +184,24 @@ class QueryProcessing(object):
         self.indexer_queries = []
         self.task_results = {}
         self.context = {}
+        self.dv = None
         self.visual_indexes = settings.VISUAL_INDEXES
 
     def store_and_create_video_object(self):
-        dv = Video()
-        dv.name = 'query_{}'.format(self.query.pk)
-        dv.dataset = True
-        dv.query = True
-        dv.parent_query = self.query
-        dv.save()
+        self.dv = Video()
+        self.dv.name = 'query_{}'.format(self.query.pk)
+        self.dv.dataset = True
+        self.dv.query = True
+        self.dv.parent_query = self.query
+        self.dv.save()
         if settings.HEROKU_DEPLOY:
             query_key = "queries/{}.png".format(self.query.pk)
-            query_frame_key = "{}/frames/0.png".format(dv.pk)
+            query_frame_key = "{}/frames/0.png".format(self.dv.pk)
             s3 = boto3.resource('s3')
             s3.Bucket(settings.MEDIA_BUCKET).put_object(Key=query_key, Body=self.query.image_data)
             s3.Bucket(settings.MEDIA_BUCKET).put_object(Key=query_frame_key, Body=self.query.image_data)
         else:
             query_path = "{}/queries/{}.png".format(settings.MEDIA_ROOT, self.query.pk)
-            query_frame_path = "{}/{}/frames/0.png".format(settings.MEDIA_ROOT, dv.pk)
             with open(query_path, 'w') as fh:
                 fh.write(self.query.image_data)
 
@@ -270,8 +272,19 @@ class QueryProcessing(object):
     def send_tasks(self):
         for iq in self.indexer_queries:
             task_name = 'execute_index_subquery'
-            queue_name = self.visual_indexes[iq.algorithm]['retriever_queue']
-            self.task_results[iq.algorithm] = app.send_task(task_name, args=[iq.pk, ], queue=queue_name)
+            queue_name = self.visual_indexes[iq.algorithm]['indexer_queue']
+            jargs = json.dumps({
+                'iq_id':iq.pk,
+                'index':iq.algorithm,
+                'target':'query',
+                'next_tasks':[
+                    { 'task_name': 'perform_retrieval',
+                      'arguments': {'iq_id': iq.pk}
+                     }
+                ]
+            })
+            next_task = TEvent.objects.create(video=self.dv, operation=task_name, arguments_json=jargs)
+            app.send_task(task_name, args=[next_task.pk, ], queue=queue_name)
             self.context[iq.algorithm] = []
 
     def wait(self,timeout=120):
@@ -310,40 +323,12 @@ class QueryProcessing(object):
         }
         return json.dumps(json_query)
 
-    def execute_sub_query(self,iq,index_name,query_task):
-        visual_index = query_task.visual_indexer[index_name]
-        exact = True
+    def execute_sub_query(self,iq,visual_index):
         local_path = "{}/queries/{}_{}.png".format(self.media_dir, iq.algorithm, self.query.pk)
         with open(local_path, 'w') as fh:
             fh.write(str(self.query.image_data))
-        results = []
-        if iq.approximate:
-            if query_task.clusterer[index_name] is None:
-                query_task.load_clusterer(index_name)
-            clusterer = query_task.clusterer[index_name]
-            if clusterer:
-                results = query_approximate(local_path, iq.count, visual_index, clusterer)
-                exact = False
-        if exact:
-            query_task.refresh_index(index_name)
-            results = visual_index.nearest(image_path=local_path,n=iq.count)
-        # TODO: optimize this using batching
-        for r in results:
-            qr = QueryResults()
-            qr.query = self.query
-            qr.indexerquery = iq
-            if 'detection_primary_key' in r:
-                dd = Region.objects.get(pk=r['detection_primary_key'])
-                qr.detection = dd
-                qr.frame_id = dd.frame_id
-            else:
-                qr.frame_id = r['frame_primary_key']
-            qr.video_id = r['video_primary_key']
-            qr.algorithm = iq.algorithm
-            qr.rank = r['rank']
-            qr.distance = r['dist']
-            qr.save()
-        iq.results = True
+        vector = visual_index.apply(local_path)
+        iq.query_float_vector = vector.tostring()
         iq.save()
         self.query.results_available = True
         self.query.save()
@@ -353,13 +338,13 @@ class QueryProcessing(object):
         retriever = retrieval_task.visual_retriever[index_name]
         exact = True
         results = []
-        vector = None
+        vector = np.fromstring(iq.query_float_vector)
         if iq.approximate:
             if retrieval_task.clusterer[index_name] is None:
                 retrieval_task.load_clusterer(index_name)
             clusterer = retrieval_task.clusterer[index_name]
             if clusterer:
-                results = query_approximate(retrieval_task, iq.count, visual_index, clusterer)
+                results = query_approximate(retrieval_task, iq.count, retriever, clusterer)
                 exact = False
         if exact:
             retrieval_task.refresh_index(index_name)

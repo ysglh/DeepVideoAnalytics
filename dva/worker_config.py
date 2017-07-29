@@ -21,14 +21,12 @@ TASK_NAMES_TO_QUEUE = {
     "detect_custom_objects":Q_DETECTOR,
     "crop_regions_by_id":Q_EXTRACTOR,
     "perform_face_detection":Q_FACE_DETECTOR,
-    "alexnet_index_by_id":Q_INDEXER,
-    "alexnet_query_by_image":Q_RETRIEVER,
     "export_video_by_id":Q_EXTRACTOR,
     "import_vdn_file":Q_EXTRACTOR,
     "import_vdn_s3":Q_EXTRACTOR,
     "delete_video_by_id":Q_EXTRACTOR,
     "backup_video_to_s3":Q_EXTRACTOR,
-    "sync_bucket_video_by_id":Q_EXTRACTOR,
+    "sync_bucket":Q_EXTRACTOR,
     "import_vdn_detector_file":Q_EXTRACTOR,
     "push_video_to_vdn_s3":Q_EXTRACTOR,
     "import_video_by_id":Q_EXTRACTOR,
@@ -68,7 +66,7 @@ TASK_NAMES_TO_TYPE = {
 MANUAL_VIDEO_TASKS = ['perform_indexing',
                       'perform_detection',
                       'perform_analysis',
-                      'sync_bucket_video_by_id'
+                      'sync_bucket'
                       ]
 
 OCR_VIDEO_TASKS = ['perform_textbox_detection_by_id',]
@@ -121,42 +119,42 @@ DEFAULT_PROCESSING_PLAN =[
 ]
 
 
-POST_OPERATION_TASKS = {
+SYNC_TASKS = {
     "extract_frames":[
-        {'task_name':'sync_bucket_video_by_id','arguments':{'dirname':'frames'}},
+        {'task_name':'sync_bucket','arguments':{'dirname':'frames'}},
     ],
     "segment_video":[
-        {'task_name':'sync_bucket_video_by_id','arguments':{'dirname':'segments'}},
+        {'task_name':'sync_bucket','arguments':{'dirname':'segments'}},
     ],
     "decode_video":[
-        {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'frames'}},
+        {'task_name': 'sync_bucket', 'arguments': {'dirname': 'frames'}},
     ],
     'perform_detection':[
     ],
     'crop_regions_by_id':[
-        {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'regions'}},
+        {'task_name': 'sync_bucket', 'arguments': {'dirname': 'regions'}},
     ],
     'perform_indexing':[
-        {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'indexes'}},
+        {'task_name': 'sync_bucket', 'arguments': {'dirname': 'indexes'}},
     ],
     'perform_face_detection':[
-        {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'regions'}},
+        {'task_name': 'sync_bucket', 'arguments': {'dirname': 'regions'}},
     ],
     'import_vdn_file':[
-        {'task_name': 'sync_bucket_video_by_id', 'arguments': {}},
+        {'task_name': 'sync_bucket', 'arguments': {}},
     ],
     'import_vdn_s3':[
-        {'task_name': 'sync_bucket_video_by_id', 'arguments': {}},
+        {'task_name': 'sync_bucket', 'arguments': {}},
     ],
     'train_yolo_detector':[
     ],
     'import_vdn_detector_file':[
     ],
     'detect_custom_objects':[
-        {'task_name': 'sync_bucket_video_by_id', 'arguments': {'dirname': 'regions'}},
+        {'task_name': 'sync_bucket', 'arguments': {'dirname': 'regions'}},
     ]
 }
-# execute_index_subquery
+
 
 VISUAL_INDEXES = {
     'inception':

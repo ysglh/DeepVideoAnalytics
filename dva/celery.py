@@ -21,7 +21,9 @@ app.conf.update(
     CELERY_TASK_SERIALIZER='json',
     CELERY_RESULT_SERIALIZER='json',
     CELERY_RESULT_BACKEND='django-db',
+
 )
+app.conf.task_queue_max_priority = 10
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
 # TODO: Waiting for https://github.com/celery/celery/issues/3620 to be resolved

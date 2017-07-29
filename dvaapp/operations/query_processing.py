@@ -86,7 +86,7 @@ class IndexerTask(celery.Task):
 
 class RetrieverTask(celery.Task):
     _clusterer = None
-    _visual_retriever =  None
+    _visual_retriever = None
 
     @property
     def visual_retriever(self):
@@ -95,7 +95,7 @@ class RetrieverTask(celery.Task):
                                            'vgg': retriever.BaseRetriever(name="vgg"),
                                            'facenet': retriever.BaseRetriever(name="facenet")
                                             }
-        return RetrieverTask._visual_indexer
+        return RetrieverTask._visual_retriever
 
     @property
     def clusterer(self):

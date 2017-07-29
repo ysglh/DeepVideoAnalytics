@@ -31,18 +31,18 @@ class BaseRetriever(object):
             self.index = np.concatenate([self.index, np.atleast_2d(np.concatenate(temp_index).squeeze())])
             logging.info(self.index.shape)
 
-    def nearest(self, query_vector=None, n=12):
+    def nearest(self, vector=None, n=12):
         temp = []
         dist = []
         for k in xrange(self.index.shape[0]):
             temp.append(self.index[k])
             if (k+1) % 50000 == 0:
                 temp = np.transpose(np.dstack(temp)[0])
-                dist.append(spatial.distance.cdist(query_vector,temp))
+                dist.append(spatial.distance.cdist(vector,temp))
                 temp = []
         if temp:
             temp = np.transpose(np.dstack(temp)[0])
-            dist.append(spatial.distance.cdist(query_vector,temp))
+            dist.append(spatial.distance.cdist(vector,temp))
         results = []
         if dist:
             dist = np.hstack(dist)

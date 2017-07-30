@@ -289,14 +289,14 @@ class QueryProcessing(object):
             self.task_results[iq.algorithm] = app.send_task(task_name, args=[next_task.pk, ], queue=queue_name, priority=5)
             self.context[iq.algorithm] = []
 
-    def wait(self,timeout=120):
+    def wait(self,timeout=60):
         for visual_index_name, result in self.task_results.iteritems():
             try:
                 next_task_ids = result.get(timeout=timeout)
                 if next_task_ids:
                     for next_task_id in next_task_ids:
                         next_result = AsyncResult(id=next_task_id)
-                        _ = next_result.get()
+                        _ = next_result.get(timeout=timeout)
             except Exception, e:
                 raise ValueError(e)
 

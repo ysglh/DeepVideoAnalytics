@@ -887,6 +887,12 @@ def clustering(request):
 
 
 @user_passes_test(user_check)
+def process(request):
+    context = {}
+    return render(request, 'process.html', context)
+
+
+@user_passes_test(user_check)
 def delete_object(request):
     if request.method == 'POST':
         pk = request.POST.get('pk')

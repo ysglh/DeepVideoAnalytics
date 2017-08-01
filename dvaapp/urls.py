@@ -39,6 +39,7 @@ urlpatterns = [
     url(r'^clustering/$', views.clustering, name='clustering'),
     url(r'^external', views.external, name='external'),
     url(r'^youtube$', views.yt, name='youtube'),
+    url(r'^process', views.process, name='process'),
     url(r'^export_video', views.export_video, name='export_video'),
     url(r'^delete_video', views.delete_video, name='delete_video'),
     url(r'^rename_video', views.rename_video, name='rename_video'),

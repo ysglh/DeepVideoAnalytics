@@ -534,7 +534,7 @@ class WVideo(object):
             if f.name:
                 for l in f.subdir.split(' ')[1:]:
                     if l.strip():
-                        labels_to_frame[l].add(df_ids[df_ids[i].id])
+                        labels_to_frame[l].add(df_ids[i].id)
         label_list = []
         for l in labels_to_frame:
             for fpk in labels_to_frame[l]:

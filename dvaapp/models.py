@@ -356,6 +356,10 @@ class Tube(models.Model):
     source = models.ForeignKey(TEvent,null=True)
 
 
+# class LabelName(models.Model): # TO DO create a parent label name to avoid repeatition
+#     name = models.CharField(max_length=200)
+
+
 class AppliedLabel(models.Model):
     UI = 'UI'
     DIRECTORY = 'DR'

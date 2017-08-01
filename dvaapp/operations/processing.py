@@ -1,31 +1,265 @@
+import base64, time
 import shlex,json,os,zipfile,glob,logging
 import subprocess as sp
-import numpy as np
+import boto3
+from django.conf import settings
+from dva.celery import app
+try:
+    from dvalib import indexer, clustering, retriever
+    import numpy as np
+except ImportError:
+    np = None
+    logging.warning("Could not import indexer / clustering assuming running in front-end mode / Heroku")
+
 from PIL import Image
-import os
+
+
+from ..models import Video,Query,IndexerQuery,QueryResults,Region,ClusterCodes,TEvent,Frame,Segment,Tube,AppliedLabel
 from collections import defaultdict
-from ..models import Video,Frame,Segment,Tube,AppliedLabel
-import time
-
-def set_directory_labels(frames, dv):
-    labels_to_frame = defaultdict(set)
-    for f in frames:
-        if f.name:
-            for l in f.subdir.split('/')[1:]:
-                if l.strip():
-                    labels_to_frame[l].add(f.primary_key)
-    label_list = []
-    for l in labels_to_frame:
-        for fpk in labels_to_frame[l]:
-            a = AppliedLabel()
-            a.video = dv
-            a.frame_id = fpk
-            a.source = AppliedLabel.DIRECTORY
-            a.label_name = l
-            label_list.append(a)
-    AppliedLabel.objects.bulk_create(label_list,batch_size=1000)
+from celery.result import AsyncResult
+import io
 
 
+def query_approximate(local_path, n, visual_index, clusterer):
+    vector = visual_index.apply(local_path)
+    results = []
+    coarse, fine, results_indexes = clusterer.apply(vector, n)
+    for i, k in enumerate(results_indexes[0]):
+        e = ClusterCodes.objects.get(searcher_index=k.id, clusters=clusterer.dc)
+        if e.detection_id:
+            results.append({
+                'rank': i + 1,
+                'dist': i,
+                'detection_primary_key': e.detection_id,
+                'frame_index': e.frame.frame_index,
+                'frame_primary_key': e.frame_id,
+                'video_primary_key': e.video_id,
+                'type': 'detection',
+            })
+        else:
+            results.append({
+                'rank': i + 1,
+                'dist': i,
+                'frame_index': e.frame.frame_index,
+                'frame_primary_key': e.frame_id,
+                'video_primary_key': e.video_id,
+                'type': 'frame',
+            })
+    return results
+
+
+class DVAPQLProcess(object):
+
+    def __init__(self):
+        self.query = None
+        self.media_dir = None
+        self.indexer_queries = []
+        self.task_results = {}
+        self.context = {}
+        self.dv = None
+        self.visual_indexes = settings.VISUAL_INDEXES
+
+    def store_and_create_video_object(self):
+        self.dv = Video()
+        self.dv.name = 'query_{}'.format(self.query.pk)
+        self.dv.dataset = True
+        self.dv.query = True
+        self.dv.parent_query = self.query
+        self.dv.save()
+        if settings.HEROKU_DEPLOY:
+            query_key = "queries/{}.png".format(self.query.pk)
+            query_frame_key = "{}/frames/0.png".format(self.dv.pk)
+            s3 = boto3.resource('s3')
+            s3.Bucket(settings.MEDIA_BUCKET).put_object(Key=query_key, Body=self.query.image_data)
+            s3.Bucket(settings.MEDIA_BUCKET).put_object(Key=query_frame_key, Body=self.query.image_data)
+        else:
+            query_path = "{}/queries/{}.png".format(settings.MEDIA_ROOT, self.query.pk)
+            with open(query_path, 'w') as fh:
+                fh.write(self.query.image_data)
+
+    def create_from_request(self, request):
+        count = request.POST.get('count')
+        excluded_index_entries_pk = json.loads(request.POST.get('excluded_index_entries'))
+        selected_indexers = json.loads(request.POST.get('selected_indexers'))
+        approximate = True if request.POST.get('approximate') == 'true' else False
+        image_data_url = request.POST.get('image_url')
+        user = request.user if request.user.is_authenticated else None
+        self.query = Query()
+        self.query.approximate = approximate
+        if not (user is None):
+            self.query.user = user
+        image_data = base64.decodestring(image_data_url[22:])
+        self.query.image_data = image_data
+        self.query.save()
+        self.store_and_create_video_object()
+        for k in selected_indexers:
+            iq = IndexerQuery()
+            iq.parent_query = self.query
+            iq.algorithm = k
+            iq.count = count
+            if excluded_index_entries_pk:
+                # !!fix this only the indexer specific
+                iq.excluded_index_entries_pk = [int(epk) for epk in excluded_index_entries_pk]
+            iq.approximate = approximate
+            iq.save()
+            self.indexer_queries.append(iq)
+        return self.query
+
+    def create_from_json(self, j, user=None):
+        """
+        Create query from JSON
+        {
+        'image_data':base64.encodestring(file('tests/query.png').read()),
+        'indexers':[
+            {
+                'algorithm':'facenet',
+                'count':10,
+                'approximate':False
+            }
+            ]
+        }
+        :param j: JSON encoded query
+        :param user:
+        :return:
+        """
+        self.query = Query()
+        if not (user is None):
+            self.query.user = user
+        if j['image_data_b64'].strip():
+            image_data = base64.decodestring(j['image_data_b64'])
+            self.query.image_data = image_data
+        self.query.save()
+        self.store_and_create_video_object()
+        for k in j['indexers']:
+            iq = IndexerQuery()
+            iq.parent_query = self.query
+            iq.algorithm = k['algorithm']
+            iq.count = k['count']
+            iq.excluded_index_entries_pk = k['excluded_index_entries_pk'] if 'excluded_index_entries_pk' in k else []
+            iq.approximate = k['approximate']
+            iq.save()
+            self.indexer_queries.append(iq)
+        return self.query
+
+    def send_tasks(self):
+        for iq in self.indexer_queries:
+            task_name = 'perform_indexing'
+            queue_name = self.visual_indexes[iq.algorithm]['indexer_queue']
+            jargs = json.dumps({
+                'iq_id':iq.pk,
+                'index':iq.algorithm,
+                'target':'query',
+                'next_tasks':[
+                    { 'task_name': 'perform_retrieval',
+                      'arguments': {'iq_id': iq.pk,'index':iq.algorithm}
+                     }
+                ]
+            })
+            next_task = TEvent.objects.create(video=self.dv, operation=task_name, arguments_json=jargs)
+            self.task_results[iq.algorithm] = app.send_task(task_name, args=[next_task.pk, ], queue=queue_name, priority=5)
+            self.context[iq.algorithm] = []
+
+    def wait(self,timeout=60):
+        for visual_index_name, result in self.task_results.iteritems():
+            try:
+                next_task_ids = result.get(timeout=timeout)
+                if next_task_ids:
+                    for next_task_id in next_task_ids:
+                        next_result = AsyncResult(id=next_task_id)
+                        _ = next_result.get(timeout=timeout)
+            except Exception, e:
+                raise ValueError(e)
+
+    def collect_results(self):
+        self.context = defaultdict(list)
+        for r in QueryResults.objects.all().filter(query=self.query):
+            self.context[r.algorithm].append((r.rank,
+                                         {'url': '{}{}/regions/{}.jpg'.format(settings.MEDIA_URL, r.video_id,
+                                                                                 r.detection_id) if r.detection_id else '{}{}/frames/{}.jpg'.format(
+                                             settings.MEDIA_URL, r.video_id, r.frame.frame_index),
+                                          'result_type': "Region" if r.detection_id else "Frame",
+                                          'rank':r.rank,
+                                          'frame_id': r.frame_id,
+                                          'frame_index': r.frame.frame_index,
+                                          'distance': r.distance,
+                                          'video_id': r.video_id,
+                                          'video_name': r.video.name}))
+        for k, v in self.context.iteritems():
+            if v:
+                self.context[k].sort()
+                self.context[k] = zip(*v)[1]
+
+    def load_from_db(self,query,media_dir):
+        self.query = query
+        self.media_dir = media_dir
+
+    def to_json(self):
+        json_query = {
+        }
+        return json.dumps(json_query)
+
+    def execute_sub_query(self,iq,visual_index):
+        """
+        TODO move this inside indexing task
+        :param iq:
+        :param visual_index:
+        :return:
+        """
+        local_path = "{}/queries/{}_{}.png".format(self.media_dir, iq.algorithm, self.query.pk)
+        with open(local_path, 'w') as fh:
+            fh.write(str(self.query.image_data))
+        vector = visual_index.apply(local_path)
+        s = io.BytesIO()
+        np.save(s,vector) # TODO: figure out a better way to store numpy arrays.
+        iq.vector = s.getvalue()
+        iq.save()
+        self.query.results_available = True
+        self.query.save()
+        return 0
+
+    def perform_retrieval(self,iq,index_name,retrieval_task):
+        """
+        TODO move this inside retrival task
+        :param iq:
+        :param index_name:
+        :param retrieval_task:
+        :return:
+        """
+        retriever = retrieval_task.visual_retriever[index_name]
+        exact = True
+        results = []
+        vector = np.load(io.BytesIO(iq.vector)) # TODO: figure out a better way to store numpy arrays.
+        if iq.approximate:
+            if retrieval_task.clusterer[index_name] is None:
+                retrieval_task.load_clusterer(index_name)
+            clusterer = retrieval_task.clusterer[index_name]
+            if clusterer:
+                results = query_approximate(retrieval_task, iq.count, retriever, clusterer)
+                exact = False
+        if exact:
+            retrieval_task.refresh_index(index_name)
+            results = retriever.nearest(vector=vector,n=iq.count)
+        # TODO: optimize this using batching
+        for r in results:
+            qr = QueryResults()
+            qr.query = self.query
+            qr.indexerquery = iq
+            if 'detection_primary_key' in r:
+                dd = Region.objects.get(pk=r['detection_primary_key'])
+                qr.detection = dd
+                qr.frame_id = dd.frame_id
+            else:
+                qr.frame_id = r['frame_primary_key']
+            qr.video_id = r['video_primary_key']
+            qr.algorithm = iq.algorithm
+            qr.rank = r['rank']
+            qr.distance = r['dist']
+            qr.save()
+        iq.results = True
+        iq.save()
+        self.query.results_available = True
+        self.query.save()
+        return 0
 
 
 class WVideo(object):
@@ -113,20 +347,18 @@ class WVideo(object):
         self.dvideo.save()
 
     def index_frames(self,frames,visual_index,task_pk):
-        results = {}
-        wframes = [WFrame(video=self, frame_index=df.frame_index,primary_key=df.pk) for df in frames]
         visual_index.load()
         entries = []
         paths = []
-        for i, f in enumerate(wframes):
+        for i, df in enumerate(frames):
             entry = {
-                'frame_index': f.frame_index,
-                'frame_primary_key': f.primary_key,
+                'frame_index': df.frame_index,
+                'frame_primary_key': df.pk,
                 'video_primary_key': self.primary_key,
                 'index': i,
                 'type': 'frame'
             }
-            paths.append(f.local_path())
+            paths.append("{}/{}/frames/{}.jpg".format(self.media_dir, self.primary_key, df.frame_index))
             entries.append(entry)
         features = visual_index.index_paths(paths)
         feat_fname = "{}/{}/indexes/frames_{}_{}.npy".format(self.media_dir, self.primary_key, visual_index.name,task_pk)
@@ -261,11 +493,12 @@ class WVideo(object):
         self.detect_csv_segment_format() # detect and save
 
     def extract_zip_dataset(self):
-        frames = []
         zipf = zipfile.ZipFile("{}/{}/video/{}.zip".format(self.media_dir, self.primary_key, self.primary_key), 'r')
         zipf.extractall("{}/{}/frames/".format(self.media_dir, self.primary_key))
         zipf.close()
         i = 0
+        df_list = []
+        root_length = len("{}/{}/frames/".format(self.media_dir, self.primary_key))
         for subdir, dirs, files in os.walk("{}/{}/frames/".format(self.media_dir, self.primary_key)):
             if '__MACOSX' not in subdir:
                 for fname in files:
@@ -280,51 +513,35 @@ class WVideo(object):
                         else:
                             dst = "{}/{}/frames/{}.jpg".format(self.media_dir, self.primary_key, i)
                             os.rename(fname, dst)
-                            f = WFrame(frame_index=i, video=self, name=fname.split('/')[-1],
-                                       subdir=subdir.replace("{}/{}/frames/".format(self.media_dir, self.primary_key),
-                                                             ''), w=w, h=h)
-                            frames.append(f)
+                            df = Frame()
+                            df.frame_index = i
+                            df.video_id = self.dvideo.pk
+                            df.h = h
+                            df.w = w
+                            df.name = fname.split('/')[-1][:150]
+                            df.subdir = subdir[root_length:].replace('/', ' ')
+                            df_list.append(df)
+
                     else:
                         logging.warning("skipping {} not a jpeg file".format(fname))
             else:
                 logging.warning("skipping {} ".format(subdir))
-        self.dvideo.frames = len(frames)
+        self.dvideo.frames = len(df_list)
         self.dvideo.save()
-        df_list = []
-        for f in frames:
-            df = Frame()
-            df.frame_index = f.frame_index
-            df.video_id = self.dvideo.pk
-            if f.h:
-                df.h = f.h
-            if f.w:
-                df.w = f.w
-            if f.name:
-                df.name = f.name[:150]
-                df.subdir = f.subdir.replace('/', ' ')
-            df_list.append(df)
         df_ids = Frame.objects.bulk_create(df_list,batch_size=1000)
-        set_directory_labels(frames, self.dvideo)
-
-
-class WFrame(object):
-
-    def __init__(self,frame_index=None,video=None,primary_key=None,name=None,subdir=None,h=None,w=None):
-        if video:
-            self.subdir = subdir
-            self.frame_index = frame_index
-            self.video = video
-            self.primary_key = primary_key
-            self.name = name
-        else:
-            self.subdir = None
-            self.frame_index = None
-            self.video = None
-            self.primary_key = None
-            self.name = None
-        self.h = h
-        self.w = w
-
-    def local_path(self):
-        return "{}/{}/{}/{}.jpg".format(self.video.media_dir,self.video.primary_key,'frames',self.frame_index)
-
+        labels_to_frame = defaultdict(set)
+        for i,f in enumerate(df_list):
+            if f.name:
+                for l in f.subdir.split(' ')[1:]:
+                    if l.strip():
+                        labels_to_frame[l].add(df_ids[df_ids[i].id])
+        label_list = []
+        for l in labels_to_frame:
+            for fpk in labels_to_frame[l]:
+                a = AppliedLabel()
+                a.video_id = self.dvideo.pk
+                a.frame_id = fpk
+                a.source = AppliedLabel.DIRECTORY
+                a.label_name = l
+                label_list.append(a)
+        AppliedLabel.objects.bulk_create(label_list, batch_size=1000)

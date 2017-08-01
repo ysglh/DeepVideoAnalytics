@@ -6,10 +6,12 @@ from dva.celery import app
 from .models import Video, Frame, TEvent, Query, IndexEntries, QueryResults, AppliedLabel, VDNDataset, Clusters, \
     ClusterCodes, Region, Tube, CustomDetector, Segment, IndexerQuery
 
-from .operations.query_processing import IndexerTask,QueryProcessing,RetrieverTask
+from .operations.indexing import IndexerTask
+from .operations.retrieval import RetrieverTask
 from .operations.detection import DetectorTask
 from .operations.analysis import AnalyzerTask
-from .operations.video_processing import WFrame,WVideo
+from .operations.processing import DVAPQLProcess, WVideo
+
 from dvalib import clustering
 
 from collections import defaultdict
@@ -107,7 +109,7 @@ def perform_indexing(task_id):
     sync = True
     if target == 'query':
         iq = IndexerQuery.objects.get(id=json_args['iq_id'])
-        qp = QueryProcessing()
+        qp = DVAPQLProcess()
         qp.load_from_db(start.video.parent_query, settings.MEDIA_ROOT)
         qp.execute_sub_query(iq, visual_index)
         sync = False
@@ -202,7 +204,7 @@ def perform_retrieval(task_id):
     start.operation = perform_retrieval.name
     start.save()
     iq = IndexerQuery.objects.get(pk=args['iq_id'])
-    qp = QueryProcessing()
+    qp = DVAPQLProcess()
     qp.load_from_db(iq.parent_query,settings.MEDIA_ROOT)
     qp.perform_retrieval(iq,iq.algorithm,perform_retrieval)
     start_time = time.time()

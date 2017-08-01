@@ -176,7 +176,7 @@ def ci():
         ,import_vdn_dataset_url
     from dvaapp.models import Video, Clusters,IndexEntries,TEvent,VDNServer
     from django.conf import settings
-    from dvaapp.operations.query_processing import QueryProcessing
+    from dvaapp.operations.processing import DVAPQLProcess
     from dvaapp.tasks import extract_frames, perform_indexing, export_video_by_id, import_video_by_id,\
         perform_clustering, perform_analysis, perform_detection,\
         segment_video, crop_regions_by_id
@@ -245,7 +245,7 @@ def ci():
             }
         ]
     }
-    qp = QueryProcessing()
+    qp = DVAPQLProcess()
     qp.create_from_json(query_dict)
     # execute_index_subquery(qp.indexer_queries[0].pk)
     query_dict = {
@@ -258,7 +258,7 @@ def ci():
             }
         ]
     }
-    qp = QueryProcessing()
+    qp = DVAPQLProcess()
     qp.create_from_json(query_dict)
     # execute_index_subquery(qp.indexer_queries[0].pk)
     server, datasets, detectors = pull_vdn_list(1)
@@ -781,13 +781,13 @@ def enable_media_bucket_static_hosting(bucket_name, allow_videos=False):
 def sync_efs_to_s3():
     setup_django()
     from dvaapp.models import Video,TEvent
-    from dvaapp.tasks import sync_bucket_video_by_id
+    from dvaapp.tasks import sync_bucket
     for v in Video.objects.all():
         e = TEvent()
         e.video_id = v.pk
-        e.operation = 'sync_bucket_video_by_id'
+        e.operation = 'sync_bucket'
         e.save()
-        sync_bucket_video_by_id(e.pk)
+        sync_bucket(e.pk)
 
 
 

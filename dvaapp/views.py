@@ -20,7 +20,7 @@ from shared import handle_uploaded_file, create_annotation, create_child_vdn_dat
     create_root_vdn_dataset, handle_youtube_video, pull_vdn_list, \
     import_vdn_dataset_url, create_detector_dataset, import_vdn_detector_url, refresh_task_status, \
     delete_video_object,get_queue_name
-from operations.query_processing import QueryProcessing
+from operations.processing import DVAPQLProcess
 from django.contrib.auth.decorators import user_passes_test,login_required
 from django.utils.decorators import method_decorator
 from django.contrib.auth.mixins import UserPassesTestMixin
@@ -367,7 +367,7 @@ class QueryDetail(UserPassesTestMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(QueryDetail, self).get_context_data(**kwargs)
-        qp = QueryProcessing()
+        qp = DVAPQLProcess()
         qp.load_from_db(self.object,settings.MEDIA_ROOT)
         qp.collect_results()
         context['results'] = qp.context.items()
@@ -392,7 +392,7 @@ class VDNDatasetDetail(UserPassesTestMixin, DetailView):
 @user_passes_test(user_check)
 def search(request):
     if request.method == 'POST':
-        qp = QueryProcessing()
+        qp = DVAPQLProcess()
         qp.create_from_request(request)
         qp.send_tasks()
         qp.wait()

@@ -952,6 +952,10 @@ def qt():
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/mp4")
         v = handle_uploaded_file(f, name)
+    for fname in glob.glob('tests/*.zip'):
+        name = fname.split('/')[-1].split('.')[0]
+        f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
+        v = handle_uploaded_file(f, name)
         # arguments_json = json.dumps({'sync': True})
         # segment_video(TEvent.objects.create(video=v, arguments_json=arguments_json).pk)
         # arguments_json = json.dumps({'detector': 'face_mtcnn'})

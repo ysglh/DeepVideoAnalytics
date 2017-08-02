@@ -154,7 +154,7 @@ def perform_indexing(task_id):
         i.entries_file_name = entries_fname.split('/')[-1]
         i.features_file_name = feat_fname.split('/')[-1]
         i.source = start
-        i.source_filter_json = json.dumps(arguments)
+        i.source_filter_json = arguments
         i.save()
     start.completed = True
     start.seconds = time.time() - start_time
@@ -239,7 +239,7 @@ def extract_frames(task_id):
     if args == {}:
         args['rescale'] = 0
         args['rate'] = 30
-        start.arguments_json = json.dumps(args)
+        start.arguments_json = args
     start.save()
     start_time = time.time()
     video_id = start.video_id
@@ -280,7 +280,7 @@ def segment_video(task_id):
         args['rescale'] = 0
     if 'rate' not in args:
         args['rate'] = 30
-    start.arguments_json = json.dumps(args)
+    start.arguments_json = args
     start.save()
     start_time = time.time()
     video_id = start.video_id
@@ -292,25 +292,25 @@ def segment_video(task_id):
     v.segment_video()
     decodes = []
     if args.get('sync',False):
-        next_args = json.dumps({'rescale': args['rescale'], 'rate': args['rate']})
+        next_args = {'rescale': args['rescale'], 'rate': args['rate']}
         next_task = TEvent.objects.create(video=dv, operation='decode_video', arguments_json=next_args, parent=start)
         decode_video(next_task.pk)  # decode it synchronously for testing in Travis
     else:
         step = args.get("segments_batch_size",settings.DEFAULT_SEGMENTS_BATCH_SIZE)
         for gte, lt in [(k, k + step) for k in range(0, dv.segments, step)]:
             if lt < dv.segments:
-                next_args = json.dumps({
+                next_args = {
                     'rescale':args['rescale'],
                     'rate':args['rate'],
                     'filters': {'segment_index__gte': gte, 'segment_index__lt': lt}
-                })
+                }
             else:
                 # ensures off by one error does not happens [gte->
-                next_args = json.dumps({
+                next_args = {
                     'rescale':args['rescale'],
                     'rate':args['rate'],
                     'filters': {'segment_index__gte': gte}
-                })
+                }
             next_task = TEvent.objects.create(video=dv, operation='decode_video', arguments_json=next_args, parent=start)
             decodes.append(next_task.pk)
         result = group([decode_video.s(i).set(queue=settings.TASK_NAMES_TO_QUEUE['decode_video']) for i in decodes]).apply_async()

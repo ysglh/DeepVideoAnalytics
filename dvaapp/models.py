@@ -99,7 +99,7 @@ class IndexerQuery(models.Model):
     vector = models.BinaryField(null=True)
     results = models.BooleanField(default=False)
     metadata = models.TextField(default="")
-    source_filter_json = models.TextField(default="")
+    source_filter_json = JSONField(blank=True,null=True)
     approximate = models.BooleanField(default=False)
     user = models.ForeignKey(User, null=True)
 

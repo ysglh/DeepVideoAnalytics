@@ -11,8 +11,13 @@ from .operations.retrieval import RetrieverTask
 from .operations.detection import DetectorTask
 from .operations.analysis import AnalyzerTask
 from .operations.processing import DVAPQLProcess, WVideo
-
 from dvalib import clustering
+import io
+
+try:
+    import numpy as np
+except ImportError:
+    pass
 
 from collections import defaultdict
 import calendar
@@ -25,7 +30,6 @@ import random
 from botocore.exceptions import ClientError
 from .shared import handle_downloaded_file, create_video_folders, create_detector_folders, create_detector_dataset, get_queue_name
 from celery import group
-from celery.result import allow_join_result
 
 
 def perform_substitution(args,parent_task,inject_filters):
@@ -109,9 +113,17 @@ def perform_indexing(task_id):
     sync = True
     if target == 'query':
         iq = IndexerQuery.objects.get(id=json_args['iq_id'])
-        qp = DVAPQLProcess()
-        qp.load_from_db(start.video.parent_query, settings.MEDIA_ROOT)
-        qp.execute_sub_query(iq, visual_index)
+        local_path = "{}/queries/{}_{}.png".format(settings.MEDIA_ROOT, iq.algorithm, iq.query.pk)
+        with open(local_path, 'w') as fh:
+            fh.write(str(iq.query.image_data))
+        vector = visual_index.apply(local_path)
+        # TODO: figure out a better way to store numpy arrays.
+        s = io.BytesIO()
+        np.save(s,vector)
+        iq.vector = s.getvalue()
+        iq.save()
+        iq.query.results_available = True
+        iq.query.save()
         sync = False
     else:
         arguments = json_args.get('filters', {})
@@ -196,6 +208,7 @@ def crop_regions_by_id(task_id):
 @app.task(track_started=True, name="perform_retrieval", base=RetrieverTask)
 def perform_retrieval(task_id):
     start = TEvent.objects.get(pk=task_id)
+    start_time = time.time()
     if celery_40_bug_hack(start):
         return 0
     args = json.loads(start.arguments_json)
@@ -204,10 +217,7 @@ def perform_retrieval(task_id):
     start.operation = perform_retrieval.name
     start.save()
     iq = IndexerQuery.objects.get(pk=args['iq_id'])
-    qp = DVAPQLProcess()
-    qp.load_from_db(iq.parent_query,settings.MEDIA_ROOT)
-    qp.perform_retrieval(iq,iq.algorithm,perform_retrieval)
-    start_time = time.time()
+    perform_retrieval.retrieve(iq,iq.algorithm,perform_retrieval)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()

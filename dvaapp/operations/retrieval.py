@@ -1,8 +1,6 @@
-import logging, json, base64
-import boto3
+import logging, json
 from django.conf import settings
 import celery
-from dva.celery import app
 try:
     from dvalib import indexer, clustering, retriever
     import numpy as np
@@ -10,12 +8,8 @@ except ImportError:
     np = None
     logging.warning("Could not import indexer / clustering assuming running in front-end mode / Heroku")
 
-
-from ..models import IndexEntries,Clusters,Video,Query,IndexerQuery,QueryResults,Region,ClusterCodes,TEvent
-from collections import defaultdict
-from celery.result import AsyncResult
+from ..models import IndexEntries,Clusters,QueryResults,Region,ClusterCodes
 import io
-
 
 
 class RetrieverTask(celery.Task):
@@ -80,3 +74,67 @@ class RetrieverTask(celery.Task):
             RetrieverTask._clusterer[algorithm].load()
         else:
             logging.warning("No clusterer found switching to exact search for {}".format(algorithm))
+
+    def retrieve(self,iq,index_name):
+        index_retriever = self.visual_retriever[index_name]
+        exact = True
+        results = []
+        # TODO: figure out a better way to store numpy arrays.
+        vector = np.load(io.BytesIO(iq.vector))
+        if iq.approximate:
+            if self.clusterer[index_name] is None:
+                self.load_clusterer(index_name)
+            if self.clusterer[index_name]:
+                results = self.query_approximate(iq.count, vector, index_name)
+                exact = False
+        if exact:
+            self.refresh_index(index_name)
+            results = index_retriever.nearest(vector=vector,n=iq.count)
+        # TODO: optimize this using batching
+        for r in results:
+            qr = QueryResults()
+            qr.query = self.query
+            qr.indexerquery = iq
+            if 'detection_primary_key' in r:
+                dd = Region.objects.get(pk=r['detection_primary_key'])
+                qr.detection = dd
+                qr.frame_id = dd.frame_id
+            else:
+                qr.frame_id = r['frame_primary_key']
+            qr.video_id = r['video_primary_key']
+            qr.algorithm = iq.algorithm
+            qr.rank = r['rank']
+            qr.distance = r['dist']
+            qr.save()
+        iq.results = True
+        iq.save()
+        self.query.results_available = True
+        self.query.save()
+        return 0
+
+    def query_approximate(self, n, vector, index_name):
+        clusterer = self.clusterer[index_name]
+        results = []
+        coarse, fine, results_indexes = clusterer.apply(vector, n)
+        for i, k in enumerate(results_indexes[0]):
+            e = ClusterCodes.objects.get(searcher_index=k.id, clusters=clusterer.dc)
+            if e.detection_id:
+                results.append({
+                    'rank': i + 1,
+                    'dist': i,
+                    'detection_primary_key': e.detection_id,
+                    'frame_index': e.frame.frame_index,
+                    'frame_primary_key': e.frame_id,
+                    'video_primary_key': e.video_id,
+                    'type': 'detection',
+                })
+            else:
+                results.append({
+                    'rank': i + 1,
+                    'dist': i,
+                    'frame_index': e.frame.frame_index,
+                    'frame_primary_key': e.frame_id,
+                    'video_primary_key': e.video_id,
+                    'type': 'frame',
+                })
+        return results

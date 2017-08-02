@@ -20,34 +20,6 @@ from celery.result import AsyncResult
 import io
 
 
-def query_approximate(local_path, n, visual_index, clusterer):
-    vector = visual_index.apply(local_path)
-    results = []
-    coarse, fine, results_indexes = clusterer.apply(vector, n)
-    for i, k in enumerate(results_indexes[0]):
-        e = ClusterCodes.objects.get(searcher_index=k.id, clusters=clusterer.dc)
-        if e.detection_id:
-            results.append({
-                'rank': i + 1,
-                'dist': i,
-                'detection_primary_key': e.detection_id,
-                'frame_index': e.frame.frame_index,
-                'frame_primary_key': e.frame_id,
-                'video_primary_key': e.video_id,
-                'type': 'detection',
-            })
-        else:
-            results.append({
-                'rank': i + 1,
-                'dist': i,
-                'frame_index': e.frame.frame_index,
-                'frame_primary_key': e.frame_id,
-                'video_primary_key': e.video_id,
-                'type': 'frame',
-            })
-    return results
-
-
 class DVAPQLProcess(object):
 
     def __init__(self):
@@ -141,7 +113,7 @@ class DVAPQLProcess(object):
             self.indexer_queries.append(iq)
         return self.query
 
-    def send_tasks(self):
+    def launch(self):
         for iq in self.indexer_queries:
             task_name = 'perform_indexing'
             queue_name = self.visual_indexes[iq.algorithm]['indexer_queue']
@@ -170,7 +142,7 @@ class DVAPQLProcess(object):
             except Exception, e:
                 raise ValueError(e)
 
-    def collect_results(self):
+    def collect(self):
         self.context = defaultdict(list)
         for r in QueryResults.objects.all().filter(query=self.query):
             self.context[r.algorithm].append((r.rank,
@@ -194,72 +166,9 @@ class DVAPQLProcess(object):
         self.media_dir = media_dir
 
     def to_json(self):
-        json_query = {
-        }
+        json_query = {}
         return json.dumps(json_query)
 
-    def execute_sub_query(self,iq,visual_index):
-        """
-        TODO move this inside indexing task
-        :param iq:
-        :param visual_index:
-        :return:
-        """
-        local_path = "{}/queries/{}_{}.png".format(self.media_dir, iq.algorithm, self.query.pk)
-        with open(local_path, 'w') as fh:
-            fh.write(str(self.query.image_data))
-        vector = visual_index.apply(local_path)
-        s = io.BytesIO()
-        np.save(s,vector) # TODO: figure out a better way to store numpy arrays.
-        iq.vector = s.getvalue()
-        iq.save()
-        self.query.results_available = True
-        self.query.save()
-        return 0
-
-    def perform_retrieval(self,iq,index_name,retrieval_task):
-        """
-        TODO move this inside retrival task
-        :param iq:
-        :param index_name:
-        :param retrieval_task:
-        :return:
-        """
-        retriever = retrieval_task.visual_retriever[index_name]
-        exact = True
-        results = []
-        vector = np.load(io.BytesIO(iq.vector)) # TODO: figure out a better way to store numpy arrays.
-        if iq.approximate:
-            if retrieval_task.clusterer[index_name] is None:
-                retrieval_task.load_clusterer(index_name)
-            clusterer = retrieval_task.clusterer[index_name]
-            if clusterer:
-                results = query_approximate(retrieval_task, iq.count, retriever, clusterer)
-                exact = False
-        if exact:
-            retrieval_task.refresh_index(index_name)
-            results = retriever.nearest(vector=vector,n=iq.count)
-        # TODO: optimize this using batching
-        for r in results:
-            qr = QueryResults()
-            qr.query = self.query
-            qr.indexerquery = iq
-            if 'detection_primary_key' in r:
-                dd = Region.objects.get(pk=r['detection_primary_key'])
-                qr.detection = dd
-                qr.frame_id = dd.frame_id
-            else:
-                qr.frame_id = r['frame_primary_key']
-            qr.video_id = r['video_primary_key']
-            qr.algorithm = iq.algorithm
-            qr.rank = r['rank']
-            qr.distance = r['dist']
-            qr.save()
-        iq.results = True
-        iq.save()
-        self.query.results_available = True
-        self.query.save()
-        return 0
 
 
 class WVideo(object):

@@ -394,11 +394,14 @@ def search(request):
     if request.method == 'POST':
         qp = DVAPQLProcess()
         qp.create_from_request(request)
-        qp.send_tasks()
+        qp.launch()
         qp.wait()
-        qp.collect_results()
-        return JsonResponse(data={'task_id': "", 'primary_key': qp.query.pk, 'results': qp.context,
-                                  'url': '{}queries/{}.png'.format(settings.MEDIA_URL, qp.query.pk)})
+        qp.collect()
+        return JsonResponse(data={'task_id': "",
+                                  'primary_key': qp.query.pk,
+                                  'results': qp.context,
+                                  'url': '{}queries/{}.png'.format(settings.MEDIA_URL, qp.query.pk)
+                                  })
 
 
 def home(request):

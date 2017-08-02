@@ -217,7 +217,7 @@ def perform_retrieval(task_id):
     start.operation = perform_retrieval.name
     start.save()
     iq = IndexerQuery.objects.get(pk=args['iq_id'])
-    perform_retrieval.retrieve(iq,iq.algorithm,perform_retrieval)
+    perform_retrieval.retrieve(iq,iq.algorithm)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()

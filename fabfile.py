@@ -237,7 +237,7 @@ def ci():
     perform_clustering(clustering_task.pk)
     query_dict = {
         'image_data_b64':base64.encodestring(file('tests/query.png').read()),
-        'indexers':[
+        'indexer_queries':[
             {
                 'algorithm':'inception',
                 'count':10,
@@ -250,7 +250,7 @@ def ci():
     # execute_index_subquery(qp.indexer_queries[0].pk)
     query_dict = {
         'image_data_b64':base64.encodestring(file('tests/query.png').read()),
-        'indexers':[
+        'indexer_queries':[
             {
                 'algorithm':'inception',
                 'count':10,

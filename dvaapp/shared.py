@@ -1,6 +1,5 @@
 import os, json, requests, base64, logging
-from models import Video, TEvent, AppliedLabel, Region, Frame, VDNDataset, VDNServer, Query, VDNDetector, \
-    CustomDetector, QueryResults, IndexerQuery, DeletedVideo
+from models import Video, TEvent, AppliedLabel, Region, VDNDataset, VDNServer, VDNDetector, CustomDetector, DeletedVideo
 from django.conf import settings
 from dva.celery import app
 from django_celery_results.models import TaskResult

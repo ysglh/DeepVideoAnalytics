@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.contrib.auth.models import User
-from django.contrib.postgres.fields import ArrayField
+from django.contrib.postgres.fields import ArrayField, JSONField
 
 
 class VDNServer(models.Model):
@@ -71,21 +71,26 @@ class CustomIndexer(models.Model):
     retriever_queue = models.CharField(max_length=300,default="")
 
 
-class Query(models.Model):
+class DVAPQL(models.Model):
     """
     A query object with image_data, can have multiple children subspecies
     """
+    INGEST = 'I'
+    PROCESS = 'V'
+    QUERY = 'Q'
+    TYPE_CHOICES = ((INGEST, 'Ingest'), (PROCESS, 'Process'), (QUERY, 'Query'))
+    process_type = models.CharField(max_length=1, choices=TYPE_CHOICES, default=QUERY, )
     created = models.DateTimeField('date created', auto_now_add=True)
-    selected_indexers = ArrayField(models.CharField(max_length=30),default=[])
+    user = models.ForeignKey(User, null=True, related_name="submitter")
+    image_data = models.BinaryField(null=True)
+    query_json = JSONField(blank=True, null=True)
     results_metadata = models.TextField(default="")
     results_available = models.BooleanField(default=False)
-    user = models.ForeignKey(User, null=True,related_name="visua_query_user")
-    image_data = models.BinaryField(null=True)
     federated = models.BooleanField(default=False)
 
 
 class IndexerQuery(models.Model):
-    parent_query = models.ForeignKey(Query)
+    parent_query = models.ForeignKey(DVAPQL)
     created = models.DateTimeField('date created', auto_now_add=True)
     count = models.IntegerField(default=20)
     algorithm = models.CharField(max_length=500,default="")
@@ -115,7 +120,7 @@ class Video(models.Model):
     url = models.TextField(default="")
     youtube_video = models.BooleanField(default=False)
     query = models.BooleanField(default=False)
-    parent_query = models.ForeignKey(Query,null=True)
+    parent_query = models.ForeignKey(DVAPQL,null=True)
     vdn_dataset = models.ForeignKey(VDNDataset, null=True)
 
     def __unicode__(self):
@@ -260,7 +265,7 @@ class Region(models.Model):
 
 
 class QueryResults(models.Model):
-    query = models.ForeignKey(Query)
+    query = models.ForeignKey(DVAPQL)
     indexerquery = models.ForeignKey(IndexerQuery)
     video = models.ForeignKey(Video)
     frame = models.ForeignKey(Frame)
@@ -271,7 +276,7 @@ class QueryResults(models.Model):
 
 
 class FederatedQueryResults(models.Model):
-    query = models.ForeignKey(Query)
+    query = models.ForeignKey(DVAPQL)
     rank = models.IntegerField()
     user = models.ForeignKey(User)
     server_name = models.CharField(max_length=100)

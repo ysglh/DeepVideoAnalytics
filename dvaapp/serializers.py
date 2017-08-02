@@ -1,6 +1,6 @@
 from rest_framework import serializers, viewsets
 from django.contrib.auth.models import User
-from models import Video, AppliedLabel, Frame, Region, Query, QueryResults, TEvent, IndexEntries, VDNDataset, VDNServer, Tube, Clusters, ClusterCodes, Segment
+from models import Video, AppliedLabel, Frame, Region, DVAPQL, QueryResults, TEvent, IndexEntries, VDNDataset, VDNServer, Tube, Clusters, ClusterCodes, Segment
 import os, json, logging, glob
 from collections import defaultdict
 from django.conf import settings
@@ -74,9 +74,9 @@ class ClusterCodesSerializer(serializers.HyperlinkedModelSerializer):
         fields = '__all__'
 
 
-class QuerySerializer(serializers.HyperlinkedModelSerializer):
+class DVAPQLSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = Query
+        model = DVAPQL
         fields = '__all__'
 
 

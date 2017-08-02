@@ -14,7 +14,7 @@ except ImportError:
 from PIL import Image
 
 
-from ..models import Video,Query,IndexerQuery,QueryResults,Region,ClusterCodes,TEvent,Frame,Segment,Tube,AppliedLabel
+from ..models import Video,DVAPQL,IndexerQuery,QueryResults,Region,ClusterCodes,TEvent,Frame,Segment,Tube,AppliedLabel
 from collections import defaultdict
 from celery.result import AsyncResult
 import io
@@ -24,8 +24,8 @@ class DVAPQLProcess(object):
 
     def __init__(self,query=None,media_dir=None):
         self.query = query
+        self.query_json = {}
         self.media_dir = media_dir
-        self.indexer_queries = []
         self.task_results = {}
         self.context = {}
         self.dv = None
@@ -50,31 +50,27 @@ class DVAPQLProcess(object):
                 fh.write(self.query.image_data)
 
     def create_from_request(self, request):
+        """
+        Create JSON object representing the query from request recieved from Dashboard.
+        :param request:
+        :return:
+        """
+        query_json = {}
         count = request.POST.get('count')
         excluded_index_entries_pk = json.loads(request.POST.get('excluded_index_entries'))
         selected_indexers = json.loads(request.POST.get('selected_indexers'))
         approximate = True if request.POST.get('approximate') == 'true' else False
-        image_data_url = request.POST.get('image_url')
-        user = request.user if request.user.is_authenticated else None
-        self.query = Query()
-        self.query.approximate = approximate
-        if not (user is None):
-            self.query.user = user
-        image_data = base64.decodestring(image_data_url[22:])
-        self.query.image_data = image_data
-        self.query.save()
-        self.store_and_create_video_object()
+        query_json['image_data_b64'] = request.POST.get('image_url')[22:]
+        query_json['indexer_queries'] = []
         for k in selected_indexers:
-            iq = IndexerQuery()
-            iq.parent_query = self.query
-            iq.algorithm = k
-            iq.count = count
-            if excluded_index_entries_pk:
-                # !!fix this only the indexer specific
-                iq.excluded_index_entries_pk = [int(epk) for epk in excluded_index_entries_pk]
-            iq.approximate = approximate
-            iq.save()
-            self.indexer_queries.append(iq)
+            query_json['indexer_queries'].append({
+                'algorithm':k,
+                'count':count,
+                'excluded_index_entries_pk': [int(epk) for epk in excluded_index_entries_pk],
+                'approximate':approximate
+            })
+        user = request.user if request.user.is_authenticated else None
+        self.create_from_json(query_json,user)
         return self.query
 
     def create_from_json(self, j, user=None):
@@ -94,15 +90,17 @@ class DVAPQLProcess(object):
         :param user:
         :return:
         """
-        self.query = Query()
+        if self.query is None:
+            self.query = DVAPQL()
         if not (user is None):
             self.query.user = user
         if j['image_data_b64'].strip():
             image_data = base64.decodestring(j['image_data_b64'])
             self.query.image_data = image_data
+        self.query.query_json = j
         self.query.save()
         self.store_and_create_video_object()
-        for k in j['indexers']:
+        for k in j['indexer_queries']:
             iq = IndexerQuery()
             iq.parent_query = self.query
             iq.algorithm = k['algorithm']
@@ -110,11 +108,13 @@ class DVAPQLProcess(object):
             iq.excluded_index_entries_pk = k['excluded_index_entries_pk'] if 'excluded_index_entries_pk' in k else []
             iq.approximate = k['approximate']
             iq.save()
-            self.indexer_queries.append(iq)
         return self.query
 
+    def validate(self):
+        pass
+
     def launch(self):
-        for iq in self.indexer_queries:
+        for iq in IndexerQuery.objects.filter(parent_query=self.query):
             task_name = 'perform_indexing'
             queue_name = self.visual_indexes[iq.algorithm]['indexer_queue']
             jargs = json.dumps({

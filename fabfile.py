@@ -952,7 +952,7 @@ def qt():
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/mp4")
         v = handle_uploaded_file(f, name)
-    for fname in glob.glob('tests/*.zip'):
+    for fname in glob.glob('tests/example*.zip'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
         v = handle_uploaded_file(f, name)

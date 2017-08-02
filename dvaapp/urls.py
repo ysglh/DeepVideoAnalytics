@@ -1,4 +1,4 @@
-from django.conf.urls import url,include
+from django.conf.urls import url, include
 import views
 from django.conf import settings
 from django.contrib.auth import views as auth_views
@@ -13,7 +13,7 @@ router.register(r'frames', views.FrameViewSet)
 router.register(r'segments', views.SegmentViewSet)
 router.register(r'regions', views.RegionViewSet)
 router.register(r'labels', views.AppliedLabelViewSet)
-router.register(r'queries', views.QueryViewSet)
+router.register(r'queries', views.DVAPQLViewSet)
 router.register(r'queryresults', views.QueryResultsViewSet)
 router.register(r'indexentries', views.IndexEntriesViewSet)
 router.register(r'events', views.TEventViewSet)
@@ -49,8 +49,8 @@ urlpatterns = [
     url(r'^video_send_task', views.video_send_task, name='video_send_task'),
     url(r'^assign_video_labels', views.assign_video_labels, name='assign_video_labels'),
     # url(r'^delete_labels', views.delete_label, name='delete_labels'),
-    url(r'^videos/$', views.VideoList.as_view(),name="video_list"),
-    url(r'^queries/$', views.QueryList.as_view()),
+    url(r'^videos/$', views.VideoList.as_view(), name="video_list"),
+    url(r'^queries/$', views.DVAPQLList.as_view()),
     url(r'^Search$', views.search),
     url(r'^videos/(?P<pk>\d+)/$', views.VideoDetail.as_view(), name='video_detail'),
     url(r'^clustering/(?P<pk>\d+)/$', views.ClustersDetails.as_view(), name='clusters_detail'),
@@ -58,7 +58,7 @@ urlpatterns = [
     url(r'^frames/$', views.FrameList.as_view()),
     url(r'^frames/(?P<pk>\d+)/$', views.FrameDetail.as_view(), name='frame_detail'),
     url(r'^segments/(?P<pk>\d+)/$', views.SegmentDetail.as_view(), name='segment_detail'),
-    url(r'^queries/(?P<pk>\d+)/$', views.QueryDetail.as_view(), name='query_detail'),
+    url(r'^queries/(?P<pk>\d+)/$', views.DVAPQLDetail.as_view(), name='query_detail'),
     url(r'^retry/$', views.retry_task, name='restart_task'),
     url(r'^failed/$', views.mark_task_failed, name='mark_task_failed'),
     url(r'^push/(?P<video_id>\d+)/$', views.push, name='push'),

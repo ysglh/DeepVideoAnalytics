@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Video, Frame, TEvent, IndexEntries, QueryResults, Query, AppliedLabel, VDNServer,\
+from .models import Video, Frame, TEvent, IndexEntries, QueryResults, DVAPQL, AppliedLabel, VDNServer,\
     VDNDataset, ClusterCodes, Clusters, Region, Tube, CustomDetector, Segment, IndexerQuery, DeletedVideo
 
 
@@ -38,8 +38,8 @@ class QueryResultsAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(Query)
-class QueryAdmin(admin.ModelAdmin):
+@admin.register(DVAPQL)
+class DVAPQLAdmin(admin.ModelAdmin):
     pass
 
 @admin.register(Frame)

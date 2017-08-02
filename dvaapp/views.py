@@ -6,7 +6,7 @@ import glob
 import json
 from django.views.generic import ListView, DetailView
 from .forms import UploadFileForm, YTVideoForm, AnnotationForm
-from .models import Video, Frame, Query, QueryResults, TEvent, IndexEntries, VDNDataset, Region, VDNServer, \
+from .models import Video, Frame, DVAPQL, QueryResults, TEvent, IndexEntries, VDNDataset, Region, VDNServer, \
     ClusterCodes, Clusters, AppliedLabel, Tube, CustomDetector, VDNDetector, Segment, DeletedVideo
 from dva.celery import app
 import serializers
@@ -75,10 +75,10 @@ class RegionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Cre
     filter_fields = ('video',)
 
 
-class QueryViewSet(viewsets.ReadOnlyModelViewSet):
+class DVAPQLViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
-    queryset = Query.objects.all()
-    serializer_class = serializers.QuerySerializer
+    queryset = DVAPQL.objects.all()
+    serializer_class = serializers.DVAPQLSerializer
 
 
 class QueryResultsViewSet(viewsets.ReadOnlyModelViewSet):
@@ -355,18 +355,18 @@ class SegmentDetail(UserPassesTestMixin, DetailView):
         return user_check(self.request.user)
 
 
-class QueryList(UserPassesTestMixin, ListView):
-    model = Query
+class DVAPQLList(UserPassesTestMixin, ListView):
+    model = DVAPQL
 
     def test_func(self):
         return user_check(self.request.user)
 
 
-class QueryDetail(UserPassesTestMixin, DetailView):
-    model = Query
+class DVAPQLDetail(UserPassesTestMixin, DetailView):
+    model = DVAPQL
 
     def get_context_data(self, **kwargs):
-        context = super(QueryDetail, self).get_context_data(**kwargs)
+        context = super(DVAPQLDetail, self).get_context_data(**kwargs)
         qp = DVAPQLProcess()
         qp.collect()
         context['results'] = qp.context.items()
@@ -423,7 +423,7 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
     context = {'form': form}
     context['indexes'] = settings.VISUAL_INDEXES
     if query_pk:
-        previous_query = Query.objects.get(pk=query_pk)
+        previous_query = DVAPQL.objects.get(pk=query_pk)
         context['initial_url'] = '{}queries/{}.png'.format(settings.MEDIA_URL, query_pk)
     elif frame_pk:
         frame = Frame.objects.get(pk=frame_pk)
@@ -432,7 +432,7 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
         detection = Region.objects.get(pk=detection_pk)
         context['initial_url'] = '{}{}/regions/{}.jpg'.format(settings.MEDIA_URL, detection.video.pk, detection.pk)
     context['frame_count'] = Frame.objects.count()
-    context['query_count'] = Query.objects.count()
+    context['query_count'] = DVAPQL.objects.count()
     context['index_entries_count'] = IndexEntries.objects.count()
     context['external_datasets_count'] = VDNDataset.objects.count()
     context['external_servers_count'] = VDNServer.objects.count()

@@ -78,7 +78,7 @@ def delete_video_object(video_pk,deleter,garbage_collection=True):
     video.delete()
     if garbage_collection:
         delete_task = TEvent()
-        delete_task.arguments_json = json.dumps({'video_pk': video_pk})
+        delete_task.arguments_json = {'video_pk': video_pk}
         delete_task.operation = 'delete_video_by_id'
         delete_task.save()
         queue = settings.TASK_NAMES_TO_QUEUE[delete_task.operation]
@@ -119,7 +119,7 @@ def handle_uploaded_file(f, name, extract=True, user=None, rate=30, rescale=0):
         video.save()
         if extract:
             extract_frames_task = TEvent()
-            extract_frames_task.arguments_json = json.dumps({'rate': rate,'rescale': rescale})
+            extract_frames_task.arguments_json = {'rate': rate,'rescale': rescale}
             extract_frames_task.video = video
             task_name = 'extract_frames' if video.dataset else 'segment_video'
             extract_frames_task.operation = task_name
@@ -156,7 +156,7 @@ def handle_downloaded_file(downloaded, video, name, extract=True, user=None, rat
         video.save()
         if extract:
             extract_frames_task = TEvent()
-            extract_frames_task.arguments_json = json.dumps({'rate': rate, 'rescale': rescale})
+            extract_frames_task.arguments_json = {'rate': rate, 'rescale': rescale}
             extract_frames_task.video = video
             task_name = 'extract_frames' if video.dataset else 'segment_video'
             extract_frames_task.operation = task_name
@@ -212,7 +212,7 @@ def handle_youtube_video(name, url, extract=True, user=None, rate=30, rescale=0)
     extract_frames_task = TEvent()
     extract_frames_task.video = video
     extract_frames_task.operation = task_name
-    extract_frames_task.arguments_json = json.dumps({'rate': rate,'rescale': rescale})
+    extract_frames_task.arguments_json = {'rate': rate,'rescale': rescale}
     extract_frames_task.save()
     if extract:
         app.send_task(name=task_name, args=[extract_frames_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
@@ -375,7 +375,7 @@ def import_vdn_detector_url(server, url, user):
         task_name = 'import_vdn_detector_file'
         import_vdn_detector_task = TEvent()
         import_vdn_detector_task.operation = task_name
-        import_vdn_detector_task.arguments_json = json.dumps({'detector_pk': detector.pk})
+        import_vdn_detector_task.arguments_json = {'detector_pk': detector.pk}
         import_vdn_detector_task.save()
         app.send_task(name=task_name, args=[import_vdn_detector_task.pk, ],
                       queue=settings.TASK_NAMES_TO_QUEUE[task_name])

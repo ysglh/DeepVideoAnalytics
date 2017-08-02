@@ -699,7 +699,7 @@ def indexes(request):
                 arguments[optional_key] = int(request.POST.get(optional_key))
         args = {'filters':arguments,'index':request.POST.get('visual_index_name')}
         queue = settings.VISUAL_INDEXES[args['index']]['indexer_queue']
-        index_event.arguments_json = json.dumps(args)
+        index_event.arguments_json = args
         index_event.video_id = request.POST.get('video_id')
         index_event.save()
         app.send_task(name=index_event.operation, args=[index_event.pk, ],queue=queue)
@@ -732,7 +732,7 @@ def detectors(request):
             apply_event = TEvent()
             apply_event.video_id = video_pk
             apply_event.operation = task_name
-            apply_event.arguments_json = json.dumps({'detector_pk': int(detector_pk)})
+            apply_event.arguments_json = {'detector_pk': int(detector_pk)}
             apply_event.save()
             app.send_task(name=task_name, args=[apply_event.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
         elif request.POST.get('action') == 'estimate':
@@ -770,7 +770,7 @@ def detectors(request):
             task_name = "train_yolo_detector"
             train_event = TEvent()
             train_event.operation = task_name
-            train_event.arguments_json = json.dumps(args)
+            train_event.arguments_json = args
             train_event.save()
             detector.source = train_event
             detector.save()
@@ -819,7 +819,7 @@ def training(request):
             task_name = "train_yolo_detector"
             train_event = TEvent()
             train_event.operation = task_name
-            train_event.arguments_json = json.dumps(args)
+            train_event.arguments_json = args
             train_event.save()
             detector.source = train_event
             detector.save()
@@ -966,7 +966,7 @@ def video_send_task(request):
         task_name = request.POST.get('task_name')
         manual_event = TEvent()
         manual_event.video_id = video_id
-        manual_event.arguments_json = json.dumps(args)
+        manual_event.arguments_json = args
         manual_event.save()
         app.send_task(name=task_name, args=[manual_event.pk, ], queue=get_queue_name(task_name,args))
     else:

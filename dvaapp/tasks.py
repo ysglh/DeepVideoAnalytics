@@ -11,6 +11,7 @@ from .operations.detection import DetectorTask
 from .operations.analysis import AnalyzerTask
 from .operations.processing import DVAPQLProcess, WVideo
 from dvalib import clustering
+from datetime import datetime
 import io
 
 try:
@@ -40,7 +41,7 @@ def perform_substitution(args,parent_task,inject_filters):
     """
     args = copy.deepcopy(args) # IMPORTANT otherwise the first task to execute on the worker will fill the filters
     filters = args.get('filters',{})
-    parent_args = json.loads(parent_task.arguments_json)
+    parent_args = parent_task.arguments_json
     if filters == '__parent__':
         parent_filters = parent_args.get('filters',{})
         logging.info('using filters from parent arguments: {}'.format(parent_args))
@@ -68,15 +69,13 @@ def process_next(task_id,inject_filters=None,custom_next_tasks=None,sync=True):
     if sync:
         for k in settings.SYNC_TASKS.get(dt.operation,[]):
             args = perform_substitution(k['arguments'], dt,inject_filters)
-            jargs = json.dumps(args)
             logging.info("launching {}, {} with args {} as specified in config".format(dt.operation, k['task_name'], args))
-            next_task = TEvent.objects.create(video=dt.video,operation=k['task_name'],arguments_json=jargs,parent=dt)
+            next_task = TEvent.objects.create(video=dt.video,operation=k['task_name'],arguments_json=args,parent=dt)
             launched.append(app.send_task(k['task_name'], args=[next_task.pk, ], queue=get_queue_name(k['task_name'],args)).id)
-    for k in json.loads(dt.arguments_json).get('next_tasks',[])+custom_next_tasks:
+    for k in dt.arguments_json.get('next_tasks',[])+custom_next_tasks:
         args = perform_substitution(k['arguments'], dt,inject_filters)
-        jargs = json.dumps(args)
         logging.info("launching {}, {} with args {} as specified in next_tasks".format(dt.operation, k['task_name'], args))
-        next_task = TEvent.objects.create(video=dt.video,operation=k['task_name'], arguments_json=jargs,parent=dt)
+        next_task = TEvent.objects.create(video=dt.video,operation=k['task_name'], arguments_json=args,parent=dt)
         launched.append(app.send_task(k['task_name'], args=[next_task.pk, ], queue=get_queue_name(k['task_name'],args)).id)
     return launched
 
@@ -100,10 +99,11 @@ def perform_indexing(task_id):
         return 0
     start.task_id = perform_indexing.request.id
     start.started = True
+    start.ts = datetime.now()
     start.operation = perform_indexing.name
     video_id = start.video_id
     dv = Video.objects.get(id=video_id)
-    json_args = json.loads(start.arguments_json)
+    json_args = start.arguments_json
     target = json_args.get('target','frames')
     index_name = json_args['index']
     start.save()
@@ -173,9 +173,10 @@ def crop_regions_by_id(task_id):
         return 0
     start.task_id = crop_regions_by_id.request.id
     start.started = True
+    start.ts = datetime.now()
     start.operation = crop_regions_by_id.name
     video_id = start.video_id
-    args = json.loads(start.arguments_json)
+    args = start.arguments_json
     resize = args.get('resize',None)
     kwargs = args.get('filters',{})
     paths_to_regions = defaultdict(list)
@@ -210,9 +211,10 @@ def perform_retrieval(task_id):
     start_time = time.time()
     if celery_40_bug_hack(start):
         return 0
-    args = json.loads(start.arguments_json)
+    args = start.arguments_json
     start.task_id = perform_retrieval.request.id
     start.started = True
+    start.ts = datetime.now()
     start.operation = perform_retrieval.name
     start.save()
     iq = IndexerQuery.objects.get(pk=args['iq_id'])
@@ -230,8 +232,9 @@ def extract_frames(task_id):
         return 0
     start.task_id = extract_frames.request.id
     start.started = True
+    start.ts = datetime.now()
     start.operation = extract_frames.name
-    args = json.loads(start.arguments_json)
+    args = start.arguments_json
     if args == {}:
         args['rescale'] = 0
         args['rate'] = 30
@@ -269,8 +272,9 @@ def segment_video(task_id):
         return 0
     start.task_id = segment_video.request.id
     start.started = True
+    start.ts = datetime.now()
     start.operation = segment_video.name
-    args = json.loads(start.arguments_json)
+    args = start.arguments_json
     if 'rescale' not in args:
         args['rescale'] = 0
     if 'rate' not in args:
@@ -327,8 +331,9 @@ def decode_video(task_id):
         return 0
     start.task_id = decode_video.request.id
     start.started = True
+    start.ts = datetime.now()
     start.operation = decode_video.name
-    args = json.loads(start.arguments_json)
+    args = start.arguments_json
     start.save()
     start_time = time.time()
     video_id = start.video_id
@@ -356,11 +361,12 @@ def perform_detection(task_id):
         return 0
     start.task_id = perform_detection.request.id
     start.started = True
+    start.ts = datetime.now()
     start.operation = perform_detection.name
     start.save()
     start_time = time.time()
     video_id = start.video_id
-    args = json.loads(start.arguments_json)
+    args = start.arguments_json
     detector_name = args['detector']
     detector = perform_detection.get_static_detectors[detector_name]
     if detector.session is None:
@@ -419,11 +425,12 @@ def perform_analysis(task_id):
         return 0
     start.task_id = perform_analysis.request.id
     start.started = True
+    start.ts = datetime.now()
     start.operation = perform_analysis.name
     start.save()
     start_time = time.time()
     video_id = start.video_id
-    args = json.loads(start.arguments_json)
+    args = start.arguments_json
     target = args['target']
     analyzer_name = args['analyzer']
     analyzer = perform_analysis.get_static_analyzers[analyzer_name]
@@ -461,6 +468,7 @@ def export_video_by_id(task_id):
         return 0
     start.task_id = export_video_by_id.request.id
     start.started = True
+    start.ts = datetime.now()
     start.operation = export_video_by_id.name
     start.save()
     start_time = time.time()
@@ -503,6 +511,7 @@ def import_video_by_id(task_id):
         return 0
     start.task_id = import_video_by_id.request.id
     start.started = True
+    start.ts = datetime.now()
     start.operation = import_video_by_id.name
     start.save()
     start_time = time.time()
@@ -552,6 +561,7 @@ def import_vdn_file(task_id):
     if celery_40_bug_hack(start):
         return 0
     start.started = True
+    start.ts = datetime.now()
     start.task_id = import_vdn_file.request.id
     start.operation = import_vdn_file.name
     start.save()
@@ -599,11 +609,12 @@ def import_vdn_detector_file(task_id):
     if celery_40_bug_hack(start):
         return 0
     start.started = True
+    start.ts = datetime.now()
     start.task_id = import_vdn_detector_file.request.id
     start.operation = import_vdn_detector_file.name
     start.save()
     start_time = time.time()
-    dd = CustomDetector.objects.get(pk=json.loads(start.arguments_json)['detector_pk'])
+    dd = CustomDetector.objects.get(pk=start.arguments_json['detector_pk'])
     create_detector_folders(dd, create_subdirs=False)
     if 'www.dropbox.com' in dd.vdn_detector.download_url and not dd.vdn_detector.download_url.endswith('?dl=1'):
         r = requests.get(dd.vdn_detector.download_url + '?dl=1')
@@ -634,6 +645,7 @@ def import_vdn_s3(task_id):
     if celery_40_bug_hack(start):
         return 0
     start.started = True
+    start.ts = datetime.now()
     start.task_id = import_vdn_s3.request.id
     start.operation = import_vdn_s3.name
     start.save()
@@ -714,6 +726,7 @@ def backup_video_to_s3(s3_export_id):
     if celery_40_bug_hack(start):
         return 0
     start.started = True
+    start.ts = datetime.now()
     start.task_id = backup_video_to_s3.request.id
     start.operation = backup_video_to_s3.name
     start.save()
@@ -735,6 +748,7 @@ def push_video_to_vdn_s3(s3_export_id):
         return 0
     start.task_id = push_video_to_vdn_s3.request.id
     start.started = True
+    start.ts = datetime.now()
     start.operation = push_video_to_vdn_s3.name
     start.save()
     start_time = time.time()
@@ -777,6 +791,7 @@ def import_video_from_s3(s3_import_id):
     if celery_40_bug_hack(start):
         return 0
     start.started = True
+    start.ts = datetime.now()
     start.task_id = import_video_from_s3.request.id
     start.operation = import_video_from_s3.name
     start.save()
@@ -833,6 +848,7 @@ def perform_clustering(cluster_task_id, test=False):
         return 0
     start.task_id = perform_clustering.request.id
     start.started = True
+    start.ts = datetime.now()
     start.operation = perform_clustering.name
     start.save()
     start_time = time.time()
@@ -886,11 +902,12 @@ def sync_bucket(task_id):
         return 0
     start.task_id = sync_bucket.request.id
     start.started = True
+    start.ts = datetime.now()
     start.operation = sync_bucket.name
     start.save()
     start_time = time.time()
     video_id = start.video_id
-    args = json.loads(start.arguments_json)
+    args = start.arguments_json
     if settings.MEDIA_BUCKET.strip():
         if 'dirname' in args:
             src = '{}/{}/{}/'.format(settings.MEDIA_ROOT, video_id, args['dirname'])
@@ -922,10 +939,11 @@ def delete_video_by_id(task_id):
         return 0
     start.task_id = delete_video_by_id.request.id
     start.started = True
+    start.ts = datetime.now()
     start.operation = delete_video_by_id.name
     start.save()
     start_time = time.time()
-    args = json.loads(start.arguments_json)
+    args = start.arguments_json
     video_id = int(args['video_pk'])
     src = '{}/{}/'.format(settings.MEDIA_ROOT, int(video_id))
     args = ['rm','-rf',src]
@@ -968,10 +986,11 @@ def detect_custom_objects(task_id):
         return 0
     start.task_id = detect_custom_objects.request.id
     start.started = True
+    start.ts = datetime.now()
     start.operation = detect_custom_objects.name
     start.save()
     start_time = time.time()
-    args = json.loads(start.arguments_json)
+    args = start.arguments_json
     video_id = start.video_id
     detector_id = args['detector_pk']
     custom_detector = subprocess.Popen(['fab', 'detect_custom_objects:{},{}'.format(detector_id,video_id)],cwd=os.path.join(os.path.abspath(__file__).split('tasks.py')[0], '../'))
@@ -1000,6 +1019,7 @@ def train_yolo_detector(task_id):
         return 0
     start.task_id = train_yolo_detector.request.id
     start.started = True
+    start.ts = datetime.now()
     start.operation = train_yolo_detector.name
     start.save()
     start_time = time.time()

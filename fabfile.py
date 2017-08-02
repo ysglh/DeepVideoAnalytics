@@ -196,28 +196,28 @@ def ci():
     # handle_youtube_video('world is not enough', 'https://www.youtube.com/watch?v=P-oNz3Nf50Q') # Temporarily disabled due error in travis
     for i,v in enumerate(Video.objects.all()):
         if v.dataset:
-            arguments_json = json.dumps({'sync':True})
+            arguments_json = {'sync':True}
             extract_frames(TEvent.objects.create(video=v,arguments_json=arguments_json).pk)
         else:
-            arguments_json = json.dumps({'sync':True})
+            arguments_json = {'sync':True}
             segment_video(TEvent.objects.create(video=v,arguments_json=arguments_json).pk)
-            arguments_json = json.dumps({'index': 'inception'})
+            arguments_json = {'index': 'inception'}
             perform_indexing(TEvent.objects.create(video=v,arguments_json=arguments_json).pk)
         if i ==0: # save travis time by just running detection on first video
             # face_mtcnn
-            arguments_json = json.dumps({'detector': 'face'})
+            arguments_json = {'detector': 'face'}
             dt = TEvent.objects.create(video=v,arguments_json=arguments_json)
             perform_detection(dt.pk)
-            arguments_json = json.dumps({'filters':{'event_id':dt.pk},})
+            arguments_json = {'filters':{'event_id':dt.pk},}
             crop_regions_by_id(TEvent.objects.create(video=v,arguments_json=arguments_json).pk)
             # coco_mobilenet
-            arguments_json = json.dumps({'detector': 'coco'})
+            arguments_json = {'detector': 'coco'}
             dt = TEvent.objects.create(video=v, arguments_json=arguments_json)
             perform_detection(dt.pk)
-            arguments_json = json.dumps({'filters':{'event_id':dt.pk},})
+            arguments_json = {'filters':{'event_id':dt.pk},}
             crop_regions_by_id(TEvent.objects.create(video=v,arguments_json=arguments_json).pk)
             # inception on crops from detector
-            arguments_json = json.dumps({'index':'inception','target': 'regions','filters': {'event_id': dt.pk, 'w__gte': 50, 'h__gte': 50}})
+            arguments_json = {'index':'inception','target': 'regions','filters': {'event_id': dt.pk, 'w__gte': 50, 'h__gte': 50}}
             perform_indexing(TEvent.objects.create(video=v,arguments_json=arguments_json).pk)
             # assign_open_images_text_tags_by_id(TEvent.objects.create(video=v).pk)
         fname = export_video_by_id(TEvent.objects.create(video=v,event_type=TEvent.EXPORT).pk)
@@ -283,10 +283,10 @@ def ci_face():
     from dvaapp.tasks import perform_indexing
     for i,v in enumerate(Video.objects.all()):
         if i ==0: # save travis time by just running detection on first video
-            args = json.dumps({
+            args = {
                 'filter':{'object_name__startswith':'MTCNN_face'},
                 'index':'facenet',
-                'target':'regions'})
+                'target':'regions'}
             perform_indexing(TEvent.objects.create(video=v,arguments_json=args).pk)
 
 
@@ -855,7 +855,7 @@ def train_yolo(start_pk):
     from dvaapp.shared import create_detector_folders, create_detector_dataset
     from dvalib.yolo import trainer
     start = TEvent.objects.get(pk=start_pk)
-    args = json.loads(start.arguments_json)
+    args = start.arguments_json
     labels = set(args['labels']) if 'labels' in args else set()
     object_names = set(args['object_names']) if 'object_names' in args else set()
     detector = CustomDetector.objects.get(pk=args['detector_pk'])
@@ -956,11 +956,11 @@ def qt():
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
         v = handle_uploaded_file(f, name)
-        # arguments_json = json.dumps({'sync': True})
+        # arguments_json = {'sync': True}
         # segment_video(TEvent.objects.create(video=v, arguments_json=arguments_json).pk)
-        # arguments_json = json.dumps({'detector': 'face_mtcnn'})
+        # arguments_json = {'detector': 'face_mtcnn'}
         # perform_detection(TEvent.objects.create(video=v).pk)
-        # args = json.dumps({'index': 'facenet','target': 'regions','filter':{'object_name__startswith':'MTCNN_face'}})
+        # args = {'index': 'facenet','target': 'regions','filter':{'object_name__startswith':'MTCNN_face'}}
         # perform_indexing(TEvent.objects.create(video=v,arguments_json=args).pk)
 
 

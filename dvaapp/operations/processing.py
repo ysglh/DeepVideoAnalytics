@@ -117,7 +117,7 @@ class DVAPQLProcess(object):
         for iq in IndexerQuery.objects.filter(parent_query=self.query):
             task_name = 'perform_indexing'
             queue_name = self.visual_indexes[iq.algorithm]['indexer_queue']
-            jargs = json.dumps({
+            jargs = {
                 'iq_id':iq.pk,
                 'index':iq.algorithm,
                 'target':'query',
@@ -126,7 +126,7 @@ class DVAPQLProcess(object):
                       'arguments': {'iq_id': iq.pk,'index':iq.algorithm}
                      }
                 ]
-            })
+            }
             next_task = TEvent.objects.create(video=self.dv, operation=task_name, arguments_json=jargs)
             self.task_results[iq.algorithm] = app.send_task(task_name, args=[next_task.pk, ], queue=queue_name, priority=5)
             self.context[iq.algorithm] = []

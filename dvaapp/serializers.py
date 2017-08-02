@@ -254,7 +254,7 @@ def create_event(e,v):
     de.bucket = e.get('bucket',"")
     de.requester_pays = e.get('requester_pays',False)
     de.clustering = e.get('clustering',None)
-    de.arguments_json = e.get('arguments_json',"")
+    de.arguments_json = json.loads(e.get('arguments_json',""))
     de.task_id = e.get('task_id',"")
     return de
 

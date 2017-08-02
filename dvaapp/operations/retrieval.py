@@ -108,8 +108,8 @@ class RetrieverTask(celery.Task):
             qr.save()
         iq.results = True
         iq.save()
-        self.query.results_available = True
-        self.query.save()
+        iq.parent_query.results_available = True
+        iq.parent_query.save()
         return 0
 
     def query_approximate(self, n, vector, index_name):

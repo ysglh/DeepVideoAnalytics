@@ -40,6 +40,7 @@ def perform_substitution(args,parent_task,inject_filters):
     :return:
     """
     args = copy.deepcopy(args) # IMPORTANT otherwise the first task to execute on the worker will fill the filters
+    inject_filters = copy.deepcopy(inject_filters) # IMPORTANT otherwise the first task to execute on the worker will fill the filters
     filters = args.get('filters',{})
     parent_args = parent_task.arguments_json
     if filters == '__parent__':

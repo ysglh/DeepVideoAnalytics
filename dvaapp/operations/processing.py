@@ -57,7 +57,7 @@ class DVAPQLProcess(object):
         """
         query_json = {}
         count = request.POST.get('count')
-        excluded_index_entries_pk = json.loads(request.POST.get('excluded_index_entries'))
+        excluded = json.loads(request.POST.get('excluded_index_entries'))
         selected_indexers = json.loads(request.POST.get('selected_indexers'))
         approximate = True if request.POST.get('approximate') == 'true' else False
         query_json['image_data_b64'] = request.POST.get('image_url')[22:]
@@ -66,7 +66,7 @@ class DVAPQLProcess(object):
             query_json['indexer_queries'].append({
                 'algorithm':k,
                 'count':count,
-                'excluded_index_entries_pk': [int(epk) for epk in excluded_index_entries_pk],
+                'excluded_index_entries_pk': [int(epk) for epk in excluded] if excluded else [],
                 'approximate':approximate
             })
         user = request.user if request.user.is_authenticated else None

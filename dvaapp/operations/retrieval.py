@@ -93,7 +93,7 @@ class RetrieverTask(celery.Task):
         # TODO: optimize this using batching
         for r in results:
             qr = QueryResults()
-            qr.query = self.query
+            qr.query = iq.parent_query
             qr.indexerquery = iq
             if 'detection_primary_key' in r:
                 dd = Region.objects.get(pk=r['detection_primary_key'])

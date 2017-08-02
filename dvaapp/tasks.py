@@ -115,15 +115,15 @@ def perform_indexing(task_id):
         iq = IndexerQuery.objects.get(id=json_args['iq_id'])
         local_path = "{}/queries/{}_{}.png".format(settings.MEDIA_ROOT, iq.algorithm, iq.parent_query.pk)
         with open(local_path, 'w') as fh:
-            fh.write(str(iq.query.image_data))
+            fh.write(str(iq.parent_query.image_data))
         vector = visual_index.apply(local_path)
         # TODO: figure out a better way to store numpy arrays.
         s = io.BytesIO()
         np.save(s,vector)
         iq.vector = s.getvalue()
         iq.save()
-        iq.query.results_available = True
-        iq.query.save()
+        iq.parent_query.results_available = True
+        iq.parent_query.save()
         sync = False
     else:
         arguments = json_args.get('filters', {})

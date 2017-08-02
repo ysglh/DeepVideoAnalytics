@@ -3,8 +3,7 @@ import subprocess, sys, shutil, os, glob, time, logging, copy
 from PIL import Image
 from django.conf import settings
 from dva.celery import app
-from .models import Video, Frame, TEvent, Query, IndexEntries, QueryResults, AppliedLabel, VDNDataset, Clusters, \
-    ClusterCodes, Region, Tube, CustomDetector, Segment, IndexerQuery
+from .models import Video, Frame, TEvent,  IndexEntries, ClusterCodes, Region, Tube, CustomDetector, Segment, IndexerQuery
 
 from .operations.indexing import IndexerTask
 from .operations.retrieval import RetrieverTask

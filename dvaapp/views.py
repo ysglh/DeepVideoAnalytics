@@ -357,6 +357,7 @@ class SegmentDetail(UserPassesTestMixin, DetailView):
 
 class DVAPQLList(UserPassesTestMixin, ListView):
     model = DVAPQL
+    template_name = "dvaapp/query_list.html"
 
     def test_func(self):
         return user_check(self.request.user)
@@ -364,6 +365,7 @@ class DVAPQLList(UserPassesTestMixin, ListView):
 
 class DVAPQLDetail(UserPassesTestMixin, DetailView):
     model = DVAPQL
+    template_name = "dvaapp/query_detail.html"
 
     def get_context_data(self, **kwargs):
         context = super(DVAPQLDetail, self).get_context_data(**kwargs)

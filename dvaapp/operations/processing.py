@@ -22,9 +22,9 @@ import io
 
 class DVAPQLProcess(object):
 
-    def __init__(self):
-        self.query = None
-        self.media_dir = None
+    def __init__(self,query=None,media_dir=None):
+        self.query = query
+        self.media_dir = media_dir
         self.indexer_queries = []
         self.task_results = {}
         self.context = {}
@@ -160,10 +160,6 @@ class DVAPQLProcess(object):
             if v:
                 self.context[k].sort()
                 self.context[k] = zip(*v)[1]
-
-    def load_from_db(self,query,media_dir):
-        self.query = query
-        self.media_dir = media_dir
 
     def to_json(self):
         json_query = {}

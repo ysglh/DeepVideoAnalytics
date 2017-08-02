@@ -368,8 +368,7 @@ class QueryDetail(UserPassesTestMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super(QueryDetail, self).get_context_data(**kwargs)
         qp = DVAPQLProcess()
-        qp.load_from_db(self.object,settings.MEDIA_ROOT)
-        qp.collect_results()
+        qp.collect()
         context['results'] = qp.context.items()
         context['url'] = '{}queries/{}.png'.format(settings.MEDIA_URL, self.object.pk, self.object.pk)
         return context

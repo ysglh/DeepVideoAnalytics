@@ -113,7 +113,7 @@ def perform_indexing(task_id):
     sync = True
     if target == 'query':
         iq = IndexerQuery.objects.get(id=json_args['iq_id'])
-        local_path = "{}/queries/{}_{}.png".format(settings.MEDIA_ROOT, iq.algorithm, iq.query.pk)
+        local_path = "{}/queries/{}_{}.png".format(settings.MEDIA_ROOT, iq.algorithm, iq.parent_query.pk)
         with open(local_path, 'w') as fh:
             fh.write(str(iq.query.image_data))
         vector = visual_index.apply(local_path)

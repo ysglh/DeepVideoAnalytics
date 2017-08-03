@@ -28,7 +28,7 @@ from . import serializers
 import boto3
 import random
 from botocore.exceptions import ClientError
-from .shared import handle_downloaded_file, create_video_folders, create_detector_folders, create_detector_dataset, get_queue_name
+from .shared import handle_downloaded_file, create_video_folders, create_detector_folders, create_detector_dataset
 from celery import group
 
 
@@ -72,12 +72,12 @@ def process_next(task_id,inject_filters=None,custom_next_tasks=None,sync=True):
             args = perform_substitution(k['arguments'], dt,inject_filters)
             logging.info("launching {}, {} with args {} as specified in config".format(dt.operation, k['task_name'], args))
             next_task = TEvent.objects.create(video=dt.video,operation=k['task_name'],arguments_json=args,parent=dt)
-            launched.append(app.send_task(k['task_name'], args=[next_task.pk, ], queue=get_queue_name(k['task_name'],args)).id)
+            launched.append(app.send_task(k['task_name'], args=[next_task.pk, ], queue=settings.get_queue_name(k['task_name'],args)).id)
     for k in dt.arguments_json.get('next_tasks',[])+custom_next_tasks:
         args = perform_substitution(k['arguments'], dt,inject_filters)
         logging.info("launching {}, {} with args {} as specified in next_tasks".format(dt.operation, k['task_name'], args))
         next_task = TEvent.objects.create(video=dt.video,operation=k['task_name'], arguments_json=args,parent=dt)
-        launched.append(app.send_task(k['task_name'], args=[next_task.pk, ], queue=get_queue_name(k['task_name'],args)).id)
+        launched.append(app.send_task(k['task_name'], args=[next_task.pk, ], queue=settings.get_queue_name(k['task_name'],args)).id)
     return launched
 
 

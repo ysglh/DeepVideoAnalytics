@@ -226,3 +226,14 @@ ANALYZERS = {
 #          }}
 #     )
 
+def get_queue_name(operation,args):
+    if operation in TASK_NAMES_TO_QUEUE:
+        return TASK_NAMES_TO_QUEUE[operation]
+    elif 'index' in args and operation == 'perform_retrieval':
+        return VISUAL_INDEXES[args['index']]['retriever_queue']
+    elif 'index' in args:
+        return VISUAL_INDEXES[args['index']]['indexer_queue']
+    elif 'detector' in args:
+        return DETECTORS[args['detector']]['queue']
+    else:
+        raise NotImplementedError,"{}, {}".format(operation,args)

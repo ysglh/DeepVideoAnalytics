@@ -19,7 +19,6 @@ class DVAPQLProcess(object):
 
     def __init__(self,query=None,media_dir=None):
         self.query = query
-        self.query_json = {}
         self.media_dir = media_dir
         self.task_results = {}
         self.context = {}
@@ -89,34 +88,48 @@ class DVAPQLProcess(object):
                 iq.approximate = k['approximate']
                 iq.save()
         elif j['process_type'] == DVAPQL.PROCESS:
-            raise NotImplementedError
+            self.query.query_json = j
+            self.query.save()
         elif j['process_type'] == DVAPQL.INGEST:
             raise NotImplementedError
         else:
             raise ValueError
         return self.query
 
-
     def validate(self):
         pass
 
     def launch(self):
-        for iq in IndexerQuery.objects.filter(parent_query=self.query):
-            task_name = 'perform_indexing'
-            queue_name = self.visual_indexes[iq.algorithm]['indexer_queue']
-            jargs = {
-                'iq_id':iq.pk,
-                'index':iq.algorithm,
-                'target':'query',
-                'next_tasks':[
-                    { 'task_name': 'perform_retrieval',
-                      'arguments': {'iq_id': iq.pk,'index':iq.algorithm}
-                     }
-                ]
-            }
-            next_task = TEvent.objects.create(video=self.dv, operation=task_name, arguments_json=jargs)
-            self.task_results[iq.algorithm] = app.send_task(task_name, args=[next_task.pk, ], queue=queue_name, priority=5)
-            self.context[iq.algorithm] = []
+        if self.query.query_json['process_type'] == DVAPQL.PROCESS:
+            for t in self.query.query_json['tasks']:
+                dt = TEvent()
+                dt.parent_process = self.query
+                dt.video_id = t['video_id']
+                dt.operation = t['operation']
+                dt.arguments_json = t['arguments_json']
+                dt.save()
+                app.send_task(name=dt.operation,
+                              args=[dt.pk, ],
+                              queue=settings.get_queue_name(dt.operation,dt.arguments_json))
+        elif self.query.query_json['process_type'] == DVAPQL.QUERY:
+            for iq in IndexerQuery.objects.filter(parent_query=self.query):
+                task_name = 'perform_indexing'
+                jargs = {
+                    'iq_id':iq.pk,
+                    'index':iq.algorithm,
+                    'target':'query',
+                    'next_tasks':[
+                        { 'task_name': 'perform_retrieval',
+                          'arguments': {'iq_id': iq.pk,'index':iq.algorithm}
+                         }
+                    ]
+                }
+                next_task = TEvent.objects.create(video=self.dv, operation=task_name, arguments_json=jargs)
+                queue_name = settings.get_queue_name(next_task.operation, next_task.arguments_json)
+                self.task_results[iq.algorithm] = app.send_task(task_name, args=[next_task.pk, ], queue=queue_name, priority=5)
+                self.context[iq.algorithm] = []
+        else:
+            raise NotImplementedError
 
     def wait(self,timeout=60):
         for visual_index_name, result in self.task_results.iteritems():

@@ -5,21 +5,10 @@ from dva.celery import app
 from django_celery_results.models import TaskResult
 from celery.result import AsyncResult
 from collections import defaultdict
+from operations import processing
+from models import DVAPQL
 import boto3
 from celery.exceptions import TimeoutError
-
-
-def get_queue_name(operation,args):
-    if operation in settings.TASK_NAMES_TO_QUEUE:
-        return settings.TASK_NAMES_TO_QUEUE[operation]
-    elif 'index' in args and operation == 'perform_retrieval':
-        return settings.VISUAL_INDEXES[args['index']]['retriever_queue']
-    elif 'index' in args:
-        return settings.VISUAL_INDEXES[args['index']]['indexer_queue']
-    elif 'detector' in args:
-        return settings.DETECTORS[args['detector']]['queue']
-    else:
-        raise NotImplementedError,"{}, {}".format(operation,args)
 
 
 def refresh_task_status():
@@ -52,11 +41,13 @@ def create_detector_folders(detector, create_subdirs=True):
     except:
         pass
 
+
 def create_indexer_folders(indexer, create_subdirs=True):
     try:
         os.mkdir('{}/indexers/{}'.format(settings.MEDIA_ROOT, indexer.pk))
     except:
         pass
+
 
 def create_annotator_folders(annotator, create_subdirs=True):
     try:
@@ -118,14 +109,19 @@ def handle_uploaded_file(f, name, extract=True, user=None, rate=30, rescale=0):
             video.dataset = True
         video.save()
         if extract:
-            extract_frames_task = TEvent()
-            extract_frames_task.arguments_json = {'rate': rate,'rescale': rescale}
-            extract_frames_task.video = video
-            task_name = 'extract_frames' if video.dataset else 'segment_video'
-            extract_frames_task.operation = task_name
-            extract_frames_task.save()
-            app.send_task(name=task_name, args=[extract_frames_task.pk, ],
-                          queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+            p = processing.DVAPQLProcess()
+            query = {
+                'process_type':DVAPQL.PROCESS,
+                'tasks':[
+                    {
+                        'arguments_json':{'rate': rate, 'rescale': rescale},
+                        'video_id':video.pk,
+                        'operation': 'extract_frames' if video.dataset else 'segment_video',
+                    }
+                ]
+            }
+            p.create_from_json(j=query,user=user)
+            p.launch()
     else:
         raise ValueError, "Extension {} not allowed".format(filename.split('.')[-1])
     return video
@@ -155,14 +151,19 @@ def handle_downloaded_file(downloaded, video, name, extract=True, user=None, rat
             video.dataset = True
         video.save()
         if extract:
-            extract_frames_task = TEvent()
-            extract_frames_task.arguments_json = {'rate': rate, 'rescale': rescale}
-            extract_frames_task.video = video
-            task_name = 'extract_frames' if video.dataset else 'segment_video'
-            extract_frames_task.operation = task_name
-            extract_frames_task.save()
-            app.send_task(name=task_name, args=[extract_frames_task.pk, ],
-                          queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+            p = processing.DVAPQLProcess()
+            query = {
+                'process_type':DVAPQL.PROCESS,
+                'tasks':[
+                    {
+                        'arguments_json':{'rate': rate, 'rescale': rescale},
+                        'video_id':video.pk,
+                        'operation': 'extract_frames' if video.dataset else 'segment_video',
+                    }
+                ]
+            }
+            p.create_from_json(j=query,user=user)
+            p.launch()
     else:
         raise ValueError, "Extension {} not allowed".format(filename.split('.')[-1])
     return video

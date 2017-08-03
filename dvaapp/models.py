@@ -165,6 +165,7 @@ class TEvent(models.Model):
     arguments_json = JSONField(blank=True,null=True)
     task_id = models.TextField(null=True)
     parent = models.ForeignKey('self',null=True)
+    parent_process = models.ForeignKey(DVAPQL,null=True)
 
 
 class Frame(models.Model):

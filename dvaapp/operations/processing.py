@@ -50,7 +50,7 @@ class DVAPQLProcess(object):
         :param request:
         :return:
         """
-        query_json = {}
+        query_json = {'process_type':DVAPQL.QUERY}
         count = request.POST.get('count')
         excluded = json.loads(request.POST.get('excluded_index_entries'))
         selected_indexers = json.loads(request.POST.get('selected_indexers'))
@@ -69,41 +69,33 @@ class DVAPQLProcess(object):
         return self.query
 
     def create_from_json(self, j, user=None):
-        """
-        Create query from JSON
-        {
-        'image_data':base64.encodestring(file('tests/query.png').read()),
-        'indexers':[
-            {
-                'algorithm':'facenet',
-                'count':10,
-                'approximate':False
-            }
-            ]
-        }
-        :param j: JSON encoded query
-        :param user:
-        :return:
-        """
         if self.query is None:
             self.query = DVAPQL()
         if not (user is None):
             self.query.user = user
-        if j['image_data_b64'].strip():
-            image_data = base64.decodestring(j['image_data_b64'])
-            self.query.image_data = image_data
-        self.query.query_json = j
-        self.query.save()
-        self.store_and_create_video_object()
-        for k in j['indexer_queries']:
-            iq = IndexerQuery()
-            iq.parent_query = self.query
-            iq.algorithm = k['algorithm']
-            iq.count = k['count']
-            iq.excluded_index_entries_pk = k['excluded_index_entries_pk'] if 'excluded_index_entries_pk' in k else []
-            iq.approximate = k['approximate']
-            iq.save()
+        if j['process_type'] == DVAPQL.QUERY:
+            if j['image_data_b64'].strip():
+                image_data = base64.decodestring(j['image_data_b64'])
+                self.query.image_data = image_data
+            self.query.query_json = j
+            self.query.save()
+            self.store_and_create_video_object()
+            for k in j['indexer_queries']:
+                iq = IndexerQuery()
+                iq.parent_query = self.query
+                iq.algorithm = k['algorithm']
+                iq.count = k['count']
+                iq.excluded_index_entries_pk = k['excluded_index_entries_pk'] if 'excluded_index_entries_pk' in k else []
+                iq.approximate = k['approximate']
+                iq.save()
+        elif j['process_type'] == DVAPQL.PROCESS:
+            raise NotImplementedError
+        elif j['process_type'] == DVAPQL.INGEST:
+            raise NotImplementedError
+        else:
+            raise ValueError
         return self.query
+
 
     def validate(self):
         pass

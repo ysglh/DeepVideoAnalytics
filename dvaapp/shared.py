@@ -244,9 +244,9 @@ def create_child_vdn_dataset(parent_video, server, headers):
 def create_root_vdn_dataset(s3export, server, headers, name, description):
     new_dataset = {'root': True,
                    'aws_requester_pays': True,
-                   'aws_region': s3export.region,
-                   'aws_bucket': s3export.bucket,
-                   'aws_key': s3export.key,
+                   'aws_region': s3export.arguments_json['region'],
+                   'aws_bucket': s3export.arguments_json['bucket'],
+                   'aws_key': s3export.arguments_json['key'],
                    'name': name,
                    'description': description
                    }

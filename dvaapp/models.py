@@ -161,10 +161,6 @@ class TEvent(models.Model):
     created = models.DateTimeField('date created', auto_now_add=True)
     start_ts = models.DateTimeField('date started', null=True)
     seconds = models.FloatField(default=-1)
-    file_name = models.CharField(max_length=200,default="")  # FILENAME FOR EXPORT
-    key = models.CharField(max_length=300, default="")
-    bucket = models.CharField(max_length=300, default="")
-    requester_pays = models.BooleanField(default=False)
     clustering = models.ForeignKey(Clusters,null=True)
     arguments_json = JSONField(blank=True,null=True)
     task_id = models.TextField(null=True)

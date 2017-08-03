@@ -477,7 +477,7 @@ def export_video_by_id(task_id):
     video_id = start.video_id
     video_obj = Video.objects.get(pk=video_id)
     file_name = '{}_{}.dva_export.zip'.format(video_id, int(calendar.timegm(time.gmtime())))
-    start.file_name = file_name
+    start.arguments_json['file_name'] = file_name
     try:
         os.mkdir("{}/{}".format(settings.MEDIA_ROOT, 'exports'))
     except:
@@ -523,9 +523,11 @@ def import_video_by_id(task_id):
         if video_obj.vdn_dataset.aws_requester_pays:
             s3import = TEvent()
             s3import.video = video_obj
-            s3import.key = video_obj.vdn_dataset.aws_key
-            s3import.bucket = video_obj.vdn_dataset.aws_bucket
-            s3import.requester_pays = True
+            s3import.arguments_json = {
+                'key':video_obj.vdn_dataset.aws_key,
+                'bucket':video_obj.vdn_dataset.aws_bucket,
+                'requester_pays':True
+                }            
             s3import.operation = "import_video_from_s3"
             s3import.save()
             app.send_task(s3import.operation, args=[s3import.pk, ],
@@ -695,16 +697,19 @@ def import_vdn_s3(task_id):
 
 def perform_export(s3_export):
     s3 = boto3.resource('s3')
+    s3bucket = s3_export.arguments_json['bucket']
+    s3region = s3_export.arguments_json['region']
+    s3key = s3_export.arguments_json['key']
     if s3_export.region == 'us-east-1':
-        s3.create_bucket(Bucket=s3_export.bucket)
+        s3.create_bucket(Bucket=s3bucket)
     else:
-        s3.create_bucket(Bucket=s3_export.bucket, CreateBucketConfiguration={'LocationConstraint': s3_export.region})
+        s3.create_bucket(Bucket=s3bucket, CreateBucketConfiguration={'LocationConstraint': s3region})
     time.sleep(20)  # wait for it to create the bucket
     path = "{}/{}/".format(settings.MEDIA_ROOT, s3_export.video.pk)
     a = serializers.VideoExportSerializer(instance=s3_export.video)
     exists = False
     try:
-        s3.Object(s3_export.bucket, '{}/table_data.json'.format(s3_export.key).replace('//', '/')).load()
+        s3.Object(s3bucket, '{}/table_data.json'.format(s3key).replace('//', '/')).load()
     except ClientError as e:
         if e.response['Error']['Code'] == "404":
             exists = False
@@ -714,7 +719,9 @@ def perform_export(s3_export):
         return -1, "Error key already exists"
     with file("{}/{}/table_data.json".format(settings.MEDIA_ROOT, s3_export.video.pk), 'w') as output:
         json.dump(a.data, output)
-    upload = subprocess.Popen(args=["aws", "s3", "sync",'--quiet', ".", "s3://{}/{}/".format(s3_export.bucket, s3_export.key)],cwd=path)
+    s3bucket = s3_export.arguments_json['bucket']
+    s3key = s3_export.arguments_json['key']    
+    upload = subprocess.Popen(args=["aws", "s3", "sync",'--quiet', ".", "s3://{}/{}/".format(s3bucket,s3key)],cwd=path)
     upload.communicate()
     upload.wait()
     s3_export.completed = True
@@ -799,11 +806,13 @@ def import_video_from_s3(s3_import_id):
     start.save()
     start_time = time.time()
     path = "{}/{}/".format(settings.MEDIA_ROOT, start.video.pk)
-    logging.info("processing key  {}space".format(start.key))
-    if start.key.strip() and (start.key.endswith('.zip') or start.key.endswith('.mp4')):
+    s3key = start.arguments_json['key']
+    s3bucket = start.arguments_json['bucket']
+    logging.info("processing key  {}space".format(s3key))
+    if s3key.strip() and (s3key.endswith('.zip') or s3key.endswith('.mp4')):
         fname = 'temp_' + str(time.time()).replace('.', '_') + '_' + str(random.randint(0, 100)) + '.' + \
-                start.key.split('.')[-1]
-        command = ["aws", "s3", "cp",'--quiet', "s3://{}/{}".format(start.bucket, start.key), fname]
+                s3key.split('.')[-1]
+        command = ["aws", "s3", "cp",'--quiet', "s3://{}/{}".format(s3bucket, s3key), fname]
         path = "{}/".format(settings.MEDIA_ROOT)
         download = subprocess.Popen(args=command, cwd=path)
         download.communicate()
@@ -814,14 +823,14 @@ def import_video_from_s3(s3_import_id):
             start.seconds = time.time() - start_time
             start.save()
             raise ValueError, start.error_message
-        handle_downloaded_file("{}/{}".format(settings.MEDIA_ROOT, fname), start.video, "s3://{}/{}".format(start.bucket,start.key))
+        handle_downloaded_file("{}/{}".format(settings.MEDIA_ROOT, fname), start.video, "s3://{}/{}".format(s3bucket,s3key))
         start.completed = True
         start.seconds = time.time() - start_time
         start.save()
         return
     else:
         create_video_folders(start.video, create_subdirs=False)
-        command = ["aws", "s3", "cp",'--quiet', "s3://{}/{}/".format(start.bucket, start.key), '.', '--recursive']
+        command = ["aws", "s3", "cp",'--quiet', "s3://{}/{}/".format(s3bucket, s3key), '.', '--recursive']
         command_exec = " ".join(command)
         download = subprocess.Popen(args=command, cwd=path)
         download.communicate()

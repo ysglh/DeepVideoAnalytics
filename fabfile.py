@@ -174,7 +174,7 @@ def ci():
     from django.core.files.uploadedfile import SimpleUploadedFile
     from dvaapp.views import handle_uploaded_file, handle_youtube_video, pull_vdn_list\
         ,import_vdn_dataset_url
-    from dvaapp.models import Video, Clusters,IndexEntries,TEvent,VDNServer
+    from dvaapp.models import Video, Clusters,IndexEntries,TEvent,VDNServer, DVAPQL
     from django.conf import settings
     from dvaapp.operations.processing import DVAPQLProcess
     from dvaapp.tasks import extract_frames, perform_indexing, export_video_by_id, import_video_by_id,\
@@ -236,6 +236,7 @@ def ci():
     clustering_task.save()
     perform_clustering(clustering_task.pk)
     query_dict = {
+        'process_type': DVAPQL.QUERY,
         'image_data_b64':base64.encodestring(file('tests/query.png').read()),
         'indexer_queries':[
             {
@@ -249,6 +250,7 @@ def ci():
     qp.create_from_json(query_dict)
     # execute_index_subquery(qp.indexer_queries[0].pk)
     query_dict = {
+        'process_type': DVAPQL.QUERY,
         'image_data_b64':base64.encodestring(file('tests/query.png').read()),
         'indexer_queries':[
             {

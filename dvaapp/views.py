@@ -572,11 +572,11 @@ def export_video(request):
             if export_method == 's3':
                 key = request.POST.get('key')
                 bucket = request.POST.get('bucket')
+                region = request.POST.get('region','us-east-1')
                 s3export = TEvent()
                 s3export.event_type = TEvent.S3EXPORT
                 s3export.video = video
-                s3export.key = key
-                s3export.bucket = bucket
+                s3export.arguments_json = {'key':key,'bucket':bucket,'region':region}
                 s3export.save()
                 task_name = 'backup_video_to_s3'
                 app.send_task(task_name, args=[s3export.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
@@ -647,8 +647,7 @@ def push(request, video_id):
             s3export = TEvent()
             s3export.event_type = TEvent.S3EXPORT
             s3export.video = video
-            s3export.key = key
-            s3export.bucket = bucket
+            s3export.arguments_json = {'key':key,'bucket':bucket,'region':region}
             s3export.save()
             create_root_vdn_dataset(s3export, server, headers, name, description)
             task_name = 'push_video_to_vdn_s3'
@@ -941,8 +940,7 @@ def import_s3(request):
             if key.strip():
                 s3import = TEvent()
                 s3import.event_type = TEvent.S3IMPORT
-                s3import.key = key.strip()
-                s3import.bucket = bucket
+                s3import.arguments_json = {'key':key.strip(),'bucket':bucket,'region':region}
                 video = Video()
                 user = request.user if request.user.is_authenticated else None
                 if user:

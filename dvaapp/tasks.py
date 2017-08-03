@@ -9,7 +9,7 @@ from .operations.indexing import IndexerTask
 from .operations.retrieval import RetrieverTask
 from .operations.detection import DetectorTask
 from .operations.analysis import AnalyzerTask
-from .operations.processing import DVAPQLProcess, WVideo
+from .operations.decoding import VideoDecoder
 from dvalib import clustering
 from datetime import datetime
 import io
@@ -128,10 +128,10 @@ def perform_indexing(task_id):
     else:
         arguments = json_args.get('filters', {})
         arguments['video_id'] = dv.pk
-        video = WVideo(dv, settings.MEDIA_ROOT)
+        media_dir = settings.MEDIA_ROOT
         if target == 'frames':
             frames = Frame.objects.all().filter(**arguments)
-            index_name, index_results, feat_fname, entries_fname = video.index_frames(frames, visual_index,start.pk)
+            index_name, index_results, feat_fname, entries_fname = perform_indexing.index_frames(media_dir,frames, visual_index,start.pk)
             detection_name = 'Frames_subset_by_{}'.format(start.pk)
             contains_frames = True
             contains_detections = False
@@ -139,7 +139,7 @@ def perform_indexing(task_id):
             detections = Region.objects.all().filter(**arguments)
             logging.info("Indexing {} Regions".format(detections.count()))
             detection_name = 'Faces_subset_by_{}'.format(start.pk) if index_name == 'facenet' else 'Regions_subset_by_{}'.format(start.pk)
-            index_name, index_results, feat_fname, entries_fname = video.index_regions(detections, detection_name, visual_index)
+            index_name, index_results, feat_fname, entries_fname = perform_indexing.index_regions(media_dir, detections, detection_name, visual_index)
             contains_frames = False
             contains_detections = True
         else:
@@ -246,7 +246,7 @@ def extract_frames(task_id):
     dv = Video.objects.get(id=video_id)
     if dv.youtube_video:
         create_video_folders(dv)
-    v = WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
+    v = VideoDecoder(dvideo=dv, media_dir=settings.MEDIA_ROOT)
     v.extract(args=args,start=start)
     if args.get('sync',False):
         # No need to inject just process everything together
@@ -287,7 +287,7 @@ def segment_video(task_id):
     dv = Video.objects.get(id=video_id)
     if dv.youtube_video:
         create_video_folders(dv)
-    v = WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
+    v = VideoDecoder(dvideo=dv, media_dir=settings.MEDIA_ROOT)
     v.get_metadata()
     v.segment_video()
     decodes = []
@@ -341,7 +341,7 @@ def decode_video(task_id):
     dv = Video.objects.get(id=video_id)
     kwargs = args.get('filters',{})
     kwargs['video_id'] = video_id
-    v = WVideo(dvideo=dv, media_dir=settings.MEDIA_ROOT)
+    v = VideoDecoder(dvideo=dv, media_dir=settings.MEDIA_ROOT)
     for ds in Segment.objects.filter(**kwargs):
         v.decode_segment(ds=ds,denominator=args['rate'],rescale=args['rescale'])
     process_next(task_id,custom_next_tasks = settings.DEFAULT_PROCESSING_PLAN)

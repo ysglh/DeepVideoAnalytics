@@ -1,15 +1,13 @@
-import logging, json, base64
-import boto3
-from django.conf import settings
+import logging, json
 import celery
-from dva.celery import app
+from PIL import Image
+
 try:
     from dvalib import indexer, clustering, retriever
     import numpy as np
 except ImportError:
     np = None
     logging.warning("Could not import indexer / clustering assuming running in front-end mode / Heroku")
-
 
 from ..models import IndexEntries
 
@@ -32,42 +30,70 @@ class IndexerTask(celery.Task):
                                            'vgg': indexer.VGGIndexer()}
         return IndexerTask._visual_indexer
 
-    @property
-    def clusterer(self):
-        if IndexerTask._clusterer is None:
-            IndexerTask._clusterer = {'inception': None,
-                                      'facenet': None,
-                                      'vgg':None}
-        return IndexerTask._clusterer
+    def index_frames(self,media_dir, frames,visual_index,task_pk):
+        visual_index.load()
+        entries = []
+        paths = []
+        video_ids = set()
+        for i, df in enumerate(frames):
+            entry = {
+                'frame_index': df.frame_index,
+                'frame_primary_key': df.pk,
+                'video_primary_key': df.video_id,
+                'index': i,
+                'type': 'frame'
+            }
+            video_ids.add(df.video_id)
+            paths.append("{}/{}/frames/{}.jpg".format(media_dir, df.video_id, df.frame_index))
+            entries.append(entry)
+        if len(video_ids) != 1:
+            raise NotImplementedError,"more/less than 1 video ids {}".format(video_ids)
+        else:
+            video_id = video_ids.pop()
+        features = visual_index.index_paths(paths)
+        feat_fname = "{}/{}/indexes/frames_{}_{}.npy".format(media_dir, video_id, visual_index.name,task_pk)
+        entries_fname = "{}/{}/indexes/frames_{}_{}.json".format(video_id, video_id, visual_index.name,task_pk)
+        with open(feat_fname, 'w') as feats:
+            np.save(feats, np.array(features))
+        with open(entries_fname, 'w') as entryfile:
+            json.dump(entries, entryfile)
+        return visual_index.name,entries,feat_fname,entries_fname
 
-    def refresh_index(self, index_name):
-        """
-        # TODO: speed this up by skipping refreshes when count is unchanged.
-        :param index_name:
-        :return:
-        """
-        index_entries = IndexEntries.objects.all()
-        visual_index = self.visual_indexer[index_name]
-        for index_entry in index_entries:
-            if index_entry.pk not in visual_index.loaded_entries and index_entry.algorithm == index_name and index_entry.count > 0:
-                fname = "{}/{}/indexes/{}".format(settings.MEDIA_ROOT, index_entry.video_id,
-                                                  index_entry.features_file_name)
-                vectors = indexer.np.load(fname)
-                vector_entries = json.load(file("{}/{}/indexes/{}".format(settings.MEDIA_ROOT, index_entry.video_id,
-                                                                          index_entry.entries_file_name)))
-                logging.info("Starting {} in {} with shape {}".format(index_entry.video_id, visual_index.name,vectors.shape))
-                start_index = visual_index.findex
-                try:
-                    visual_index.load_index(vectors, vector_entries)
-                except:
-                    logging.info("ERROR Failed to load {} vectors shape {} entries {}".format(index_entry.video_id,vectors.shape,len(vector_entries)))
-                visual_index.loaded_entries[index_entry.pk] = indexer.IndexRange(start=start_index,
-                                                                                 end=visual_index.findex - 1)
-                logging.info("finished {} in {}, current shape {}, range".format(index_entry.video_id,
-                                                                                 visual_index.name,
-                                                                                 visual_index.index.shape,
-                                                                                 visual_index.loaded_entries[
-                                                                                     index_entry.pk].start,
-                                                                                 visual_index.loaded_entries[
-                                                                                     index_entry.pk].end,
-                                                                                 ))
+    def index_regions(self, media_dir, regions,regions_name,visual_index):
+        visual_index.load()
+        video_ids = set()
+        entries = []
+        paths = []
+        for i, d in enumerate(regions):
+            entry = {
+                'frame_index': d.frame.frame_index,
+                'detection_primary_key': d.pk,
+                'frame_primary_key': d.frame.pk,
+                'video_primary_key': d.frame.video_id,
+                'index': i,
+                'type': d.region_type
+            }
+            path = "{}/{}/regions/{}.jpg".format(media_dir, d.frame.video_id, d.pk)
+            video_ids.add(d.frame.video_id)
+            if d.materialized:
+                paths.append(path)
+            else:
+                img = Image.open("{}/{}/frames/{}.jpg".format(media_dir, d.frame.video_id, d.frame.frame_index))
+                img2 = img.crop((d.x, d.y, d.x+d.w, d.y+d.h))
+                img2.save(path)
+                paths.append(path)
+                d.materialized = True
+                d.save()
+            entries.append(entry)
+        if len(video_ids) != 1:
+            raise NotImplementedError,"more/less than 1 video ids {}".format(video_ids)
+        else:
+            video_id = video_ids.pop()
+        features = visual_index.index_paths(paths)
+        feat_fname = "{}/{}/indexes/{}_{}.npy".format(media_dir, video_id,regions_name, visual_index.name)
+        entries_fname = "{}/{}/indexes/{}_{}.json".format(media_dir, video_id,regions_name, visual_index.name)
+        with open(feat_fname, 'w') as feats:
+            np.save(feats, np.array(features))
+        with open(entries_fname, 'w') as entryfile:
+            json.dump(entries, entryfile)
+        return visual_index.name,entries,feat_fname,entries_fname

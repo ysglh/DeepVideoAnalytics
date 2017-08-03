@@ -144,18 +144,19 @@ def perform_indexing(task_id):
             contains_detections = True
         else:
             raise NotImplementedError
-        i = IndexEntries()
-        i.video = dv
-        i.count = len(index_results)
-        i.contains_detections = contains_detections
-        i.contains_frames = contains_frames
-        i.detection_name = detection_name
-        i.algorithm = index_name
-        i.entries_file_name = entries_fname.split('/')[-1]
-        i.features_file_name = feat_fname.split('/')[-1]
-        i.source = start
-        i.source_filter_json = arguments
-        i.save()
+        if entries_fname:
+            i = IndexEntries()
+            i.video = dv
+            i.count = len(index_results)
+            i.contains_detections = contains_detections
+            i.contains_frames = contains_frames
+            i.detection_name = detection_name
+            i.algorithm = index_name
+            i.entries_file_name = entries_fname.split('/')[-1]
+            i.features_file_name = feat_fname.split('/')[-1]
+            i.source = start
+            i.source_filter_json = arguments
+            i.save()
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()

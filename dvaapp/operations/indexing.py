@@ -52,7 +52,7 @@ class IndexerTask(celery.Task):
             video_id = video_ids.pop()
         features = visual_index.index_paths(paths)
         feat_fname = "{}/{}/indexes/frames_{}_{}.npy".format(media_dir, video_id, visual_index.name,task_pk)
-        entries_fname = "{}/{}/indexes/frames_{}_{}.json".format(video_id, video_id, visual_index.name,task_pk)
+        entries_fname = "{}/{}/indexes/frames_{}_{}.json".format(media_dir, video_id, visual_index.name,task_pk)
         with open(feat_fname, 'w') as feats:
             np.save(feats, np.array(features))
         with open(entries_fname, 'w') as entryfile:
@@ -85,15 +85,18 @@ class IndexerTask(celery.Task):
                 d.materialized = True
                 d.save()
             entries.append(entry)
-        if len(video_ids) != 1:
-            raise NotImplementedError,"more/less than 1 video ids {}".format(video_ids)
-        else:
-            video_id = video_ids.pop()
-        features = visual_index.index_paths(paths)
-        feat_fname = "{}/{}/indexes/{}_{}.npy".format(media_dir, video_id,regions_name, visual_index.name)
-        entries_fname = "{}/{}/indexes/{}_{}.json".format(media_dir, video_id,regions_name, visual_index.name)
-        with open(feat_fname, 'w') as feats:
-            np.save(feats, np.array(features))
-        with open(entries_fname, 'w') as entryfile:
-            json.dump(entries, entryfile)
+        feat_fname = None
+        entries_fname = None
+        if entries:
+            if len(video_ids) != 1:
+                raise NotImplementedError,"more/less than 1 video ids {}".format(video_ids)
+            else:
+                video_id = video_ids.pop()
+            features = visual_index.index_paths(paths)
+            feat_fname = "{}/{}/indexes/{}_{}.npy".format(media_dir, video_id,regions_name, visual_index.name)
+            entries_fname = "{}/{}/indexes/{}_{}.json".format(media_dir, video_id,regions_name, visual_index.name)
+            with open(feat_fname, 'w') as feats:
+                np.save(feats, np.array(features))
+            with open(entries_fname, 'w') as entryfile:
+                json.dump(entries, entryfile)
         return visual_index.name,entries,feat_fname,entries_fname

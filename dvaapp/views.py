@@ -20,7 +20,7 @@ from shared import handle_uploaded_file, create_annotation, create_child_vdn_dat
     create_root_vdn_dataset, handle_youtube_video, pull_vdn_list, \
     import_vdn_dataset_url, create_detector_dataset, import_vdn_detector_url, refresh_task_status, \
     delete_video_object
-from operations.processing import DVAPQLProcess
+from operations.processing import DVAPQLProcess, get_queue_name
 from django.contrib.auth.decorators import user_passes_test,login_required
 from django.utils.decorators import method_decorator
 from django.contrib.auth.mixins import UserPassesTestMixin
@@ -970,7 +970,7 @@ def video_send_task(request):
         manual_event.video_id = video_id
         manual_event.arguments_json = args
         manual_event.save()
-        app.send_task(name=task_name, args=[manual_event.pk, ], queue=settings.get_queue_name(task_name,args))
+        app.send_task(name=task_name, args=[manual_event.pk, ], queue=get_queue_name(task_name,args))
     else:
         raise NotImplementedError
     return redirect('video_list')

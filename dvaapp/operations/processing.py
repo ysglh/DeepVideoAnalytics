@@ -14,6 +14,18 @@ from ..models import Video,DVAPQL,IndexerQuery,QueryResults,TEvent
 from collections import defaultdict
 from celery.result import AsyncResult
 
+def get_queue_name(operation,args):
+    if operation in settings.TASK_NAMES_TO_QUEUE:
+        return settings.TASK_NAMES_TO_QUEUE[operation]
+    elif 'index' in args and operation == 'perform_retrieval':
+        return settings.VISUAL_INDEXES[args['index']]['retriever_queue']
+    elif 'index' in args:
+        return settings.VISUAL_INDEXES[args['index']]['indexer_queue']
+    elif 'detector' in args:
+        return settings.DETECTORS[args['detector']]['queue']
+    else:
+        raise NotImplementedError,"{}, {}".format(operation,args)
+
 
 class DVAPQLProcess(object):
 
@@ -110,7 +122,7 @@ class DVAPQLProcess(object):
                 dt.save()
                 app.send_task(name=dt.operation,
                               args=[dt.pk, ],
-                              queue=settings.get_queue_name(dt.operation,dt.arguments_json))
+                              queue=get_queue_name(dt.operation,dt.arguments_json))
         elif self.query.query_json['process_type'] == DVAPQL.QUERY:
             for iq in IndexerQuery.objects.filter(parent_query=self.query):
                 task_name = 'perform_indexing'
@@ -125,7 +137,7 @@ class DVAPQLProcess(object):
                     ]
                 }
                 next_task = TEvent.objects.create(video=self.dv, operation=task_name, arguments_json=jargs)
-                queue_name = settings.get_queue_name(next_task.operation, next_task.arguments_json)
+                queue_name = get_queue_name(next_task.operation, next_task.arguments_json)
                 self.task_results[iq.algorithm] = app.send_task(task_name, args=[next_task.pk, ], queue=queue_name, priority=5)
                 self.context[iq.algorithm] = []
         else:

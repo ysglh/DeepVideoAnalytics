@@ -577,21 +577,26 @@ def export_video(request):
                 key = request.POST.get('key')
                 bucket = request.POST.get('bucket')
                 region = request.POST.get('region','us-east-1')
-                s3export = TEvent()
-                s3export.event_type = TEvent.S3EXPORT
-                s3export.video = video
-                s3export.arguments_json = {'key':key,'bucket':bucket,'region':region}
-                s3export.save()
-                task_name = 'backup_video_to_s3'
-                app.send_task(task_name, args=[s3export.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+                process_spec = {'process_type':DVAPQL.PROCESS,
+                          'tasks':[
+                              {
+                                  'video_id':video.pk,
+                                  'operation':'backup_video_to_s3',
+                                  'arguments_json': {'key':key,'bucket':bucket,'region':region}
+                              },
+                          ]}
             else:
-                task_name = 'export_video_by_id'
-                export_video_task = TEvent()
-                export_video_task.event_type = TEvent.EXPORT
-                export_video_task.video = video
-                export_video_task.operation = task_name
-                export_video_task.save()
-                app.send_task(task_name, args=[export_video_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+                process_spec = {'process_type':DVAPQL.PROCESS,
+                          'tasks':[
+                              {
+                                  'video_id':video.pk,
+                                  'operation':'export_video',
+                              },
+                          ]
+                          }
+            p = DVAPQLProcess()
+            p.create_from_json(process_spec)
+            p.launch()
         return redirect('video_list')
     else:
         raise NotImplementedError
@@ -940,21 +945,23 @@ def import_s3(request):
         keys = request.POST.get('key')
         region = request.POST.get('region')
         bucket = request.POST.get('bucket')
+        process_spec = {
+            'process_type': DVAPQL.PROCESS,
+        }
+        user = request.user if request.user.is_authenticated else None
+        tasks = []
         for key in keys.strip().split('\n'):
             if key.strip():
-                s3import = TEvent()
-                s3import.event_type = TEvent.S3IMPORT
-                s3import.arguments_json = {'key':key.strip(),'bucket':bucket,'region':region}
                 video = Video()
-                user = request.user if request.user.is_authenticated else None
                 if user:
                     video.uploader = user
                 video.name = "pending S3 import {} s3://{}/{}".format(region, bucket, key)
                 video.save()
-                s3import.video = video
-                s3import.save()
-                task_name = 'import_video_from_s3'
-                app.send_task(name=task_name, args=[s3import.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+                tasks.append({'video_id':video.pk,'operation':'import_video_from_s3','arguments_json':{'key':key.strip(),'bucket':bucket,'region':region}})
+        process_spec['tasks'] = tasks
+        p = DVAPQLProcess()
+        p.create_from_json(process_spec,user)
+        p.launch()
     else:
         raise NotImplementedError
     return redirect('video_list')

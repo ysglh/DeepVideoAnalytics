@@ -68,13 +68,14 @@ def process_next(task_id,inject_filters=None,custom_next_tasks=None,sync=True):
     dt = TEvent.objects.get(pk=task_id)
     launched = []
     logging.info("next tasks for {}".format(dt.operation))
+    next_tasks = dt.arguments_json.get('next_tasks',[]) if dt.arguments_json else []
     if sync:
         for k in settings.SYNC_TASKS.get(dt.operation,[]):
             args = perform_substitution(k['arguments'], dt,inject_filters)
             logging.info("launching {}, {} with args {} as specified in config".format(dt.operation, k['task_name'], args))
             next_task = TEvent.objects.create(video=dt.video,operation=k['task_name'],arguments_json=args,parent=dt)
             launched.append(app.send_task(k['task_name'], args=[next_task.pk, ], queue=get_queue_name(k['task_name'],args)).id)
-    for k in dt.arguments_json.get('next_tasks',[])+custom_next_tasks:
+    for k in next_tasks+custom_next_tasks:
         args = perform_substitution(k['arguments'], dt,inject_filters)
         logging.info("launching {}, {} with args {} as specified in next_tasks".format(dt.operation, k['task_name'], args))
         next_task = TEvent.objects.create(video=dt.video,operation=k['task_name'], arguments_json=args,parent=dt)

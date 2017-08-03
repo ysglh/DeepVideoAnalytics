@@ -477,7 +477,8 @@ def export_video_by_id(task_id):
     video_id = start.video_id
     video_obj = Video.objects.get(pk=video_id)
     file_name = '{}_{}.dva_export.zip'.format(video_id, int(calendar.timegm(time.gmtime())))
-    start.arguments_json['file_name'] = file_name
+    args = {'file_name':file_name}
+    start.arguments_json = args
     try:
         os.mkdir("{}/{}".format(settings.MEDIA_ROOT, 'exports'))
     except:

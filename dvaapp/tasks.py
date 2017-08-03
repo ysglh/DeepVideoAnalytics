@@ -504,7 +504,7 @@ def export_video_by_id(task_id):
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
-    return start.file_name
+    return file_name
 
 
 @app.task(track_started=True, name="import_video_by_id")

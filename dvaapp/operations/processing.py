@@ -100,6 +100,7 @@ class DVAPQLProcess(object):
                 iq.approximate = k['approximate']
                 iq.save()
         elif j['process_type'] == DVAPQL.PROCESS:
+            self.query.process_type = DVAPQL.PROCESS
             self.query.query_json = j
             self.query.save()
         elif j['process_type'] == DVAPQL.INGEST:

@@ -659,8 +659,8 @@ def push(request, video_id):
             s3export.arguments = {'key':key,'bucket':bucket,'region':region}
             s3export.save()
             create_root_vdn_dataset(s3export, server, headers, name, description)
-            task_name = 'push_video_to_vdn_s3'
-            app.send_task(task_name, args=[s3export.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+            operation = 'push_video_to_vdn_s3'
+            app.send_task(operation, args=[s3export.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[operation])
         else:
             raise NotImplementedError
 
@@ -743,13 +743,13 @@ def detectors(request):
         if request.POST.get('action') == 'detect':
             detector_pk = request.POST.get('detector_pk')
             video_pk = request.POST.get('video_pk')
-            task_name = "detect_custom_objects"
+            operation = "detect_custom_objects"
             apply_event = TEvent()
             apply_event.video_id = video_pk
-            apply_event.operation = task_name
+            apply_event.operation = operation
             apply_event.arguments = {'detector_pk': int(detector_pk)}
             apply_event.save()
-            app.send_task(name=task_name, args=[apply_event.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+            app.send_task(name=operation, args=[apply_event.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[operation])
         elif request.POST.get('action') == 'estimate':
             args = request.POST.get('args')
             args = json.loads(args) if args.strip() else {}
@@ -782,14 +782,14 @@ def detectors(request):
             detector.arguments = json.dumps(args)
             detector.save()
             args['detector_pk'] = detector.pk
-            task_name = "train_yolo_detector"
+            operation = "train_yolo_detector"
             train_event = TEvent()
-            train_event.operation = task_name
+            train_event.operation = operation
             train_event.arguments = args
             train_event.save()
             detector.source = train_event
             detector.save()
-            app.send_task(name=task_name, args=[train_event.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+            app.send_task(name=operation, args=[train_event.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[operation])
     return render(request, 'detectors.html', context)
 
 
@@ -831,14 +831,14 @@ def training(request):
             detector.arguments = json.dumps(args)
             detector.save()
             args['detector_pk'] = detector.pk
-            task_name = "train_yolo_detector"
+            operation = "train_yolo_detector"
             train_event = TEvent()
-            train_event.operation = task_name
+            train_event.operation = operation
             train_event.arguments = args
             train_event.save()
             detector.source = train_event
             detector.save()
-            app.send_task(name=task_name, args=[train_event.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+            app.send_task(name=operation, args=[train_event.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[operation])
     return render(request, 'training.html', context)
 
 
@@ -896,12 +896,12 @@ def clustering(request):
         c.m = m
         c.v = v
         c.save()
-        task_name = "perform_clustering"
+        operation = "perform_clustering"
         new_task = TEvent()
         new_task.clustering = c
-        new_task.operation = task_name
+        new_task.operation = operation
         new_task.save()
-        app.send_task(name=task_name, args=[new_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+        app.send_task(name=operation, args=[new_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[operation])
     return render(request, 'clustering.html', context)
 
 
@@ -979,12 +979,12 @@ def video_send_task(request):
     if request.method == 'POST':
         video_id = int(request.POST.get('video_id'))
         args = json.loads(request.POST.get('arguments','{}'))
-        task_name = request.POST.get('task_name')
+        operation = request.POST.get('operation')
         manual_event = TEvent()
         manual_event.video_id = video_id
         manual_event.arguments = args
         manual_event.save()
-        app.send_task(name=task_name, args=[manual_event.pk, ], queue=get_queue_name(task_name,args))
+        app.send_task(name=operation, args=[manual_event.pk, ], queue=get_queue_name(operation,args))
     else:
         raise NotImplementedError
     return redirect('video_list')

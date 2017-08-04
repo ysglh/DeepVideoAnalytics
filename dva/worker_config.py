@@ -72,15 +72,15 @@ MANUAL_VIDEO_TASKS = ['perform_indexing',
 OCR_VIDEO_TASKS = ['perform_textbox_detection_by_id',]
 
 DEFAULT_PROCESSING_PLAN =[
-    {'task_name': 'perform_detection', 'arguments': {
+    {'operation': 'perform_detection', 'arguments': {
         'filters':'__parent__',
         'detector':'coco',
         'next_tasks':[
-            {'task_name': 'crop_regions_by_id',
+            {'operation': 'crop_regions_by_id',
              'arguments': {
                  'filters': {'event_id': '__parent_event__'},
                  'next_tasks': [
-                     {'task_name': 'perform_indexing',
+                     {'operation': 'perform_indexing',
                       'arguments': {
                           'index': 'inception',
                           'target': 'regions',
@@ -91,16 +91,16 @@ DEFAULT_PROCESSING_PLAN =[
              }},
         ]}
      },
-    {'task_name': 'perform_detection', 'arguments': {
+    {'operation': 'perform_detection', 'arguments': {
         'filters':'__parent__',
         'detector':'face',
         'next_tasks':[
-            {'task_name': 'crop_regions_by_id',
+            {'operation': 'crop_regions_by_id',
              'arguments': {
                  'resize':[182,182],
                  'filters': {'event_id': '__parent_event__'},
                  'next_tasks': [
-                     {'task_name': 'perform_indexing',
+                     {'operation': 'perform_indexing',
                       'arguments': {
                           'index': 'facenet',
                           'target': 'regions',
@@ -111,7 +111,7 @@ DEFAULT_PROCESSING_PLAN =[
              }},
         ]}
      },
-    {'task_name': 'perform_indexing', 'arguments':
+    {'operation': 'perform_indexing', 'arguments':
         {'index': 'inception',
          'target': 'frames',
          'filters':'__parent__'
@@ -121,37 +121,37 @@ DEFAULT_PROCESSING_PLAN =[
 
 SYNC_TASKS = {
     "extract_frames":[
-        {'task_name':'sync_bucket','arguments':{'dirname':'frames'}},
+        {'operation':'sync_bucket','arguments':{'dirname':'frames'}},
     ],
     "segment_video":[
-        {'task_name':'sync_bucket','arguments':{'dirname':'segments'}},
+        {'operation':'sync_bucket','arguments':{'dirname':'segments'}},
     ],
     "decode_video":[
-        {'task_name': 'sync_bucket', 'arguments': {'dirname': 'frames'}},
+        {'operation': 'sync_bucket', 'arguments': {'dirname': 'frames'}},
     ],
     'perform_detection':[
     ],
     'crop_regions_by_id':[
-        {'task_name': 'sync_bucket', 'arguments': {'dirname': 'regions'}},
+        {'operation': 'sync_bucket', 'arguments': {'dirname': 'regions'}},
     ],
     'perform_indexing':[
-        {'task_name': 'sync_bucket', 'arguments': {'dirname': 'indexes'}},
+        {'operation': 'sync_bucket', 'arguments': {'dirname': 'indexes'}},
     ],
     'perform_face_detection':[
-        {'task_name': 'sync_bucket', 'arguments': {'dirname': 'regions'}},
+        {'operation': 'sync_bucket', 'arguments': {'dirname': 'regions'}},
     ],
     'import_vdn_file':[
-        {'task_name': 'sync_bucket', 'arguments': {}},
+        {'operation': 'sync_bucket', 'arguments': {}},
     ],
     'import_vdn_s3':[
-        {'task_name': 'sync_bucket', 'arguments': {}},
+        {'operation': 'sync_bucket', 'arguments': {}},
     ],
     'train_yolo_detector':[
     ],
     'import_vdn_detector_file':[
     ],
     'detect_custom_objects':[
-        {'task_name': 'sync_bucket', 'arguments': {'dirname': 'regions'}},
+        {'operation': 'sync_bucket', 'arguments': {'dirname': 'regions'}},
     ]
 }
 
@@ -213,11 +213,11 @@ if 'VGG_ENABLE' in os.environ:
             'retriever_queue': Q_VGG,
             'detection_specific': False
         }
-    DEFAULT_PROCESSING_PLAN.append({'task_name': 'perform_indexing', 'arguments': {'index': 'vgg', 'target': 'frames', 'filters': '__parent__'}})
+    DEFAULT_PROCESSING_PLAN.append({'operation': 'perform_indexing', 'arguments': {'index': 'vgg', 'target': 'frames', 'filters': '__parent__'}})
     for k in DEFAULT_PROCESSING_PLAN:
-        if k['task_name'] == 'perform_detection' and k['arguments']['detector'] == 'coco':
+        if k['operation'] == 'perform_detection' and k['arguments']['detector'] == 'coco':
             k['arguments']['next_tasks'][0]['arguments']['next_tasks'].append({
-                'task_name': 'perform_indexing',
+                'operation': 'perform_indexing',
                 'arguments': {'index': 'vgg',
                               'target': 'regions',
                               'filters': {'event_id': '__grand_parent_event__',

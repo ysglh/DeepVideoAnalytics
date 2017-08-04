@@ -93,11 +93,11 @@ def handle_uploaded_file(f, name, extract=True, user=None, rate=30, rescale=0):
                 destination.write(chunk)
         video.uploaded = True
         video.save()
-        task_name = 'import_video_by_id'
+        operation = 'import_video_by_id'
         import_video_task = TEvent()
         import_video_task.video = video
         import_video_task.save()
-        app.send_task(name=task_name, args=[import_video_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+        app.send_task(name=operation, args=[import_video_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[operation])
     elif filename.endswith('.mp4') or filename.endswith('.flv') or filename.endswith('.zip'):
         create_video_folders(video, create_subdirs=True)
         with open('{}/{}/video/{}.{}'.format(settings.MEDIA_ROOT, video.pk, video.pk, filename.split('.')[-1]),
@@ -156,11 +156,11 @@ def handle_downloaded_file(downloaded, video, name, extract=True, user=None, rat
         os.rename(downloaded, '{}/{}/{}.{}'.format(settings.MEDIA_ROOT, video.pk, video.pk, filename.split('.')[-1]))
         video.uploaded = True
         video.save()
-        task_name = 'import_video_by_id'
+        operation = 'import_video_by_id'
         import_video_task = TEvent()
         import_video_task.video = video
         import_video_task.save()
-        app.send_task(name=task_name, args=[import_video_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+        app.send_task(name=operation, args=[import_video_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[operation])
     elif filename.endswith('.mp4') or filename.endswith('.flv') or filename.endswith('.zip'):
         create_video_folders(video, create_subdirs=True)
         os.rename(downloaded,
@@ -383,19 +383,19 @@ def import_vdn_dataset_url(server, url, user):
     video.vdn_dataset = vdn_dataset
     video.save()
     if vdn_dataset.download_url:
-        task_name = 'import_vdn_file'
+        operation = 'import_vdn_file'
         import_video_task = TEvent()
         import_video_task.video = video
-        import_video_task.operation = task_name
+        import_video_task.operation = operation
         import_video_task.save()
-        app.send_task(name=task_name, args=[import_video_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+        app.send_task(name=operation, args=[import_video_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[operation])
     elif vdn_dataset.aws_key and vdn_dataset.aws_bucket:
-        task_name = 'import_vdn_s3'
+        operation = 'import_vdn_s3'
         import_video_task = TEvent()
         import_video_task.video = video
-        import_video_task.operation = task_name
+        import_video_task.operation = operation
         import_video_task.save()
-        app.send_task(name=task_name, args=[import_video_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+        app.send_task(name=operation, args=[import_video_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[operation])
     else:
         raise NotImplementedError
 
@@ -426,13 +426,13 @@ def import_vdn_detector_url(server, url, user):
     detector.vdn_detector = vdn_detector
     detector.save()
     if vdn_detector.download_url:
-        task_name = 'import_vdn_detector_file'
+        operation = 'import_vdn_detector_file'
         import_vdn_detector_task = TEvent()
-        import_vdn_detector_task.operation = task_name
+        import_vdn_detector_task.operation = operation
         import_vdn_detector_task.arguments = {'detector_pk': detector.pk}
         import_vdn_detector_task.save()
-        app.send_task(name=task_name, args=[import_vdn_detector_task.pk, ],
-                      queue=settings.TASK_NAMES_TO_QUEUE[task_name])
+        app.send_task(name=operation, args=[import_vdn_detector_task.pk, ],
+                      queue=settings.TASK_NAMES_TO_QUEUE[operation])
     elif vdn_detector.aws_key and vdn_detector.aws_bucket:
         raise NotImplementedError
     else:

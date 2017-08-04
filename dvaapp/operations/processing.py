@@ -126,20 +126,20 @@ class DVAPQLProcess(object):
                               queue=get_queue_name(dt.operation,dt.arguments))
         elif self.query.script['process_type'] == DVAPQL.QUERY:
             for iq in IndexerQuery.objects.filter(parent_query=self.query):
-                task_name = 'perform_indexing'
+                operation = 'perform_indexing'
                 jargs = {
                     'iq_id':iq.pk,
                     'index':iq.algorithm,
                     'target':'query',
                     'next_tasks':[
-                        { 'task_name': 'perform_retrieval',
+                        { 'operation': 'perform_retrieval',
                           'arguments': {'iq_id': iq.pk,'index':iq.algorithm}
                          }
                     ]
                 }
-                next_task = TEvent.objects.create(video=self.dv, operation=task_name, arguments=jargs)
+                next_task = TEvent.objects.create(video=self.dv, operation=operation, arguments=jargs)
                 queue_name = get_queue_name(next_task.operation, next_task.arguments)
-                self.task_results[iq.algorithm] = app.send_task(task_name, args=[next_task.pk, ], queue=queue_name, priority=5)
+                self.task_results[iq.algorithm] = app.send_task(operation, args=[next_task.pk, ], queue=queue_name, priority=5)
                 self.context[iq.algorithm] = []
         else:
             raise NotImplementedError

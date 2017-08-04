@@ -222,54 +222,18 @@
                     </div>
                 </div>
                 <div class="box box-primary">
+                    <div class="box-body text-center">
+                        <div class="row">
+                            <div class="col-xs-6"><a class="btn btn-primary" href="/process/"><i class="fa fa-play"></i> Run custom DVAPQL script</a></div>
+                            <div class="col-xs-6"><a class="btn btn-primary" href="/process/"><i class="fa fa-list"></i> Monitor running processes</a></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="box box-primary">
                     <div class="box-header with-border">
                         <h4 style="margin-top:10px;display:inline-block">Tasks status</h4>
-                        <a class="btn btn-primary" style="float:right" data-toggle="modal" data-target="#tasksubmit" href="#" ><i class="fa fa-play"></i> Manually run task</a>
-
                     </div>
                     <div class="box-body">
-                        <div class="modal fade" tabindex="-1" role="dialog" id="tasksubmit">
-                        <div class="modal-dialog" role="document">
-                            <div class="modal-content">
-                            <div class="modal-header">
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                                <h4 class="modal-title">Submit task manually</h4></div>
-                            <div class="modal-body" style="text-align:left">
-                            <form action="/video_send_task" method="POST" >
-                            <div class="row">
-                            <div class="col-sm-12">
-                                <div class="form-group">
-                                    <label for="task_name">Task</label>
-                                    <select class="js-example-basic" id="task_name" name="task_name" style="width:100%">
-                                    {% for v in manual_tasks %}
-                                        <option value="{{ v }}">{{ v }}</option>
-                                    {% endfor %}
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-sm-12"><div class="form-group">
-                                    <label for="video_name">Video</label>
-                                    <select class="js-example-basic" id="video_name" name="video_id" style="width:100%">
-                                    {% for v in videos %}
-                                        <option value="{{ v.pk }}">{{ v.name }}</option>
-                                    {% endfor %}
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-sm-9">
-                                <div class="form-group">
-                                    <label for="arguments_json">Arguments as JSON</label><textarea rows="2" class="form-control" name="arguments_json" id="arguments_json">{}</textarea>
-                                </div>
-                            </div>
-                            <div class="col-sm-3 text-center"><button class="form-actions btn btn-primary" style="margin-top:25px"  type="submit"><i class="fa fa-send"></i> Submit</button></div>
-                            </div>
-                        {% csrf_token %}
-                        </form>
-                        </div>
-                        </div>
-                        </div>
-                        </div>
-
                         <div class="row text-center">
                             <div class="col-xs-3">
                                 <a class="btn btn-warning" href="/tasks/pending/" style="margin: 10px auto" > <i class="fa fa-clock-o"></i> {{ pending_tasks }} pending</a>
@@ -368,8 +332,6 @@
     indexer_selector.select2({theme: "bootstrap"});
     var excluded_index_entries = $("#excluded_index_entries");
     excluded_index_entries.select2({theme: "bootstrap"});
-    var task_name = $("#task_name");
-    task_name.select2({theme: "bootstrap"});
     var video_name = $("#video_name");
     video_name.select2({theme: "bootstrap"});
     </script>

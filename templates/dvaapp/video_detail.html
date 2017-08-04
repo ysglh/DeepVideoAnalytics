@@ -152,6 +152,7 @@
                     <button type="submit" class="btn btn-block btn-primary" style="margin-top:20px"> <i class="fa fa-cloud-upload"></i> Backup to S3</button>
                 </div>
             </div>
+            </form>
             <h5 class="text-center">Delete currently requires retrieval workers to be restarted to purge index loaded in memory (a fix is pending)</h5>
             <h5 class="text-center">Provide AWS credential via environment variables or by running aws configure inside container or via IAM roles on EC2</h5>
             {% if exports or s3_exports %}
@@ -169,7 +170,7 @@
                     <tr>
                         <td>{{ e.started }}</td>
                         <td class="text-center">{{ e.completed }}</td>
-                        <td class="text-center">{% if e.arguments_json.file_name %}<a href="{{ MEDIA_URL }}exports/{{ e.arguments_json.file_name }}">click to download</a>{% endif %}</td>
+                        <td class="text-center">{% if e.arguments.file_name %}<a href="{{ MEDIA_URL }}exports/{{ e.arguments.file_name }}">click to download</a>{% endif %}</td>
                     </tr>
                 {% endfor %}
                 {% for e in s3_exports %}

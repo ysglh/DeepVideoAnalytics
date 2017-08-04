@@ -89,7 +89,7 @@
                                 <td>{{ e.video.name }}</td>
                                 <td>{{ e.started }}</td>
                                 <td class="text-center">{{ e.completed }}</td>
-                                <td class="text-center">{% if e.completed %}<a href="{{ MEDIA_URL }}exports/{{ e.arguments_json.file_name }}">click to download</a>{% endif %}</td>
+                                <td class="text-center">{% if e.completed %}<a href="{{ MEDIA_URL }}exports/{{ e.arguments.file_name }}">click to download</a>{% endif %}</td>
                             </tr>
                         {% endfor %}
                         {% for e in s3_exports %}

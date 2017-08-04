@@ -62,13 +62,13 @@ def perform_substitution(args,parent_task,inject_filters):
     return args
 
 
-def process_next(task_id,inject_filters=None,custom_next_tasks=None,sync=True):
+def process_next(task_id,inject_filters=None,custom_next_tasks=None,sync=True,launch_next=True):
     if custom_next_tasks is None:
         custom_next_tasks = []
     dt = TEvent.objects.get(pk=task_id)
     launched = []
     logging.info("next tasks for {}".format(dt.operation))
-    next_tasks = dt.arguments.get('next_tasks',[]) if dt.arguments else []
+    next_tasks = dt.arguments.get('next_tasks',[]) if dt.arguments and launch_next else []
     if sync:
         for k in settings.SYNC_TASKS.get(dt.operation,[]):
             args = perform_substitution(k['arguments'], dt,inject_filters)
@@ -293,35 +293,21 @@ def segment_video(task_id):
     v = VideoDecoder(dvideo=dv, media_dir=settings.MEDIA_ROOT)
     v.get_metadata()
     v.segment_video()
-    decodes = []
     if args.get('sync',False):
         next_args = {'rescale': args['rescale'], 'rate': args['rate']}
         next_task = TEvent.objects.create(video=dv, operation='decode_video', arguments=next_args, parent=start)
         decode_video(next_task.pk)  # decode it synchronously for testing in Travis
+        process_next(task_id)
     else:
         step = args.get("segments_batch_size",settings.DEFAULT_SEGMENTS_BATCH_SIZE)
         for gte, lt in [(k, k + step) for k in range(0, dv.segments, step)]:
             if lt < dv.segments:
-                next_args = {
-                    'rescale':args['rescale'],
-                    'rate':args['rate'],
-                    'filters': {'segment_index__gte': gte, 'segment_index__lt': lt}
-                }
+                filters = {'segment_index__gte': gte, 'segment_index__lt': lt}
             else:
                 # ensures off by one error does not happens [gte->
-                next_args = {
-                    'rescale':args['rescale'],
-                    'rate':args['rate'],
-                    'filters': {'segment_index__gte': gte}
-                }
-            next_task = TEvent.objects.create(video=dv, operation='decode_video', arguments=next_args, parent=start)
-            decodes.append(next_task.pk)
-        result = group([decode_video.s(i).set(queue=settings.TASK_NAMES_TO_QUEUE['decode_video']) for i in decodes]).apply_async()
-        # Do not wait for all segments to decode this risks creating a deadlock,
-        # e.g. when number of videos being segmented == number of qextract worker processes
-        # with allow_join_result():
-        #     result.join()
-    process_next(task_id)
+                filters = {'segment_index__gte': gte}
+            process_next(task_id, inject_filters=filters,sync=False) # Dont sync multiple times
+        process_next(task_id,launch_next=False) # Sync
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()

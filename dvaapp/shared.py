@@ -110,16 +110,37 @@ def handle_uploaded_file(f, name, extract=True, user=None, rate=30, rescale=0):
         video.save()
         if extract:
             p = processing.DVAPQLProcess()
-            query = {
-                'process_type':DVAPQL.PROCESS,
-                'tasks':[
-                    {
-                        'arguments':{'rate': rate, 'rescale': rescale,'next_tasks':settings.DEFAULT_PROCESSING_PLAN},
-                        'video_id':video.pk,
-                        'operation': 'extract_frames' if video.dataset else 'segment_video',
-                    }
-                ]
-            }
+            if video.dataset:
+                query = {
+                    'process_type':DVAPQL.PROCESS,
+                    'tasks':[
+                        {
+                            'arguments':{'rate': rate, 'rescale': rescale,'next_tasks':settings.DEFAULT_PROCESSING_PLAN},
+                            'video_id':video.pk,
+                            'operation': 'extract_frames',
+                        }
+                    ]
+                }
+            else:
+                query = {
+                    'process_type':DVAPQL.PROCESS,
+                    'tasks':[
+                        {
+                            'arguments':{'next_tasks':[
+                                             {'operation':'decode_video',
+                                               'arguments':{
+                                                   'rate': rate,
+                                                   'rescale': rescale,
+                                                   'next_tasks':settings.DEFAULT_PROCESSING_PLAN
+                                               }
+                                              }
+                                            ]},
+                            'video_id':video.pk,
+                            'operation': 'segment_video',
+                        }
+                    ]
+                }
+
             p.create_from_json(j=query,user=user)
             p.launch()
     else:
@@ -151,16 +172,36 @@ def handle_downloaded_file(downloaded, video, name, extract=True, user=None, rat
         video.save()
         if extract:
             p = processing.DVAPQLProcess()
-            query = {
-                'process_type':DVAPQL.PROCESS,
-                'tasks':[
-                    {
-                        'arguments':{'rate': rate, 'rescale': rescale,'next_tasks':settings.DEFAULT_PROCESSING_PLAN},
-                        'video_id':video.pk,
-                        'operation': 'extract_frames' if video.dataset else 'segment_video',
-                    }
-                ]
-            }
+            if video.dataset:
+                query = {
+                    'process_type':DVAPQL.PROCESS,
+                    'tasks':[
+                        {
+                            'arguments':{'rate': rate, 'rescale': rescale,'next_tasks':settings.DEFAULT_PROCESSING_PLAN},
+                            'video_id':video.pk,
+                            'operation': 'extract_frames',
+                        }
+                    ]
+                }
+            else:
+                query = {
+                    'process_type':DVAPQL.PROCESS,
+                    'tasks':[
+                        {
+                            'arguments':{'next_tasks':[
+                                             {'operation':'decode_video',
+                                              'arguments':{
+                                                   'rate': rate,
+                                                   'rescale': rescale,
+                                                   'next_tasks':settings.DEFAULT_PROCESSING_PLAN
+                                               }
+                                              }
+                                            ]},
+                            'video_id':video.pk,
+                            'operation': 'segment_video',
+                        }
+                    ]
+                }
             p.create_from_json(j=query,user=user)
             p.launch()
     else:

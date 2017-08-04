@@ -119,11 +119,11 @@ class DVAPQLProcess(object):
                 dt.parent_process = self.query
                 dt.video_id = t['video_id']
                 dt.operation = t['operation']
-                dt.arguments_json = t['arguments_json']
+                dt.arguments = t.get('arguments',{})
                 dt.save()
                 app.send_task(name=dt.operation,
                               args=[dt.pk, ],
-                              queue=get_queue_name(dt.operation,dt.arguments_json))
+                              queue=get_queue_name(dt.operation,dt.arguments))
         elif self.query.query_json['process_type'] == DVAPQL.QUERY:
             for iq in IndexerQuery.objects.filter(parent_query=self.query):
                 task_name = 'perform_indexing'
@@ -137,8 +137,8 @@ class DVAPQLProcess(object):
                          }
                     ]
                 }
-                next_task = TEvent.objects.create(video=self.dv, operation=task_name, arguments_json=jargs)
-                queue_name = get_queue_name(next_task.operation, next_task.arguments_json)
+                next_task = TEvent.objects.create(video=self.dv, operation=task_name, arguments=jargs)
+                queue_name = get_queue_name(next_task.operation, next_task.arguments)
                 self.task_results[iq.algorithm] = app.send_task(task_name, args=[next_task.pk, ], queue=queue_name, priority=5)
                 self.context[iq.algorithm] = []
         else:

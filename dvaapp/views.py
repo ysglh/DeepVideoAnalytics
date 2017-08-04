@@ -582,7 +582,7 @@ def export_video(request):
                               {
                                   'video_id':video.pk,
                                   'operation':'backup_video_to_s3',
-                                  'arguments_json': {'key':key,'bucket':bucket,'region':region}
+                                  'arguments': {'key':key,'bucket':bucket,'region':region}
                               },
                           ]}
             else:
@@ -656,7 +656,7 @@ def push(request, video_id):
             s3export = TEvent()
             s3export.event_type = TEvent.S3EXPORT
             s3export.video = video
-            s3export.arguments_json = {'key':key,'bucket':bucket,'region':region}
+            s3export.arguments = {'key':key,'bucket':bucket,'region':region}
             s3export.save()
             create_root_vdn_dataset(s3export, server, headers, name, description)
             task_name = 'push_video_to_vdn_s3'
@@ -692,25 +692,32 @@ def indexes(request):
         "region_types": Region.REGION_TYPES
     }
     if request.method == 'POST':
-        index_event = TEvent()
-        index_event.operation = 'perform_indexing'
-        arguments = {
+        filters = {
             'region_type__in': request.POST.getlist('region_type__in', []),
             'w__gte': int(request.POST.get('w__gte')),
             'h__gte': int(request.POST.get('h__gte'))
-        }
+         }
         for optional_key in ['metadata_text__contains', 'object_name__contains', 'object_name']:
             if request.POST.get(optional_key, None):
-                arguments[optional_key] = request.POST.get(optional_key)
+                filters[optional_key] = request.POST.get(optional_key)
         for optional_key in ['h__lte', 'w__lte']:
             if request.POST.get(optional_key, None):
-                arguments[optional_key] = int(request.POST.get(optional_key))
-        args = {'filters':arguments,'index':request.POST.get('visual_index_name')}
-        queue = settings.VISUAL_INDEXES[args['index']]['indexer_queue']
-        index_event.arguments_json = args
-        index_event.video_id = request.POST.get('video_id')
-        index_event.save()
-        app.send_task(name=index_event.operation, args=[index_event.pk, ],queue=queue)
+                filters[optional_key] = int(request.POST.get(optional_key))
+        args = {'filters':filters,'index':request.POST.get('visual_index_name')}
+        p = DVAPQLProcess()
+        spec = {
+            'process_type':DVAPQL.PROCESS,
+            'tasks':[
+                {
+                    'operation':'perform_indexing',
+                    'arguments':args,
+                    'video_id':request.POST.get('video_id')
+                }
+            ]
+        }
+        user = request.user if request.user.is_authenticated else None
+        p.create_from_json(spec,user)
+        p.launch()
     return render(request, 'indexes.html', context)
 
 
@@ -740,7 +747,7 @@ def detectors(request):
             apply_event = TEvent()
             apply_event.video_id = video_pk
             apply_event.operation = task_name
-            apply_event.arguments_json = {'detector_pk': int(detector_pk)}
+            apply_event.arguments = {'detector_pk': int(detector_pk)}
             apply_event.save()
             app.send_task(name=task_name, args=[apply_event.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[task_name])
         elif request.POST.get('action') == 'estimate':
@@ -778,7 +785,7 @@ def detectors(request):
             task_name = "train_yolo_detector"
             train_event = TEvent()
             train_event.operation = task_name
-            train_event.arguments_json = args
+            train_event.arguments = args
             train_event.save()
             detector.source = train_event
             detector.save()
@@ -827,7 +834,7 @@ def training(request):
             task_name = "train_yolo_detector"
             train_event = TEvent()
             train_event.operation = task_name
-            train_event.arguments_json = args
+            train_event.arguments = args
             train_event.save()
             detector.source = train_event
             detector.save()
@@ -957,7 +964,7 @@ def import_s3(request):
                     video.uploader = user
                 video.name = "pending S3 import {} s3://{}/{}".format(region, bucket, key)
                 video.save()
-                tasks.append({'video_id':video.pk,'operation':'import_video_from_s3','arguments_json':{'key':key.strip(),'bucket':bucket,'region':region}})
+                tasks.append({'video_id':video.pk,'operation':'import_video_from_s3','arguments':{'key':key.strip(),'bucket':bucket,'region':region}})
         process_spec['tasks'] = tasks
         p = DVAPQLProcess()
         p.create_from_json(process_spec,user)
@@ -971,11 +978,11 @@ def import_s3(request):
 def video_send_task(request):
     if request.method == 'POST':
         video_id = int(request.POST.get('video_id'))
-        args = json.loads(request.POST.get('arguments_json','{}'))
+        args = json.loads(request.POST.get('arguments','{}'))
         task_name = request.POST.get('task_name')
         manual_event = TEvent()
         manual_event.video_id = video_id
-        manual_event.arguments_json = args
+        manual_event.arguments = args
         manual_event.save()
         app.send_task(name=task_name, args=[manual_event.pk, ], queue=get_queue_name(task_name,args))
     else:
@@ -1006,7 +1013,7 @@ def retry_task(request):
     if settings.TASK_NAMES_TO_TYPE[event.operation] == settings.VIDEO_TASK:
         new_event = TEvent()
         new_event.video_id = event.video_id
-        new_event.arguments_json = event.arguments_json
+        new_event.arguments = event.arguments
         new_event.operation = event.operation
         new_event.save()
         result = app.send_task(name=event.operation, args=[new_event.pk],

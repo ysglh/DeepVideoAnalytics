@@ -196,29 +196,29 @@ def ci():
     # handle_youtube_video('world is not enough', 'https://www.youtube.com/watch?v=P-oNz3Nf50Q') # Temporarily disabled due error in travis
     for i,v in enumerate(Video.objects.all()):
         if v.dataset:
-            arguments_json = {'sync':True}
-            extract_frames(TEvent.objects.create(video=v,arguments_json=arguments_json).pk)
+            arguments = {'sync':True}
+            extract_frames(TEvent.objects.create(video=v,arguments=arguments).pk)
         else:
-            arguments_json = {'sync':True}
-            segment_video(TEvent.objects.create(video=v,arguments_json=arguments_json).pk)
-            arguments_json = {'index': 'inception'}
-            perform_indexing(TEvent.objects.create(video=v,arguments_json=arguments_json).pk)
+            arguments = {'sync':True}
+            segment_video(TEvent.objects.create(video=v,arguments=arguments).pk)
+            arguments = {'index': 'inception'}
+            perform_indexing(TEvent.objects.create(video=v,arguments=arguments).pk)
         if i ==0: # save travis time by just running detection on first video
             # face_mtcnn
-            arguments_json = {'detector': 'face'}
-            dt = TEvent.objects.create(video=v,arguments_json=arguments_json)
+            arguments = {'detector': 'face'}
+            dt = TEvent.objects.create(video=v,arguments=arguments)
             perform_detection(dt.pk)
-            arguments_json = {'filters':{'event_id':dt.pk},}
-            crop_regions_by_id(TEvent.objects.create(video=v,arguments_json=arguments_json).pk)
+            arguments = {'filters':{'event_id':dt.pk},}
+            crop_regions_by_id(TEvent.objects.create(video=v,arguments=arguments).pk)
             # coco_mobilenet
-            arguments_json = {'detector': 'coco'}
-            dt = TEvent.objects.create(video=v, arguments_json=arguments_json)
+            arguments = {'detector': 'coco'}
+            dt = TEvent.objects.create(video=v, arguments=arguments)
             perform_detection(dt.pk)
-            arguments_json = {'filters':{'event_id':dt.pk},}
-            crop_regions_by_id(TEvent.objects.create(video=v,arguments_json=arguments_json).pk)
+            arguments = {'filters':{'event_id':dt.pk},}
+            crop_regions_by_id(TEvent.objects.create(video=v,arguments=arguments).pk)
             # inception on crops from detector
-            arguments_json = {'index':'inception','target': 'regions','filters': {'event_id': dt.pk, 'w__gte': 50, 'h__gte': 50}}
-            perform_indexing(TEvent.objects.create(video=v,arguments_json=arguments_json).pk)
+            arguments = {'index':'inception','target': 'regions','filters': {'event_id': dt.pk, 'w__gte': 50, 'h__gte': 50}}
+            perform_indexing(TEvent.objects.create(video=v,arguments=arguments).pk)
             # assign_open_images_text_tags_by_id(TEvent.objects.create(video=v).pk)
         fname = export_video_by_id(TEvent.objects.create(video=v,event_type=TEvent.EXPORT).pk)
         f = SimpleUploadedFile(fname, file("{}/exports/{}".format(settings.MEDIA_ROOT,fname)).read(), content_type="application/zip")
@@ -289,7 +289,7 @@ def ci_face():
                 'filter':{'object_name__startswith':'MTCNN_face'},
                 'index':'facenet',
                 'target':'regions'}
-            perform_indexing(TEvent.objects.create(video=v,arguments_json=args).pk)
+            perform_indexing(TEvent.objects.create(video=v,arguments=args).pk)
 
 
 @task
@@ -857,7 +857,7 @@ def train_yolo(start_pk):
     from dvaapp.shared import create_detector_folders, create_detector_dataset
     from dvalib.yolo import trainer
     start = TEvent.objects.get(pk=start_pk)
-    args = start.arguments_json
+    args = start.arguments
     labels = set(args['labels']) if 'labels' in args else set()
     object_names = set(args['object_names']) if 'object_names' in args else set()
     detector = CustomDetector.objects.get(pk=args['detector_pk'])
@@ -958,12 +958,12 @@ def qt():
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
         v = handle_uploaded_file(f, name)
-        # arguments_json = {'sync': True}
-        # segment_video(TEvent.objects.create(video=v, arguments_json=arguments_json).pk)
-        # arguments_json = {'detector': 'face_mtcnn'}
+        # arguments = {'sync': True}
+        # segment_video(TEvent.objects.create(video=v, arguments=arguments).pk)
+        # arguments = {'detector': 'face_mtcnn'}
         # perform_detection(TEvent.objects.create(video=v).pk)
         # args = {'index': 'facenet','target': 'regions','filter':{'object_name__startswith':'MTCNN_face'}}
-        # perform_indexing(TEvent.objects.create(video=v,arguments_json=args).pk)
+        # perform_indexing(TEvent.objects.create(video=v,arguments=args).pk)
 
 
 @task

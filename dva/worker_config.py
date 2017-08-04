@@ -206,23 +206,24 @@ ANALYZERS = {
     }
 
 
-# if 'VGG_ENABLE' in os.environ:
-#     VISUAL_INDEXES['vgg']= {
-#             'indexer_task': "perform_indexing",
-#             'indexer_queue': Q_VGG,
-#             'retriever_queue': Q_VGG,
-#             'detection_specific': False
-#         }
-#     POST_OPERATION_TASKS['extract_frames'].append(
-#         {'task_name': 'perform_indexing', 'arguments': {'index': 'vgg', 'target': 'frames', 'filters': '__parent__'}})
-#     POST_OPERATION_TASKS['decode_video'].append(
-#         {'task_name': 'perform_indexing', 'arguments': {'index': 'vgg', 'target': 'frames', 'filters': '__parent__'}})
-#     POST_OPERATION_TASKS['perform_detection'][0]['arguments']['next_tasks'].append({
-#         'task_name': 'perform_indexing',
-#          'arguments': {
-#              'index': 'vgg',
-#              'target': 'regions',
-#              'filters': {'event_id': '__grand_parent_event__', 'w__gte': 50, 'h__gte': 50}
-#          }}
-#     )
+if 'VGG_ENABLE' in os.environ:
+    VISUAL_INDEXES['vgg']= {
+            'indexer_task': "perform_indexing",
+            'indexer_queue': Q_VGG,
+            'retriever_queue': Q_VGG,
+            'detection_specific': False
+        }
+    DEFAULT_PROCESSING_PLAN.append({'task_name': 'perform_indexing', 'arguments': {'index': 'vgg', 'target': 'frames', 'filters': '__parent__'}})
+    for k in DEFAULT_PROCESSING_PLAN:
+        if k['task_name'] == 'perform_detection' and k['arguments']['detector'] == 'coco':
+            k['arguments']['next_tasks'][0]['arguments']['next_tasks'].append({
+                'task_name': 'perform_indexing',
+                'arguments': {'index': 'vgg',
+                              'target': 'regions',
+                              'filters': {'event_id': '__grand_parent_event__',
+                                          'w__gte': 50,
+                                          'h__gte': 50
+                                           }
+                              }
+            })
 

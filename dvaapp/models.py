@@ -162,7 +162,7 @@ class TEvent(models.Model):
     start_ts = models.DateTimeField('date started', null=True)
     seconds = models.FloatField(default=-1)
     clustering = models.ForeignKey(Clusters,null=True)
-    arguments_json = JSONField(blank=True,null=True)
+    arguments = JSONField(blank=True,null=True)
     task_id = models.TextField(null=True)
     parent = models.ForeignKey('self',null=True)
     parent_process = models.ForeignKey(DVAPQL,null=True)

@@ -88,7 +88,7 @@ class DVAPQLProcess(object):
             if j['image_data_b64'].strip():
                 image_data = base64.decodestring(j['image_data_b64'])
                 self.query.image_data = image_data
-            self.query.query_json = j
+            self.query.script = j
             self.query.save()
             self.store_and_create_video_object()
             for k in j['indexer_queries']:
@@ -101,7 +101,7 @@ class DVAPQLProcess(object):
                 iq.save()
         elif j['process_type'] == DVAPQL.PROCESS:
             self.query.process_type = DVAPQL.PROCESS
-            self.query.query_json = j
+            self.query.script = j
             self.query.save()
         elif j['process_type'] == DVAPQL.INGEST:
             raise NotImplementedError
@@ -113,8 +113,8 @@ class DVAPQLProcess(object):
         pass
 
     def launch(self):
-        if self.query.query_json['process_type'] == DVAPQL.PROCESS:
-            for t in self.query.query_json['tasks']:
+        if self.query.script['process_type'] == DVAPQL.PROCESS:
+            for t in self.query.script['tasks']:
                 dt = TEvent()
                 dt.parent_process = self.query
                 dt.video_id = t['video_id']
@@ -124,7 +124,7 @@ class DVAPQLProcess(object):
                 app.send_task(name=dt.operation,
                               args=[dt.pk, ],
                               queue=get_queue_name(dt.operation,dt.arguments))
-        elif self.query.query_json['process_type'] == DVAPQL.QUERY:
+        elif self.query.script['process_type'] == DVAPQL.QUERY:
             for iq in IndexerQuery.objects.filter(parent_query=self.query):
                 task_name = 'perform_indexing'
                 jargs = {

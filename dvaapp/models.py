@@ -83,7 +83,7 @@ class DVAPQL(models.Model):
     created = models.DateTimeField('date created', auto_now_add=True)
     user = models.ForeignKey(User, null=True, related_name="submitter")
     image_data = models.BinaryField(null=True)
-    query_json = JSONField(blank=True, null=True)
+    script = JSONField(blank=True, null=True)
     results_metadata = models.TextField(default="")
     results_available = models.BooleanField(default=False)
     federated = models.BooleanField(default=False)

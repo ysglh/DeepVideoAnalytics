@@ -906,7 +906,7 @@ def clustering(request):
         c.save()
         operation = "perform_clustering"
         new_task = TEvent()
-        new_task.clustering = c
+        new_task.arguments = {'clusters_id':c.pk}
         new_task.operation = operation
         new_task.save()
         app.send_task(name=operation, args=[new_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[operation])

@@ -240,8 +240,8 @@ def import_detector(dd):
 
 def create_event(e,v):
     de = TEvent()
-    de.event_type = e.get('event_type',de.VIDEO)
     de.started = e.get('started',False)
+    de.start_ts = e.get('start_ts',None)
     de.completed = e.get('completed',False)
     de.errored = e.get('errored',False)
     de.error_message = e.get('error_message',"")
@@ -249,11 +249,6 @@ def create_event(e,v):
     de.operation = e.get('operation',"")
     de.created = e['created']
     de.seconds = e.get('seconds',-1)
-    de.file_name = e.get('file_name',"")
-    de.key = e.get('key',"")
-    de.bucket = e.get('bucket',"")
-    de.requester_pays = e.get('requester_pays',False)
-    de.clustering = e.get('clustering',None)
     de.arguments = e.get('arguments',{})
     de.task_id = e.get('task_id',"")
     return de

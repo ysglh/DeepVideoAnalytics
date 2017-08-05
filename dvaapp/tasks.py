@@ -3,7 +3,7 @@ import subprocess, sys, shutil, os, glob, time, logging, copy
 from PIL import Image
 from django.conf import settings
 from dva.celery import app
-from .models import Video, Frame, TEvent,  IndexEntries, ClusterCodes, Region, Tube, CustomDetector, Segment, IndexerQuery
+from .models import Video, Frame, TEvent,  IndexEntries, ClusterCodes, Region, Tube, Clusters, CustomDetector, Segment, IndexerQuery
 
 from .operations.indexing import IndexerTask
 from .operations.retrieval import RetrieverTask
@@ -855,7 +855,7 @@ def perform_clustering(cluster_task_id, test=False):
     clusters_dir = "{}/clusters/".format(settings.MEDIA_ROOT)
     if not os.path.isdir(clusters_dir):
         os.mkdir(clusters_dir)
-    dc = start.clustering
+    dc = Clusters.objects.get(pk=start.arguments['clusters_id'])
     fnames = []
     for ipk in dc.included_index_entries_pk:
         k = IndexEntries.objects.get(pk=ipk)

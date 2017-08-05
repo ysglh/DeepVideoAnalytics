@@ -34,22 +34,13 @@ class DVAPQLProcess(object):
         self.media_dir = media_dir
         self.task_results = {}
         self.context = {}
-        self.dv = None
         self.visual_indexes = settings.VISUAL_INDEXES
 
-    def store_and_create_video_object(self):
-        self.dv = Video()
-        self.dv.name = 'query_{}'.format(self.query.pk)
-        self.dv.dataset = True
-        self.dv.query = True
-        self.dv.parent_query = self.query
-        self.dv.save()
+    def store(self):
         if settings.HEROKU_DEPLOY:
             query_key = "queries/{}.png".format(self.query.pk)
-            query_frame_key = "{}/frames/0.png".format(self.dv.pk)
             s3 = boto3.resource('s3')
             s3.Bucket(settings.MEDIA_BUCKET).put_object(Key=query_key, Body=self.query.image_data)
-            s3.Bucket(settings.MEDIA_BUCKET).put_object(Key=query_frame_key, Body=self.query.image_data)
         else:
             query_path = "{}/queries/{}.png".format(settings.MEDIA_ROOT, self.query.pk)
             with open(query_path, 'w') as fh:
@@ -90,7 +81,7 @@ class DVAPQLProcess(object):
                 self.query.image_data = image_data
             self.query.script = j
             self.query.save()
-            self.store_and_create_video_object()
+            self.store()
             for k in j['indexer_queries']:
                 iq = IndexerQuery()
                 iq.parent_query = self.query

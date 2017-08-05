@@ -120,7 +120,7 @@ class Video(models.Model):
     url = models.TextField(default="")
     youtube_video = models.BooleanField(default=False)
     query = models.BooleanField(default=False)
-    parent_query = models.ForeignKey(DVAPQL,null=True)
+    parent_process = models.ForeignKey(DVAPQL,null=True)
     vdn_dataset = models.ForeignKey(VDNDataset, null=True)
 
     def __unicode__(self):
@@ -145,13 +145,6 @@ class Clusters(models.Model):
 
 
 class TEvent(models.Model):
-    VIDEO = 'V'
-    S3EXPORT = 'SE'
-    S3IMPORT = 'SI'
-    EXPORT = 'E'
-    CLUSTERING = 'CL'
-    TYPE_CHOICES = ((VIDEO, 'Video'), (S3EXPORT, 'S3 export'), (S3IMPORT, 'S3 import'), (CLUSTERING, 'Clustering'),(EXPORT,'Export as file'))
-    event_type = models.CharField(max_length=2, choices=TYPE_CHOICES, default=VIDEO, )
     started = models.BooleanField(default=False)
     completed = models.BooleanField(default=False)
     errored = models.BooleanField(default=False)
@@ -161,7 +154,6 @@ class TEvent(models.Model):
     created = models.DateTimeField('date created', auto_now_add=True)
     start_ts = models.DateTimeField('date started', null=True)
     seconds = models.FloatField(default=-1)
-    clustering = models.ForeignKey(Clusters,null=True)
     arguments = JSONField(blank=True,null=True)
     task_id = models.TextField(null=True)
     parent = models.ForeignKey('self',null=True)

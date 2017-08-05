@@ -447,7 +447,7 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
     context['running_tasks'] = TEvent.objects.all().filter(started=True, completed=False, errored=False).count()
     context['successful_tasks'] = TEvent.objects.all().filter(started=True, completed=True).count()
     context['errored_tasks'] = TEvent.objects.all().filter(errored=True).count()
-    context['video_count'] = Video.objects.count() - context['query_count']
+    context['video_count'] = Video.objects.count()
     context['index_entries'] = IndexEntries.objects.all()
     context['region_count'] = Region.objects.all().count()
     context['tube_count'] = Tube.objects.all().count()
@@ -653,14 +653,22 @@ def push(request, video_id):
             bucket = request.POST.get('bucket')
             name = request.POST.get('name')
             description = request.POST.get('description')
-            s3export = TEvent()
-            s3export.event_type = TEvent.S3EXPORT
-            s3export.video = video
-            s3export.arguments = {'key':key,'bucket':bucket,'region':region}
-            s3export.save()
-            create_root_vdn_dataset(s3export, server, headers, name, description)
-            operation = 'push_video_to_vdn_s3'
-            app.send_task(operation, args=[s3export.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[operation])
+            vdn = create_root_vdn_dataset(region, bucket, key, server, headers, name, description)
+            video.vdn_dataset = vdn
+            spec = {
+                'process_type':DVAPQL.PROCESS,
+                'tasks':[
+                    {
+                        'operation':'push_video_to_vdn_s3',
+                        'arumgents': {'key':key,
+                                      'bucket':bucket,
+                                      'region':region}
+                     }
+                ]
+            }
+            p = DVAPQLProcess()
+            p.create_from_json(spec,request.user)
+            p.launch()
         else:
             raise NotImplementedError
 
@@ -1009,22 +1017,19 @@ def external(request):
 def retry_task(request):
     pk = request.POST.get('pk')
     event = TEvent.objects.get(pk=int(pk))
-    context = {}
-    if settings.TASK_NAMES_TO_TYPE[event.operation] == settings.VIDEO_TASK:
-        new_event = TEvent()
-        new_event.video_id = event.video_id
-        new_event.arguments = event.arguments
-        new_event.operation = event.operation
-        new_event.save()
-        result = app.send_task(name=event.operation, args=[new_event.pk],
-                               queue=settings.TASK_NAMES_TO_QUEUE[event.operation])
-        context['alert'] = "Operation {} on {} submitted".format(event.operation, event.video.name,
-                                                                 queue=settings.TASK_NAMES_TO_QUEUE[event.operation])
-        return redirect('tasks')
-    elif settings.TASK_NAMES_TO_TYPE[event.operation] == settings.QUERY_TASK:
-        return redirect("/requery/{}/".format(event.video.parent_query_id))
-    else:
-        raise NotImplementedError
+    spec = {
+        'process_type':DVAPQL.PROCESS,
+        'tasks':[
+            {
+                'operation':event.operation,
+                'arguments':event.arguments
+            }
+        ]
+    }
+    p = DVAPQLProcess()
+    p.create_from_json(spec)
+    p.launch()
+    return redirect('/processes/')
 
 
 @user_passes_test(user_check)

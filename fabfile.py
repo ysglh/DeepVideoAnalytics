@@ -230,8 +230,7 @@ def ci():
     dc.components = 32
     dc.save()
     clustering_task = TEvent()
-    clustering_task.clustering = dc
-    clustering_task.event_type = TEvent.CLUSTERING
+    clustering_task.arguments = {'clusters_id':dc}
     clustering_task.operation = 'perform_clustering'
     clustering_task.save()
     perform_clustering(clustering_task.pk)

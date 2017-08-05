@@ -295,12 +295,12 @@ def create_child_vdn_dataset(parent_video, server, headers):
                                                new_dataset)
 
 
-def create_root_vdn_dataset(s3export, server, headers, name, description):
+def create_root_vdn_dataset(region, bucket, key, server, headers, name, description):
     new_dataset = {'root': True,
                    'aws_requester_pays': True,
-                   'aws_region': s3export.arguments['region'],
-                   'aws_bucket': s3export.arguments['bucket'],
-                   'aws_key': s3export.arguments['key'],
+                   'aws_region': region,
+                   'aws_bucket': bucket,
+                   'aws_key': key,
                    'name': name,
                    'description': description
                    }
@@ -315,7 +315,6 @@ def create_root_vdn_dataset(s3export, server, headers, name, description):
         vdn_dataset.response = r.text
         vdn_dataset.server = server
         vdn_dataset.save()
-        s3export.video.vdn_dataset = vdn_dataset
         return vdn_dataset
     else:
         raise ValueError, "Could not crated dataset"

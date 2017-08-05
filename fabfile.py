@@ -177,7 +177,7 @@ def ci():
     from dvaapp.models import Video, Clusters,IndexEntries,TEvent,VDNServer, DVAPQL
     from django.conf import settings
     from dvaapp.operations.processing import DVAPQLProcess
-    from dvaapp.tasks import extract_frames, perform_indexing, export_video_by_id, import_video_by_id,\
+    from dvaapp.tasks import extract_frames, perform_indexing, export_video, import_video_by_id,\
         perform_clustering, perform_analysis, perform_detection,\
         segment_video, crop_regions_by_id
     for fname in glob.glob('tests/ci/*.mp4'):
@@ -220,7 +220,7 @@ def ci():
             arguments = {'index':'inception','target': 'regions','filters': {'event_id': dt.pk, 'w__gte': 50, 'h__gte': 50}}
             perform_indexing(TEvent.objects.create(video=v,arguments=arguments).pk)
             # assign_open_images_text_tags_by_id(TEvent.objects.create(video=v).pk)
-        fname = export_video_by_id(TEvent.objects.create(video=v,event_type=TEvent.EXPORT).pk)
+        fname = export_video(TEvent.objects.create(video=v).pk)
         f = SimpleUploadedFile(fname, file("{}/exports/{}".format(settings.MEDIA_ROOT,fname)).read(), content_type="application/zip")
         vimported = handle_uploaded_file(f, fname)
         import_video_by_id(TEvent.objects.create(video=vimported).pk)

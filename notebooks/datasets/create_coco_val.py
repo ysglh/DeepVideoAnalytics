@@ -8,7 +8,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from dvaapp.shared import handle_uploaded_file
 from dvaapp import models
 from dvaapp.models import TEvent
-from dvaapp.tasks import extract_frames, export_video_by_id
+from dvaapp.tasks import extract_frames, export_video
 from collections import defaultdict
 
 
@@ -146,4 +146,4 @@ except:
             print "skipping"
             print k.object_name
 buf = []
-export_video_by_id(TEvent.objects.create(video=v).pk)
+export_video(TEvent.objects.create(video=v).pk)

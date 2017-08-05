@@ -144,8 +144,8 @@ class VideoList(UserPassesTestMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super(VideoList, self).get_context_data(**kwargs)
-        context['exports'] = TEvent.objects.all().filter(event_type=TEvent.EXPORT)
-        context['s3_exports'] = TEvent.objects.all().filter(event_type=TEvent.S3EXPORT)
+        context['exports'] = TEvent.objects.all().filter(operation='export_video')
+        context['s3_exports'] = TEvent.objects.all().filter(operation='export_video')
         return context
 
     def test_func(self):
@@ -208,8 +208,8 @@ class VideoDetail(UserPassesTestMixin, DetailView):
         context = super(VideoDetail, self).get_context_data(**kwargs)
         max_frame_index = Frame.objects.all().filter(video=self.object).aggregate(Max('frame_index'))[
             'frame_index__max']
-        context['exports'] = TEvent.objects.all().filter(event_type=TEvent.EXPORT, video=self.object)
-        context['s3_exports'] = TEvent.objects.all().filter(event_type=TEvent.S3EXPORT, video=self.object)
+        context['exports'] = TEvent.objects.all().filter(operation='export_video', video=self.object)
+        context['s3_exports'] = TEvent.objects.all().filter(operation='export_video', video=self.object)
         context['annotation_count'] = Region.objects.all().filter(video=self.object,
                                                                   region_type=Region.ANNOTATION).count()
         if self.object.vdn_dataset:

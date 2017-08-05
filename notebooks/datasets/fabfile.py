@@ -41,7 +41,7 @@ def generate_vdn(fast=False):
     from dvaapp.models import TEvent
     from dvaapp.tasks import extract_frames, perform_face_detection_indexing_by_id, inception_index_by_id, \
         perform_ssd_detection_by_id, perform_yolo_detection_by_id, inception_index_regions_by_id, \
-        export_video_by_id
+        export_video
     dirname = get_coco_dirname()
     local('wget https://www.dropbox.com/s/2dq085iu34y0hdv/coco_input.zip?dl=1 -O coco.zip')
     local('unzip coco.zip')
@@ -106,7 +106,7 @@ def generate_vdn(fast=False):
         perform_ssd_detection_by_id(TEvent.objects.create(video=v).pk)
         perform_face_detection_indexing_by_id(TEvent.objects.create(video=v).pk)
         inception_index_regions_by_id(TEvent.objects.create(video=v).pk)
-    export_video_by_id(TEvent.objects.create(video=v).pk)
+    export_video(TEvent.objects.create(video=v).pk)
 
 
 @task
@@ -120,7 +120,7 @@ def create_yolo_test_data():
     from dvaapp.shared import handle_uploaded_file
     from django.core.files.uploadedfile import SimpleUploadedFile
     from dvaapp.models import Region,TEvent,Frame, AppliedLabel
-    from dvaapp.tasks import extract_frames,export_video_by_id
+    from dvaapp.tasks import extract_frames,export_video
     try:
         shutil.rmtree('tests/yolo_test')
     except:
@@ -170,7 +170,7 @@ def create_yolo_test_data():
             l.label_name = class_names[c]
             l.region = r
             l.save()
-    export_video_by_id(TEvent.objects.create(video=dv).pk)
+    export_video(TEvent.objects.create(video=dv).pk)
     try:
         shutil.rmtree('tests/yolo_test')
     except:
@@ -184,7 +184,7 @@ def process_visual_genome():
     from dvaapp.shared import handle_uploaded_file
     from dvaapp import models
     from dvaapp.models import TEvent
-    from dvaapp.tasks import extract_frames, export_video_by_id
+    from dvaapp.tasks import extract_frames, export_video
     from collections import defaultdict
     os.system('aws s3api get-object --request-payer "requester" --bucket visualdatanetwork --key visual_genome_objects.txt.gz  /root/DVA/visual_genome_objects.txt.gz')
     data = defaultdict(list)
@@ -254,7 +254,7 @@ def process_visual_genome():
                 print "skipping"
                 print k.object_name
     print "exporting"
-    export_video_by_id(TEvent.objects.create(video=v).pk)
+    export_video(TEvent.objects.create(video=v).pk)
 
 
 @task

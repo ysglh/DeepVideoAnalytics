@@ -104,8 +104,6 @@ def perform_indexing(task_id):
     start.started = True
     start.ts = datetime.now()
     start.operation = perform_indexing.name
-    video_id = start.video_id
-    dv = Video.objects.get(id=video_id)
     json_args = start.arguments
     target = json_args.get('target','frames')
     index_name = json_args['index']
@@ -128,6 +126,8 @@ def perform_indexing(task_id):
         iq.parent_query.save()
         sync = False
     else:
+        video_id = start.video_id
+        dv = Video.objects.get(id=video_id)
         arguments = json_args.get('filters', {})
         arguments['video_id'] = dv.pk
         media_dir = settings.MEDIA_ROOT
@@ -451,15 +451,15 @@ def perform_analysis(task_id):
     return 0
 
 
-@app.task(track_started=True, name="export_video_by_id")
-def export_video_by_id(task_id):
+@app.task(track_started=True, name="export_video")
+def export_video(task_id):
     start = TEvent.objects.get(pk=task_id)
     if celery_40_bug_hack(start):
         return 0
-    start.task_id = export_video_by_id.request.id
+    start.task_id = export_video.request.id
     start.started = True
     start.ts = datetime.now()
-    start.operation = export_video_by_id.name
+    start.operation = export_video.name
     start.save()
     start_time = time.time()
     video_id = start.video_id

@@ -128,7 +128,7 @@ class DVAPQLProcess(object):
                          }
                     ]
                 }
-                next_task = TEvent.objects.create(video=self.dv, operation=operation, arguments=jargs)
+                next_task = TEvent.objects.create(parent_process=self.query, operation=operation, arguments=jargs)
                 queue_name = get_queue_name(next_task.operation, next_task.arguments)
                 self.task_results[iq.algorithm] = app.send_task(operation, args=[next_task.pk, ], queue=queue_name, priority=5)
                 self.context[iq.algorithm] = []

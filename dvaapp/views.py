@@ -355,7 +355,7 @@ class SegmentDetail(UserPassesTestMixin, DetailView):
         return user_check(self.request.user)
 
 
-class DVAPQLList(UserPassesTestMixin, ListView):
+class VisualSearchList(UserPassesTestMixin, ListView):
     model = DVAPQL
     template_name = "dvaapp/query_list.html"
 
@@ -367,12 +367,12 @@ class DVAPQLList(UserPassesTestMixin, ListView):
         return new_context
 
 
-class DVAPQLDetail(UserPassesTestMixin, DetailView):
+class VisualSearchDetail(UserPassesTestMixin, DetailView):
     model = DVAPQL
     template_name = "dvaapp/query_detail.html"
 
     def get_context_data(self, **kwargs):
-        context = super(DVAPQLDetail, self).get_context_data(**kwargs)
+        context = super(VisualSearchDetail, self).get_context_data(**kwargs)
         qp = DVAPQLProcess(query=context['object'],media_dir=settings.MEDIA_ROOT)
         qp.collect()
         context['results'] = qp.context.items()
@@ -382,6 +382,27 @@ class DVAPQLDetail(UserPassesTestMixin, DetailView):
     def test_func(self):
         return user_check(self.request.user)
 
+
+class ProcessList(UserPassesTestMixin, ListView):
+    model = DVAPQL
+    template_name = "dvaapp/process_list.html"
+    paginate_by = 50
+
+    def test_func(self):
+        return user_check(self.request.user)
+
+    def get_queryset(self):
+        new_context = DVAPQL.objects.filter().order_by('-created')
+        return new_context
+
+
+class ProcessDetail(UserPassesTestMixin, ListView):
+    model = DVAPQL
+    template_name = "dvaapp/process_detail.html"
+    paginate_by = 50
+
+    def test_func(self):
+        return user_check(self.request.user)
 
 class VDNDatasetDetail(UserPassesTestMixin, DetailView):
     model = VDNDataset
@@ -914,9 +935,11 @@ def clustering(request):
 
 
 @user_passes_test(user_check)
-def process(request):
-    context = {}
-    return render(request, 'process.html', context)
+def submit_process(request):
+    if request.method == 'POST':
+        context = {}
+
+    return redirect("process_list")
 
 
 @user_passes_test(user_check)
@@ -977,22 +1000,6 @@ def import_s3(request):
         p = DVAPQLProcess()
         p.create_from_json(process_spec,user)
         p.launch()
-    else:
-        raise NotImplementedError
-    return redirect('video_list')
-
-
-@user_passes_test(user_check)
-def video_send_task(request):
-    if request.method == 'POST':
-        video_id = int(request.POST.get('video_id'))
-        args = json.loads(request.POST.get('arguments','{}'))
-        operation = request.POST.get('operation')
-        manual_event = TEvent()
-        manual_event.video_id = video_id
-        manual_event.arguments = args
-        manual_event.save()
-        app.send_task(name=operation, args=[manual_event.pk, ], queue=get_queue_name(operation,args))
     else:
         raise NotImplementedError
     return redirect('video_list')

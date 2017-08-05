@@ -42,6 +42,26 @@
                     <h4>Running & Completed processes</h4>
                 </div>
                 <div class="box-body">
+                    <table class="table dataTables">
+                    <thead>
+                    <tr>
+                        <th>Video</th>
+                        <th class="text-center">status and details</th>
+                        <th class="text-center">retry task</th>
+                        <th class="text-center">mark as failed</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for p in object_list %}
+                        <tr>
+                            <td>{{ p.video.name }}</td>
+                            <td>{{ p.operation }}</td>
+                            <td class="text-center">{{ e.created|timesince}}</td>
+                            <td class="text-center">{{ e.created|date:"U" }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    </table>
                 </div>
             </div>
         </div>

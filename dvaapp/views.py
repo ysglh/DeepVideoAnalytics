@@ -451,7 +451,7 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
     context['index_entries'] = IndexEntries.objects.all()
     context['region_count'] = Region.objects.all().count()
     context['tube_count'] = Tube.objects.all().count()
-    context["videos"] = Video.objects.all().filter(parent_query__isnull=True)
+    context["videos"] = Video.objects.all().filter()
     context['manual_tasks'] = settings.MANUAL_VIDEO_TASKS
     context['custom_detector_count'] = CustomDetector.objects.all().count()
     return render(request, 'dashboard.html', context)
@@ -696,7 +696,7 @@ def indexes(request):
     context = {
         'visual_index_list': settings.VISUAL_INDEXES.items(),
         'index_entries': IndexEntries.objects.all(),
-        "videos": Video.objects.all().filter(parent_query__isnull=True),
+        "videos": Video.objects.all().filter(),
         "region_types": Region.REGION_TYPES
     }
     if request.method == 'POST':
@@ -732,7 +732,7 @@ def indexes(request):
 @user_passes_test(user_check)
 def detectors(request):
     context = {}
-    context["videos"] = Video.objects.all().filter(parent_query__isnull=True)
+    context["videos"] = Video.objects.all().filter()
     context["detectors"] = CustomDetector.objects.all()
     detector_stats = []
     for d in CustomDetector.objects.all():
@@ -804,7 +804,7 @@ def detectors(request):
 @user_passes_test(user_check)
 def training(request):
     context = {}
-    context["videos"] = Video.objects.all().filter(parent_query__isnull=True)
+    context["videos"] = Video.objects.all().filter()
     context["detectors"] = CustomDetector.objects.all()
     if request.method == 'POST':
         if request.POST.get('action') == 'estimate':
@@ -852,7 +852,7 @@ def training(request):
 
 @user_passes_test(user_check)
 def textsearch(request):
-    context = {'results': {}, "videos": Video.objects.all().filter(parent_query__isnull=True)}
+    context = {'results': {}, "videos": Video.objects.all().filter()}
     q = request.GET.get('q')
     if q:
         offset = int(request.GET.get('offset',0))
@@ -877,7 +877,7 @@ def textsearch(request):
 @user_passes_test(user_check)
 def ocr(request):
     context = {'results': {},
-               "videos": Video.objects.all().filter(parent_query__isnull=True),
+               "videos": Video.objects.all().filter(),
                'manual_tasks':settings.OCR_VIDEO_TASKS
                }
     return render(request, 'ocr.html', context)

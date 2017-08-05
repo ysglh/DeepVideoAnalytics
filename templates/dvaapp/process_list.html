@@ -7,33 +7,53 @@
     <div class="box box-info">
         <div class="box-header">
             <h2>Inspect, Monitor & Launch processes</h2>
+            {% if is_paginated %}
+                <div class="pagination text-center" style="width:100%">
+                    <span class="page-links">
+                        {% if page_obj.has_previous %}
+                            <a class="btn btn-info" style="float:left" href=".?page={{ page_obj.previous_page_number }}"><i class="fa fa-backward"></i>  Go back</a>
+                        {% endif %}
+                        <span class="page-current " style="font-size:24pt;font-weight:bold">
+                            {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+                        </span>
+                        {% if page_obj.has_next %}
+                            <a class="btn btn-info" style="float:right" href=".?page={{ page_obj.next_page_number }}">Load more  <i class="fa fa-forward"></i></a>
+                        {% endif %}
+                    </span>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>
 </section>
 <section class="content">
     <div class="row">
-        <div class="col-lg-6">
+        <div class="col-lg-12">
+            <form method="post" action="/submit_process">
             <div class="box box-primary">
                 <div class="box-header with-border">
-                    <h4>Default launch configuration</h4>
+                    <h4>Launch a processing or query task using DVAPQL</h4>
                 </div>
                 <div class="box-body">
-
+                    <div class="row">
+                    <div class="col-lg-6 text-center">
+                        <a onclick="texttojson()" class="btn-primary btn"><i class="fa fa-forward"></i> Convert text to JSON</a>
+                        <textarea name="script" id="scripttext" style="margin:15px auto;width:90%;height: 400px"></textarea>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="text-center"><a onclick="jsontotext()" class="btn-primary btn"><i class="fa fa-backword"></i> Convert JSON to text</a></div>
+                        <div class="form-group">
+                            <div id="jsoneditor" style="margin:15px auto;width:90%;height: 400px;"></div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+                <div class="box-footer text-center">
+                    <button class="btn btn-primary" type="submit">Submit & Launch</button>
                 </div>
             </div>
+            </form>
         </div>
-    <div class="col-lg-6">
-        <div class="box box-primary">
-            <div class="box-header with-border">
-                <h4>Launch a processing or query task using DVAPQL</h4>
-            </div>
-            <div class="box-body">
-            </div>
-            <div class="box-footer">
-            </div>
-        </div>
-    </div>
     </div>
     <div class="row">
         <div class="col-lg-12">
@@ -45,19 +65,27 @@
                     <table class="table dataTables">
                     <thead>
                     <tr>
-                        <th>Video</th>
-                        <th class="text-center">status and details</th>
-                        <th class="text-center">retry task</th>
-                        <th class="text-center">mark as failed</th>
+                        <th class="text-center">User</th>
+                        <th class="text-center">Type</th>
+                        <th class="text-center">Since</th>
+                        <th class="text-center">Created</th>
+                        <th class="text-center">Details</th>
                     </tr>
                     </thead>
                     <tbody>
                     {% for p in object_list %}
                         <tr>
-                            <td>{{ p.video.name }}</td>
-                            <td>{{ p.operation }}</td>
-                            <td class="text-center">{{ e.created|timesince}}</td>
-                            <td class="text-center">{{ e.created|date:"U" }}</td>
+                            <td>{{ p.user }}</td>
+                            <td>{{ p.process_type }}</td>
+                            <td class="text-center">{{ p.created|timesince}}</td>
+                            <td class="text-center">{{ p.created|date:"U" }}</td>
+                            <td class="text-center">
+                                {% if p.process_type == 'Q' %}
+                                    <a href="/queries/{{ p.pk }}">details</a>
+                                {% else %}
+                                    <a href="/process/{{ p.pk }}">details</a>
+                                {% endif %}
+                            </td>
                         </tr>
                     {% endfor %}
                     </tbody>
@@ -72,6 +100,21 @@
 <script>
     $(document).ready(function() {
         InitializeTables();
+        var container = document.getElementById("jsoneditor");
+        var scripttext = document.getElementById("scripttext");
+        var options = {};
+        var editor = new JSONEditor(container, options);
+        var json = {
+            "Array": [1, 2, 3],
+            "Boolean": true,
+            "Null": null,
+            "Number": 123,
+            "Object": {"a": "b", "c": "d"},
+            "String": "Hello World"
+        };
+        editor.set(json);
+        scripttext.textContent = JSON.stringify(editor.get());
+        var json = editor.get();
 {#        var visual_index_name = $("#visual_index_name");#}
 {#        visual_index_name.select2({theme: "bootstrap"});#}
 {#        var video_name = $("#video_name");#}

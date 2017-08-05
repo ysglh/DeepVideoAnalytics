@@ -396,10 +396,13 @@ class ProcessList(UserPassesTestMixin, ListView):
         return new_context
 
 
-class ProcessDetail(UserPassesTestMixin, ListView):
+class ProcessDetail(UserPassesTestMixin, DetailView):
     model = DVAPQL
     template_name = "dvaapp/process_detail.html"
-    paginate_by = 50
+
+    def get_context_data(self, **kwargs):
+        context = super(ProcessDetail, self).get_context_data(**kwargs)
+        return context
 
     def test_func(self):
         return user_check(self.request.user)

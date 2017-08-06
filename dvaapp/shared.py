@@ -223,7 +223,7 @@ def create_annotation(form, object_name, labels, frame):
         annotation.y = form.cleaned_data['y']
         annotation.h = form.cleaned_data['h']
         annotation.w = form.cleaned_data['w']
-    annotation.metadata_text = form.cleaned_data['metadata_text']
+    annotation.text = form.cleaned_data['text']
     annotation.metadata = form.cleaned_data['metadata']
     annotation.frame = frame
     annotation.video = frame.video

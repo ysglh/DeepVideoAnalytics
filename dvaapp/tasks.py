@@ -434,7 +434,7 @@ def perform_analysis(task_id):
             tags = analyzer.apply(path)
             a = Region()
             a.object_name = "OpenImagesTag"
-            a.metadata_text = " ".join([t for t,v in tags.iteritems() if v > 0.1])
+            a.text = " ".join([t for t,v in tags.iteritems() if v > 0.1])
             a.metadata = {t:100.0*v for t,v in tags.iteritems() if v > 0.1}
             a.frame_id = f.id
             a.full_frame = True

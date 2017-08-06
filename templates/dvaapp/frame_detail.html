@@ -34,7 +34,7 @@
                 <div class="row">
                 <div class="col-sm-6"><div class="form-group">
                     <label for="metadat_json">Metadata Text</label>
-                    <textarea class="form-control" rows="2" placeholder="metadata_text" name="metadata_text"></textarea>
+                    <textarea class="form-control" rows="2" placeholder="text" name="text"></textarea>
                 </div></div>
                 <div class="col-sm-6"><div class="form-group">
                     <label for="metadat_json">Metadata JSON</label>
@@ -201,7 +201,7 @@
       </div>
       <div class="modal-body">
         <h4 class="text-center">Text metadata</h4>
-        <textarea rows="10" style="width:100%;">{{ k.metadata_text }}</textarea>
+        <textarea rows="10" style="width:100%;">{{ k.text }}</textarea>
         <h4 class="text-center">JSON metadata</h4>
         <textarea rows="10" style="width:100%;">{{ k.metadata }}</textarea>
         {% if not k.full_frame %}

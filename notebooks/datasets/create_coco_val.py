@@ -102,7 +102,7 @@ for frame in models.Frame.objects.all().filter(video=video):
         annotation.region_type = models.Region.ANNOTATION
         annotation.video_id = v.pk
         annotation.frame_id = frame.pk
-        annotation.metadata_text = a['utf8_string'] if 'utf8_string' in a else ""
+        annotation.text = a['utf8_string'] if 'utf8_string' in a else ""
         annotation.metadata = a
         annotation.x = a['bbox'][0]
         annotation.y = a['bbox'][1]
@@ -115,7 +115,7 @@ for frame in models.Frame.objects.all().filter(video=video):
         annotation.region_type = models.Region.ANNOTATION
         annotation.video_id = v.pk
         annotation.frame_id = frame.pk
-        annotation.metadata_text = caption['caption']
+        annotation.text = caption['caption']
         annotation.full_frame = True
         annotation.object_name = 'caption'
         buf.append(annotation)

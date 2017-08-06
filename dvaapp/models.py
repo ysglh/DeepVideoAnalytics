@@ -224,7 +224,7 @@ class Region(models.Model):
     parent_frame_index = models.IntegerField(default=-1)
     parent_segment_index = models.IntegerField(default=-1,null=True)
 
-    metadata_text = models.TextField(default="")
+    text = models.TextField(default="")
     metadata = JSONField(blank=True,null=True)
     full_frame = models.BooleanField(default=False)
     x = models.IntegerField(default=0)
@@ -346,7 +346,7 @@ class Tube(models.Model):
     end_frame = models.ForeignKey(Frame,null=True,related_name="end_frame")
     start_region = models.ForeignKey(Region,null=True,related_name="start_region")
     end_region = models.ForeignKey(Region,null=True,related_name="end_region")
-    metadata_text = models.TextField(default="")
+    text = models.TextField(default="")
     metadata = JSONField(blank=True,null=True)
     source = models.ForeignKey(TEvent,null=True)
 

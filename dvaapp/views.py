@@ -539,7 +539,7 @@ def annotate_entire_frame(request, frame_pk):
     frame = Frame.objects.get(pk=frame_pk)
     annotation = None
     if request.method == 'POST':
-        if request.POST.get('metadata_text').strip() \
+        if request.POST.get('text').strip() \
                 or request.POST.get('metadata').strip() \
                 or request.POST.get('object_name', None):
             annotation = Region()
@@ -549,7 +549,7 @@ def annotate_entire_frame(request, frame_pk):
             annotation.h = 0
             annotation.w = 0
             annotation.full_frame = True
-            annotation.metadata_text = request.POST.get('metadata_text')
+            annotation.text = request.POST.get('text')
             annotation.metadata = request.POST.get('metadata')
             annotation.object_name = request.POST.get('object_name', 'frame_metadata')
             annotation.frame = frame
@@ -656,7 +656,7 @@ def push(request, video_id):
                     annotation = Region.objects.get(pk=int(key.split('annotation_')[1]))
                     data = {
                         'label': annotation.label,
-                        'metadata_text': annotation.metadata_text,
+                        'text': annotation.text,
                         'x': annotation.x,
                         'y': annotation.y,
                         'w': annotation.w,
@@ -729,7 +729,7 @@ def indexes(request):
             'w__gte': int(request.POST.get('w__gte')),
             'h__gte': int(request.POST.get('h__gte'))
          }
-        for optional_key in ['metadata_text__contains', 'object_name__contains', 'object_name']:
+        for optional_key in ['text__contains', 'object_name__contains', 'object_name']:
             if request.POST.get(optional_key, None):
                 filters[optional_key] = request.POST.get(optional_key)
         for optional_key in ['h__lte', 'w__lte']:
@@ -888,7 +888,7 @@ def textsearch(request):
         context['offset'] = offset
         context['limit'] = limit
         if request.GET.get('regions'):
-            context['results']['regions_meta'] = Region.objects.filter(metadata_text__search=q)[offset:limit]
+            context['results']['regions_meta'] = Region.objects.filter(text__search=q)[offset:limit]
             context['results']['regions_name'] = Region.objects.filter(object_name__search=q)[offset:limit]
         if request.GET.get('frames'):
             context['results']['frames_name'] = Frame.objects.filter(name__search=q)[offset:limit]

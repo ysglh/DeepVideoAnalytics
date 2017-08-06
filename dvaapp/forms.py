@@ -23,7 +23,7 @@ class AnnotationForm(forms.Form):
     h = forms.FloatField()
     w = forms.FloatField()
     object_name = forms.CharField()
-    metadata_text = forms.CharField(required=False)
+    text = forms.CharField(required=False)
     metadata = forms.CharField(required=False)
     tags = forms.CharField(required=False)
     high_level = forms.BooleanField(required=False)

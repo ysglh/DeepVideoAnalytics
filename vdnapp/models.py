@@ -39,7 +39,7 @@ class Dataset(models.Model):
 class Annotation(models.Model):
     dataset = models.ForeignKey(Dataset,null=True)
     parent_frame_index = models.IntegerField(default=-1)
-    metadata_text = models.TextField(default="")
+    text = models.TextField(default="")
     label = models.TextField(default="empty")
     full_frame = models.BooleanField(default=True)
     x = models.IntegerField(default=0)

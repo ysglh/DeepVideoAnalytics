@@ -97,7 +97,7 @@ def generate_vdn(fast=False):
             annotation.region_type = models.Region.ANNOTATION
             annotation.video = v
             annotation.frame = frame
-            annotation.metadata_text = caption['caption']
+            annotation.text = caption['caption']
             annotation.full_frame = True
             annotation.object_name = 'caption'
             annotation.save()
@@ -198,7 +198,7 @@ def process_visual_genome():
                 'h': int(entries[5]),
                 'object_id': entries[0],
                 'object_name': entries[6],
-                'metadata_text': ' '.join(entries[6:]), })
+                'text': ' '.join(entries[6:]), })
     name = "visual_genome"
     fname = "visual_genome.zip"
     f = SimpleUploadedFile(fname, "", content_type="application/zip")
@@ -226,7 +226,7 @@ def process_visual_genome():
             annotation.w = o['w']
             annotation.object_name = o['object_name']
             annotation.metadata = o
-            annotation.metadata_text = o['metadata_text']
+            annotation.text = o['text']
             buffer.append(annotation)
             if len(buffer) == 1000:
                 try:

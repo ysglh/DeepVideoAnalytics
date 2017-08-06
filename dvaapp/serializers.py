@@ -177,7 +177,10 @@ def create_region(a,video_obj,vdn_dataset,event_to_pk=None):
     da.w = a['w']
     da.vdn_key = a['id']
     da.metadata_text = a['metadata_text']
-    da.metadata_json = a['metadata_json']
+    if 'metadata' in a:
+        da.metadata = a['metadata']
+    elif 'metadata_json' in a:
+        da.metadata = a['metadata_json']
     da.materialized = a.get('materialized',False)
     da.png = a.get('png',False)
     da.region_type = a['region_type']

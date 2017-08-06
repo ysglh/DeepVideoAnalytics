@@ -62,7 +62,7 @@ def generate_vdn(fast=False):
         annotation.video = v
         annotation.frame = frame
         annotation.full_frame = True
-        annotation.metadata_json = json.dumps(data[frame_id]['image'])
+        annotation.metadata = data[frame_id]['image']
         annotation.object_name = 'metadata'
         annotation.save()
     for frame in models.Frame.objects.all().filter(video=video):
@@ -72,7 +72,7 @@ def generate_vdn(fast=False):
             annotation.region_type = models.Region.ANNOTATION
             annotation.video = v
             annotation.frame = frame
-            annotation.metadata_json = json.dumps(a)
+            annotation.metadata = a
             annotation.full_frame = False
             annotation.x = a['bbox'][0]
             annotation.y = a['bbox'][1]
@@ -85,7 +85,7 @@ def generate_vdn(fast=False):
             annotation.region_type = models.Region.ANNOTATION
             annotation.video = v
             annotation.frame = frame
-            annotation.metadata_json = json.dumps(a)
+            annotation.metadata = a
             annotation.x = a['bbox'][0]
             annotation.y = a['bbox'][1]
             annotation.w = a['bbox'][2]
@@ -225,7 +225,7 @@ def process_visual_genome():
             annotation.h = o['h']
             annotation.w = o['w']
             annotation.object_name = o['object_name']
-            annotation.metadata_json = json.dumps(o)
+            annotation.metadata = o
             annotation.metadata_text = o['metadata_text']
             buffer.append(annotation)
             if len(buffer) == 1000:

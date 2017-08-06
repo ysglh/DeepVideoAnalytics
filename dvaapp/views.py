@@ -540,7 +540,7 @@ def annotate_entire_frame(request, frame_pk):
     annotation = None
     if request.method == 'POST':
         if request.POST.get('metadata_text').strip() \
-                or request.POST.get('metadata_json').strip() \
+                or request.POST.get('metadata').strip() \
                 or request.POST.get('object_name', None):
             annotation = Region()
             annotation.region_type = Region.ANNOTATION
@@ -550,7 +550,7 @@ def annotate_entire_frame(request, frame_pk):
             annotation.w = 0
             annotation.full_frame = True
             annotation.metadata_text = request.POST.get('metadata_text')
-            annotation.metadata_json = request.POST.get('metadata_json')
+            annotation.metadata = request.POST.get('metadata')
             annotation.object_name = request.POST.get('object_name', 'frame_metadata')
             annotation.frame = frame
             annotation.video = frame.video

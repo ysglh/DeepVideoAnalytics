@@ -11,7 +11,7 @@ except ImportError:
 from PIL import Image
 
 
-from ..models import Frame,Segment,AppliedLabel
+from ..models import Frame,Segment
 from collections import defaultdict
 
 
@@ -233,12 +233,12 @@ class VideoDecoder(object):
                     if l.strip():
                         labels_to_frame[l].add(df_ids[i].id)
         label_list = []
-        for l in labels_to_frame:
-            for fpk in labels_to_frame[l]:
-                a = AppliedLabel()
-                a.video_id = self.dvideo.pk
-                a.frame_id = fpk
-                a.source = AppliedLabel.DIRECTORY
-                a.label_name = l
-                label_list.append(a)
-        AppliedLabel.objects.bulk_create(label_list, batch_size=1000)
+        # for l in labels_to_frame:
+        #     for fpk in labels_to_frame[l]:
+        #         a = AppliedLabel()
+        #         a.video_id = self.dvideo.pk
+        #         a.frame_id = fpk
+        #         a.source = AppliedLabel.DIRECTORY
+        #         a.label_name = l
+        #         label_list.append(a)
+        # AppliedLabel.objects.bulk_create(label_list, batch_size=1000)

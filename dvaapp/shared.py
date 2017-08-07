@@ -1,5 +1,5 @@
 import os, json, requests, base64, logging
-from models import Video, TEvent, AppliedLabel, Region, VDNDataset, VDNServer, VDNDetector, CustomDetector, DeletedVideo
+from models import Video, TEvent,  Region, VDNDataset, VDNServer, VDNDetector, CustomDetector, DeletedVideo
 from django.conf import settings
 from dva.celery import app
 from django_celery_results.models import TaskResult
@@ -229,15 +229,15 @@ def create_annotation(form, object_name, labels, frame):
     annotation.video = frame.video
     annotation.region_type = Region.ANNOTATION
     annotation.save()
-    for l in labels:
-        if l.strip():
-            dl = AppliedLabel()
-            dl.video = annotation.video
-            dl.frame = annotation.frame
-            dl.region = annotation
-            dl.label_name = l.strip()
-            dl.source = dl.UI
-            dl.save()
+    # for l in labels:
+    #     if l.strip():
+            # dl = AppliedLabel()
+            # dl.video = annotation.video
+            # dl.frame = annotation.frame
+            # dl.region = annotation
+            # dl.label_name = l.strip()
+            # dl.source = dl.UI
+            # dl.save()
 
 
 def handle_youtube_video(name, url, extract=True, user=None, rate=30, rescale=0):
@@ -451,13 +451,13 @@ def create_detector_dataset(object_names, labels):
             rboxes[r.frame_id].append((class_names[r.object_name], r.x, r.y, r.x + r.w, r.y + r.h))
             rboxes_set[r.frame_id].add(r.pk)
             class_distribution[r.object_name] += 1
-    for l in AppliedLabel.objects.all().filter(label_name__in=labels):
-        frames[l.frame_id] = l.frame
-        if l.region:
-            r = l.region
-            if r.pk not in rboxes_set[r.frame_id]:
-                rboxes[l.frame_id].append((class_names[l.label_name], r.x, r.y, r.x + r.w, r.y + r.h))
-                rboxes_set[r.frame_id].add(r.pk)
-                class_distribution[l.label_name] += 1
+    # for l in AppliedLabel.objects.all().filter(label_name__in=labels):
+    #     frames[l.frame_id] = l.frame
+    #     if l.region:
+    #         r = l.region
+    #         if r.pk not in rboxes_set[r.frame_id]:
+    #             rboxes[l.frame_id].append((class_names[l.label_name], r.x, r.y, r.x + r.w, r.y + r.h))
+    #             rboxes_set[r.frame_id].add(r.pk)
+    #             class_distribution[l.label_name] += 1
     return class_distribution, class_names, rboxes, rboxes_set, frames, i_class_names
 

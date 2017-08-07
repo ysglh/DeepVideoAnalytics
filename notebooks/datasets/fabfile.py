@@ -119,7 +119,7 @@ def create_yolo_test_data():
     setup_django()
     from dvaapp.shared import handle_uploaded_file
     from django.core.files.uploadedfile import SimpleUploadedFile
-    from dvaapp.models import Region,TEvent,Frame, AppliedLabel
+    from dvaapp.models import Region,TEvent,Frame
     from dvaapp.tasks import extract_frames,export_video
     try:
         shutil.rmtree('tests/yolo_test')
@@ -164,12 +164,12 @@ def create_yolo_test_data():
             r.w = bottom_x - top_x
             r.h = bottom_y - top_y
             r.save()
-            l = AppliedLabel()
-            l.frame = df
-            l.video = dv
-            l.label_name = class_names[c]
-            l.region = r
-            l.save()
+            # l = AppliedLabel()
+            # l.frame = df
+            # l.video = dv
+            # l.label_name = class_names[c]
+            # l.region = r
+            # l.save()
     export_video(TEvent.objects.create(video=dv).pk)
     try:
         shutil.rmtree('tests/yolo_test')

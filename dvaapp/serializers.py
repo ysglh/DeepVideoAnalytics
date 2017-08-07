@@ -1,6 +1,6 @@
 from rest_framework import serializers, viewsets
 from django.contrib.auth.models import User
-from models import Video, AppliedLabel, Frame, Region, DVAPQL, QueryResults, TEvent, IndexEntries, VDNDataset, VDNServer, Tube, Clusters, ClusterCodes, Segment
+from models import Video,  Frame, Region, DVAPQL, QueryResults, TEvent, IndexEntries, VDNDataset, VDNServer, Tube, Clusters, ClusterCodes, Segment
 import os, json, logging, glob
 from collections import defaultdict
 from django.conf import settings
@@ -32,10 +32,10 @@ class VideoSerializer(serializers.HyperlinkedModelSerializer):
         fields = '__all__'
 
 
-class AppliedLabelSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = AppliedLabel
-        fields = '__all__'
+# class AppliedLabelSerializer(serializers.HyperlinkedModelSerializer):
+#     class Meta:
+#         model = AppliedLabel
+#         fields = '__all__'
 
 
 class FrameSerializer(serializers.HyperlinkedModelSerializer):
@@ -136,10 +136,6 @@ class TEventExportSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class AppliedLabelExportSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AppliedLabel
-        fields = '__all__'
 
 
 class TubeExportSerializer(serializers.ModelSerializer):
@@ -159,13 +155,12 @@ class VideoExportSerializer(serializers.ModelSerializer):
     segment_list = SegmentExportSerializer(source='segment_set',read_only=True,many=True)
     index_entries_list = IndexEntryExportSerializer(source='indexentries_set',read_only=True,many=True)
     event_list = TEventExportSerializer(source='tevent_set',read_only=True,many=True)
-    label_list = AppliedLabelExportSerializer(source='appliedlabel_set', read_only=True, many=True)
     tube_list = TubeExportSerializer(source='tube_set', read_only=True, many=True)
 
     class Meta:
         model = Video
         fields = ('name','length_in_seconds','height','width','metadata','frames','created','description','uploaded','dataset',
-                  'uploader','segments','url','youtube_video','frame_list','segment_list','event_list','label_list','tube_list','index_entries_list')
+                  'uploader','segments','url','youtube_video','frame_list','segment_list','event_list','tube_list','index_entries_list')
 
 
 def create_region(a,video_obj,vdn_dataset,event_to_pk=None):

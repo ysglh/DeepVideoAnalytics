@@ -351,25 +351,42 @@ class Tube(models.Model):
     source = models.ForeignKey(TEvent,null=True)
 
 
-# class LabelName(models.Model): # TO DO create a parent label name to avoid repeatition
-#     name = models.CharField(max_length=200)
-
-
-class AppliedLabel(models.Model):
-    UI = 'UI'
-    DIRECTORY = 'DR'
-    ALGO = 'AG'
-    VDN = "VD"
-    SOURCE_CHOICES = (
-    (UI, 'User Interface'), (DIRECTORY, 'Directory Name'), (ALGO, 'Algorithm'), (VDN, "Visual Data Network"))
-    video = models.ForeignKey(Video)
-    tube = models.ForeignKey(Tube,null=True)
-    segment = models.ForeignKey(Segment,null=True)
-    frame = models.ForeignKey(Frame,null=True)
-    region = models.ForeignKey(Region,null=True)
-    label_name = models.CharField(max_length=200)
-    source = models.CharField(max_length=2, choices=SOURCE_CHOICES, default=UI)
+class Label(models.Model):
+    name = models.CharField(max_length=200)
+    set = models.CharField(max_length=200)
+    metadata = JSONField(blank=True,null=True)
+    text = models.TextField(null=True,blank=True)
     created = models.DateTimeField('date created', auto_now_add=True)
+
+
+class FrameLabel(models.Model):
+    frame = models.ForeignKey(Frame)
+    label = models.ForeignKey(Label)
+    event = models.ForeignKey(TEvent,null=True)
+
+
+class RegionLabel(models.Model):
+    region = models.ForeignKey(Region)
+    label = models.ForeignKey(Label)
+    event = models.ForeignKey(TEvent,null=True)
+
+
+class SegmentLabel(models.Model):
+    segment = models.ForeignKey(Segment)
+    label = models.ForeignKey(Label)
+    event = models.ForeignKey(TEvent, null=True)
+
+
+class TubeLabel(models.Model):
+    tube = models.ForeignKey(Tube)
+    label = models.ForeignKey(Label)
+    event = models.ForeignKey(TEvent, null=True)
+
+
+class VideoLabel(models.Model):
+    video = models.ForeignKey(Video)
+    label = models.ForeignKey(Label)
+    event = models.ForeignKey(TEvent, null=True)
 
 
 class DeletedVideo(models.Model):

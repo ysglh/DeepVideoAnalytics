@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Video, Frame, TEvent, IndexEntries, QueryResults, DVAPQL, AppliedLabel, VDNServer,\
+from .models import Video, Frame, TEvent, IndexEntries, QueryResults, DVAPQL, VDNServer,\
     VDNDataset, ClusterCodes, Clusters, Region, Tube, CustomDetector, Segment, IndexerQuery, DeletedVideo
 
 
@@ -10,11 +10,6 @@ class IndexerQueryAdmin(admin.ModelAdmin):
 
 @admin.register(Segment)
 class SegmentAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(AppliedLabel)
-class AppliedLabelAdmin(admin.ModelAdmin):
     pass
 
 

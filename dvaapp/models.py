@@ -360,24 +360,69 @@ class Label(models.Model):
 
 
 class FrameLabel(models.Model):
+    video = models.ForeignKey(Video,null=True)
+    frame_index = models.IntegerField(default=-1)
+    segment_index = models.IntegerField(default=-1)
     frame = models.ForeignKey(Frame)
     label = models.ForeignKey(Label)
     event = models.ForeignKey(TEvent,null=True)
 
+    def clean(self):
+        if self.frame_index == -1 or self.frame_index is None:
+            self.frame_index = self.frame.frame_index
+        if self.segment_index == -1 or self.segment_index is None:
+            self.segment_index = self.frame.segment_index
+
+    def save(self, *args, **kwargs):
+        if self.frame_index == -1 or self.frame_index is None:
+            self.frame_index = self.frame.frame_index
+        if self.segment_index == -1 or self.segment_index is None:
+            self.segment_index = self.frame.segment_index
+        super(FrameLabel, self).save(*args, **kwargs)
+
 
 class RegionLabel(models.Model):
+    video = models.ForeignKey(Video,null=True)
+    frame = models.ForeignKey(Frame,null=True)
+    frame_index = models.IntegerField(default=-1)
+    segment_index = models.IntegerField(default=-1)
     region = models.ForeignKey(Region)
     label = models.ForeignKey(Label)
     event = models.ForeignKey(TEvent,null=True)
 
+    def clean(self):
+        if self.frame_index == -1 or self.frame_index is None:
+            self.frame_index = self.frame.frame_index
+        if self.segment_index == -1 or self.segment_index is None:
+            self.segment_index = self.frame.segment_index
+
+    def save(self, *args, **kwargs):
+        if self.frame_index == -1 or self.frame_index is None:
+            self.frame_index = self.frame.frame_index
+        if self.segment_index == -1 or self.segment_index is None:
+            self.segment_index = self.frame.segment_index
+        super(RegionLabel, self).save(*args, **kwargs)
+
 
 class SegmentLabel(models.Model):
+    video = models.ForeignKey(Video,null=True)
+    segment_index = models.IntegerField(default=-1)
     segment = models.ForeignKey(Segment)
     label = models.ForeignKey(Label)
     event = models.ForeignKey(TEvent, null=True)
 
+    def clean(self):
+        if self.segment_index == -1 or self.segment_index is None:
+            self.segment_index = self.segment.segment_index
+
+    def save(self, *args, **kwargs):
+        if self.segment_index == -1 or self.segment_index is None:
+            self.segment_index = self.segment.segment_index
+        super(SegmentLabel, self).save(*args, **kwargs)
+
 
 class TubeLabel(models.Model):
+    video = models.ForeignKey(Video,null=True)
     tube = models.ForeignKey(Tube)
     label = models.ForeignKey(Label)
     event = models.ForeignKey(TEvent, null=True)

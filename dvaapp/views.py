@@ -30,6 +30,7 @@ try:
 except ImportError:
     SearchVector = None
     logging.warning("Could not load Postgres full text search")
+from examples import EXAMPLES
 
 
 class LoginRequiredMixin(object):
@@ -387,6 +388,11 @@ class ProcessList(UserPassesTestMixin, ListView):
     model = DVAPQL
     template_name = "dvaapp/process_list.html"
     paginate_by = 50
+
+    def get_context_data(self, **kwargs):
+        context = super(ProcessList, self).get_context_data(**kwargs)
+        context['examples'] = json.dumps(EXAMPLES,indent=None)
+        return context
 
     def test_func(self):
         return user_check(self.request.user)

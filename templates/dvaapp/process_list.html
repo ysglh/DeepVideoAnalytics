@@ -49,6 +49,7 @@
                     </div>
                 </div>
                 <div class="box-footer text-center">
+                    {% csrf_token %}
                     <button class="btn btn-primary" type="submit">Submit & Launch</button>
                 </div>
             </div>
@@ -98,23 +99,16 @@
 {% endblock %}
 {% block page_js%}
 <script>
+    var examples = {{ examples|safe }};
     $(document).ready(function() {
         InitializeTables();
         var container = document.getElementById("jsoneditor");
         var scripttext = document.getElementById("scripttext");
         var options = {};
         var editor = new JSONEditor(container, options);
-        var json = {
-            "Array": [1, 2, 3],
-            "Boolean": true,
-            "Null": null,
-            "Number": 123,
-            "Object": {"a": "b", "c": "d"},
-            "String": "Hello World"
-        };
-        editor.set(json);
+        scripttext.textContent = JSON.stringify(examples[0]);
+        editor.set(examples[0]);
         scripttext.textContent = JSON.stringify(editor.get());
-        var json = editor.get();
 {#        var visual_index_name = $("#visual_index_name");#}
 {#        visual_index_name.select2({theme: "bootstrap"});#}
 {#        var video_name = $("#video_name");#}

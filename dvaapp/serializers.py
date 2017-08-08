@@ -40,6 +40,36 @@ class LabelSerializer(serializers.HyperlinkedModelSerializer):
         fields = '__all__'
 
 
+class FrameLabelSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = FrameLabel
+        fields = '__all__'
+
+
+class RegionLabelSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = RegionLabel
+        fields = '__all__'
+
+
+class SegmentLabelSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = SegmentLabel
+        fields = '__all__'
+
+
+class VideoLabelSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = VideoLabel
+        fields = '__all__'
+
+
+class TubeLabelSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = TubeLabel
+        fields = '__all__'
+
+
 class FrameSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Frame

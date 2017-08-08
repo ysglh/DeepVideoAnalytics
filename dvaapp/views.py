@@ -62,6 +62,42 @@ class FrameViewSet(viewsets.ReadOnlyModelViewSet):
     filter_fields = ('frame_index', 'subdir', 'name', 'video')
 
 
+class FrameLabelViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin,
+                        mixins.DestroyModelMixin, viewsets.GenericViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
+    queryset = FrameLabel.objects.all()
+    serializer_class = serializers.FrameLabelSerializer
+    filter_fields = ('frame_index','segment_index', 'video')
+
+
+class RegionLabelViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin,
+                         mixins.DestroyModelMixin, viewsets.GenericViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
+    queryset = RegionLabel.objects.all()
+    serializer_class = serializers.RegionLabelSerializer
+
+
+class VideoLabelViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin,
+                        mixins.DestroyModelMixin, viewsets.GenericViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
+    queryset = VideoLabel.objects.all()
+    serializer_class = serializers.VideoLabelSerializer
+
+
+class SegmentLabelViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin,
+                          mixins.DestroyModelMixin, viewsets.GenericViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
+    queryset = SegmentLabel.objects.all()
+    serializer_class = serializers.SegmentLabelSerializer
+
+
+class TubeLabelViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin,
+                       mixins.DestroyModelMixin, viewsets.GenericViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
+    queryset = TubeLabel.objects.all()
+    serializer_class = serializers.TubeLabelSerializer
+
+
 class SegmentViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
     queryset = Segment.objects.all()

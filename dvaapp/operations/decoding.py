@@ -100,7 +100,7 @@ class VideoDecoder(object):
         self.dvideo.save()
 
     def extract(self,args,start):
-        self.extract_zip_dataset()
+        self.extract_zip_dataset(start)
 
     def decode_segment(self,ds,denominator,rescale):
         output_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'frames')
@@ -189,7 +189,7 @@ class VideoDecoder(object):
         self.dvideo.save()
         self.detect_csv_segment_format() # detect and save
 
-    def extract_zip_dataset(self):
+    def extract_zip_dataset(self,event):
         zipf = zipfile.ZipFile("{}/{}/video/{}.zip".format(self.media_dir, self.primary_key, self.primary_key), 'r')
         zipf.extractall("{}/{}/frames/".format(self.media_dir, self.primary_key))
         zipf.close()
@@ -244,5 +244,6 @@ class VideoDecoder(object):
                 a.frame_id = fpk
                 a.frame_index = frame_index
                 a.label_id = dl.pk
+                a.event_id = event.pk
                 label_list.append(a)
         FrameLabel.objects.bulk_create(label_list, batch_size=1000)

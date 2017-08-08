@@ -414,6 +414,9 @@ class VisualSearchDetail(UserPassesTestMixin, DetailView):
         qp = DVAPQLProcess(query=context['object'],media_dir=settings.MEDIA_ROOT)
         qp.collect()
         context['results'] = qp.context.items()
+        script = context['object'].script
+        script[u'image_data_b64'] = "<excluded>"
+        context['plan'] = script
         context['url'] = '{}queries/{}.png'.format(settings.MEDIA_URL, self.object.pk, self.object.pk)
         return context
 

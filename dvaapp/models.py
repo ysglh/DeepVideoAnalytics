@@ -353,7 +353,7 @@ class Tube(models.Model):
 
 class Label(models.Model):
     name = models.CharField(max_length=200)
-    set = models.CharField(max_length=200)
+    set = models.CharField(max_length=200,default="")
     metadata = JSONField(blank=True,null=True)
     text = models.TextField(null=True,blank=True)
     created = models.DateTimeField('date created', auto_now_add=True)

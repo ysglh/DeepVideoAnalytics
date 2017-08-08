@@ -7,7 +7,8 @@ import json
 from django.views.generic import ListView, DetailView
 from .forms import UploadFileForm, YTVideoForm, AnnotationForm
 from .models import Video, Frame, DVAPQL, QueryResults, TEvent, IndexEntries, VDNDataset, Region, VDNServer, \
-    ClusterCodes, Clusters,  Tube, CustomDetector, VDNDetector, Segment, DeletedVideo
+    ClusterCodes, Clusters,  Tube, CustomDetector, VDNDetector, Segment, FrameLabel, SegmentLabel, \
+    VideoLabel, RegionLabel, TubeLabel, Label
 from dva.celery import app
 import serializers
 from rest_framework import viewsets, mixins
@@ -103,10 +104,10 @@ class IndexEntriesViewSet(viewsets.ReadOnlyModelViewSet):
     filter_fields = ('video', 'algorithm', 'detection_name')
 
 
-# class AppliedLabelViewSet(viewsets.ModelViewSet):
-#     permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
-#     queryset = AppliedLabel.objects.all()
-#     serializer_class = serializers.AppliedLabelSerializer
+class LabelViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
+    queryset = Label.objects.all()
+    serializer_class = serializers.LabelSerializer
 
 
 class VDNServerViewSet(viewsets.ModelViewSet):
@@ -491,13 +492,12 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
 def assign_video_labels(request):
     if request.method == 'POST':
         video = Video.objects.get(pk=request.POST.get('video_pk'))
-        # for k in request.POST.get('labels').split(','):
-        #     if k.strip():
-        #         dl = AppliedLabel()
-        #         dl.video = video
-        #         dl.label_name = k.strip()
-        #         dl.source = dl.UI
-        #         dl.save()
+        for k in request.POST.get('labels').split(','):
+            if k.strip():
+                dl = VideoLabel()
+                dl.video = video
+                dl.label = Label.objects.get_or_create(name=k)
+                dl.save()
         return redirect('video_detail', pk=video.pk)
     else:
         raise NotImplementedError
@@ -561,16 +561,21 @@ def annotate_entire_frame(request, frame_pk):
             annotation.frame = frame
             annotation.video = frame.video
             annotation.save()
-        # for label_name in request.POST.get('tags').split(','):
-        #     if label_name.strip():
-                # dl = AppliedLabel()
-                # dl.video = frame.video
-                # dl.frame = frame
-                # dl.label_name = label_name.strip()
-                # if annotation:
-                #     dl.region = annotation
-                # dl.source = dl.UI
-                # dl.save()
+        for label_name in request.POST.get('tags').split(','):
+            if label_name.strip():
+                if annotation:
+                    dl = RegionLabel()
+                    dl.video = frame.video
+                    dl.frame = frame
+                    dl.label = Label.objects.get_or_create(name=label_name)
+                    dl.region = annotation
+                    dl.save()
+                else:
+                    dl = FrameLabel()
+                    dl.video = frame.video
+                    dl.frame = frame
+                    dl.label = Label.objects.get_or_create(name=label_name)
+                    dl.save()
     return redirect("frame_detail", pk=frame.pk)
 
 
@@ -899,8 +904,8 @@ def textsearch(request):
         if request.GET.get('frames'):
             context['results']['frames_name'] = Frame.objects.filter(name__search=q)[offset:limit]
             context['results']['frames_subdir'] = Frame.objects.filter(subdir__search=q)[offset:limit]
-        # if request.GET.get('labels'):
-        #     context['results']['labels'] = AppliedLabel.objects.filter(label_name__search=q)[offset:limit]
+        if request.GET.get('labels'):
+            context['results']['labels'] = Label.objects.filter(name__search=q)[offset:limit]
     return render(request, 'textsearch.html', context)
 
 

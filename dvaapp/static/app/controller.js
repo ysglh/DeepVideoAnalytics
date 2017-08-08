@@ -410,6 +410,10 @@ $scope.toggle_visibility = function(box_index){
     canvas.deactivateAll().renderAll();
 };
 
+$scope.results_available = function(){
+    return (_.size($scope.results) > 0);
+};
+
 $scope.toggle_all = function(){
     for(box_index in $scope.existing_boxes)
     {

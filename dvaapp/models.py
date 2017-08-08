@@ -358,6 +358,12 @@ class Label(models.Model):
     text = models.TextField(null=True,blank=True)
     created = models.DateTimeField('date created', auto_now_add=True)
 
+    class Meta:
+        unique_together = (("name", "set"),)
+
+    def __unicode__(self):
+        return u'{}:{}'.format(self.name, self.set)
+
 
 class FrameLabel(models.Model):
     video = models.ForeignKey(Video,null=True)

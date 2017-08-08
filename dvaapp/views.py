@@ -496,7 +496,7 @@ def assign_video_labels(request):
             if k.strip():
                 dl = VideoLabel()
                 dl.video = video
-                dl.label = Label.objects.get_or_create(name=k)
+                dl.label = Label.objects.get_or_create(name=k,set="UI")
                 dl.save()
         return redirect('video_detail', pk=video.pk)
     else:
@@ -567,14 +567,14 @@ def annotate_entire_frame(request, frame_pk):
                     dl = RegionLabel()
                     dl.video = frame.video
                     dl.frame = frame
-                    dl.label = Label.objects.get_or_create(name=label_name)
+                    dl.label = Label.objects.get_or_create(name=label_name,set="UI")
                     dl.region = annotation
                     dl.save()
                 else:
                     dl = FrameLabel()
                     dl.video = frame.video
                     dl.frame = frame
-                    dl.label = Label.objects.get_or_create(name=label_name)
+                    dl.label = Label.objects.get_or_create(name=label_name,set="UI")
                     dl.save()
     return redirect("frame_detail", pk=frame.pk)
 

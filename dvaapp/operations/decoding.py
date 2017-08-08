@@ -234,10 +234,7 @@ class VideoDecoder(object):
                         labels_to_frame[l].add((df_ids[i].id,f.frame_index))
         label_list = []
         for l in labels_to_frame:
-            dl = Label()
-            dl.name = l
-            dl.set = "Directory"
-            dl.save()
+            dl = Label.objects.get_or_create(name=l,set="Directory")
             for fpk,frame_index in labels_to_frame[l]:
                 a = FrameLabel()
                 a.video_id = self.dvideo.pk

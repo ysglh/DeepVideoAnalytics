@@ -368,7 +368,7 @@ class Label(models.Model):
 class FrameLabel(models.Model):
     video = models.ForeignKey(Video,null=True)
     frame_index = models.IntegerField(default=-1)
-    segment_index = models.IntegerField(default=-1)
+    segment_index = models.IntegerField(null=True)
     frame = models.ForeignKey(Frame)
     label = models.ForeignKey(Label)
     event = models.ForeignKey(TEvent,null=True)
@@ -391,7 +391,7 @@ class RegionLabel(models.Model):
     video = models.ForeignKey(Video,null=True)
     frame = models.ForeignKey(Frame,null=True)
     frame_index = models.IntegerField(default=-1)
-    segment_index = models.IntegerField(default=-1)
+    segment_index = models.IntegerField(null=True)
     region = models.ForeignKey(Region)
     label = models.ForeignKey(Label)
     event = models.ForeignKey(TEvent,null=True)

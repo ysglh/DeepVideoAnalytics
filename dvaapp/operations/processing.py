@@ -108,7 +108,8 @@ class DVAPQLProcess(object):
             for t in self.query.script['tasks']:
                 dt = TEvent()
                 dt.parent_process = self.query
-                dt.video_id = t['video_id']
+                if 'video_id' in t:
+                    dt.video_id = t['video_id']
                 dt.operation = t['operation']
                 dt.arguments = t.get('arguments',{})
                 dt.save()

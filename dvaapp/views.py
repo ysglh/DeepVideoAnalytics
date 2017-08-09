@@ -825,13 +825,14 @@ def detectors(request):
         if request.POST.get('action') == 'detect':
             detector_pk = request.POST.get('detector_pk')
             video_pk = request.POST.get('video_pk')
-            operation = "detect_custom_objects"
-            apply_event = TEvent()
-            apply_event.video_id = video_pk
-            apply_event.operation = operation
-            apply_event.arguments = {'detector_pk': int(detector_pk)}
-            apply_event.save()
-            app.send_task(name=operation, args=[apply_event.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[operation])
+            p = DVAPQLProcess()
+            p.create_from_json(j={
+                "process_type":DVAPQL.PROCESS,
+                "tasks":[{'operation':"detect_custom_objects",
+                          'arguments':{'detector_pk': int(detector_pk)},
+                          'video_id':video_pk}]
+            },user=request.user)
+            p.launch()
         elif request.POST.get('action') == 'estimate':
             args = request.POST.get('args')
             args = json.loads(args) if args.strip() else {}
@@ -864,14 +865,14 @@ def detectors(request):
             detector.arguments = json.dumps(args)
             detector.save()
             args['detector_pk'] = detector.pk
-            operation = "train_yolo_detector"
-            train_event = TEvent()
-            train_event.operation = operation
-            train_event.arguments = args
-            train_event.save()
-            detector.source = train_event
+            p = DVAPQLProcess()
+            p.create_from_json(j={
+                "process_type":DVAPQL.PROCESS,
+                "tasks":[{'operation':"train_yolo_detector",
+                          'arguments':args,}]
+            },user=request.user)
+            p.launch()
             detector.save()
-            app.send_task(name=operation, args=[train_event.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[operation])
     return render(request, 'detectors.html', context)
 
 
@@ -913,14 +914,14 @@ def training(request):
             detector.arguments = json.dumps(args)
             detector.save()
             args['detector_pk'] = detector.pk
-            operation = "train_yolo_detector"
-            train_event = TEvent()
-            train_event.operation = operation
-            train_event.arguments = args
-            train_event.save()
-            detector.source = train_event
+            p = DVAPQLProcess()
+            p.create_from_json(j={
+                "process_type":DVAPQL.PROCESS,
+                "tasks":[{'operation':"train_yolo_detector",
+                          'arguments':args,}]
+            },user=request.user)
+            p.launch()
             detector.save()
-            app.send_task(name=operation, args=[train_event.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[operation])
     return render(request, 'training.html', context)
 
 
@@ -978,12 +979,14 @@ def clustering(request):
         c.m = m
         c.v = v
         c.save()
-        operation = "perform_clustering"
-        new_task = TEvent()
-        new_task.arguments = {'clusters_id':c.pk}
-        new_task.operation = operation
-        new_task.save()
-        app.send_task(name=operation, args=[new_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[operation])
+        p = DVAPQLProcess()
+        p.create_from_json(j={
+            "process_type": DVAPQL.PROCESS,
+            "tasks": [{'operation': "perform_clustering",
+                       'arguments': {'clusters_id':c.pk},
+                       }]
+        }, user=request.user)
+        p.launch()
     return render(request, 'clustering.html', context)
 
 

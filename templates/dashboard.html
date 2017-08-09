@@ -300,10 +300,11 @@
         <div ng-repeat="item in entries" class="col-lg-3 col-sm-3 col-xs-6" >
             <div class="box box-primary">
                 <div class="box-header with-border">
-                    <h4>{[ item.rank ]} {[ item.result_type ]}</h4>
+                    <h4>{[ item.rank ]} {[ item.result_type ]}
+                        <input type="checkbox" class="selection_box pull-right" id="cbox_{[ item.frame_id]}" name="cbox_{[ item.frame_id]}" />
+                    </h4>
                     <p class=""><a href="/videos/{[ item.video_id ]}"> {[ item.video_name ]} </a> at {[ item.frame_index ]}</p>
                     <div class="text-center">
-                        <input type="checkbox" id="cbox_{[ item.frame_id]}" name="cbox_{[ item.frame_id]}" />
                     </div>
                 </div>
                 <div class="box-body" style="height:220px">
@@ -314,12 +315,11 @@
         </div>
         </div>
     </div>
-    <div class="col-lg-12" ng-show="results_available()">
-        <div class="box box-primary">
+    <div class="col-lg-offset-2 col-lg-8" ng-show="results_available()">
+        <div class="box">
         <div class="box-body"><div class="row">
-            <div class="col-lg-4"><h3>Assign label to selected results</h3></div>
-            <div class="col-lg-4"></div>
-            <div class="col-lg-4"></div>
+            <div class="col-lg-10 text-center"><textarea rows="1"  style="width:95%;margin: auto" placeholder="comma separated list of labels"></textarea></div>
+            <div class="col-lg-2 text-center"><a ng-click="label_selected" class="btn btn-primary" >Label selected</a></div>
         </div></div>
         </div>
     </div>

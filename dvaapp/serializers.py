@@ -332,7 +332,7 @@ class VideoImporter(object):
 
     def import_region_labels(self):
         region_labels = []
-        for rl in self.json.get('frame_label_list', []):
+        for rl in self.json.get('region_label_list', []):
             drl = RegionLabel()
             drl.frame_id = self.frame_to_pk[rl['frame']]
             drl.region_id = self.region_to_pk[rl['region']]

@@ -232,70 +232,6 @@ class VideoExportSerializer(serializers.ModelSerializer):
                   'tube_label_list', 'segment_label_list', 'video_label_list')
 
 
-def create_region(a, video_obj, vdn_dataset, event_to_pk=None):
-    da = Region()
-    da.video = video_obj
-    da.x = a['x']
-    da.y = a['y']
-    da.h = a['h']
-    da.w = a['w']
-    da.vdn_key = a['id']
-    if 'text' in a:
-        da.text = a['text']
-    elif 'metadata_text' in a:
-        da.text = a['metadata_text']
-    if 'metadata' in a:
-        da.metadata = a['metadata']
-    elif 'metadata_json' in a:
-        da.metadata = a['metadata_json']
-    da.materialized = a.get('materialized', False)
-    da.png = a.get('png', False)
-    da.region_type = a['region_type']
-    da.confidence = a['confidence']
-    da.object_name = a['object_name']
-    da.full_frame = a['full_frame']
-    if a.get('event', None):
-        da.event_id = event_to_pk[a['event']]
-    da.parent_frame_index = a['parent_frame_index']
-    da.parent_segment_index = a.get('parent_segment_index', -1)
-    if vdn_dataset:
-        da.vdn_dataset = vdn_dataset
-    return da
-
-
-def import_region(a, video_obj, frame, detection_to_pk, vdn_dataset=None):
-    da = create_region(a, video_obj, vdn_dataset)
-    da.frame = frame
-    da.save()
-    if da.region_type == Region.DETECTION:
-        detection_to_pk[a['id']] = da.pk
-    return da
-
-
-def create_frame(f, video_obj):
-    df = Frame()
-    df.video = video_obj
-    df.name = f['name']
-    df.frame_index = f['frame_index']
-    df.subdir = f['subdir']
-    df.h = f.get('h', 0)
-    df.w = f.get('w', 0)
-    df.t = f.get('t', 0)
-    df.segment_index = f.get('segment_index', 0)
-    df.keyframe = f.get('keyframe', False)
-    return df
-
-
-def import_tubes(tubes, video_obj):
-    """
-    :param segments:
-    :param video_obj:
-    :return:
-    """
-    # TODO: Implement this
-    raise NotImplementedError
-
-
 def serialize_video_labels(v):
     serialized_labels = {}
     sources = [FrameLabel.objects.filter(video_id=v.pk), VideoLabel.objects.filter(video_id=v.pk),
@@ -357,6 +293,8 @@ class VideoImporter(object):
         self.frame_to_pk = {}
         self.event_to_pk = {}
         self.segment_to_pk = {}
+        self.label_to_pk = {}
+        self.tube_to_pk = {}
 
     def import_video(self):
         self.video.name = self.json['name']
@@ -380,6 +318,83 @@ class VideoImporter(object):
         self.bulk_import_frames()
         self.convert_regions_files()
         self.import_index_entries()
+        self.import_labels()
+        self.import_region_labels()
+        self.import_frame_labels()
+        self.import_segment_labels()
+        self.import_tube_labels()
+        self.import_video_labels()
+
+    def import_labels(self):
+        for l in self.json.get('labels', []):
+            dl, _ = Label.objects.get_or_create(name=l['name'],set=l.get('set',''))
+            self.label_to_pk[l['id']] = dl.pk
+
+    def import_region_labels(self):
+        region_labels = []
+        for rl in self.json.get('frame_label_list', []):
+            drl = RegionLabel()
+            drl.frame_id = self.frame_to_pk[rl['frame']]
+            drl.region_id = self.region_to_pk[rl['region']]
+            drl.video_id = self.video.pk
+            if 'event' in rl:
+                drl.event_id = self.event_to_pk[rl['event']]
+            drl.frame_index = rl['frame_index']
+            drl.segment_index = rl['segment_index']
+            drl.label_id = self.label_to_pk[rl['label']]
+            region_labels.append(drl)
+        RegionLabel.objects.bulk_create(region_labels,1000)
+
+    def import_frame_labels(self):
+        frame_labels = []
+        for fl in self.json.get('frame_label_list', []):
+            dfl = FrameLabel()
+            dfl.frame_id = self.frame_to_pk[fl['frame']]
+            dfl.video_id = self.video.pk
+            if 'event' in fl:
+                dfl.event_id = self.event_to_pk[fl['event']]
+            dfl.frame_index = fl['frame_index']
+            dfl.segment_index = fl['segment_index']
+            dfl.label_id = self.label_to_pk[fl['label']]
+            frame_labels.append(dfl)
+        FrameLabel.objects.bulk_create(frame_labels,1000)
+
+    def import_segment_labels(self):
+        segment_labels = []
+        for sl in self.json.get('segment_label_list', []):
+            dsl = SegmentLabel()
+            dsl.video_id = self.video.pk
+            if 'event' in sl:
+                dsl.event_id = self.event_to_pk[sl['event']]
+            dsl.segment_id = self.segment_to_pk[sl['segment']]
+            dsl.segment_index = sl['segment_index']
+            dsl.label_id = self.label_to_pk[sl['label']]
+            segment_labels.append(dsl)
+        SegmentLabel.objects.bulk_create(segment_labels,1000)
+
+    def import_video_labels(self):
+        video_labels = []
+        for vl in self.json.get('video_label_list', []):
+            dvl = VideoLabel()
+            dvl.video_id = self.video.pk
+            if 'event' in vl:
+                dvl.event_id = self.event_to_pk[vl['event']]
+            dvl.label_id = self.label_to_pk[vl['label']]
+            video_labels.append(dvl)
+        VideoLabel.objects.bulk_create(video_labels,1000)
+
+    def import_tube_labels(self):
+        tube_labels = []
+        for tl in self.json.get('tube_label_list', []):
+            dtl = TubeLabel()
+            dtl.video_id = self.video.pk
+            if 'event' in tl:
+                dtl.event_id = self.event_to_pk[tl['event']]
+            dtl.label_id = self.label_to_pk[tl['label']]
+            dtl.tube_id = self.tube_to_pk[tl['tube']]
+            tube_labels.append(dtl)
+        TubeLabel.objects.bulk_create(tube_labels,1000)
+
 
     def import_segments(self):
         old_ids = []
@@ -470,16 +485,15 @@ class VideoImporter(object):
                 di.save()
 
     def bulk_import_frames(self):
-        vdn_dataset = self.video.vdn_dataset
         frame_regions = defaultdict(list)
         frames = []
         frame_index_to_fid = {}
         for i, f in enumerate(self.json['frame_list']):
-            frames.append(create_frame(f, self.video))
+            frames.append(self.create_frame(f))
             frame_index_to_fid[i] = f['id']
             if 'region_list' in f:
                 for a in f['region_list']:
-                    ra = create_region(a, self.video, vdn_dataset, self.event_to_pk)
+                    ra = self.create_region(a)
                     if ra.region_type == Region.DETECTION:
                         frame_regions[i].append((ra, a['id']))
                     else:
@@ -506,3 +520,55 @@ class VideoImporter(object):
         for i, k in enumerate(bulk_regions):
             if regions_index_to_rid[i]:
                 self.region_to_pk[regions_index_to_rid[i]] = k.id
+
+    def create_region(self, a):
+        da = Region()
+        da.video_id = self.video.pk
+        da.x = a['x']
+        da.y = a['y']
+        da.h = a['h']
+        da.w = a['w']
+        da.vdn_key = a['id']
+        if 'text' in a:
+            da.text = a['text']
+        elif 'metadata_text' in a:
+            da.text = a['metadata_text']
+        if 'metadata' in a:
+            da.metadata = a['metadata']
+        elif 'metadata_json' in a:
+            da.metadata = a['metadata_json']
+        da.materialized = a.get('materialized', False)
+        da.png = a.get('png', False)
+        da.region_type = a['region_type']
+        da.confidence = a['confidence']
+        da.object_name = a['object_name']
+        da.full_frame = a['full_frame']
+        if a.get('event', None):
+            da.event_id = self.event_to_pk[a['event']]
+        da.parent_frame_index = a['parent_frame_index']
+        da.parent_segment_index = a.get('parent_segment_index', -1)
+        if self.video.vdn_dataset:
+            da.vdn_dataset = self.video.vdn_dataset
+        return da
+
+    def create_frame(self, f):
+        df = Frame()
+        df.video_id = self.video.pk
+        df.name = f['name']
+        df.frame_index = f['frame_index']
+        df.subdir = f['subdir']
+        df.h = f.get('h', 0)
+        df.w = f.get('w', 0)
+        df.t = f.get('t', 0)
+        df.segment_index = f.get('segment_index', 0)
+        df.keyframe = f.get('keyframe', False)
+        return df
+
+    def import_tubes(tubes, video_obj):
+        """
+        :param segments:
+        :param video_obj:
+        :return:
+        """
+        # TODO: Implement this
+        raise NotImplementedError

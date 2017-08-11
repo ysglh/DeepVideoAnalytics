@@ -183,7 +183,6 @@ class VideoList(UserPassesTestMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super(VideoList, self).get_context_data(**kwargs)
         context['exports'] = TEvent.objects.all().filter(operation='export_video')
-        context['s3_exports'] = TEvent.objects.all().filter(operation='export_video')
         return context
 
     def test_func(self):

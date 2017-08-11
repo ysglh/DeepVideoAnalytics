@@ -477,8 +477,10 @@ def export_video(task_id):
     shutil.copytree('{}/{}'.format(settings.MEDIA_ROOT, video_id),
                     "{}/exports/{}".format(settings.MEDIA_ROOT, video_id))
     a = serializers.VideoExportSerializer(instance=video_obj)
+    data = copy.deepcopy(a.data)
+    data['labels'] = serializers.serialize_video_labels(video_obj)
     with file("{}/exports/{}/table_data.json".format(settings.MEDIA_ROOT, video_id), 'w') as output:
-        json.dump(a.data, output)
+        json.dump(data, output)
     zipper = subprocess.Popen(['zip', file_name, '-r', '{}'.format(video_id)],
                               cwd='{}/exports/'.format(settings.MEDIA_ROOT))
     zipper.wait()

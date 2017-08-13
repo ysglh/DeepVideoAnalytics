@@ -410,7 +410,7 @@ class VisualSearchDetail(UserPassesTestMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(VisualSearchDetail, self).get_context_data(**kwargs)
-        qp = DVAPQLProcess(query=context['object'],media_dir=settings.MEDIA_ROOT)
+        qp = DVAPQLProcess(process=context['object'],media_dir=settings.MEDIA_ROOT)
         qp.collect()
         context['results'] = qp.context.items()
         script = context['object'].script

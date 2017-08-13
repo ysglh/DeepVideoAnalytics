@@ -472,9 +472,9 @@ def search(request):
         qp.wait()
         qp.collect()
         return JsonResponse(data={'task_id': "",
-                                  'primary_key': qp.query.pk,
+                                  'primary_key': qp.process.pk,
                                   'results': qp.context,
-                                  'url': '{}queries/{}.png'.format(settings.MEDIA_URL, qp.query.pk)
+                                  'url': '{}queries/{}.png'.format(settings.MEDIA_URL, qp.process.pk)
                                   })
 
 
@@ -992,9 +992,24 @@ def clustering(request):
 @user_passes_test(user_check)
 def submit_process(request):
     if request.method == 'POST':
-        context = {}
+        process_pk = request.POST.get('process_pk',None)
+        if process_pk is None:
+            p = DVAPQLProcess()
+            p.create_from_json(j=json.loads(request.POST.get('script')), user=request.user)
+            p.launch()
+        else:
+            p = DVAPQLProcess(process=DVAPQL.objects.get(pk=process_pk))
+            p.launch()
+        return redirect("process_detail",pk=p.process.pk)
 
-    return redirect("process_list")
+
+@user_passes_test(user_check)
+def validate_process(request):
+    if request.method == 'POST':
+        p = DVAPQLProcess()
+        p.create_from_json(j=json.loads(request.POST.get('script')), user=request.user)
+        p.validate()
+    return redirect("process_detail",pk=p.process.pk)
 
 
 @user_passes_test(user_check)

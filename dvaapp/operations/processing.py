@@ -29,8 +29,8 @@ def get_queue_name(operation,args):
 
 class DVAPQLProcess(object):
 
-    def __init__(self,query=None,media_dir=None):
-        self.query = query
+    def __init__(self,process=None,media_dir=None):
+        self.process = process
         self.media_dir = media_dir
         self.task_results = {}
         self.context = {}
@@ -38,13 +38,13 @@ class DVAPQLProcess(object):
 
     def store(self):
         if settings.HEROKU_DEPLOY:
-            query_key = "queries/{}.png".format(self.query.pk)
+            query_key = "queries/{}.png".format(self.process.pk)
             s3 = boto3.resource('s3')
-            s3.Bucket(settings.MEDIA_BUCKET).put_object(Key=query_key, Body=self.query.image_data)
+            s3.Bucket(settings.MEDIA_BUCKET).put_object(Key=query_key, Body=self.process.image_data)
         else:
-            query_path = "{}/queries/{}.png".format(settings.MEDIA_ROOT, self.query.pk)
+            query_path = "{}/queries/{}.png".format(settings.MEDIA_ROOT, self.process.pk)
             with open(query_path, 'w') as fh:
-                fh.write(self.query.image_data)
+                fh.write(self.process.image_data)
 
     def create_from_request(self, request):
         """
@@ -68,46 +68,46 @@ class DVAPQLProcess(object):
             })
         user = request.user if request.user.is_authenticated else None
         self.create_from_json(query_json,user)
-        return self.query
+        return self.process
 
     def create_from_json(self, j, user=None):
-        if self.query is None:
-            self.query = DVAPQL()
+        if self.process is None:
+            self.process = DVAPQL()
         if not (user is None):
-            self.query.user = user
+            self.process.user = user
         if j['process_type'] == DVAPQL.QUERY:
             if j['image_data_b64'].strip():
                 image_data = base64.decodestring(j['image_data_b64'])
-                self.query.image_data = image_data
-            self.query.script = j
-            self.query.save()
+                self.process.image_data = image_data
+            self.process.script = j
+            self.process.save()
             self.store()
             for k in j['indexer_queries']:
                 iq = IndexerQuery()
-                iq.parent_query = self.query
+                iq.parent_query = self.process
                 iq.algorithm = k['algorithm']
                 iq.count = k['count']
                 iq.excluded_index_entries_pk = k['excluded_index_entries_pk'] if 'excluded_index_entries_pk' in k else []
                 iq.approximate = k['approximate']
                 iq.save()
         elif j['process_type'] == DVAPQL.PROCESS:
-            self.query.process_type = DVAPQL.PROCESS
-            self.query.script = j
-            self.query.save()
+            self.process.process_type = DVAPQL.PROCESS
+            self.process.script = j
+            self.process.save()
         elif j['process_type'] == DVAPQL.INGEST:
             raise NotImplementedError
         else:
             raise ValueError
-        return self.query
+        return self.process
 
     def validate(self):
         pass
 
     def launch(self):
-        if self.query.script['process_type'] == DVAPQL.PROCESS:
-            for t in self.query.script['tasks']:
+        if self.process.script['process_type'] == DVAPQL.PROCESS:
+            for t in self.process.script['tasks']:
                 dt = TEvent()
-                dt.parent_process = self.query
+                dt.parent_process = self.process
                 if 'video_id' in t:
                     dt.video_id = t['video_id']
                 dt.operation = t['operation']
@@ -116,8 +116,8 @@ class DVAPQLProcess(object):
                 app.send_task(name=dt.operation,
                               args=[dt.pk, ],
                               queue=get_queue_name(dt.operation,dt.arguments))
-        elif self.query.script['process_type'] == DVAPQL.QUERY:
-            for iq in IndexerQuery.objects.filter(parent_query=self.query):
+        elif self.process.script['process_type'] == DVAPQL.QUERY:
+            for iq in IndexerQuery.objects.filter(parent_query=self.process):
                 operation = 'perform_indexing'
                 jargs = {
                     'iq_id':iq.pk,
@@ -129,7 +129,7 @@ class DVAPQLProcess(object):
                          }
                     ]
                 }
-                next_task = TEvent.objects.create(parent_process=self.query, operation=operation, arguments=jargs)
+                next_task = TEvent.objects.create(parent_process=self.process, operation=operation, arguments=jargs)
                 queue_name = get_queue_name(next_task.operation, next_task.arguments)
                 self.task_results[iq.algorithm] = app.send_task(operation, args=[next_task.pk, ], queue=queue_name, priority=5)
                 self.context[iq.algorithm] = []
@@ -149,7 +149,7 @@ class DVAPQLProcess(object):
 
     def collect(self):
         self.context = defaultdict(list)
-        for r in QueryResults.objects.all().filter(query=self.query):
+        for r in QueryResults.objects.all().filter(query=self.process):
             self.context[r.algorithm].append((r.rank,
                                          {'url': '{}{}/regions/{}.jpg'.format(settings.MEDIA_URL, r.video_id,
                                                                                  r.detection_id) if r.detection_id else '{}{}/frames/{}.jpg'.format(

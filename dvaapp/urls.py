@@ -53,6 +53,7 @@ urlpatterns = [
     url(r'^import_detector', views.import_detector, name='import_detector'),
     url(r'^import_s3', views.import_s3, name='import_s3'),
     url(r'^submit_process', views.submit_process, name='submit_process'),
+    url(r'^validate_process', views.validate_process, name='validate_process'),
     url(r'^assign_video_labels', views.assign_video_labels, name='assign_video_labels'),
     # url(r'^delete_labels', views.delete_label, name='delete_labels'),
     url(r'^videos/$', views.VideoList.as_view(), name="video_list"),

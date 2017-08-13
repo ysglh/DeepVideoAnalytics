@@ -13,47 +13,49 @@
 </section>
 <section class="content">
     <div class="row">
-        <div class="col-lg-6">
-            <div class="box box-primary">
-                <div class="box-header with-border">
-                    <h4>Configured indexes</h4>
-                </div>
-                <div class="box-body">
-                    <table class="table dataTables-dict">
-                    <thead>
+        <div class="col-lg-12">
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h4>Configured indexes</h4>
+            </div>
+            <div class="box-body">
+                <table class="table dataTables-dict">
+                <thead>
+                <tr>
+                    <th>Index name</th>
+                    <th>Indexer task</th>
+                    <th>Indexer queue</th>
+                    <th>Retriever queue</th>
+                    <th>Detection specific</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for name,i in visual_index_list %}
                     <tr>
-                        <th>Index name</th>
-                        <th>Indexer task</th>
-                        <th>Indexer queue</th>
-                        <th>Retriever queue</th>
-                        <th>Detection specific</th>
+                        <td>{{ name }} </td>
+                        <td>{{ i.indexer_task }}</td>
+                        <td>{{ i.indexer_queue }}</td>
+                        <td>{{ i.retriever_queue }}</td>
+                        <td>{{ i.detection_specific }}</td>
                     </tr>
-                    </thead>
-                    <tbody>
-                    {% for name,i in visual_index_list %}
-                        <tr>
-                            <td>{{ name }} </td>
-                            <td>{{ i.indexer_task }}</td>
-                            <td>{{ i.indexer_queue }}</td>
-                            <td>{{ i.retriever_queue }}</td>
-                            <td>{{ i.detection_specific }}</td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                    </table>
-                </div>
+                {% endfor %}
+                </tbody>
+                </table>
             </div>
         </div>
-    <div class="col-lg-6">
+        </div>
+    </div>
+    <div class="row">
+    <div class="col-lg-12">
         <div class="box box-primary">
             <form action="/indexes" method="POST">
-
             <div class="box-header with-border">
-                <h4>Index custom set of regions</h4>
+                <h4>Index custom set of frames or regions</h4>
             </div>
             <div class="box-body">
                 <div class="row">
-                    <div class="col-sm-12"><div class="form-group">
+                    <div class="col-lg-6">
+                        <div class="form-group">
                             <label for="task_name">Indexing algorithm</label>
                             <select class="js-example-basic" id="visual_index_name" class="form-control" name="visual_index_name" style="width:100%">
                             {% for name,i in visual_index_list %}
@@ -61,42 +63,42 @@
                             {% endfor %}
                             </select>
                         </div>
+                        <div class="row">
+                            <div class="col-xs-4"><div class="form-group"><label>object name<input type="text" class="form-control" name="object_name"> </label></div></div>
+                            <div class="col-xs-4"><div class="form-group"><label>object_name_contains<input type="text" class="form-control" name="object_name__contains"></label></div></div>
+                            <div class="col-xs-4"><div class="form-group"><label>text_contains<input type="text" class="form-control" name="text__contains"></label></div></div>
+                        </div>
                     </div>
-                    <div class="col-sm-12"><div class="form-group">
-                            <label for="video_name">Video</label>
-                            <select class="js-example-basic" id="video_name" class="form-control" name="video_id" style="width:100%">
+                    <div class="col-lg-6"><div class="form-group">
+                            <label for="frame_video_name">Video</label>
+                            <select class="js-example-basic-multiple" multiple="multiple" id="frame_video_name" class="form-control" style="width:100%">
                             {% for v in videos %}
                                 <option value="{{ v.pk }}">{{ v.name }}</option>
                             {% endfor %}
                             </select>
                         </div>
-                    </div>
-                    <div class="col-sm-12"><div class="form-group">
+                        <div class="form-group">
                             <label for="region_type">Region types</label>
                             <select class="js-example-basic" class="js-example-basic-multiple" multiple="multiple" id="region_type" class="form-control" name="region_type__in" style="width:100%">
                             {% for k,v in region_types %}
                                 <option value="{{ k }}" selected="selected" >{{ v }}</option>
                             {% endfor %}
-                            </select>
+                        </select>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-3"><div class="form-group"><label>Min height<input type="number" class="form-control" value="50" name="h__gte"></label></div></div>
+                            <div class="col-xs-3"><div class="form-group"><label>Max height<input type="number" class="form-control" name="h__lte"></label></div></div>
+                            <div class="col-xs-3"><div class="form-group"><label>Min width<input type="number"  class="form-control" value="50" name="w__gte"></label></div></div>
+                            <div class="col-xs-3"><div class="form-group"><label>Max width<input type="number"  class="form-control" name="w__lte"></label></div></div>
                         </div>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col-xs-4"><div class="form-group"><label>object name<input type="text" class="form-control" name="object_name"> </label></div></div>
-                    <div class="col-xs-4"><div class="form-group"><label>object_name_contains<input type="text" class="form-control" name="object_name__contains"></label></div></div>
-                    <div class="col-xs-4"><div class="form-group"><label>text_contains<input type="text" class="form-control" name="text__contains"></label></div></div>
-                </div>
-                <div class="row">
-                    <div class="col-xs-3"><div class="form-group"><label>Min height<input type="number" class="form-control" value="50" name="h__gte"></label></div></div>
-                    <div class="col-xs-3"><div class="form-group"><label>Max height<input type="number" class="form-control" name="h__lte"></label></div></div>
-                    <div class="col-xs-3"><div class="form-group"><label>Min width<input type="number"  class="form-control" value="50" name="w__gte"></label></div></div>
-                    <div class="col-xs-3"><div class="form-group"><label>Max width<input type="number"  class="form-control" name="w__lte"></label></div></div>
-                </div>
             </div>
-            <div class="box-footer">
+            <div class="box-footer text-center">
                 <div class="form-group">
                     {% csrf_token %}
-                    <button class="btn btn-primary pull-right" type="submit">Create custom index</button>
+                    <button class="btn btn-primary" name="target" value="frames" type="submit" style="display:inline-block;margin-right:12px">Create custom index for selected frames</button>
+                    <button class="btn btn-primary" name="target" value="regions" type="submit" style="display:inline-block;" >Create custom index for selected regions</button>
                 </div>
             </div>
             </form>
@@ -151,8 +153,8 @@
         InitializeTables();
         var visual_index_name = $("#visual_index_name");
         visual_index_name.select2({theme: "bootstrap"});
-        var video_name = $("#video_name");
-        video_name.select2({theme: "bootstrap"});
+        var frame_video_name = $("#frame_video_name");
+        frame_video_name.select2({theme: "bootstrap",multiple:true});
         var region_type = $("#region_type");
         region_type.select2({theme: "bootstrap",multiple:true});
     })

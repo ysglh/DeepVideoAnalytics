@@ -43,6 +43,8 @@ TRAIN_TASK = 'trainining'
 IMPORT_TASK = 'import'
 DEFAULT_SEGMENTS_BATCH_SIZE = 10  # how many video segments should we process at a time?
 DEFAULT_FRAMES_BATCH_SIZE = 500  # How many frames/images in a dataset should we process at a time?
+DEFAULT_RESCALE = 0
+DEFAULT_RATE = 30
 
 TASK_NAMES_TO_TYPE = {
     "segment_video": VIDEO_TASK,
@@ -57,7 +59,7 @@ TASK_NAMES_TO_TYPE = {
     "import_video": VIDEO_TASK,
     "backup_video_to_s3": S3_TASK,
     "push_video_to_vdn_s3": S3_TASK,
-    "import_from_s3": S3_TASK,
+    "import_video_from_s3": S3_TASK,
     "perform_clustering": CLUSTER_TASK,
     "train_yolo_detector": TRAIN_TASK,
 }

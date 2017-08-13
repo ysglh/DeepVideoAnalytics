@@ -523,6 +523,7 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
     context["videos"] = Video.objects.all().filter()
     context['manual_tasks'] = settings.MANUAL_VIDEO_TASKS
     context['custom_detector_count'] = CustomDetector.objects.all().count()
+    context['rate'] = settings.DEFAULT_RATE
     return render(request, 'dashboard.html', context)
 
 
@@ -1053,6 +1054,8 @@ def import_s3(request):
         keys = request.POST.get('key')
         region = request.POST.get('region')
         bucket = request.POST.get('bucket')
+        rate = request.POST.get('rate',settings.DEFAULT_RATE)
+        rescale = request.POST.get('rescale',settings.DEFAULT_RESCALE)
         process_spec = {
             'process_type': DVAPQL.PROCESS,
         }
@@ -1067,7 +1070,7 @@ def import_s3(request):
                 video.name = "pending S3 import {} s3://{}/{}".format(region, bucket, key)
                 video.save()
                 import_task = {'video_id': video.pk,'operation': 'import_video'}
-                extract_task = {'arguments': {'rate': 30, 'rescale': 0,
+                extract_task = {'arguments': {'rate': rate, 'rescale': rescale,
                                                'next_tasks': settings.DEFAULT_PROCESSING_PLAN},
                                  'video_id': video.pk,
                                  'operation': 'extract_frames'}
@@ -1077,11 +1080,10 @@ def import_s3(request):
                                             'next_tasks': [
                                                 {'operation': 'decode_video',
                                                  'arguments': {
-                                                     'rate': 30,
-                                                     'rescale': 0,
+                                                     'rate': rate, 'rescale': rescale,
                                                      'next_tasks': settings.DEFAULT_PROCESSING_PLAN
-                                                 }
-                                                 }
+                                                }
+                                            }
                                             ]},
                                         }
                 if key.endswith('.dva_export.zip'):

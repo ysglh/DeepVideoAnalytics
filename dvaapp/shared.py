@@ -76,7 +76,11 @@ def delete_video_object(video_pk,deleter,garbage_collection=True):
         _ = app.send_task(name=delete_task.operation, args=[delete_task.pk], queue=queue)
 
 
-def handle_uploaded_file(f, name, extract=True, user=None, rate=30, rescale=0):
+def handle_uploaded_file(f, name, extract=True, user=None, rate=None, rescale=None):
+    if rate is None:
+        rate = settings.DEFAULT_RATE
+    if rescale is None:
+        rescale = settings.DEFAULT_RESCALE
     video = Video()
     if user:
         video.uploader = user

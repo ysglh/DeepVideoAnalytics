@@ -55,7 +55,7 @@ TASK_NAMES_TO_TYPE = {
     "import_vdn_s3":VIDEO_TASK,
     "detect_custom_objects":VIDEO_TASK,
     "export_video": VIDEO_TASK,
-    "delete_video": VIDEO_TASK,
+    "delete_video_by_id": VIDEO_TASK,
     "import_video": VIDEO_TASK,
     "backup_video_to_s3": S3_TASK,
     "push_video_to_vdn_s3": S3_TASK,

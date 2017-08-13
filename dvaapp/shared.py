@@ -82,7 +82,6 @@ def handle_uploaded_file(f, name, extract=True, user=None, rate=30, rescale=0):
         video.uploader = user
     video.name = name
     video.save()
-    primary_key = video.pk
     filename = f.name
     filename = filename.lower()
     if filename.endswith('.dva_export.zip'):
@@ -93,11 +92,19 @@ def handle_uploaded_file(f, name, extract=True, user=None, rate=30, rescale=0):
                 destination.write(chunk)
         video.uploaded = True
         video.save()
-        operation = 'import_video_by_id'
-        import_video_task = TEvent()
-        import_video_task.video = video
-        import_video_task.save()
-        app.send_task(name=operation, args=[import_video_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[operation])
+        p = processing.DVAPQLProcess()
+        query = {
+            'process_type': DVAPQL.PROCESS,
+            'tasks': [
+                {
+                    'arguments': {},
+                    'video_id': video.pk,
+                    'operation': 'import_video',
+                }
+            ]
+        }
+        p.create_from_json(j=query, user=user)
+        p.launch()
     elif filename.endswith('.mp4') or filename.endswith('.flv') or filename.endswith('.zip'):
         create_video_folders(video, create_subdirs=True)
         with open('{}/{}/video/{}.{}'.format(settings.MEDIA_ROOT, video.pk, video.pk, filename.split('.')[-1]),
@@ -147,7 +154,7 @@ def handle_uploaded_file(f, name, extract=True, user=None, rate=30, rescale=0):
     return video
 
 
-def handle_downloaded_file(downloaded, video, name, extract=True, user=None, rate=30, rescale=0):
+def handle_downloaded_file(downloaded, video, name):
     video.name = name
     video.save()
     filename = downloaded.split('/')[-1]
@@ -156,11 +163,6 @@ def handle_downloaded_file(downloaded, video, name, extract=True, user=None, rat
         os.rename(downloaded, '{}/{}/{}.{}'.format(settings.MEDIA_ROOT, video.pk, video.pk, filename.split('.')[-1]))
         video.uploaded = True
         video.save()
-        operation = 'import_video_by_id'
-        import_video_task = TEvent()
-        import_video_task.video = video
-        import_video_task.save()
-        app.send_task(name=operation, args=[import_video_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[operation])
     elif filename.endswith('.mp4') or filename.endswith('.flv') or filename.endswith('.zip'):
         create_video_folders(video, create_subdirs=True)
         os.rename(downloaded,
@@ -169,40 +171,6 @@ def handle_downloaded_file(downloaded, video, name, extract=True, user=None, rat
         if filename.endswith('.zip'):
             video.dataset = True
         video.save()
-        if extract:
-            p = processing.DVAPQLProcess()
-            if video.dataset:
-                query = {
-                    'process_type':DVAPQL.PROCESS,
-                    'tasks':[
-                        {
-                            'arguments':{'rate': rate, 'rescale': rescale,'next_tasks':settings.DEFAULT_PROCESSING_PLAN},
-                            'video_id':video.pk,
-                            'operation': 'extract_frames',
-                        }
-                    ]
-                }
-            else:
-                query = {
-                    'process_type':DVAPQL.PROCESS,
-                    'tasks':[
-                        {
-                            'arguments':{'next_tasks':[
-                                             {'operation':'decode_video',
-                                              'arguments':{
-                                                   'rate': rate,
-                                                   'rescale': rescale,
-                                                   'next_tasks':settings.DEFAULT_PROCESSING_PLAN
-                                               }
-                                              }
-                                            ]},
-                            'video_id':video.pk,
-                            'operation': 'segment_video',
-                        }
-                    ]
-                }
-            p.create_from_json(j=query,user=user)
-            p.launch()
     else:
         raise ValueError, "Extension {} not allowed".format(filename.split('.')[-1])
     return video

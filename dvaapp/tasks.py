@@ -501,15 +501,15 @@ def export_video(task_id):
     return file_name
 
 
-@app.task(track_started=True, name="import_video_by_id")
-def import_video_by_id(task_id):
+@app.task(track_started=True, name="import_video")
+def import_video(task_id):
     start = TEvent.objects.get(pk=task_id)
     if celery_40_bug_hack(start):
         return 0
-    start.task_id = import_video_by_id.request.id
+    start.task_id = import_video.request.id
     start.started = True
     start.ts = datetime.now()
-    start.operation = import_video_by_id.name
+    start.operation = import_video.name
     start.save()
     start_time = time.time()
     video_id = start.video_id
@@ -840,8 +840,7 @@ def import_video_from_s3(s3_import_id):
             video_json = json.load(input_json)
         importer = serializers.VideoImporter(video=start.video, json=video_json, root_dir=path)
         importer.import_video()
-    start.completed = True
-    start.save()
+    process_next(start.pk)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()

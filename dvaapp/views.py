@@ -1059,13 +1059,39 @@ def import_s3(request):
         user = request.user if request.user.is_authenticated else None
         tasks = []
         for key in keys.strip().split('\n'):
-            if key.strip():
+            key = key.strip()
+            if key:
                 video = Video()
                 if user:
                     video.uploader = user
                 video.name = "pending S3 import {} s3://{}/{}".format(region, bucket, key)
                 video.save()
-                tasks.append({'video_id':video.pk,'operation':'import_video_from_s3','arguments':{'key':key.strip(),'bucket':bucket,'region':region}})
+                import_task = {'video_id': video.pk,'operation': 'import_video'}
+                extract_task = {'arguments': {'rate': 30, 'rescale': 0,
+                                               'next_tasks': settings.DEFAULT_PROCESSING_PLAN},
+                                 'video_id': video.pk,
+                                 'operation': 'extract_frames'}
+                segment_decode_task = {'video_id': video.pk,
+                                        'operation': 'segment_video',
+                                        'arguments': {
+                                            'next_tasks': [
+                                                {'operation': 'decode_video',
+                                                 'arguments': {
+                                                     'rate': 30,
+                                                     'rescale': 0,
+                                                     'next_tasks': settings.DEFAULT_PROCESSING_PLAN
+                                                 }
+                                                 }
+                                            ]},
+                                        }
+                if key.endswith('.dva_export.zip'):
+                    next_tasks = [import_task,]
+                elif key.endswith('.zip'):
+                    next_tasks = [extract_task,]
+                else:
+                    next_tasks = [segment_decode_task,]
+                tasks.append({'video_id':video.pk,'operation':'import_video_from_s3',
+                              'arguments':{'key':key,'bucket':bucket,'region':region, 'next_tasks':next_tasks}})
         process_spec['tasks'] = tasks
         p = DVAPQLProcess()
         p.create_from_json(process_spec,user)

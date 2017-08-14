@@ -24,7 +24,9 @@
     </div>
     <div class="col-lg-6">
         <div class="box box-primary">
-            <div class="box-header with-border"><h3>Tasks</h3></div>
+            <div class="box-header with-border"><h3  style="display: inline-block">Tasks</h3>
+                <a class="btn btn-primary pull-right" href="{% url 'process_tasks' object.pk %}" style="margin: 10px auto" > <i class="fa fa-list"></i> All tasks</a>
+            </div>
             <div class="box-body">
             <div class="row text-center">
                 <div class="col-xs-3">

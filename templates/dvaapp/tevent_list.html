@@ -43,6 +43,7 @@
                 <table class="table dataTables">
                     <thead>
                     <tr>
+                        <th>Process</th>
                         <th>Video</th>
                         <th>Operation</th>
                         <th>ts</th>
@@ -57,7 +58,8 @@
                     <tbody>
                     {% for e in object_list %}
                         <tr>
-                            <td>{{ e.video.name }}</td>
+                            <td><a href="/process/{{ e.parent_process_id }}">{{ e.parent_process_id }}</a></td>
+                            <td>{% if e.video %}<a href="/videos/{{ e.video_id }}">{{ e.video.name }}</a>{% endif %}</td>
                             <td>{{ e.operation }}</td>
                             <td class="text-center">{{ e.created|timesince}}</td>
                             <td class="text-center">{{ e.created|date:"U" }}</td>

@@ -822,7 +822,6 @@ def import_video_from_s3(s3_import_id):
         start.completed = True
         start.seconds = time.time() - start_time
         start.save()
-        return
     else:
         create_video_folders(start.video, create_subdirs=False)
         command = ["aws", "s3", "cp",'--quiet', "s3://{}/{}/".format(s3bucket, s3key), '.', '--recursive']

@@ -197,6 +197,8 @@ class TEventList(UserPassesTestMixin, ListView):
         kwargs = {}
         if self.kwargs.get('pk',None):
             kwargs['video_id']=self.kwargs['pk']
+        elif self.kwargs.get('process_pk',None):
+            kwargs['parent_process_id']=self.kwargs['process_pk']
         if self.kwargs.get('status',None):
             if self.kwargs['status'] == 'running':
                 kwargs['seconds__lt'] = 0
@@ -221,17 +223,20 @@ class TEventList(UserPassesTestMixin, ListView):
         if self.kwargs.get('pk',None):
             context['video'] = Video.objects.get(pk=self.kwargs['pk'])
             context['header'] = "video/dataset : {}".format(context['video'].name)
+        if self.kwargs.get('process_pk',None):
+            process_pk = self.kwargs.get('process_pk',None)
+            context['header'] = "process : {}".format(process_pk)
         if self.kwargs.get('status',None):
             context['header'] += " with status {}".format(self.kwargs['status'])
-        context['settings_queues'] = set(settings.TASK_NAMES_TO_QUEUE.values())
-        task_list = []
-        for k, v in settings.TASK_NAMES_TO_TYPE.iteritems():
-            task_list.append({'name': k,
-                              'type': v,
-                              'queue': settings.TASK_NAMES_TO_QUEUE[k],
-                              'edges': []
-                              })
-        context['task_list'] = task_list
+        # context['settings_queues'] = set(settings.TASK_NAMES_TO_QUEUE.values())
+        # task_list = []
+        # for k, v in settings.TASK_NAMES_TO_TYPE.iteritems():
+        #     task_list.append({'name': k,
+        #                       'type': v,
+        #                       'queue': settings.TASK_NAMES_TO_QUEUE[k],
+        #                       'edges': []
+        #                       })
+        # context['task_list'] = task_list
         return context
 
     def test_func(self):
@@ -447,6 +452,10 @@ class ProcessDetail(UserPassesTestMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(ProcessDetail, self).get_context_data(**kwargs)
+        context['pending_tasks'] = TEvent.objects.all().filter(parent_process=self.object,started=False, errored=False).count()
+        context['running_tasks'] = TEvent.objects.all().filter(parent_process=self.object,started=True, completed=False, errored=False).count()
+        context['successful_tasks'] = TEvent.objects.all().filter(parent_process=self.object,completed=True).count()
+        context['errored_tasks'] = TEvent.objects.all().filter(parent_process=self.object,errored=True).count()
         return context
 
     def test_func(self):

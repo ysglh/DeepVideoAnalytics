@@ -1,5 +1,6 @@
 import os, json, requests, base64, logging
-from models import Video, TEvent,  Region, VDNDataset, VDNServer, VDNDetector, CustomDetector, DeletedVideo
+from models import Video, TEvent,  Region, VDNDataset, VDNServer, VDNDetector, CustomDetector, DeletedVideo, Label,\
+    RegionLabel
 from django.conf import settings
 from dva.celery import app
 from django_celery_results.models import TaskResult
@@ -206,15 +207,15 @@ def create_annotation(form, object_name, labels, frame):
     annotation.video = frame.video
     annotation.region_type = Region.ANNOTATION
     annotation.save()
-    # for l in labels:
-    #     if l.strip():
-            # dl = AppliedLabel()
-            # dl.video = annotation.video
-            # dl.frame = annotation.frame
-            # dl.region = annotation
-            # dl.label_name = l.strip()
-            # dl.source = dl.UI
-            # dl.save()
+    for lname in labels:
+        if lname.strip():
+            dl, _ = Label.objects.get_or_create(name=lname, set="UI")
+            rl = RegionLabel()
+            rl.video = annotation.video
+            rl.frame = annotation.frame
+            rl.region = annotation
+            rl.label = dl
+            rl.save()
 
 
 def handle_youtube_video(name, url, extract=True, user=None, rate=30, rescale=0):

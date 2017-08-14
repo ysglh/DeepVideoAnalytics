@@ -68,13 +68,18 @@ def delete_video_object(video_pk,deleter,garbage_collection=True):
     deleted.save()
     video.delete()
     if garbage_collection:
-        delete_task = TEvent()
-        delete_task.arguments = {'video_pk': video_pk}
-        delete_task.operation = 'delete_video_by_id'
-        delete_task.save()
-        queue = settings.TASK_NAMES_TO_QUEUE[delete_task.operation]
-        _ = app.send_task(name=delete_task.operation, args=[delete_task.pk], queue=queue)
-
+        p = processing.DVAPQLProcess()
+        query = {
+            'process_type': DVAPQL.PROCESS,
+            'tasks': [
+                {
+                    'arguments': {'video_pk': video.pk},
+                    'operation': 'delete_video_by_id',
+                }
+            ]
+        }
+        p.create_from_json(j=query, user=deleter)
+        p.launch()
 
 def handle_uploaded_file(f, name, extract=True, user=None, rate=None, rescale=None):
     if rate is None:
@@ -354,19 +359,33 @@ def import_vdn_dataset_url(server, url, user):
     video.vdn_dataset = vdn_dataset
     video.save()
     if vdn_dataset.download_url:
-        operation = 'import_vdn_file'
-        import_video_task = TEvent()
-        import_video_task.video = video
-        import_video_task.operation = operation
-        import_video_task.save()
-        app.send_task(name=operation, args=[import_video_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[operation])
+        p = processing.DVAPQLProcess()
+        query = {
+            'process_type': DVAPQL.PROCESS,
+            'tasks': [
+                {
+                    'arguments': {},
+                    'video_id': video.pk,
+                    'operation': 'import_vdn_file',
+                }
+            ]
+        }
+        p.create_from_json(j=query, user=user)
+        p.launch()
     elif vdn_dataset.aws_key and vdn_dataset.aws_bucket:
-        operation = 'import_vdn_s3'
-        import_video_task = TEvent()
-        import_video_task.video = video
-        import_video_task.operation = operation
-        import_video_task.save()
-        app.send_task(name=operation, args=[import_video_task.pk, ], queue=settings.TASK_NAMES_TO_QUEUE[operation])
+        p = processing.DVAPQLProcess()
+        query = {
+            'process_type': DVAPQL.PROCESS,
+            'tasks': [
+                {
+                    'arguments': {},
+                    'video_id': video.pk,
+                    'operation': 'import_vdn_s3',
+                }
+            ]
+        }
+        p.create_from_json(j=query, user=user)
+        p.launch()
     else:
         raise NotImplementedError
 
@@ -397,13 +416,18 @@ def import_vdn_detector_url(server, url, user):
     detector.vdn_detector = vdn_detector
     detector.save()
     if vdn_detector.download_url:
-        operation = 'import_vdn_detector_file'
-        import_vdn_detector_task = TEvent()
-        import_vdn_detector_task.operation = operation
-        import_vdn_detector_task.arguments = {'detector_pk': detector.pk}
-        import_vdn_detector_task.save()
-        app.send_task(name=operation, args=[import_vdn_detector_task.pk, ],
-                      queue=settings.TASK_NAMES_TO_QUEUE[operation])
+        p = processing.DVAPQLProcess()
+        query = {
+            'process_type': DVAPQL.PROCESS,
+            'tasks': [
+                {
+                    'arguments': {'detector_pk': detector.pk},
+                    'operation': 'import_vdn_detector_file',
+                }
+            ]
+        }
+        p.create_from_json(j=query, user=user)
+        p.launch()
     elif vdn_detector.aws_key and vdn_detector.aws_bucket:
         raise NotImplementedError
     else:

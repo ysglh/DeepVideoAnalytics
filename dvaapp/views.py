@@ -1002,16 +1002,18 @@ def clustering(request):
 @user_passes_test(user_check)
 def submit_process(request):
     if request.method == 'POST':
-        process_pk = request.POST.get('process_pk',None)
-        if process_pk is None:
-            p = DVAPQLProcess()
-            p.create_from_json(j=json.loads(request.POST.get('script')), user=request.user)
-            p.launch()
+        if request.user.is_authenticated:
+            process_pk = request.POST.get('process_pk',None)
+            if process_pk is None:
+                p = DVAPQLProcess()
+                p.create_from_json(j=json.loads(request.POST.get('script')), user=request.user)
+                p.launch()
+            else:
+                p = DVAPQLProcess(process=DVAPQL.objects.get(pk=process_pk))
+                p.launch()
+            return redirect("process_detail",pk=p.process.pk)
         else:
-            p = DVAPQLProcess(process=DVAPQL.objects.get(pk=process_pk))
-            p.launch()
-        return redirect("process_detail",pk=p.process.pk)
-
+            raise ValueError,"User must be authenticated"
 
 @user_passes_test(user_check)
 def validate_process(request):

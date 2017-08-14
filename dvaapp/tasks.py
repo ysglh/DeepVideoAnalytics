@@ -783,10 +783,16 @@ def import_video_from_s3(s3_import_id):
     start.operation = import_video_from_s3.name
     start.save()
     start_time = time.time()
-    path = "{}/{}/".format(settings.MEDIA_ROOT, start.video.pk)
     s3key = start.arguments['key']
     s3bucket = start.arguments['bucket']
     logging.info("processing key  {}space".format(s3key))
+    if start.video is None:
+        v = Video()
+        v.name = "pending S3 import from s3://{}/{}".format(s3bucket,s3key)
+        v.save()
+        start.video = v
+        start.save()
+    path = "{}/{}/".format(settings.MEDIA_ROOT, start.video.pk)
     if s3key.strip() and (s3key.endswith('.zip') or s3key.endswith('.mp4')):
         fname = 'temp_' + str(time.time()).replace('.', '_') + '_' + str(random.randint(0, 100)) + '.' + \
                 s3key.split('.')[-1]

@@ -514,23 +514,6 @@ def import_video(task_id):
     start_time = time.time()
     video_id = start.video_id
     video_obj = Video.objects.get(pk=video_id)
-    if video_obj.vdn_dataset and not video_obj.uploaded:
-        if video_obj.vdn_dataset.aws_requester_pays:
-            s3import = TEvent()
-            s3import.video = video_obj
-            s3import.arguments = {
-                'key':video_obj.vdn_dataset.aws_key,
-                'bucket':video_obj.vdn_dataset.aws_bucket,
-                'requester_pays':True
-                }            
-            s3import.operation = "import_video_from_s3"
-            s3import.save()
-            app.send_task(s3import.operation, args=[s3import.pk, ],
-                          queue=settings.TASK_NAMES_TO_QUEUE[s3import.operation])
-            start.completed = True
-            start.seconds = time.time() - start_time
-            start.save()
-            return 0
     zipf = zipfile.ZipFile("{}/{}/{}.zip".format(settings.MEDIA_ROOT, video_id, video_id), 'r')
     zipf.extractall("{}/{}/".format(settings.MEDIA_ROOT, video_id))
     zipf.close()

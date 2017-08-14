@@ -979,12 +979,20 @@ def create_custom_migrations():
 
 
 @task
-def install_visual_data_notebook():
+def submit(path):
     """
-
-    :return:
+    Submit a DVAPQL process to run
+    :param path:
+    :return: id of the submitted process
     """
-    local('pip install --upgrade jupyter')
-    local('pip install ipywidgets')
-    local('jupyter nbextension enable --py --sys-prefix widgetsnbextension')
-
+    import django
+    sys.path.append(os.path.dirname(__file__))
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
+    django.setup()
+    from dvaapp.operations.processing import DVAPQLProcess
+    with open(path) as f:
+        j = json.load(f)
+    p = DVAPQLProcess()
+    p.create_from_json(j)
+    p.launch()
+    print "launched Process with id {} ".format(p.process.pk)

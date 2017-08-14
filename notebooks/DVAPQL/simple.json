@@ -10,6 +10,7 @@
           {
             "operation": "segment_video",
             "arguments": {
+              "segments_batch_size":10,
               "next_tasks": [
                 {
                   "operation": "decode_video",

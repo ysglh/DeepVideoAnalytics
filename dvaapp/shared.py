@@ -82,6 +82,7 @@ def delete_video_object(video_pk,deleter,garbage_collection=True):
         p.create_from_json(j=query, user=deleter)
         p.launch()
 
+
 def handle_uploaded_file(f, name, extract=True, user=None, rate=None, rescale=None):
     if rate is None:
         rate = settings.DEFAULT_RATE
@@ -132,7 +133,9 @@ def handle_uploaded_file(f, name, extract=True, user=None, rate=None, rescale=No
                     'process_type':DVAPQL.PROCESS,
                     'tasks':[
                         {
-                            'arguments':{'rate': rate, 'rescale': rescale,'next_tasks':settings.DEFAULT_PROCESSING_PLAN},
+                            'arguments':{'rate': rate, 'rescale': rescale,
+                                         'frames_batch_size':settings.DEFAULT_FRAMES_BATCH_SIZE,
+                                         'next_tasks':settings.DEFAULT_PROCESSING_PLAN},
                             'video_id':video.pk,
                             'operation': 'extract_frames',
                         }
@@ -143,7 +146,9 @@ def handle_uploaded_file(f, name, extract=True, user=None, rate=None, rescale=No
                     'process_type':DVAPQL.PROCESS,
                     'tasks':[
                         {
-                            'arguments':{'next_tasks':[
+                            'arguments':{
+                                'segments_batch_size': settings.DEFAULT_SEGMENTS_BATCH_SIZE,
+                                'next_tasks':[
                                              {'operation':'decode_video',
                                                'arguments':{
                                                    'rate': rate,
@@ -242,6 +247,7 @@ def handle_youtube_video(name, url, extract=True, user=None, rate=30, rescale=0)
                          }
                     ]},
                     'video_id': video.pk,
+                    'segments_batch_size': settings.DEFAULT_SEGMENTS_BATCH_SIZE,
                     'operation': 'segment_video',
                 }
             ]

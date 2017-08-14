@@ -13,7 +13,8 @@ EXAMPLES = {
           {
             "operation": "segment_video",
             "arguments": {
-              "next_tasks": [
+                "segments_batch_size": 10,
+                "next_tasks": [
                 {
                   "operation": "decode_video",
                   "arguments": {

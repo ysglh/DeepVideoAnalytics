@@ -1082,7 +1082,8 @@ def import_s3(request):
                 video.save()
                 import_task = {'video_id': video.pk,'operation': 'import_video'}
                 extract_task = {'arguments': {'rate': rate, 'rescale': rescale,
-                                               'next_tasks': settings.DEFAULT_PROCESSING_PLAN},
+                                              'frames_batch_size': settings.DEFAULT_FRAMES_BATCH_SIZE,
+                                              'next_tasks': settings.DEFAULT_PROCESSING_PLAN},
                                  'video_id': video.pk,
                                  'operation': 'extract_frames'}
                 segment_decode_task = {'video_id': video.pk,
@@ -1092,6 +1093,7 @@ def import_s3(request):
                                                 {'operation': 'decode_video',
                                                  'arguments': {
                                                      'rate': rate, 'rescale': rescale,
+                                                     'segments_batch_size':settings.DEFAULT_SEGMENTS_BATCH_SIZE,
                                                      'next_tasks': settings.DEFAULT_PROCESSING_PLAN
                                                 }
                                             }

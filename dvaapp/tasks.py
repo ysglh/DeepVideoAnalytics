@@ -483,6 +483,7 @@ def export_video(task_id):
     a = serializers.VideoExportSerializer(instance=video_obj)
     data = copy.deepcopy(a.data)
     data['labels'] = serializers.serialize_video_labels(video_obj)
+    data['export_event_pk'] = start.pk
     with file("{}/exports/{}/table_data.json".format(settings.MEDIA_ROOT, video_id), 'w') as output:
         json.dump(data, output)
     zipper = subprocess.Popen(['zip', file_name, '-r', '{}'.format(video_id)],
@@ -678,25 +679,27 @@ def perform_export(s3_export):
     s3bucket = s3_export.arguments['bucket']
     s3region = s3_export.arguments['region']
     s3key = s3_export.arguments['key']
-    if s3_export.region == 'us-east-1':
+    if s3region == 'us-east-1':
         s3.create_bucket(Bucket=s3bucket)
     else:
         s3.create_bucket(Bucket=s3bucket, CreateBucketConfiguration={'LocationConstraint': s3region})
     time.sleep(20)  # wait for it to create the bucket
     path = "{}/{}/".format(settings.MEDIA_ROOT, s3_export.video.pk)
-    a = serializers.VideoExportSerializer(instance=s3_export.video)
+    video = s3_export.video
+    a = serializers.VideoExportSerializer(instance=video)
+    data = copy.deepcopy(a.data)
+    data['labels'] = serializers.serialize_video_labels(video)
+    data['export_event_pk'] = s3_export.pk
     exists = False
     try:
         s3.Object(s3bucket, '{}/table_data.json'.format(s3key).replace('//', '/')).load()
     except ClientError as e:
-        if e.response['Error']['Code'] == "404":
-            exists = False
-        else:
-            raise
+        if e.response['Error']['Code'] != "404":
+            raise ValueError,"Key s3://{}/{}/table_data.json already exists".format(s3bucket,s3key)
     else:
         return -1, "Error key already exists"
     with file("{}/{}/table_data.json".format(settings.MEDIA_ROOT, s3_export.video.pk), 'w') as output:
-        json.dump(a.data, output)
+        json.dump(data, output)
     s3bucket = s3_export.arguments['bucket']
     s3key = s3_export.arguments['key']
     upload = subprocess.Popen(args=["aws", "s3", "sync",'--quiet', ".", "s3://{}/{}/".format(s3bucket,s3key)],cwd=path)

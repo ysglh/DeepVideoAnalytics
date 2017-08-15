@@ -1,4 +1,4 @@
-import os, json, requests, copy, time, subprocess, logging, shutil, zipfile, boto3, random, calendar
+import os, json, requests, copy, time, subprocess, logging, shutil, zipfile, boto3, random, calendar, shlex
 from models import Video, TEvent,  Region, VDNDataset, VDNServer, VDNDetector, CustomDetector, DeletedVideo, Label,\
     RegionLabel
 from django.conf import settings
@@ -224,38 +224,19 @@ def create_annotation(form, object_name, labels, frame):
             rl.save()
 
 
-def handle_video_url(name, url, extract=True, user=None, rate=30, rescale=0):
-    video = Video()
-    if user:
-        video.uploader = user
-    video.name = name
-    video.url = url
-    video.youtube_video = True
-    video.save()
-    if extract:
-        p = processing.DVAPQLProcess()
-        query = {
-            'process_type': DVAPQL.PROCESS,
-            'tasks': [
-                {
-                    'arguments': {'next_tasks': [
-                        {'operation': 'decode_video',
-                         'arguments': {
-                             'rate': rate,
-                             'rescale': rescale,
-                             'next_tasks': settings.DEFAULT_PROCESSING_PLAN
-                         }
-                         }
-                    ]},
-                    'video_id': video.pk,
-                    'segments_batch_size': settings.DEFAULT_SEGMENTS_BATCH_SIZE,
-                    'operation': 'segment_video',
-                }
-            ]
-        }
-        p.create_from_json(j=query, user=user)
-        p.launch()
-    return video
+def retrieve_video_via_url(dv,media_dir):
+    create_video_folders(dv, create_subdirs=True)
+    output_dir = "{}/{}/{}/".format(media_dir, dv.pk, 'video')
+    command = "youtube-dl -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4'  \"{}\" -o {}.mp4".format(dv.url,dv.pk)
+    logging.info(command)
+    download = subprocess.Popen(shlex.split(command), cwd=output_dir)
+    download.wait()
+    if download.returncode != 0:
+        raise ValueError,"Could not download the video"
+
+
+def handle_video_url(name, url, user = None):
+    return Video.objects.create(name=name,url=url,youtube_video=True,user=user)
 
 
 def create_child_vdn_dataset(parent_video, server, headers):

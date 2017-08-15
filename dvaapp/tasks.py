@@ -478,7 +478,10 @@ def perform_import(event_id):
     source = start.arguments['source']
     dv = start.video
     if source == 'URL':
-        start.video = shared.handle_video_url(start.arguments['name'],start.arguments['url'],extract=False)
+        if start.video is None:
+            start.video = shared.handle_video_url(start.arguments['name'],start.arguments['url'])
+            start.save()
+        shared.retrieve_video_via_url(start.video,settings.MEDIA_ROOT)
     elif source == 'S3':
         shared.import_s3(start,dv)
     elif source == 'VDN_URL':

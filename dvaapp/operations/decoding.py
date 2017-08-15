@@ -73,15 +73,6 @@ class VideoDecoder(object):
         return frames
 
     def get_metadata(self):
-        if self.dvideo.youtube_video:
-            output_dir = "{}/{}/{}/".format(self.media_dir,self.primary_key,'video')
-            command = "youtube-dl -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4'  \"{}\" -o {}.mp4".format(self.dvideo.url,self.primary_key)
-            logging.info(command)
-            download = sp.Popen(shlex.split(command),cwd=output_dir)
-            download.wait()
-            if download.returncode != 0:
-                logging.error("Could not download the video")
-                raise ValueError
         command = ['ffprobe','-i',self.local_path,'-print_format','json','-show_format','-show_streams','-v','quiet']
         p = sp.Popen(command,stdout=sp.PIPE,stderr=sp.STDOUT,stdin=sp.PIPE)
         p.wait()

@@ -172,7 +172,7 @@ def ci():
     django.setup()
     import base64
     from django.core.files.uploadedfile import SimpleUploadedFile
-    from dvaapp.views import handle_uploaded_file, handle_video_url, pull_vdn_list\
+    from dvaapp.views import handle_uploaded_file, pull_vdn_list\
         ,import_vdn_dataset_url
     from dvaapp.models import Video, Clusters,IndexEntries,TEvent,VDNServer, DVAPQL
     from django.conf import settings
@@ -193,7 +193,6 @@ def ci():
             name = fname.split('/')[-1].split('.')[0]
             f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
             handle_uploaded_file(f, name)
-    # handle_video_url('world is not enough', 'https://www.youtube.com/watch?v=P-oNz3Nf50Q') # Temporarily disabled due error in travis
     for i,v in enumerate(Video.objects.all()):
         if v.dataset:
             arguments = {'sync':True}
@@ -510,32 +509,11 @@ def restore(path):
     print zipper.returncode
 
 
-
-
-@task
-def process_video_list(filename):
-    """
-    submit multiple videos from a json file
-    """
-    import django,json
-    sys.path.append(os.path.dirname(__file__))
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
-    django.setup()
-    from dvaapp.views import handle_video_url
-    vlist = json.load(file(filename))
-    for video in vlist:
-        handle_video_url(video['name'],video['url'])
-
-
-
-
 def setup_django():
     import django
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
-
-
 
 
 @task

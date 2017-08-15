@@ -183,7 +183,7 @@ class VideoList(UserPassesTestMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super(VideoList, self).get_context_data(**kwargs)
-        context['exports'] = TEvent.objects.all().filter(operation='export_video')
+        context['exports'] = TEvent.objects.all().filter(operation='perform_export')
         return context
 
     def test_func(self):
@@ -269,8 +269,7 @@ class VideoDetail(UserPassesTestMixin, DetailView):
         context = super(VideoDetail, self).get_context_data(**kwargs)
         max_frame_index = Frame.objects.all().filter(video=self.object).aggregate(Max('frame_index'))[
             'frame_index__max']
-        context['exports'] = TEvent.objects.all().filter(operation='export_video', video=self.object)
-        context['s3_exports'] = TEvent.objects.all().filter(operation='export_video', video=self.object)
+        context['exports'] = TEvent.objects.all().filter(operation='perform_export', video=self.object)
         context['annotation_count'] = Region.objects.all().filter(video=self.object,
                                                                   region_type=Region.ANNOTATION).count()
         if self.object.vdn_dataset:
@@ -683,8 +682,8 @@ def export_video(request):
                           'tasks':[
                               {
                                   'video_id':video.pk,
-                                  'operation':'backup_video_to_s3',
-                                  'arguments': {'key':key,'bucket':bucket,'region':region}
+                                  'operation':'perform_export',
+                                  'arguments': {'key':key,'bucket':bucket,'region':region,'destination':'S3'}
                               },
                           ]}
             else:
@@ -692,7 +691,8 @@ def export_video(request):
                           'tasks':[
                               {
                                   'video_id':video.pk,
-                                  'operation':'export_video',
+                                  'operation':'perform_export',
+                                  'arguments':{'destination':'FILE'}
                               },
                           ]
                           }
@@ -761,10 +761,11 @@ def push(request, video_id):
                 'process_type':DVAPQL.PROCESS,
                 'tasks':[
                     {
-                        'operation':'push_video_to_vdn_s3',
+                        'operation':'perform_export',
                         'arumgents': {'key':key,
                                       'bucket':bucket,
-                                      'region':region}
+                                      'region':region,
+                                      'destination':'S3'}
                      }
                 ]
             }

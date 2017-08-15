@@ -1,4 +1,4 @@
-import os, json, requests, copy, time, subprocess, logging, shutil, zipfile, boto3, random
+import os, json, requests, copy, time, subprocess, logging, shutil, zipfile, boto3, random, calendar
 from models import Video, TEvent,  Region, VDNDataset, VDNServer, VDNDetector, CustomDetector, DeletedVideo, Label,\
     RegionLabel
 from django.conf import settings
@@ -490,22 +490,21 @@ def download_s3_dir(client, resource, dist, local, bucket):
                 resource.meta.client.download_file(bucket, ffile.get('Key'), local + os.sep + ffile.get('Key'),
                                                    ExtraArgs={'RequestPayer': 'requester'})
 
-def perform_export(s3_export):
+
+def perform_s3_export(dv,s3key,s3bucket,s3region,export_event_pk=None,create_bucket=False):
     s3 = boto3.resource('s3')
-    s3bucket = s3_export.arguments['bucket']
-    s3region = s3_export.arguments['region']
-    s3key = s3_export.arguments['key']
-    if s3region == 'us-east-1':
-        s3.create_bucket(Bucket=s3bucket)
-    else:
-        s3.create_bucket(Bucket=s3bucket, CreateBucketConfiguration={'LocationConstraint': s3region})
-    time.sleep(20)  # wait for it to create the bucket
-    path = "{}/{}/".format(settings.MEDIA_ROOT, s3_export.video.pk)
-    video = s3_export.video
-    a = serializers.VideoExportSerializer(instance=video)
+    if create_bucket:
+        if s3region == 'us-east-1':
+            s3.create_bucket(Bucket=s3bucket)
+        else:
+            s3.create_bucket(Bucket=s3bucket, CreateBucketConfiguration={'LocationConstraint': s3region})
+        time.sleep(20)  # wait for it to create the bucket
+    path = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
+    a = serializers.VideoExportSerializer(instance=dv)
     data = copy.deepcopy(a.data)
-    data['labels'] = serializers.serialize_video_labels(video)
-    data['export_event_pk'] = s3_export.pk
+    data['labels'] = serializers.serialize_video_labels(dv)
+    if export_event_pk:
+        data['export_event_pk'] = export_event_pk
     exists = False
     try:
         s3.Object(s3bucket, '{}/table_data.json'.format(s3key).replace('//', '/')).load()
@@ -514,15 +513,11 @@ def perform_export(s3_export):
             raise ValueError,"Key s3://{}/{}/table_data.json already exists".format(s3bucket,s3key)
     else:
         return -1, "Error key already exists"
-    with file("{}/{}/table_data.json".format(settings.MEDIA_ROOT, s3_export.video.pk), 'w') as output:
+    with file("{}/{}/table_data.json".format(settings.MEDIA_ROOT, dv.pk), 'w') as output:
         json.dump(data, output)
-    s3bucket = s3_export.arguments['bucket']
-    s3key = s3_export.arguments['key']
     upload = subprocess.Popen(args=["aws", "s3", "sync",'--quiet', ".", "s3://{}/{}/".format(s3bucket,s3key)],cwd=path)
     upload.communicate()
     upload.wait()
-    s3_export.completed = True
-    s3_export.save()
     return upload.returncode, ""
 
 
@@ -727,3 +722,29 @@ def import_vdn_s3(dv):
     importer.import_video()
     dv.uploaded = True
     dv.save()
+
+
+def export_file(video_obj,export_event_pk=None):
+    video_id = video_obj.pk
+    file_name = '{}_{}.dva_export.zip'.format(video_id, int(calendar.timegm(time.gmtime())))
+    try:
+        os.mkdir("{}/{}".format(settings.MEDIA_ROOT, 'exports'))
+    except:
+        pass
+    outdirname = "{}/exports/{}".format(settings.MEDIA_ROOT, video_id)
+    if os.path.isdir(outdirname):
+        shutil.rmtree(outdirname)
+    shutil.copytree('{}/{}'.format(settings.MEDIA_ROOT, video_id),
+                    "{}/exports/{}".format(settings.MEDIA_ROOT, video_id))
+    a = serializers.VideoExportSerializer(instance=video_obj)
+    data = copy.deepcopy(a.data)
+    data['labels'] = serializers.serialize_video_labels(video_obj)
+    if export_event_pk:
+        data['export_event_pk'] = export_event_pk
+    with file("{}/exports/{}/table_data.json".format(settings.MEDIA_ROOT, video_id), 'w') as output:
+        json.dump(data, output)
+    zipper = subprocess.Popen(['zip', file_name, '-r', '{}'.format(video_id)],
+                              cwd='{}/exports/'.format(settings.MEDIA_ROOT))
+    zipper.wait()
+    shutil.rmtree("{}/exports/{}".format(settings.MEDIA_ROOT, video_id))
+    return file_name

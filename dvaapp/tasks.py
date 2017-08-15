@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-import subprocess, shutil, os, time, logging, copy, calendar, requests, json, zipfile, io
+import subprocess, os, time, logging, requests, zipfile, io
 from collections import defaultdict
 from PIL import Image
 from django.conf import settings
@@ -376,51 +376,42 @@ def perform_analysis(task_id):
     return 0
 
 
-@app.task(track_started=True, name="export_video")
-def export_video(task_id):
+@app.task(track_started=True, name="perform_export")
+def perform_export(task_id):
     start = TEvent.objects.get(pk=task_id)
     if shared.celery_40_bug_hack(start):
         return 0
-    start.task_id = export_video.request.id
+    start.task_id = perform_export.request.id
     start.started = True
     start.ts = datetime.now()
-    start.operation = export_video.name
+    start.operation = perform_export.name
     start.save()
     start_time = time.time()
     video_id = start.video_id
-    video_obj = Video.objects.get(pk=video_id)
-    file_name = '{}_{}.dva_export.zip'.format(video_id, int(calendar.timegm(time.gmtime())))
-    args = {'file_name':file_name}
-    start.arguments = args
+    dv = Video.objects.get(pk=video_id)
+    destination = start.arguments['destination']
     try:
-        os.mkdir("{}/{}".format(settings.MEDIA_ROOT, 'exports'))
+        if destination == "FILE":
+                file_name = shared.export_file(dv,export_event_pk=start.pk)
+                start.arguments['file_name'] = file_name
+        elif destination == "S3":
+            s3bucket = start.arguments['bucket']
+            s3region = start.arguments['region']
+            create_bucket = start.arguments['create_bucket']
+            s3key = start.arguments['key']
+            returncode, errormsg = shared.perform_s3_export(dv,s3key,s3bucket,s3region,
+                                                            export_event_pk=start.pk,create_bucket=create_bucket)
+            if returncode == 0:
+                raise ValueError
     except:
-        pass
-    outdirname = "{}/exports/{}".format(settings.MEDIA_ROOT, video_id)
-    if os.path.isdir(outdirname):
-        shutil.rmtree(outdirname)
-    shutil.copytree('{}/{}'.format(settings.MEDIA_ROOT, video_id),
-                    "{}/exports/{}".format(settings.MEDIA_ROOT, video_id))
-    a = serializers.VideoExportSerializer(instance=video_obj)
-    data = copy.deepcopy(a.data)
-    data['labels'] = serializers.serialize_video_labels(video_obj)
-    data['export_event_pk'] = start.pk
-    with file("{}/exports/{}/table_data.json".format(settings.MEDIA_ROOT, video_id), 'w') as output:
-        json.dump(data, output)
-    zipper = subprocess.Popen(['zip', file_name, '-r', '{}'.format(video_id)],
-                              cwd='{}/exports/'.format(settings.MEDIA_ROOT))
-    zipper.wait()
-    if zipper.returncode != 0:
         start.errored = True
-        start.error_message = "Could not zip {}".format(zipper.returncode)
+        start.error_message = "Could not export"
         start.seconds = time.time() - start_time
         start.save()
         raise ValueError, start.error_message
-    shutil.rmtree("{}/exports/{}".format(settings.MEDIA_ROOT, video_id))
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
-    return file_name
 
 
 @app.task(track_started=True, name="import_vdn_detector_file")
@@ -455,48 +446,6 @@ def import_vdn_detector_file(task_id):
     os.remove(source_zip)
     shared.process_next(task_id)
     start.completed = True
-    start.seconds = time.time() - start_time
-    start.save()
-
-
-@app.task(track_started=True, name="backup_video_to_s3")
-def backup_video_to_s3(s3_export_id):
-    start = TEvent.objects.get(pk=s3_export_id)
-    if shared.celery_40_bug_hack(start):
-        return 0
-    start.started = True
-    start.ts = datetime.now()
-    start.task_id = backup_video_to_s3.request.id
-    start.operation = backup_video_to_s3.name
-    start.save()
-    start_time = time.time()
-    returncode, errormsg = shared.perform_export(start)
-    if returncode == 0:
-        start.completed = True
-    else:
-        start.errored = True
-        start.error_message = errormsg
-    start.seconds = time.time() - start_time
-    start.save()
-
-
-@app.task(track_started=True, name="push_video_to_vdn_s3")
-def push_video_to_vdn_s3(s3_export_id):
-    start = TEvent.objects.get(pk=s3_export_id)
-    if shared.celery_40_bug_hack(start):
-        return 0
-    start.task_id = push_video_to_vdn_s3.request.id
-    start.started = True
-    start.ts = datetime.now()
-    start.operation = push_video_to_vdn_s3.name
-    start.save()
-    start_time = time.time()
-    returncode, errormsg = shared.perform_export(start)
-    if returncode == 0:
-        start.completed = True
-    else:
-        start.errored = True
-        start.error_message = errormsg
     start.seconds = time.time() - start_time
     start.save()
 

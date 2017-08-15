@@ -20,12 +20,10 @@ TASK_NAMES_TO_QUEUE = {
     "extract_frames":Q_EXTRACTOR,
     "detect_custom_objects":Q_DETECTOR,
     "perform_transformation":Q_EXTRACTOR,
-    "export_video":Q_EXTRACTOR,
+    "perform_export":Q_EXTRACTOR,
     "delete_video_by_id":Q_EXTRACTOR,
-    "backup_video_to_s3":Q_EXTRACTOR,
     "sync_bucket":Q_EXTRACTOR,
     "import_vdn_detector_file":Q_EXTRACTOR,
-    "push_video_to_vdn_s3":Q_EXTRACTOR,
     "perform_import":Q_EXTRACTOR,
     "perform_clustering": Q_CLUSTER,
     "train_yolo_detector": Q_TRAINER,
@@ -48,22 +46,10 @@ TASK_NAMES_TO_TYPE = {
     "extract_frames":VIDEO_TASK,
     "import_vdn_detector_file":IMPORT_TASK,
     "detect_custom_objects":VIDEO_TASK,
-    "export_video": VIDEO_TASK,
     "delete_video_by_id": VIDEO_TASK,
-    "backup_video_to_s3": S3_TASK,
-    "push_video_to_vdn_s3": S3_TASK,
     "perform_clustering": CLUSTER_TASK,
     "train_yolo_detector": TRAIN_TASK,
 }
-
-# List of tasks which can be called manually
-MANUAL_VIDEO_TASKS = ['perform_indexing',
-                      'perform_detection',
-                      'perform_analysis',
-                      'sync_bucket'
-                      ]
-
-OCR_VIDEO_TASKS = ['perform_textbox_detection_by_id',]
 
 DEFAULT_PROCESSING_PLAN =[
     {'operation': 'perform_detection', 'arguments': {

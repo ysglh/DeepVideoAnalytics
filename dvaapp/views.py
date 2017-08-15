@@ -650,7 +650,7 @@ def yt(request):
         form = YTVideoForm(request.POST, request.FILES)
         user = request.user if request.user.is_authenticated else None
         if form.is_valid():
-            rate = form.cleaned_data['nth'],
+            rate = form.cleaned_data['nth']
             rescale = form.cleaned_data['rescale'] if 'rescale' in form.cleaned_data else 0
             video = handle_video_url(form.cleaned_data['name'], form.cleaned_data['url'], user=user)
             process_spec = {

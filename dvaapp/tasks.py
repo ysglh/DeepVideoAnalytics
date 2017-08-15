@@ -627,8 +627,8 @@ def delete_video_by_id(task_id):
     return
 
 
-@app.task(track_started=True, name="train_yolo_detector")
-def train_yolo_detector(task_id):
+@app.task(track_started=True, name="perform_detector_training")
+def perform_detector_training(task_id):
     """
     :param task_id:
     :return:
@@ -636,10 +636,10 @@ def train_yolo_detector(task_id):
     start = TEvent.objects.get(pk=task_id)
     if shared.celery_40_bug_hack(start):
         return 0
-    start.task_id = train_yolo_detector.request.id
+    start.task_id = perform_detector_training.request.id
     start.started = True
     start.ts = datetime.now()
-    start.operation = train_yolo_detector.name
+    start.operation = perform_detector_training.name
     start.save()
     start_time = time.time()
     train_detector = subprocess.Popen(['fab', 'train_yolo:{}'.format(start.pk)],cwd=os.path.join(os.path.abspath(__file__).split('tasks.py')[0], '../'))

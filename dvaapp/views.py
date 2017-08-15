@@ -874,6 +874,7 @@ def detectors(request):
                           'video_id':video_pk}]
             },user=request.user)
             p.launch()
+            return redirect('process_detail',pk=p.process.pk)
         elif request.POST.get('action') == 'estimate':
             args = request.POST.get('args')
             args = json.loads(args) if args.strip() else {}
@@ -909,11 +910,12 @@ def detectors(request):
             p = DVAPQLProcess()
             p.create_from_json(j={
                 "process_type":DVAPQL.PROCESS,
-                "tasks":[{'operation':"train_yolo_detector",
+                "tasks":[{'operation':"perform_detector_training",
                           'arguments':args,}]
             },user=request.user)
             p.launch()
             detector.save()
+            return redirect('process_detail', pk=p.process.pk)
     return render(request, 'detectors.html', context)
 
 
@@ -958,7 +960,7 @@ def training(request):
             p = DVAPQLProcess()
             p.create_from_json(j={
                 "process_type":DVAPQL.PROCESS,
-                "tasks":[{'operation':"train_yolo_detector",
+                "tasks":[{'operation':"perform_detector_training",
                           'arguments':args,}]
             },user=request.user)
             p.launch()

@@ -25,7 +25,7 @@ TASK_NAMES_TO_QUEUE = {
     "perform_detector_import":Q_EXTRACTOR,
     "perform_import":Q_EXTRACTOR,
     "perform_clustering": Q_CLUSTER,
-    "train_yolo_detector": Q_TRAINER,
+    "perform_detector_training": Q_TRAINER,
 }
 
 VIDEO_TASK = 'video'
@@ -46,7 +46,7 @@ TASK_NAMES_TO_TYPE = {
     "perform_detector_import":IMPORT_TASK,
     "delete_video_by_id": VIDEO_TASK,
     "perform_clustering": CLUSTER_TASK,
-    "train_yolo_detector": TRAIN_TASK,
+    "perform_detector_training": TRAIN_TASK,
 }
 
 DEFAULT_PROCESSING_PLAN =[
@@ -118,7 +118,7 @@ SYNC_TASKS = {
     'perform_import':[
         {'operation': 'sync_bucket', 'arguments': {}},
     ],
-    'train_yolo_detector':[
+    'perform_detector_training':[
     ],
     'perform_detector_import':[
     ],

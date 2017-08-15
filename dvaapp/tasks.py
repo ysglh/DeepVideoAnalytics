@@ -213,8 +213,6 @@ def segment_video(task_id):
     start_time = time.time()
     video_id = start.video_id
     dv = Video.objects.get(id=video_id)
-    if dv.youtube_video:
-        shared.create_video_folders(dv)
     v = VideoDecoder(dvideo=dv, media_dir=settings.MEDIA_ROOT)
     v.get_metadata()
     v.segment_video()

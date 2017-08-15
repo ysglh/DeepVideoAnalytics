@@ -655,7 +655,7 @@ def yt(request):
             video = handle_video_url(form.cleaned_data['name'], form.cleaned_data['url'], user=user)
             process_spec = {
                 'process_type': DVAPQL.PROCESS,
-                'tasks': {'video_id': video.pk,
+                'tasks': [{'video_id': video.pk,
                           'operation': 'perform_import',
                           'arguments': {'source': "URL",
                                         'next_tasks':[{'video_id': video.pk,
@@ -672,7 +672,7 @@ def yt(request):
                                                            ]},
                                                        },]
                                         }
-                          }
+                          },]
                 }
             p = DVAPQLProcess()
             p.create_from_json(process_spec, user)

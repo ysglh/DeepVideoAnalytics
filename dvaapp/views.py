@@ -21,10 +21,11 @@ from shared import handle_uploaded_file, create_annotation, create_child_vdn_dat
     create_root_vdn_dataset, handle_youtube_video, pull_vdn_list, \
     import_vdn_dataset_url, create_detector_dataset, import_vdn_detector_url, refresh_task_status, \
     delete_video_object
-from operations.processing import DVAPQLProcess, get_queue_name
+from operations.processing import DVAPQLProcess
 from django.contrib.auth.decorators import user_passes_test,login_required
 from django.utils.decorators import method_decorator
 from django.contrib.auth.mixins import UserPassesTestMixin
+from django_celery_results.models import TaskResult
 import logging
 try:
     from django.contrib.postgres.search import SearchVector
@@ -183,6 +184,24 @@ class VideoList(UserPassesTestMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super(VideoList, self).get_context_data(**kwargs)
         context['exports'] = TEvent.objects.all().filter(operation='export_video')
+        return context
+
+    def test_func(self):
+        return user_check(self.request.user)
+
+
+class TEventDetail(UserPassesTestMixin, DetailView):
+    model = TEvent
+
+    def get_context_data(self, **kwargs):
+        context = super(TEventDetail, self).get_context_data(**kwargs)
+        try:
+            tr = TaskResult.objects.get(task_id=context['object'].task_id)
+        except TaskResult.DoesNotExist:
+            context['celery_task'] = None
+            pass
+        else:
+            context['celery_task'] = tr
         return context
 
     def test_func(self):

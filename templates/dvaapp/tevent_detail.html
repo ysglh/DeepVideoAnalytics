@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load static from staticfiles %}
+{% block page_css %}
+{% endblock %}
+
+
+{% block page_content %}
+<section class="content-header" style="padding-top:0px" xmlns="http://www.w3.org/1999/html">
+<div class="row">
+    <div class="box box-info">
+        <div class="box-header">
+            <h2>Task {{ object.pk }} </h2>
+        </div>
+    </div>
+</div>
+</section>
+<section class="content">
+<div class="row">
+    <div class="col-lg-6">
+        <div class="box">
+            <div class="box-header with-border"><h3>Details</h3></div>
+            <div class="box-body">
+            <div class="row">
+                <div class="col-lg-8">
+                    <h4>Task id: {{ object.task_id }}</h4>
+                    <h4>Submitted: {{ object.created|timesince }}</h4>
+                    <h4>Execution time: {{  object.seconds|floatformat}}</h4>
+                </div>
+                <div class="col-lg-4">
+                {% if object.errored %}
+                    <a href="#" class="btn btn-danger btn-block">Failed</a>
+                {% elif object.seconds < 0 and not object.started %}
+                    <a href="#" class="btn btn-warning btn-block">Pending</a>
+                {% elif object.seconds < 0 and object.started and not object.completed%}
+                    <a href="#" class="btn btn-primary btn-block">Running</a>
+                {% elif object.completed%}
+                    <a href="#" class="btn btn-success btn-block">Completed</a>
+                {% else %}
+                    <a href="#" class="btn btn-disabled btn-block">Unknown</a>
+                {% endif %}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12">
+                    <h4>Arguments</h4>
+                    <textarea rows="5" style="width:90%;margin: auto" contenteditable="false">{{ object.arguments }}</textarea>
+                </div>
+                <div class="col-lg-12">
+                    <h4>Error message</h4>
+                    <textarea rows="5" style="width:90%;margin: auto" contenteditable="false">{{ object.error_message }}</textarea>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+    {% if celery_task %}
+    <div class="col-lg-6">
+        <div class="box">
+            <div class="box-header with-border">
+                <h3>Exception</h3>
+            </div>
+            <div class="box-body">
+                    <textarea style="width: 90%;margin: auto;height: 400px;" class="textarea form-control disabled">{{ celery_task.traceback }}</textarea>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+</section>
+{% endblock %}
+{% block page_js%}
+<script>
+    $(document).ready(function() {
+        InitializeTables();
+    })
+</script>
+{% endblock %}

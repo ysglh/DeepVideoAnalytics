@@ -67,15 +67,15 @@
                             <td class="text-right">{{ e.error_message }}</td>
                             <td>
                                 {% if e.errored %}
-                                    <a href="#" data-toggle="modal" data-target="#modal_{{ e.pk }}" class="btn btn-danger btn-block">Failed</a>
+                                    <a href="/task_detail/{{ e.pk }}" class="btn btn-danger btn-block">Failed</a>
                                 {% elif e.seconds < 0 and not e.started %}
-                                    <a href="#" data-toggle="modal" data-target="#modal_{{ e.pk }}" class="btn btn-warning btn-block">Pending</a>
+                                    <a href="/task_detail/{{ e.pk }}" class="btn btn-warning btn-block">Pending</a>
                                 {% elif e.seconds < 0 and e.started and not e.completed%}
-                                    <a href="#" data-toggle="modal" data-target="#modal_{{ e.pk }}" class="btn btn-primary btn-block">Running</a>
+                                    <a href="/task_detail/{{ e.pk }}" class="btn btn-primary btn-block">Running</a>
                                 {% elif e.completed%}
-                                    <a href="#" data-toggle="modal" data-target="#modal_{{ e.pk }}" class="btn btn-success btn-block">Completed</a>
+                                    <a href="/task_detail/{{ e.pk }}" class="btn btn-success btn-block">Completed</a>
                                 {% else %}
-                                    <a href="#" data-toggle="modal" data-target="#modal_{{ e.pk }}" class="btn btn-info btn-block">Unknown</a>
+                                    <a href="/task_detail/{{ e.pk }}" class="btn btn-info btn-block">Unknown</a>
                                 {% endif %}
                             </td>
                             <td class="text-center"><button class="btn btn-warning" name="pk" formaction="/retry/" type="submit" value="{{ e.pk }}">Retry</button></td>
@@ -89,50 +89,6 @@
         </div>
     </div>
 </div>
-{% for e in object_list %}
-<div class="modal fade" tabindex="-1" role="dialog" id="modal_{{ e.pk }}">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span></button><h4 class="modal-title">{{ e.operation }} on {{ e.video.name }} </h4>
-        </div>
-        <div class="modal-body">
-            <div class="row">
-                <div class="col-lg-8">
-                    <h4>Task id: {{ e.task_id }}</h4>
-                    <h4>Submitted: {{ e.created|timesince }}</h4>
-                    <h4>Execution time: {{  e.seconds|floatformat}}</h4>
-                </div>
-                <div class="col-lg-4">
-                {% if e.errored %}
-                    <a href="#" class="btn btn-danger btn-block">Failed</a>
-                {% elif e.seconds < 0 and not e.started %}
-                    <a href="#" class="btn btn-warning btn-block">Pending</a>
-                {% elif e.seconds < 0 and e.started and not e.completed%}
-                    <a href="#" class="btn btn-primary btn-block">Running</a>
-                {% elif e.completed%}
-                    <a href="#" class="btn btn-success btn-block">Completed</a>
-                {% else %}
-                    <a href="#" class="btn btn-disabled btn-block">Unknown</a>
-                {% endif %}
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-lg-12">
-                    <h4>Arguments</h4>
-                    <textarea rows="5" style="width:90%;margin: auto" contenteditable="false">{{ e.arguments }}</textarea>
-                </div>
-                <div class="col-lg-12">
-                    <h4>Error message</h4>
-                    <textarea rows="5" style="width:90%;margin: auto" contenteditable="false">{{ e.error_message }}</textarea>
-                </div>
-            </div>
-        </div>
-        </div>
-    </div>
-</div>
-{% endfor %}
 </section>
 {% endblock %}
 {% block page_js%}

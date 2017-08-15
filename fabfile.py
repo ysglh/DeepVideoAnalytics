@@ -436,6 +436,7 @@ def test():
     django.setup()
     from django.core.files.uploadedfile import SimpleUploadedFile
     from dvaapp.views import handle_uploaded_file, handle_video_url
+    local("fab submit:tests/scripts/url.json")
     for fname in glob.glob('tests/*.mp4'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")

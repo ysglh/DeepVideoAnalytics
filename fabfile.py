@@ -444,7 +444,6 @@ def test():
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
         handle_uploaded_file(f, name)
-    handle_video_url('tomorrow never dies', 'https://www.youtube.com/watch?v=gYtz5sw98Bc')
 
 
 @task

@@ -5,7 +5,7 @@
       "operation": "perform_import",
       "arguments": {
         "source":"URL",
-        "url": "https://www.youtube.com/watch?v=EkhoN6hPPA4",
+        "url": "https://www.youtube.com/watch?v=gYtz5sw98Bc",
         "name": "yt_test",
         "next_tasks": [
           {

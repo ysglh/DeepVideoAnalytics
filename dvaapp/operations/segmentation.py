@@ -2,8 +2,8 @@ import logging, os
 import celery
 try:
     from dvalib import segmentor
-except ImportError:
-    logging.warning("Could not import indexer / clustering assuming running in front-end mode / Heroku")
+except:
+    logging.warning("Could not import segmentor!")
 
 voc_class_index_to_string = {}
 model_path = ""

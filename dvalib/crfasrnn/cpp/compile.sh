@@ -7,4 +7,4 @@
 
 TF_INC=$(python -c 'import tensorflow as tf; print(tf.sysconfig.get_include())')
 
-g++ -std=c++11 -D_GLIBCXX_USE_CXX11_ABI=0 -undefined dynamic_lookup -shared high_dim_filter.cc modified_permutohedral.cc -fPIC -I /Users/aub3/portenv/lib/python2.7/site-packages/tensorflow/include -O2 -o high_dim_filter.so
+g++ -std=c++11 -D_GLIBCXX_USE_CXX11_ABI=0 -undefined dynamic_lookup -shared high_dim_filter.cc modified_permutohedral.cc -fPIC -I $TF_INC -O2 -o high_dim_filter.so

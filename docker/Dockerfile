@@ -13,6 +13,7 @@ RUN cd dvalib/data && wget https://www.dropbox.com/s/jytpgw8et09ede9/facenet.pb 
 RUN cd dvalib/data && wget https://www.dropbox.com/s/3yzonc9nzo9xanv/vgg.pb && cd ../..
 RUN cd dvalib/data/2016_08 && wget https://www.dropbox.com/s/umo0xtljm9an90x/model.ckpt && wget https://www.dropbox.com/s/f93axdtlb3ltj40/model.ckpt.meta && cd ../../..
 RUN cd dvalib/yolo/model_data && wget https://www.dropbox.com/s/zbff2rkoejx5k5r/yolo.h5
+RUN cd dvalib/crfasrnn/cpp && ./compile.sh && cd ../../..
 WORKDIR "/root/DVA/repos/lopq/python"
 RUN python setup.py install
 WORKDIR "/root/DVA"

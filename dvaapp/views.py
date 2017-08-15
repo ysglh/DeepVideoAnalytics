@@ -832,6 +832,19 @@ def indexes(request):
 
 
 @user_passes_test(user_check)
+def workers(request):
+    timeout = 1.0
+    context = {
+        'timeout':timeout,
+        "queues":app.control.inspect(timeout=timeout).active_queues(),
+        "workers":app.control.inspect(timeout=timeout).active(),
+    }
+    if request.method == 'POST':
+        raise NotImplementedError
+    return render(request, 'workers.html', context)
+
+
+@user_passes_test(user_check)
 def detectors(request):
     context = {}
     context["videos"] = Video.objects.all().filter()

@@ -39,6 +39,7 @@ urlpatterns = [
     url(r'^process_tasks/(?P<process_pk>\d+)/(?P<status>\w+)/$', views.TEventList.as_view(), name='process_tasks_status'),
     url(r'^tasks/(?P<status>\w+)/$', views.TEventList.as_view(), name='tasks_filter'),
     url(r'^indexes', views.indexes, name='indexes'),
+    url(r'^workers/$', views.workers, name='workers'),
     url(r'^detectors/$', views.detectors, name='detectors'),
     url(r'^training/$', views.training, name='training'),
     url(r'^ocr/$', views.ocr, name='ocr'),

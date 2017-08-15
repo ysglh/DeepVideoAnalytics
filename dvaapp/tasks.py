@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-import subprocess, shutil, os, time, logging, copy, calendar, requests, json, zipfile, random, io, boto3
+import subprocess, shutil, os, time, logging, copy, calendar, requests, json, zipfile, io
 from collections import defaultdict
 from PIL import Image
 from django.conf import settings
@@ -423,90 +423,6 @@ def export_video(task_id):
     return file_name
 
 
-@app.task(track_started=True, name="import_video")
-def import_video(task_id):
-    start = TEvent.objects.get(pk=task_id)
-    if shared.celery_40_bug_hack(start):
-        return 0
-    start.task_id = import_video.request.id
-    start.started = True
-    start.ts = datetime.now()
-    start.operation = import_video.name
-    start.save()
-    start_time = time.time()
-    video_id = start.video_id
-    video_obj = Video.objects.get(pk=video_id)
-    zipf = zipfile.ZipFile("{}/{}/{}.zip".format(settings.MEDIA_ROOT, video_id, video_id), 'r')
-    zipf.extractall("{}/{}/".format(settings.MEDIA_ROOT, video_id))
-    zipf.close()
-    video_root_dir = "{}/{}/".format(settings.MEDIA_ROOT, video_id)
-    old_key = None
-    for k in os.listdir(video_root_dir):
-        unzipped_dir = "{}{}".format(video_root_dir, k)
-        if os.path.isdir(unzipped_dir):
-            for subdir in os.listdir(unzipped_dir):
-                shutil.move("{}/{}".format(unzipped_dir, subdir), "{}".format(video_root_dir))
-            shutil.rmtree(unzipped_dir)
-            break
-    with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, video_id)) as input_json:
-        video_json = json.load(input_json)
-    importer = serializers.VideoImporter(video=video_obj,json=video_json,root_dir=video_root_dir)
-    importer.import_video()
-    source_zip = "{}/{}.zip".format(video_root_dir, video_obj.pk)
-    os.remove(source_zip)
-    start.completed = True
-    start.seconds = time.time() - start_time
-    start.save()
-
-
-@app.task(track_started=True, name="import_vdn_file")
-def import_vdn_file(task_id):
-    start = TEvent.objects.get(pk=task_id)
-    if shared.celery_40_bug_hack(start):
-        return 0
-    start.started = True
-    start.ts = datetime.now()
-    start.task_id = import_vdn_file.request.id
-    start.operation = import_vdn_file.name
-    start.save()
-    start_time = time.time()
-    dv = start.video
-    shared.create_video_folders(dv, create_subdirs=False)
-    if 'www.dropbox.com' in dv.vdn_dataset.download_url and not dv.vdn_dataset.download_url.endswith('?dl=1'):
-        r = requests.get(dv.vdn_dataset.download_url + '?dl=1')
-    else:
-        r = requests.get(dv.vdn_dataset.download_url)
-    output_filename = "{}/{}/{}.zip".format(settings.MEDIA_ROOT, dv.pk, dv.pk)
-    with open(output_filename, 'wb') as f:
-        for chunk in r.iter_content(chunk_size=1024):
-            if chunk:
-                f.write(chunk)
-    r.close()
-    zipf = zipfile.ZipFile("{}/{}/{}.zip".format(settings.MEDIA_ROOT, dv.pk, dv.pk), 'r')
-    zipf.extractall("{}/{}/".format(settings.MEDIA_ROOT, dv.pk))
-    zipf.close()
-    video_root_dir = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
-    for k in os.listdir(video_root_dir):
-        unzipped_dir = "{}{}".format(video_root_dir, k)
-        if os.path.isdir(unzipped_dir):
-            for subdir in os.listdir(unzipped_dir):
-                shutil.move("{}/{}".format(unzipped_dir, subdir), "{}".format(video_root_dir))
-            shutil.rmtree(unzipped_dir)
-            break
-    with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, dv.pk)) as input_json:
-        video_json = json.load(input_json)
-    importer = serializers.VideoImporter(video=dv,json=video_json,root_dir=video_root_dir)
-    importer.import_video()
-    source_zip = "{}/{}.zip".format(video_root_dir, dv.pk)
-    os.remove(source_zip)
-    dv.uploaded = True
-    dv.save()
-    shared.process_next(task_id)
-    start.completed = True
-    start.seconds = time.time() - start_time
-    start.save()
-
-
 @app.task(track_started=True, name="import_vdn_detector_file")
 def import_vdn_detector_file(task_id):
     start = TEvent.objects.get(pk=task_id)
@@ -541,60 +457,6 @@ def import_vdn_detector_file(task_id):
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
-
-
-@app.task(track_started=True, name="import_vdn_s3")
-def import_vdn_s3(task_id):
-    start = TEvent.objects.get(pk=task_id)
-    if shared.celery_40_bug_hack(start):
-        return 0
-    start.started = True
-    start.ts = datetime.now()
-    start.task_id = import_vdn_s3.request.id
-    start.operation = import_vdn_s3.name
-    start.save()
-    start_time = time.time()
-    dv = start.video
-    shared.create_video_folders(dv, create_subdirs=False)
-    client = boto3.client('s3')
-    resource = boto3.resource('s3')
-    key = dv.vdn_dataset.aws_key
-    bucket = dv.vdn_dataset.aws_bucket
-    if key.endswith('.dva_export.zip'):
-        ofname = "{}/{}/{}.zip".format(settings.MEDIA_ROOT, dv.pk, dv.pk)
-        resource.meta.client.download_file(bucket, key, ofname,ExtraArgs={'RequestPayer': 'requester'})
-        zipf = zipfile.ZipFile(ofname, 'r')
-        zipf.extractall("{}/{}/".format(settings.MEDIA_ROOT, dv.pk))
-        zipf.close()
-        video_root_dir = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
-        for k in os.listdir(video_root_dir):
-            unzipped_dir = "{}{}".format(video_root_dir, k)
-            if os.path.isdir(unzipped_dir):
-                for subdir in os.listdir(unzipped_dir):
-                    shutil.move("{}/{}".format(unzipped_dir, subdir), "{}".format(video_root_dir))
-                shutil.rmtree(unzipped_dir)
-                break
-        source_zip = "{}/{}.zip".format(video_root_dir, dv.pk)
-        os.remove(source_zip)
-    else:
-        video_root_dir = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
-        path = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
-        shared.download_s3_dir(client, resource, key, path, bucket)
-        for filename in os.listdir(os.path.join(path, key)):
-            shutil.move(os.path.join(path, key, filename), os.path.join(path, filename))
-        os.rmdir(os.path.join(path, key))
-    with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, dv.pk)) as input_json:
-        video_json = json.load(input_json)
-    importer = serializers.VideoImporter(video=dv,json=video_json,root_dir=video_root_dir)
-    importer.import_video()
-    dv.uploaded = True
-    dv.save()
-    shared.process_next(task_id)
-    start.completed = True
-    start.seconds = time.time() - start_time
-    start.save()
-
-
 
 
 @app.task(track_started=True, name="backup_video_to_s3")
@@ -639,64 +501,29 @@ def push_video_to_vdn_s3(s3_export_id):
     start.save()
 
 
-
-
-@app.task(track_started=True, name="import_video_from_s3")
-def import_video_from_s3(s3_import_id):
-    start = TEvent.objects.get(pk=s3_import_id)
+@app.task(track_started=True, name="perform_import")
+def perform_import(event_id):
+    start = TEvent.objects.get(pk=event_id)
     if shared.celery_40_bug_hack(start):
         return 0
     start.started = True
     start.ts = datetime.now()
-    start.task_id = import_video_from_s3.request.id
-    start.operation = import_video_from_s3.name
+    start.task_id = perform_import.request.id
+    start.operation = perform_import.name
     start.save()
     start_time = time.time()
-    s3key = start.arguments['key']
-    s3bucket = start.arguments['bucket']
-    logging.info("processing key  {}space".format(s3key))
-    if start.video is None:
-        v = Video()
-        v.name = "pending S3 import from s3://{}/{}".format(s3bucket,s3key)
-        v.save()
-        start.video = v
-        start.save()
-    path = "{}/{}/".format(settings.MEDIA_ROOT, start.video.pk)
-    if s3key.strip() and (s3key.endswith('.zip') or s3key.endswith('.mp4')):
-        fname = 'temp_' + str(time.time()).replace('.', '_') + '_' + str(random.randint(0, 100)) + '.' + \
-                s3key.split('.')[-1]
-        command = ["aws", "s3", "cp",'--quiet', "s3://{}/{}".format(s3bucket, s3key), fname]
-        path = "{}/".format(settings.MEDIA_ROOT)
-        download = subprocess.Popen(args=command, cwd=path)
-        download.communicate()
-        download.wait()
-        if download.returncode != 0:
-            start.errored = True
-            start.error_message = "return code for '{}' was {}".format(" ".join(command), download.returncode)
-            start.seconds = time.time() - start_time
-            start.save()
-            raise ValueError, start.error_message
-        shared.handle_downloaded_file("{}/{}".format(settings.MEDIA_ROOT, fname), start.video, "s3://{}/{}".format(s3bucket,s3key))
-        start.completed = True
-        start.seconds = time.time() - start_time
-        start.save()
+    source = start.arguments['source']
+    dv = start.video
+    if source == 'S3':
+        shared.import_s3(start,dv)
+    elif source == 'VDN_URL':
+        shared.import_vdn_url(dv)
+    elif source == 'VDN_S3':
+        shared.import_vdn_s3(dv)
+    elif source == 'LOCAL':
+        shared.import_local(dv)
     else:
-        shared.create_video_folders(start.video, create_subdirs=False)
-        command = ["aws", "s3", "cp",'--quiet', "s3://{}/{}/".format(s3bucket, s3key), '.', '--recursive']
-        command_exec = " ".join(command)
-        download = subprocess.Popen(args=command, cwd=path)
-        download.communicate()
-        download.wait()
-        if download.returncode != 0:
-            start.errored = True
-            start.error_message = "return code for '{}' was {}".format(command_exec, download.returncode)
-            start.seconds = time.time() - start_time
-            start.save()
-            raise ValueError, start.error_message
-        with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, start.video.pk)) as input_json:
-            video_json = json.load(input_json)
-        importer = serializers.VideoImporter(video=start.video, json=video_json, root_dir=path)
-        importer.import_video()
+        raise NotImplementedError
     shared.process_next(start.pk)
     start.completed = True
     start.seconds = time.time() - start_time

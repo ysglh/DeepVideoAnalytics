@@ -1112,7 +1112,6 @@ def import_s3(request):
                     video.uploader = user
                 video.name = "pending S3 import {} s3://{}/{}".format(region, bucket, key)
                 video.save()
-                import_task = {'video_id': video.pk,'operation': 'import_video'}
                 extract_task = {'arguments': {'rate': rate, 'rescale': rescale,
                                               'frames_batch_size': settings.DEFAULT_FRAMES_BATCH_SIZE,
                                               'next_tasks': settings.DEFAULT_PROCESSING_PLAN},
@@ -1132,13 +1131,13 @@ def import_s3(request):
                                             ]},
                                         }
                 if key.endswith('.dva_export.zip'):
-                    next_tasks = [import_task,]
+                    next_tasks = []
                 elif key.endswith('.zip'):
                     next_tasks = [extract_task,]
                 else:
                     next_tasks = [segment_decode_task,]
-                tasks.append({'video_id':video.pk,'operation':'import_video_from_s3',
-                              'arguments':{'key':key,'bucket':bucket,'region':region, 'next_tasks':next_tasks}})
+                tasks.append({'video_id':video.pk,'operation':'perform_import',
+                              'arguments':{'key':key,'bucket':bucket,'region':region, 'source':'S3', 'next_tasks':next_tasks}})
         process_spec['tasks'] = tasks
         p = DVAPQLProcess()
         p.create_from_json(process_spec,user)

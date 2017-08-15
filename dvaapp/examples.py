@@ -5,8 +5,9 @@ EXAMPLES = {
   "process_type": "V",
   "tasks": [
     {
-      "operation": "import_video_from_s3",
+      "operation": "perform_import",
       "arguments": {
+        "source": "S3",
         "key": "007/video/1.mp4",
         "bucket": "visualdatanetwork",
         "next_tasks": [

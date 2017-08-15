@@ -1,4 +1,4 @@
-import os, json, requests, copy, time, subprocess, logging
+import os, json, requests, copy, time, subprocess, logging, shutil, zipfile, boto3, random
 from models import Video, TEvent,  Region, VDNDataset, VDNServer, VDNDetector, CustomDetector, DeletedVideo, Label,\
     RegionLabel
 from django.conf import settings
@@ -9,7 +9,6 @@ from operations.processing import get_queue_name
 from dva.celery import app
 from models import DVAPQL
 from . import serializers
-import boto3
 from botocore.exceptions import ClientError
 
 
@@ -109,9 +108,9 @@ def handle_uploaded_file(f, name, extract=True, user=None, rate=None, rescale=No
             'process_type': DVAPQL.PROCESS,
             'tasks': [
                 {
-                    'arguments': {},
+                    'arguments': {'source':'LOCAL'},
                     'video_id': video.pk,
-                    'operation': 'import_video',
+                    'operation': 'perform_import',
                 }
             ]
         }
@@ -179,6 +178,7 @@ def handle_downloaded_file(downloaded, video, name):
         os.rename(downloaded, '{}/{}/{}.{}'.format(settings.MEDIA_ROOT, video.pk, video.pk, filename.split('.')[-1]))
         video.uploaded = True
         video.save()
+        import_local(video)
     elif filename.endswith('.mp4') or filename.endswith('.flv') or filename.endswith('.zip'):
         create_video_folders(video, create_subdirs=True)
         os.rename(downloaded,
@@ -372,9 +372,9 @@ def import_vdn_dataset_url(server, url, user):
             'process_type': DVAPQL.PROCESS,
             'tasks': [
                 {
-                    'arguments': {},
+                    'arguments': {'source':'VDN_URL'},
                     'video_id': video.pk,
-                    'operation': 'import_vdn_file',
+                    'operation': 'perform_import',
                 }
             ]
         }
@@ -386,9 +386,9 @@ def import_vdn_dataset_url(server, url, user):
             'process_type': DVAPQL.PROCESS,
             'tasks': [
                 {
-                    'arguments': {},
+                    'arguments': {'source':'VDN_S3'},
                     'video_id': video.pk,
-                    'operation': 'import_vdn_s3',
+                    'operation': 'perform_import',
                 }
             ]
         }
@@ -590,3 +590,140 @@ def celery_40_bug_hack(start):
     :return:
     """
     return start.started
+
+
+def import_s3(start,dv):
+    s3key = start.arguments['key']
+    s3bucket = start.arguments['bucket']
+    logging.info("processing key  {}space".format(s3key))
+    if dv is None:
+        dv = Video()
+        dv.name = "pending S3 import from s3://{}/{}".format(s3bucket, s3key)
+        dv.save()
+        start.video = dv
+        start.save()
+    path = "{}/{}/".format(settings.MEDIA_ROOT, start.video.pk)
+    if s3key.strip() and (s3key.endswith('.zip') or s3key.endswith('.mp4')):
+        fname = 'temp_' + str(time.time()).replace('.', '_') + '_' + str(random.randint(0, 100)) + '.' + \
+                s3key.split('.')[-1]
+        command = ["aws", "s3", "cp", '--quiet', "s3://{}/{}".format(s3bucket, s3key), fname]
+        path = "{}/".format(settings.MEDIA_ROOT)
+        download = subprocess.Popen(args=command, cwd=path)
+        download.communicate()
+        download.wait()
+        if download.returncode != 0:
+            start.errored = True
+            start.error_message = "return code for '{}' was {}".format(" ".join(command), download.returncode)
+            start.save()
+            raise ValueError, start.error_message
+        handle_downloaded_file("{}/{}".format(settings.MEDIA_ROOT, fname), start.video,
+                               "s3://{}/{}".format(s3bucket, s3key))
+    else:
+        create_video_folders(start.video, create_subdirs=False)
+        command = ["aws", "s3", "cp", '--quiet', "s3://{}/{}/".format(s3bucket, s3key), '.', '--recursive']
+        command_exec = " ".join(command)
+        download = subprocess.Popen(args=command, cwd=path)
+        download.communicate()
+        download.wait()
+        if download.returncode != 0:
+            start.errored = True
+            start.error_message = "return code for '{}' was {}".format(command_exec, download.returncode)
+            start.save()
+            raise ValueError, start.error_message
+        with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, start.video.pk)) as input_json:
+            video_json = json.load(input_json)
+        importer = serializers.VideoImporter(video=start.video, json=video_json, root_dir=path)
+        importer.import_video()
+
+
+def import_vdn_url(dv):
+    create_video_folders(dv, create_subdirs=False)
+    if 'www.dropbox.com' in dv.vdn_dataset.download_url and not dv.vdn_dataset.download_url.endswith('?dl=1'):
+        r = requests.get(dv.vdn_dataset.download_url + '?dl=1')
+    else:
+        r = requests.get(dv.vdn_dataset.download_url)
+    output_filename = "{}/{}/{}.zip".format(settings.MEDIA_ROOT, dv.pk, dv.pk)
+    with open(output_filename, 'wb') as f:
+        for chunk in r.iter_content(chunk_size=1024):
+            if chunk:
+                f.write(chunk)
+    r.close()
+    zipf = zipfile.ZipFile("{}/{}/{}.zip".format(settings.MEDIA_ROOT, dv.pk, dv.pk), 'r')
+    zipf.extractall("{}/{}/".format(settings.MEDIA_ROOT, dv.pk))
+    zipf.close()
+    video_root_dir = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
+    for k in os.listdir(video_root_dir):
+        unzipped_dir = "{}{}".format(video_root_dir, k)
+        if os.path.isdir(unzipped_dir):
+            for subdir in os.listdir(unzipped_dir):
+                shutil.move("{}/{}".format(unzipped_dir, subdir), "{}".format(video_root_dir))
+            shutil.rmtree(unzipped_dir)
+            break
+    with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, dv.pk)) as input_json:
+        video_json = json.load(input_json)
+    importer = serializers.VideoImporter(video=dv, json=video_json, root_dir=video_root_dir)
+    importer.import_video()
+    source_zip = "{}/{}.zip".format(video_root_dir, dv.pk)
+    os.remove(source_zip)
+    dv.uploaded = True
+    dv.save()
+
+
+def import_local(dv):
+    video_id = dv.pk
+    video_obj = Video.objects.get(pk=video_id)
+    zipf = zipfile.ZipFile("{}/{}/{}.zip".format(settings.MEDIA_ROOT, video_id, video_id), 'r')
+    zipf.extractall("{}/{}/".format(settings.MEDIA_ROOT, video_id))
+    zipf.close()
+    video_root_dir = "{}/{}/".format(settings.MEDIA_ROOT, video_id)
+    old_key = None
+    for k in os.listdir(video_root_dir):
+        unzipped_dir = "{}{}".format(video_root_dir, k)
+        if os.path.isdir(unzipped_dir):
+            for subdir in os.listdir(unzipped_dir):
+                shutil.move("{}/{}".format(unzipped_dir, subdir), "{}".format(video_root_dir))
+            shutil.rmtree(unzipped_dir)
+            break
+    with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, video_id)) as input_json:
+        video_json = json.load(input_json)
+    importer = serializers.VideoImporter(video=video_obj, json=video_json, root_dir=video_root_dir)
+    importer.import_video()
+    source_zip = "{}/{}.zip".format(video_root_dir, video_obj.pk)
+    os.remove(source_zip)
+
+
+def import_vdn_s3(dv):
+    create_video_folders(dv, create_subdirs=False)
+    client = boto3.client('s3')
+    resource = boto3.resource('s3')
+    key = dv.vdn_dataset.aws_key
+    bucket = dv.vdn_dataset.aws_bucket
+    if key.endswith('.dva_export.zip'):
+        ofname = "{}/{}/{}.zip".format(settings.MEDIA_ROOT, dv.pk, dv.pk)
+        resource.meta.client.download_file(bucket, key, ofname, ExtraArgs={'RequestPayer': 'requester'})
+        zipf = zipfile.ZipFile(ofname, 'r')
+        zipf.extractall("{}/{}/".format(settings.MEDIA_ROOT, dv.pk))
+        zipf.close()
+        video_root_dir = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
+        for k in os.listdir(video_root_dir):
+            unzipped_dir = "{}{}".format(video_root_dir, k)
+            if os.path.isdir(unzipped_dir):
+                for subdir in os.listdir(unzipped_dir):
+                    shutil.move("{}/{}".format(unzipped_dir, subdir), "{}".format(video_root_dir))
+                shutil.rmtree(unzipped_dir)
+                break
+        source_zip = "{}/{}.zip".format(video_root_dir, dv.pk)
+        os.remove(source_zip)
+    else:
+        video_root_dir = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
+        path = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
+        download_s3_dir(client, resource, key, path, bucket)
+        for filename in os.listdir(os.path.join(path, key)):
+            shutil.move(os.path.join(path, key, filename), os.path.join(path, filename))
+        os.rmdir(os.path.join(path, key))
+    with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, dv.pk)) as input_json:
+        video_json = json.load(input_json)
+    importer = serializers.VideoImporter(video=dv, json=video_json, root_dir=video_root_dir)
+    importer.import_video()
+    dv.uploaded = True
+    dv.save()

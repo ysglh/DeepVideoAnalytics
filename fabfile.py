@@ -179,7 +179,7 @@ def ci():
     from dvaapp.operations.processing import DVAPQLProcess
     from dvaapp.tasks import extract_frames, perform_indexing, export_video, import_video,\
         perform_clustering, perform_analysis, perform_detection,\
-        segment_video, crop_regions_by_id
+        segment_video, perform_transformation
     for fname in glob.glob('tests/ci/*.mp4'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")
@@ -209,13 +209,13 @@ def ci():
             dt = TEvent.objects.create(video=v,arguments=arguments)
             perform_detection(dt.pk)
             arguments = {'filters':{'event_id':dt.pk},}
-            crop_regions_by_id(TEvent.objects.create(video=v,arguments=arguments).pk)
+            perform_transformation(TEvent.objects.create(video=v,arguments=arguments).pk)
             # coco_mobilenet
             arguments = {'detector': 'coco'}
             dt = TEvent.objects.create(video=v, arguments=arguments)
             perform_detection(dt.pk)
             arguments = {'filters':{'event_id':dt.pk},}
-            crop_regions_by_id(TEvent.objects.create(video=v,arguments=arguments).pk)
+            perform_transformation(TEvent.objects.create(video=v,arguments=arguments).pk)
             # inception on crops from detector
             arguments = {'index':'inception','target': 'regions','filters': {'event_id': dt.pk, 'w__gte': 50, 'h__gte': 50}}
             perform_indexing(TEvent.objects.create(video=v,arguments=arguments).pk)

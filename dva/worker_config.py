@@ -19,8 +19,7 @@ TASK_NAMES_TO_QUEUE = {
     "decode_video":Q_EXTRACTOR,
     "extract_frames":Q_EXTRACTOR,
     "detect_custom_objects":Q_DETECTOR,
-    "crop_regions_by_id":Q_EXTRACTOR,
-    "perform_face_detection":Q_FACE_DETECTOR,
+    "perform_transformation":Q_EXTRACTOR,
     "export_video":Q_EXTRACTOR,
     "import_vdn_file":Q_EXTRACTOR,
     "import_vdn_s3":Q_EXTRACTOR,
@@ -78,7 +77,7 @@ DEFAULT_PROCESSING_PLAN =[
         'filters':'__parent__',
         'detector':'coco',
         'next_tasks':[
-            {'operation': 'crop_regions_by_id',
+            {'operation': 'perform_transformation',
              'arguments': {
                  'filters': {'event_id': '__parent_event__'},
                  'next_tasks': [
@@ -97,7 +96,7 @@ DEFAULT_PROCESSING_PLAN =[
         'filters':'__parent__',
         'detector':'face',
         'next_tasks':[
-            {'operation': 'crop_regions_by_id',
+            {'operation': 'perform_transformation',
              'arguments': {
                  'resize':[182,182],
                  'filters': {'event_id': '__parent_event__'},
@@ -133,7 +132,7 @@ SYNC_TASKS = {
     ],
     'perform_detection':[
     ],
-    'crop_regions_by_id':[
+    'perform_transformation':[
         {'operation': 'sync_bucket', 'arguments': {'dirname': 'regions'}},
     ],
     'perform_indexing':[

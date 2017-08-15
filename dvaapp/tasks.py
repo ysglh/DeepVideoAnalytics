@@ -8,6 +8,7 @@ from .models import Video, Frame, TEvent,  IndexEntries, ClusterCodes, Region, T
 from .operations.indexing import IndexerTask
 from .operations.retrieval import RetrieverTask
 from .operations.detection import DetectorTask
+from .operations.segmentation import SegmentorTask
 from .operations.analysis import AnalyzerTask
 from .operations.decoding import VideoDecoder
 from .operations.processing import get_queue_name
@@ -169,8 +170,8 @@ def perform_indexing(task_id):
     return process_next(task_id,sync=sync)
 
 
-@app.task(track_started=True, name="crop_regions_by_id")
-def crop_regions_by_id(task_id):
+@app.task(track_started=True, name="perform_transformation")
+def perform_transformation(task_id):
     """
     Crop detected or annotated regions
     :param task_id:
@@ -179,10 +180,10 @@ def crop_regions_by_id(task_id):
     start = TEvent.objects.get(pk=task_id)
     if celery_40_bug_hack(start):
         return 0
-    start.task_id = crop_regions_by_id.request.id
+    start.task_id = perform_transformation.request.id
     start.started = True
     start.ts = datetime.now()
-    start.operation = crop_regions_by_id.name
+    start.operation = perform_transformation.name
     video_id = start.video_id
     args = start.arguments
     resize = args.get('resize',None)
@@ -1042,4 +1043,72 @@ def update_index(indexer_entry_pk):
     """
     print "TESTSTESTSTSTSTSTST"
     logging.info("recieved {}".format(indexer_entry_pk))
+    return 0
+
+
+@app.task(track_started=True, name="perform_segmentation",base=SegmentorTask)
+def perform_segmentation(task_id):
+    """
+    :param task_id:
+    :return:
+    """
+    start = TEvent.objects.get(pk=task_id)
+    if celery_40_bug_hack(start):
+        return 0
+    start.task_id = perform_segmentation.request.id
+    start.started = True
+    start.ts = datetime.now()
+    start.operation = perform_segmentation.name
+    start.save()
+    start_time = time.time()
+    video_id = start.video_id
+    args = start.arguments
+    segmentor_name = args['segmentor']
+    segmentor = perform_segmentation.get_static_segmentors[segmentor_name]
+    if segmentor.session is None:
+        logging.info("loading detection model")
+        segmentor.load()
+    dv = Video.objects.get(id=video_id)
+    if 'filters' in args:
+        kwargs = args['filters']
+        kwargs['video_id'] = video_id
+        frames = Frame.objects.all().filter(**kwargs)
+        logging.info("Running {} Using filters {}".format(segmentor_name,kwargs))
+    else:
+        frames = Frame.objects.all().filter(video=dv)
+    dd_list = []
+    path_list = []
+    for df in frames:
+        local_path = "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,video_id,df.frame_index)
+        segmentation = segmentor.detect(local_path)
+        # for d in detections:
+        #     dd = Region()
+        #     dd.region_type = Region.DETECTION
+        #     dd.video_id = dv.pk
+        #     dd.frame_id = df.pk
+        #     dd.parent_frame_index = df.frame_index
+        #     dd.parent_segment_index = df.segment_index
+        #     if detector_name == 'coco':
+        #         dd.object_name = 'SSD_{}'.format(d['object_name'])
+        #         dd.confidence = 100.0 * d['score']
+        #     elif detector_name == 'textbox':
+        #         dd.object_name = 'TEXTBOX'
+        #         dd.confidence = 100.0 * d['score']
+        #     elif detector_name == 'face':
+        #         dd.object_name = 'MTCNN_face'
+        #         dd.confidence = 100.0
+        #     else:
+        #         raise NotImplementedError
+        #     dd.x = d['x']
+        #     dd.y = d['y']
+        #     dd.w = d['w']
+        #     dd.h = d['h']
+        #     dd.event_id = task_id
+        #     dd_list.append(dd)
+        #     path_list.append(local_path)
+    _ = Region.objects.bulk_create(dd_list,1000)
+    process_next(task_id)
+    start.completed = True
+    start.seconds = time.time() - start_time
+    start.save()
     return 0

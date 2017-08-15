@@ -31,7 +31,7 @@ EXAMPLES = {
                           "filters":"__parent__",
                           "detector":"coco",
                           "next_tasks":[
-                              {"operation": "crop_regions_by_id",
+                              {"operation": "perform_transformation",
                                "arguments": {
                                    "filters": {"event_id": "__parent_event__"},
                                    "next_tasks": [
@@ -52,7 +52,7 @@ EXAMPLES = {
                         "filters":"__parent__",
                         "detector":"face",
                         "next_tasks":[
-                            {"operation": "crop_regions_by_id",
+                            {"operation": "perform_transformation",
                              "arguments": {
                                  "resize":[182,182],
                                  "filters": {"event_id": "__parent_event__"},

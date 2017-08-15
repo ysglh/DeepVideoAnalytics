@@ -82,3 +82,4 @@ notes/*.mov
 /dvalib/data/vgg.pb
 /shared/*
 /tests/bunny.mp4
+/dvalib/crfasrnn/crfrnn_keras_model.h5

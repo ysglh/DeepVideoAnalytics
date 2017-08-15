@@ -455,14 +455,16 @@ def create_detector_dataset(object_names, labels):
             rboxes[r.frame_id].append((class_names[r.object_name], r.x, r.y, r.x + r.w, r.y + r.h))
             rboxes_set[r.frame_id].add(r.pk)
             class_distribution[r.object_name] += 1
-    # for l in AppliedLabel.objects.all().filter(label_name__in=labels):
-    #     frames[l.frame_id] = l.frame
-    #     if l.region:
-    #         r = l.region
-    #         if r.pk not in rboxes_set[r.frame_id]:
-    #             rboxes[l.frame_id].append((class_names[l.label_name], r.x, r.y, r.x + r.w, r.y + r.h))
-    #             rboxes_set[r.frame_id].add(r.pk)
-    #             class_distribution[l.label_name] += 1
+    for dl in Label.objects.filter(name__in=labels):
+        lname = dl.name
+        for l in RegionLabel.all().objects.filter(label=dl):
+            frames[l.frame_id] = l.frame
+            if l.region:
+                r = l.region
+                if r.pk not in rboxes_set[r.frame_id]:
+                    rboxes[l.frame_id].append((class_names[lname], r.x, r.y, r.x + r.w, r.y + r.h))
+                    rboxes_set[r.frame_id].add(r.pk)
+                    class_distribution[lname] += 1
     return class_distribution, class_names, rboxes, rboxes_set, frames, i_class_names
 
 

@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-import subprocess, os, time, logging, requests, zipfile, io
+import subprocess, os, time, logging, requests, zipfile, io, sys
 from collections import defaultdict
 from PIL import Image
 from django.conf import settings
@@ -397,18 +397,18 @@ def perform_export(task_id):
         elif destination == "S3":
             s3bucket = start.arguments['bucket']
             s3region = start.arguments['region']
-            create_bucket = start.arguments['create_bucket']
+            create_bucket = start.arguments.get('create_bucket',False)
             s3key = start.arguments['key']
-            returncode, errormsg = shared.perform_s3_export(dv,s3key,s3bucket,s3region,
-                                                            export_event_pk=start.pk,create_bucket=create_bucket)
-            if returncode == 0:
-                raise ValueError
+            returncode = shared.perform_s3_export(dv,s3key,s3bucket,s3region, export_event_pk=start.pk,create_bucket=create_bucket)
+            if returncode != 0:
+                raise ValueError,"return code != 0"
     except:
         start.errored = True
         start.error_message = "Could not export"
         start.seconds = time.time() - start_time
         start.save()
-        raise ValueError, start.error_message
+        exc_info = sys.exc_info()
+        raise exc_info[0], exc_info[1], exc_info[2]
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()

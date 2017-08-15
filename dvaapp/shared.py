@@ -518,8 +518,7 @@ def perform_s3_export(dv,s3key,s3bucket,s3region,export_event_pk=None,create_buc
     upload = subprocess.Popen(args=["aws", "s3", "sync",'--quiet', ".", "s3://{}/{}/".format(s3bucket,s3key)],cwd=path)
     upload.communicate()
     upload.wait()
-    return upload.returncode, ""
-
+    return upload.returncode
 
 def perform_substitution(args,parent_task,inject_filters):
     """

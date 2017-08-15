@@ -548,7 +548,6 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
     context['region_count'] = Region.objects.all().count()
     context['tube_count'] = Tube.objects.all().count()
     context["videos"] = Video.objects.all().filter()
-    context['manual_tasks'] = settings.MANUAL_VIDEO_TASKS
     context['custom_detector_count'] = CustomDetector.objects.all().count()
     context['rate'] = settings.DEFAULT_RATE
     return render(request, 'dashboard.html', context)
@@ -995,7 +994,6 @@ def textsearch(request):
 def ocr(request):
     context = {'results': {},
                "videos": Video.objects.all().filter(),
-               'manual_tasks':settings.OCR_VIDEO_TASKS
                }
     return render(request, 'ocr.html', context)
 

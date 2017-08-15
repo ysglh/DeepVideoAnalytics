@@ -172,7 +172,7 @@ def ci():
     django.setup()
     import base64
     from django.core.files.uploadedfile import SimpleUploadedFile
-    from dvaapp.views import handle_uploaded_file, handle_youtube_video, pull_vdn_list\
+    from dvaapp.views import handle_uploaded_file, handle_video_url, pull_vdn_list\
         ,import_vdn_dataset_url
     from dvaapp.models import Video, Clusters,IndexEntries,TEvent,VDNServer, DVAPQL
     from django.conf import settings
@@ -193,7 +193,7 @@ def ci():
             name = fname.split('/')[-1].split('.')[0]
             f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
             handle_uploaded_file(f, name)
-    # handle_youtube_video('world is not enough', 'https://www.youtube.com/watch?v=P-oNz3Nf50Q') # Temporarily disabled due error in travis
+    # handle_video_url('world is not enough', 'https://www.youtube.com/watch?v=P-oNz3Nf50Q') # Temporarily disabled due error in travis
     for i,v in enumerate(Video.objects.all()):
         if v.dataset:
             arguments = {'sync':True}
@@ -435,7 +435,7 @@ def test():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from django.core.files.uploadedfile import SimpleUploadedFile
-    from dvaapp.views import handle_uploaded_file, handle_youtube_video
+    from dvaapp.views import handle_uploaded_file, handle_video_url
     for fname in glob.glob('tests/*.mp4'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")
@@ -444,7 +444,7 @@ def test():
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
         handle_uploaded_file(f, name)
-    handle_youtube_video('tomorrow never dies', 'https://www.youtube.com/watch?v=gYtz5sw98Bc')
+    handle_video_url('tomorrow never dies', 'https://www.youtube.com/watch?v=gYtz5sw98Bc')
 
 
 @task
@@ -520,10 +520,10 @@ def process_video_list(filename):
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
-    from dvaapp.views import handle_youtube_video
+    from dvaapp.views import handle_video_url
     vlist = json.load(file(filename))
     for video in vlist:
-        handle_youtube_video(video['name'],video['url'])
+        handle_video_url(video['name'],video['url'])
 
 
 

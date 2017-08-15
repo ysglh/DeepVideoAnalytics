@@ -18,7 +18,7 @@ from django.db.models import Count
 import math
 from django.db.models import Max
 from shared import handle_uploaded_file, create_annotation, create_child_vdn_dataset, \
-    create_root_vdn_dataset, handle_youtube_video, pull_vdn_list, \
+    create_root_vdn_dataset, handle_video_url, pull_vdn_list, \
     import_vdn_dataset_url, create_detector_dataset, import_vdn_detector_url, refresh_task_status, \
     delete_video_object
 from operations.processing import DVAPQLProcess
@@ -650,7 +650,7 @@ def yt(request):
         form = YTVideoForm(request.POST, request.FILES)
         user = request.user if request.user.is_authenticated else None
         if form.is_valid():
-            handle_youtube_video(form.cleaned_data['name'], form.cleaned_data['url'], user=user,
+            handle_video_url(form.cleaned_data['name'], form.cleaned_data['url'], user=user,
                                  rate=form.cleaned_data['nth'],
                                  rescale=form.cleaned_data['rescale'] if 'rescale' in form.cleaned_data else 0)
         else:

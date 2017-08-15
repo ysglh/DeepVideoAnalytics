@@ -224,7 +224,7 @@ def create_annotation(form, object_name, labels, frame):
             rl.save()
 
 
-def handle_youtube_video(name, url, extract=True, user=None, rate=30, rescale=0):
+def handle_video_url(name, url, extract=True, user=None, rate=30, rescale=0):
     video = Video()
     if user:
         video.uploader = user

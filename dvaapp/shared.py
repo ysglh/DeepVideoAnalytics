@@ -236,7 +236,7 @@ def retrieve_video_via_url(dv,media_dir):
 
 
 def handle_video_url(name, url, user = None):
-    return Video.objects.create(name=name,url=url,youtube_video=True,user=user)
+    return Video.objects.create(name=name,url=url,youtube_video=True,uploader=user)
 
 
 def create_child_vdn_dataset(parent_video, server, headers):

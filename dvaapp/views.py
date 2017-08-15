@@ -869,8 +869,8 @@ def detectors(request):
             p = DVAPQLProcess()
             p.create_from_json(j={
                 "process_type":DVAPQL.PROCESS,
-                "tasks":[{'operation':"detect_custom_objects",
-                          'arguments':{'detector_pk': int(detector_pk)},
+                "tasks":[{'operation':"perform_detection",
+                          'arguments':{'detector_pk': int(detector_pk),'detector':"custom"},
                           'video_id':video_pk}]
             },user=request.user)
             p.launch()

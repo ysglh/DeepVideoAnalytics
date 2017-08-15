@@ -283,49 +283,63 @@ def perform_detection(task_id):
     video_id = start.video_id
     args = start.arguments
     detector_name = args['detector']
-    detector = perform_detection.get_static_detectors[detector_name]
-    if detector.session is None:
-        logging.info("loading detection model")
-        detector.load()
-    dv = Video.objects.get(id=video_id)
-    if 'filters' in args:
-        kwargs = args['filters']
-        kwargs['video_id'] = video_id
-        frames = Frame.objects.all().filter(**kwargs)
-        logging.info("Running {} Using filters {}".format(detector_name,kwargs))
+    if detector_name == 'custom':
+        detector_id = args['detector_pk']
+        cwd = os.path.join(os.path.abspath(__file__).split('tasks.py')[0], '../')
+        command = ['fab', 'detect_custom_objects:{},{}'.format(detector_id, video_id)]
+        custom_detector = subprocess.Popen(command,cwd=cwd)
+        custom_detector.wait()
+        if custom_detector.returncode != 0:
+            start.errored = True
+            start.error_message = "fab detect_custom_objects failed with return code {}".format(
+                custom_detector.returncode)
+            start.seconds = time.time() - start_time
+            start.save()
+            raise ValueError, start.error_message
     else:
-        frames = Frame.objects.all().filter(video=dv)
-    dd_list = []
-    path_list = []
-    for df in frames:
-        local_path = "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,video_id,df.frame_index)
-        detections = detector.detect(local_path)
-        for d in detections:
-            dd = Region()
-            dd.region_type = Region.DETECTION
-            dd.video_id = dv.pk
-            dd.frame_id = df.pk
-            dd.parent_frame_index = df.frame_index
-            dd.parent_segment_index = df.segment_index
-            if detector_name == 'coco':
-                dd.object_name = 'SSD_{}'.format(d['object_name'])
-                dd.confidence = 100.0 * d['score']
-            elif detector_name == 'textbox':
-                dd.object_name = 'TEXTBOX'
-                dd.confidence = 100.0 * d['score']
-            elif detector_name == 'face':
-                dd.object_name = 'MTCNN_face'
-                dd.confidence = 100.0
-            else:
-                raise NotImplementedError
-            dd.x = d['x']
-            dd.y = d['y']
-            dd.w = d['w']
-            dd.h = d['h']
-            dd.event_id = task_id
-            dd_list.append(dd)
-            path_list.append(local_path)
-    _ = Region.objects.bulk_create(dd_list,1000)
+        detector = perform_detection.get_static_detectors[detector_name]
+        if detector.session is None:
+            logging.info("loading detection model")
+            detector.load()
+        dv = Video.objects.get(id=video_id)
+        if 'filters' in args:
+            kwargs = args['filters']
+            kwargs['video_id'] = video_id
+            frames = Frame.objects.all().filter(**kwargs)
+            logging.info("Running {} Using filters {}".format(detector_name,kwargs))
+        else:
+            frames = Frame.objects.all().filter(video=dv)
+        dd_list = []
+        path_list = []
+        for df in frames:
+            local_path = "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,video_id,df.frame_index)
+            detections = detector.detect(local_path)
+            for d in detections:
+                dd = Region()
+                dd.region_type = Region.DETECTION
+                dd.video_id = dv.pk
+                dd.frame_id = df.pk
+                dd.parent_frame_index = df.frame_index
+                dd.parent_segment_index = df.segment_index
+                if detector_name == 'coco':
+                    dd.object_name = 'SSD_{}'.format(d['object_name'])
+                    dd.confidence = 100.0 * d['score']
+                elif detector_name == 'textbox':
+                    dd.object_name = 'TEXTBOX'
+                    dd.confidence = 100.0 * d['score']
+                elif detector_name == 'face':
+                    dd.object_name = 'MTCNN_face'
+                    dd.confidence = 100.0
+                else:
+                    raise NotImplementedError
+                dd.x = d['x']
+                dd.y = d['y']
+                dd.w = d['w']
+                dd.h = d['h']
+                dd.event_id = task_id
+                dd_list.append(dd)
+                path_list.append(local_path)
+        _ = Region.objects.bulk_create(dd_list,1000)
     shared.process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time
@@ -414,15 +428,15 @@ def perform_export(task_id):
     start.save()
 
 
-@app.task(track_started=True, name="import_vdn_detector_file")
-def import_vdn_detector_file(task_id):
+@app.task(track_started=True, name="perform_detector_import")
+def perform_detector_import(task_id):
     start = TEvent.objects.get(pk=task_id)
     if shared.celery_40_bug_hack(start):
         return 0
     start.started = True
     start.ts = datetime.now()
-    start.task_id = import_vdn_detector_file.request.id
-    start.operation = import_vdn_detector_file.name
+    start.task_id = perform_detector_import.request.id
+    start.operation = perform_detector_import.name
     start.save()
     start_time = time.time()
     dd = CustomDetector.objects.get(pk=start.arguments['detector_pk'])
@@ -611,39 +625,6 @@ def delete_video_by_id(task_id):
     start.seconds = time.time() - start_time
     start.save()
     return
-
-
-@app.task(track_started=True, name="detect_custom_objects")
-def detect_custom_objects(task_id):
-    """
-    :param task_id:
-    :return:
-    """
-    start = TEvent.objects.get(pk=task_id)
-    if shared.celery_40_bug_hack(start):
-        return 0
-    start.task_id = detect_custom_objects.request.id
-    start.started = True
-    start.ts = datetime.now()
-    start.operation = detect_custom_objects.name
-    start.save()
-    start_time = time.time()
-    args = start.arguments
-    video_id = start.video_id
-    detector_id = args['detector_pk']
-    custom_detector = subprocess.Popen(['fab', 'detect_custom_objects:{},{}'.format(detector_id,video_id)],cwd=os.path.join(os.path.abspath(__file__).split('tasks.py')[0], '../'))
-    custom_detector.wait()
-    if custom_detector.returncode != 0:
-        start.errored = True
-        start.error_message = "fab detect_custom_objects failed with return code {}".format(custom_detector.returncode)
-        start.seconds = time.time() - start_time
-        start.save()
-        raise ValueError, start.error_message
-    shared.process_next(task_id)
-    start.completed = True
-    start.seconds = time.time() - start_time
-    start.save()
-    return 0
 
 
 @app.task(track_started=True, name="train_yolo_detector")

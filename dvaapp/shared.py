@@ -430,7 +430,7 @@ def import_vdn_detector_url(server, url, user):
             'tasks': [
                 {
                     'arguments': {'detector_pk': detector.pk},
-                    'operation': 'import_vdn_detector_file',
+                    'operation': 'perform_detector_import',
                 }
             ]
         }

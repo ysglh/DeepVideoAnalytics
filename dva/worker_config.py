@@ -18,12 +18,11 @@ TASK_NAMES_TO_QUEUE = {
     "segment_video":Q_EXTRACTOR,
     "decode_video":Q_EXTRACTOR,
     "extract_frames":Q_EXTRACTOR,
-    "detect_custom_objects":Q_DETECTOR,
     "perform_transformation":Q_EXTRACTOR,
     "perform_export":Q_EXTRACTOR,
     "delete_video_by_id":Q_EXTRACTOR,
     "sync_bucket":Q_EXTRACTOR,
-    "import_vdn_detector_file":Q_EXTRACTOR,
+    "perform_detector_import":Q_EXTRACTOR,
     "perform_import":Q_EXTRACTOR,
     "perform_clustering": Q_CLUSTER,
     "train_yolo_detector": Q_TRAINER,
@@ -44,8 +43,7 @@ TASK_NAMES_TO_TYPE = {
     "segment_video": VIDEO_TASK,
     "decode_video": VIDEO_TASK,
     "extract_frames":VIDEO_TASK,
-    "import_vdn_detector_file":IMPORT_TASK,
-    "detect_custom_objects":VIDEO_TASK,
+    "perform_detector_import":IMPORT_TASK,
     "delete_video_by_id": VIDEO_TASK,
     "perform_clustering": CLUSTER_TASK,
     "train_yolo_detector": TRAIN_TASK,
@@ -117,22 +115,13 @@ SYNC_TASKS = {
     'perform_indexing':[
         {'operation': 'sync_bucket', 'arguments': {'dirname': 'indexes'}},
     ],
-    'perform_face_detection':[
-        {'operation': 'sync_bucket', 'arguments': {'dirname': 'regions'}},
-    ],
-    'import_vdn_file':[
-        {'operation': 'sync_bucket', 'arguments': {}},
-    ],
-    'import_vdn_s3':[
+    'perform_import':[
         {'operation': 'sync_bucket', 'arguments': {}},
     ],
     'train_yolo_detector':[
     ],
-    'import_vdn_detector_file':[
+    'perform_detector_import':[
     ],
-    'detect_custom_objects':[
-        {'operation': 'sync_bucket', 'arguments': {'dirname': 'regions'}},
-    ]
 }
 
 
@@ -168,6 +157,11 @@ DETECTORS = {
         {
             'task':"perform_detection",
             'queue':Q_OCR,
+        },
+    'custom':
+        {
+            'task':"perform_detection",
+            'queue':Q_DETECTOR,
         },
     }
 

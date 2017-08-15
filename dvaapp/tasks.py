@@ -1,109 +1,30 @@
 from __future__ import absolute_import
-import subprocess, sys, shutil, os, glob, time, logging, copy
+import subprocess, shutil, os, time, logging, copy, calendar, requests, json, zipfile, random, io, boto3
+from collections import defaultdict
 from PIL import Image
 from django.conf import settings
 from dva.celery import app
 from .models import Video, Frame, TEvent,  IndexEntries, ClusterCodes, Region, Tube, Clusters, CustomDetector, Segment, IndexerQuery
-
 from .operations.indexing import IndexerTask
 from .operations.retrieval import RetrieverTask
 from .operations.detection import DetectorTask
 from .operations.segmentation import SegmentorTask
 from .operations.analysis import AnalyzerTask
 from .operations.decoding import VideoDecoder
-from .operations.processing import get_queue_name
 from dvalib import clustering
 from datetime import datetime
-import io
-
+from . import shared
 try:
     import numpy as np
 except ImportError:
     pass
-
-from collections import defaultdict
-import calendar
-import requests
-import json
-import zipfile
 from . import serializers
-import boto3
-import random
-from botocore.exceptions import ClientError
-from .shared import handle_downloaded_file, create_video_folders, create_detector_folders, create_detector_dataset
-from celery import group
-
-
-def perform_substitution(args,parent_task,inject_filters):
-    """
-    Its important to do a deep copy of args before executing any mutations.
-    :param args:
-    :param parent_task:
-    :return:
-    """
-    args = copy.deepcopy(args) # IMPORTANT otherwise the first task to execute on the worker will fill the filters
-    inject_filters = copy.deepcopy(inject_filters) # IMPORTANT otherwise the first task to execute on the worker will fill the filters
-    filters = args.get('filters',{})
-    parent_args = parent_task.arguments
-    if filters == '__parent__':
-        parent_filters = parent_args.get('filters',{})
-        logging.info('using filters from parent arguments: {}'.format(parent_args))
-        args['filters'] = parent_filters
-    elif filters:
-        for k,v in args.get('filters',{}).items():
-            if v == '__parent_event__':
-                args['filters'][k] = parent_task.pk
-            elif v == '__grand_parent_event__':
-                args['filters'][k] = parent_task.parent.pk
-    if inject_filters:
-        if 'filters' not in args:
-            args['filters'] = inject_filters
-        else:
-            args['filters'].update(inject_filters)
-    return args
-
-
-def process_next(task_id,inject_filters=None,custom_next_tasks=None,sync=True,launch_next=True):
-    if custom_next_tasks is None:
-        custom_next_tasks = []
-    dt = TEvent.objects.get(pk=task_id)
-    launched = []
-    logging.info("next tasks for {}".format(dt.operation))
-    next_tasks = dt.arguments.get('next_tasks',[]) if dt.arguments and launch_next else []
-    if sync:
-        for k in settings.SYNC_TASKS.get(dt.operation,[]):
-            args = perform_substitution(k['arguments'], dt,inject_filters)
-            logging.info("launching {}, {} with args {} as specified in config".format(dt.operation, k['operation'], args))
-            next_task = TEvent.objects.create(video=dt.video,operation=k['operation'],arguments=args,
-                                              parent=dt,parent_process=dt.parent_process)
-            launched.append(app.send_task(k['operation'], args=[next_task.pk, ],
-                                          queue=get_queue_name(k['operation'],args)).id)
-    for k in next_tasks+custom_next_tasks:
-        args = perform_substitution(k['arguments'], dt,inject_filters)
-        logging.info("launching {}, {} with args {} as specified in next_tasks".format(dt.operation, k['operation'], args))
-        next_task = TEvent.objects.create(video=dt.video,operation=k['operation'], arguments=args,
-                                          parent=dt,parent_process=dt.parent_process)
-        launched.append(app.send_task(k['operation'], args=[next_task.pk, ],
-                                      queue=get_queue_name(k['operation'],args)).id)
-    return launched
-
-
-def celery_40_bug_hack(start):
-    """
-    Celery 4.0.2 retries tasks due to ACK issues when running in solo mode,
-    Since Tensorflow ncessiates use of solo mode, we can manually check if the task is has already run and quickly finis it
-    Since the code never uses Celery results except for querying and retries are handled at application level this solves the
-    issue
-    :param start:
-    :return:
-    """
-    return start.started
 
 
 @app.task(track_started=True, name="perform_indexing", base=IndexerTask)
 def perform_indexing(task_id):
     start = TEvent.objects.get(pk=task_id)
-    if celery_40_bug_hack(start):
+    if shared.celery_40_bug_hack(start):
         return 0
     start.task_id = perform_indexing.request.id
     start.started = True
@@ -167,7 +88,7 @@ def perform_indexing(task_id):
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
-    return process_next(task_id,sync=sync)
+    return shared.process_next(task_id,sync=sync)
 
 
 @app.task(track_started=True, name="perform_transformation")
@@ -178,11 +99,12 @@ def perform_transformation(task_id):
     :return:
     """
     start = TEvent.objects.get(pk=task_id)
-    if celery_40_bug_hack(start):
+    if shared.celery_40_bug_hack(start):
         return 0
     start.task_id = perform_transformation.request.id
     start.started = True
     start.ts = datetime.now()
+    start_time = time.time()
     start.operation = perform_transformation.name
     video_id = start.video_id
     args = start.arguments
@@ -206,19 +128,17 @@ def perform_transformation(task_id):
             else:
                 cropped.save("{}/{}/regions/{}.jpg".format(settings.MEDIA_ROOT, video_id, dr.id))
     queryset.update(materialized=True)
-    start.save()
-    start_time = time.time()
+    shared.process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
-    process_next(task_id)
 
 
 @app.task(track_started=True, name="perform_retrieval", base=RetrieverTask)
 def perform_retrieval(task_id):
     start = TEvent.objects.get(pk=task_id)
     start_time = time.time()
-    if celery_40_bug_hack(start):
+    if shared.celery_40_bug_hack(start):
         return 0
     args = start.arguments
     start.task_id = perform_retrieval.request.id
@@ -237,7 +157,7 @@ def perform_retrieval(task_id):
 @app.task(track_started=True, name="extract_frames")
 def extract_frames(task_id):
     start = TEvent.objects.get(pk=task_id)
-    if celery_40_bug_hack(start):
+    if shared.celery_40_bug_hack(start):
         return 0
     start.task_id = extract_frames.request.id
     start.started = True
@@ -253,12 +173,12 @@ def extract_frames(task_id):
     video_id = start.video_id
     dv = Video.objects.get(id=video_id)
     if dv.youtube_video:
-        create_video_folders(dv)
+        shared.create_video_folders(dv)
     v = VideoDecoder(dvideo=dv, media_dir=settings.MEDIA_ROOT)
     v.extract(args=args,start=start)
     if args.get('sync',False):
         # No need to inject just process everything together
-        process_next(task_id)
+        shared.process_next(task_id)
     else:
         step = args.get("frames_batch_size",settings.DEFAULT_FRAMES_BATCH_SIZE)
         for gte, lt in [(k, k + step) for k in range(0, dv.frames, step)]:
@@ -266,7 +186,7 @@ def extract_frames(task_id):
                 filters = {'frame_index__gte': gte, 'frame_index__lt': lt}
             else:
                 filters = {'frame_index__gte': gte}
-            process_next(task_id,inject_filters=filters)
+            shared.process_next(task_id,inject_filters=filters)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
@@ -277,7 +197,7 @@ def extract_frames(task_id):
 @app.task(track_started=True, name="segment_video")
 def segment_video(task_id):
     start = TEvent.objects.get(pk=task_id)
-    if celery_40_bug_hack(start):
+    if shared.celery_40_bug_hack(start):
         return 0
     start.task_id = segment_video.request.id
     start.started = True
@@ -294,7 +214,7 @@ def segment_video(task_id):
     video_id = start.video_id
     dv = Video.objects.get(id=video_id)
     if dv.youtube_video:
-        create_video_folders(dv)
+        shared.create_video_folders(dv)
     v = VideoDecoder(dvideo=dv, media_dir=settings.MEDIA_ROOT)
     v.get_metadata()
     v.segment_video()
@@ -302,7 +222,7 @@ def segment_video(task_id):
         next_args = {'rescale': args['rescale'], 'rate': args['rate']}
         next_task = TEvent.objects.create(video=dv, operation='decode_video', arguments=next_args, parent=start)
         decode_video(next_task.pk)  # decode it synchronously for testing in Travis
-        process_next(task_id)
+        shared.process_next(task_id)
     else:
         step = args.get("segments_batch_size",settings.DEFAULT_SEGMENTS_BATCH_SIZE)
         for gte, lt in [(k, k + step) for k in range(0, dv.segments, step)]:
@@ -311,8 +231,8 @@ def segment_video(task_id):
             else:
                 # ensures off by one error does not happens [gte->
                 filters = {'segment_index__gte': gte}
-            process_next(task_id, inject_filters=filters,sync=False) # Dont sync multiple times
-        process_next(task_id,launch_next=False) # Sync
+            shared.process_next(task_id, inject_filters=filters,sync=False) # Dont sync multiple times
+        shared.process_next(task_id,launch_next=False) # Sync
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
@@ -322,7 +242,7 @@ def segment_video(task_id):
 @app.task(track_started=True,name="decode_video",ignore_result=False)
 def decode_video(task_id):
     start = TEvent.objects.get(pk=task_id)
-    if celery_40_bug_hack(start):
+    if shared.celery_40_bug_hack(start):
         return 0
     start.task_id = decode_video.request.id
     start.started = True
@@ -338,7 +258,7 @@ def decode_video(task_id):
     v = VideoDecoder(dvideo=dv, media_dir=settings.MEDIA_ROOT)
     for ds in Segment.objects.filter(**kwargs):
         v.decode_segment(ds=ds,denominator=args['rate'],rescale=args['rescale'])
-    process_next(task_id)
+    shared.process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
@@ -352,7 +272,7 @@ def perform_detection(task_id):
     :return:
     """
     start = TEvent.objects.get(pk=task_id)
-    if celery_40_bug_hack(start):
+    if shared.celery_40_bug_hack(start):
         return 0
     start.task_id = perform_detection.request.id
     start.started = True
@@ -406,7 +326,7 @@ def perform_detection(task_id):
             dd_list.append(dd)
             path_list.append(local_path)
     _ = Region.objects.bulk_create(dd_list,1000)
-    process_next(task_id)
+    shared.process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
@@ -416,7 +336,7 @@ def perform_detection(task_id):
 @app.task(track_started=True, name="perform_analysis",base_task=AnalyzerTask)
 def perform_analysis(task_id):
     start = TEvent.objects.get(pk=task_id)
-    if celery_40_bug_hack(start):
+    if shared.celery_40_bug_hack(start):
         return 0
     start.task_id = perform_analysis.request.id
     start.started = True
@@ -449,7 +369,7 @@ def perform_analysis(task_id):
         raise NotImplementedError
     else:
         raise NotImplementedError
-    process_next(task_id)
+    shared.process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
@@ -459,7 +379,7 @@ def perform_analysis(task_id):
 @app.task(track_started=True, name="export_video")
 def export_video(task_id):
     start = TEvent.objects.get(pk=task_id)
-    if celery_40_bug_hack(start):
+    if shared.celery_40_bug_hack(start):
         return 0
     start.task_id = export_video.request.id
     start.started = True
@@ -506,7 +426,7 @@ def export_video(task_id):
 @app.task(track_started=True, name="import_video")
 def import_video(task_id):
     start = TEvent.objects.get(pk=task_id)
-    if celery_40_bug_hack(start):
+    if shared.celery_40_bug_hack(start):
         return 0
     start.task_id = import_video.request.id
     start.started = True
@@ -542,7 +462,7 @@ def import_video(task_id):
 @app.task(track_started=True, name="import_vdn_file")
 def import_vdn_file(task_id):
     start = TEvent.objects.get(pk=task_id)
-    if celery_40_bug_hack(start):
+    if shared.celery_40_bug_hack(start):
         return 0
     start.started = True
     start.ts = datetime.now()
@@ -551,7 +471,7 @@ def import_vdn_file(task_id):
     start.save()
     start_time = time.time()
     dv = start.video
-    create_video_folders(dv, create_subdirs=False)
+    shared.create_video_folders(dv, create_subdirs=False)
     if 'www.dropbox.com' in dv.vdn_dataset.download_url and not dv.vdn_dataset.download_url.endswith('?dl=1'):
         r = requests.get(dv.vdn_dataset.download_url + '?dl=1')
     else:
@@ -581,7 +501,7 @@ def import_vdn_file(task_id):
     os.remove(source_zip)
     dv.uploaded = True
     dv.save()
-    process_next(task_id)
+    shared.process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
@@ -590,7 +510,7 @@ def import_vdn_file(task_id):
 @app.task(track_started=True, name="import_vdn_detector_file")
 def import_vdn_detector_file(task_id):
     start = TEvent.objects.get(pk=task_id)
-    if celery_40_bug_hack(start):
+    if shared.celery_40_bug_hack(start):
         return 0
     start.started = True
     start.ts = datetime.now()
@@ -599,7 +519,7 @@ def import_vdn_detector_file(task_id):
     start.save()
     start_time = time.time()
     dd = CustomDetector.objects.get(pk=start.arguments['detector_pk'])
-    create_detector_folders(dd, create_subdirs=False)
+    shared.create_detector_folders(dd, create_subdirs=False)
     if 'www.dropbox.com' in dd.vdn_detector.download_url and not dd.vdn_detector.download_url.endswith('?dl=1'):
         r = requests.get(dd.vdn_detector.download_url + '?dl=1')
     else:
@@ -617,7 +537,7 @@ def import_vdn_detector_file(task_id):
     serializers.import_detector(dd)
     dd.save()
     os.remove(source_zip)
-    process_next(task_id)
+    shared.process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
@@ -626,7 +546,7 @@ def import_vdn_detector_file(task_id):
 @app.task(track_started=True, name="import_vdn_s3")
 def import_vdn_s3(task_id):
     start = TEvent.objects.get(pk=task_id)
-    if celery_40_bug_hack(start):
+    if shared.celery_40_bug_hack(start):
         return 0
     start.started = True
     start.ts = datetime.now()
@@ -635,7 +555,7 @@ def import_vdn_s3(task_id):
     start.save()
     start_time = time.time()
     dv = start.video
-    create_video_folders(dv, create_subdirs=False)
+    shared.create_video_folders(dv, create_subdirs=False)
     client = boto3.client('s3')
     resource = boto3.resource('s3')
     key = dv.vdn_dataset.aws_key
@@ -659,7 +579,7 @@ def import_vdn_s3(task_id):
     else:
         video_root_dir = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
         path = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
-        download_dir(client, resource, key, path, bucket)
+        shared.download_s3_dir(client, resource, key, path, bucket)
         for filename in os.listdir(os.path.join(path, key)):
             shutil.move(os.path.join(path, key, filename), os.path.join(path, filename))
         os.rmdir(os.path.join(path, key))
@@ -669,52 +589,18 @@ def import_vdn_s3(task_id):
     importer.import_video()
     dv.uploaded = True
     dv.save()
-    process_next(task_id)
+    shared.process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
 
 
-def perform_export(s3_export):
-    s3 = boto3.resource('s3')
-    s3bucket = s3_export.arguments['bucket']
-    s3region = s3_export.arguments['region']
-    s3key = s3_export.arguments['key']
-    if s3region == 'us-east-1':
-        s3.create_bucket(Bucket=s3bucket)
-    else:
-        s3.create_bucket(Bucket=s3bucket, CreateBucketConfiguration={'LocationConstraint': s3region})
-    time.sleep(20)  # wait for it to create the bucket
-    path = "{}/{}/".format(settings.MEDIA_ROOT, s3_export.video.pk)
-    video = s3_export.video
-    a = serializers.VideoExportSerializer(instance=video)
-    data = copy.deepcopy(a.data)
-    data['labels'] = serializers.serialize_video_labels(video)
-    data['export_event_pk'] = s3_export.pk
-    exists = False
-    try:
-        s3.Object(s3bucket, '{}/table_data.json'.format(s3key).replace('//', '/')).load()
-    except ClientError as e:
-        if e.response['Error']['Code'] != "404":
-            raise ValueError,"Key s3://{}/{}/table_data.json already exists".format(s3bucket,s3key)
-    else:
-        return -1, "Error key already exists"
-    with file("{}/{}/table_data.json".format(settings.MEDIA_ROOT, s3_export.video.pk), 'w') as output:
-        json.dump(data, output)
-    s3bucket = s3_export.arguments['bucket']
-    s3key = s3_export.arguments['key']
-    upload = subprocess.Popen(args=["aws", "s3", "sync",'--quiet', ".", "s3://{}/{}/".format(s3bucket,s3key)],cwd=path)
-    upload.communicate()
-    upload.wait()
-    s3_export.completed = True
-    s3_export.save()
-    return upload.returncode, ""
 
 
 @app.task(track_started=True, name="backup_video_to_s3")
 def backup_video_to_s3(s3_export_id):
     start = TEvent.objects.get(pk=s3_export_id)
-    if celery_40_bug_hack(start):
+    if shared.celery_40_bug_hack(start):
         return 0
     start.started = True
     start.ts = datetime.now()
@@ -722,7 +608,7 @@ def backup_video_to_s3(s3_export_id):
     start.operation = backup_video_to_s3.name
     start.save()
     start_time = time.time()
-    returncode, errormsg = perform_export(start)
+    returncode, errormsg = shared.perform_export(start)
     if returncode == 0:
         start.completed = True
     else:
@@ -735,7 +621,7 @@ def backup_video_to_s3(s3_export_id):
 @app.task(track_started=True, name="push_video_to_vdn_s3")
 def push_video_to_vdn_s3(s3_export_id):
     start = TEvent.objects.get(pk=s3_export_id)
-    if celery_40_bug_hack(start):
+    if shared.celery_40_bug_hack(start):
         return 0
     start.task_id = push_video_to_vdn_s3.request.id
     start.started = True
@@ -743,7 +629,7 @@ def push_video_to_vdn_s3(s3_export_id):
     start.operation = push_video_to_vdn_s3.name
     start.save()
     start_time = time.time()
-    returncode, errormsg = perform_export(start)
+    returncode, errormsg = shared.perform_export(start)
     if returncode == 0:
         start.completed = True
     else:
@@ -753,33 +639,12 @@ def push_video_to_vdn_s3(s3_export_id):
     start.save()
 
 
-def download_dir(client, resource, dist, local, bucket):
-    """
-    Taken from http://stackoverflow.com/questions/31918960/boto3-to-download-all-files-from-a-s3-bucket
-    :param client:
-    :param resource:
-    :param dist:
-    :param local:
-    :param bucket:
-    :return:
-    """
-    paginator = client.get_paginator('list_objects')
-    for result in paginator.paginate(Bucket=bucket, Delimiter='/', Prefix=dist, RequestPayer='requester'):
-        if result.get('CommonPrefixes') is not None:
-            for subdir in result.get('CommonPrefixes'):
-                download_dir(client, resource, subdir.get('Prefix'), local, bucket)
-        if result.get('Contents') is not None:
-            for ffile in result.get('Contents'):
-                if not os.path.exists(os.path.dirname(local + os.sep + ffile.get('Key'))):
-                    os.makedirs(os.path.dirname(local + os.sep + ffile.get('Key')))
-                resource.meta.client.download_file(bucket, ffile.get('Key'), local + os.sep + ffile.get('Key'),
-                                                   ExtraArgs={'RequestPayer': 'requester'})
 
 
 @app.task(track_started=True, name="import_video_from_s3")
 def import_video_from_s3(s3_import_id):
     start = TEvent.objects.get(pk=s3_import_id)
-    if celery_40_bug_hack(start):
+    if shared.celery_40_bug_hack(start):
         return 0
     start.started = True
     start.ts = datetime.now()
@@ -811,12 +676,12 @@ def import_video_from_s3(s3_import_id):
             start.seconds = time.time() - start_time
             start.save()
             raise ValueError, start.error_message
-        handle_downloaded_file("{}/{}".format(settings.MEDIA_ROOT, fname), start.video, "s3://{}/{}".format(s3bucket,s3key))
+        shared.handle_downloaded_file("{}/{}".format(settings.MEDIA_ROOT, fname), start.video, "s3://{}/{}".format(s3bucket,s3key))
         start.completed = True
         start.seconds = time.time() - start_time
         start.save()
     else:
-        create_video_folders(start.video, create_subdirs=False)
+        shared.create_video_folders(start.video, create_subdirs=False)
         command = ["aws", "s3", "cp",'--quiet', "s3://{}/{}/".format(s3bucket, s3key), '.', '--recursive']
         command_exec = " ".join(command)
         download = subprocess.Popen(args=command, cwd=path)
@@ -832,7 +697,7 @@ def import_video_from_s3(s3_import_id):
             video_json = json.load(input_json)
         importer = serializers.VideoImporter(video=start.video, json=video_json, root_dir=path)
         importer.import_video()
-    process_next(start.pk)
+    shared.process_next(start.pk)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
@@ -841,7 +706,7 @@ def import_video_from_s3(s3_import_id):
 @app.task(track_started=True, name="perform_clustering")
 def perform_clustering(cluster_task_id, test=False):
     start = TEvent.objects.get(pk=cluster_task_id)
-    if celery_40_bug_hack(start):
+    if shared.celery_40_bug_hack(start):
         return 0
     start.task_id = perform_clustering.request.id
     start.started = True
@@ -895,7 +760,7 @@ def sync_bucket(task_id):
     :return:
     """
     start = TEvent.objects.get(pk=task_id)
-    if celery_40_bug_hack(start):
+    if shared.celery_40_bug_hack(start):
         return 0
     start.task_id = sync_bucket.request.id
     start.started = True
@@ -932,7 +797,7 @@ def sync_bucket(task_id):
 @app.task(track_started=True, name="delete_video_by_id")
 def delete_video_by_id(task_id):
     start = TEvent.objects.get(pk=task_id)
-    if celery_40_bug_hack(start):
+    if shared.celery_40_bug_hack(start):
         return 0
     start.task_id = delete_video_by_id.request.id
     start.started = True
@@ -979,7 +844,7 @@ def detect_custom_objects(task_id):
     :return:
     """
     start = TEvent.objects.get(pk=task_id)
-    if celery_40_bug_hack(start):
+    if shared.celery_40_bug_hack(start):
         return 0
     start.task_id = detect_custom_objects.request.id
     start.started = True
@@ -998,7 +863,7 @@ def detect_custom_objects(task_id):
         start.seconds = time.time() - start_time
         start.save()
         raise ValueError, start.error_message
-    process_next(task_id)
+    shared.process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
@@ -1012,7 +877,7 @@ def train_yolo_detector(task_id):
     :return:
     """
     start = TEvent.objects.get(pk=task_id)
-    if celery_40_bug_hack(start):
+    if shared.celery_40_bug_hack(start):
         return 0
     start.task_id = train_yolo_detector.request.id
     start.started = True
@@ -1053,7 +918,7 @@ def perform_segmentation(task_id):
     :return:
     """
     start = TEvent.objects.get(pk=task_id)
-    if celery_40_bug_hack(start):
+    if shared.celery_40_bug_hack(start):
         return 0
     start.task_id = perform_segmentation.request.id
     start.started = True
@@ -1107,7 +972,7 @@ def perform_segmentation(task_id):
         #     dd_list.append(dd)
         #     path_list.append(local_path)
     _ = Region.objects.bulk_create(dd_list,1000)
-    process_next(task_id)
+    shared.process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()

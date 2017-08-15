@@ -1,15 +1,16 @@
-import os, json, requests, base64, logging
+import os, json, requests, copy, time, subprocess, logging
 from models import Video, TEvent,  Region, VDNDataset, VDNServer, VDNDetector, CustomDetector, DeletedVideo, Label,\
     RegionLabel
 from django.conf import settings
-from dva.celery import app
 from django_celery_results.models import TaskResult
-from celery.result import AsyncResult
 from collections import defaultdict
 from operations import processing
+from operations.processing import get_queue_name
+from dva.celery import app
 from models import DVAPQL
+from . import serializers
 import boto3
-from celery.exceptions import TimeoutError
+from botocore.exceptions import ClientError
 
 
 def refresh_task_status():
@@ -464,3 +465,126 @@ def create_detector_dataset(object_names, labels):
     #             class_distribution[l.label_name] += 1
     return class_distribution, class_names, rboxes, rboxes_set, frames, i_class_names
 
+
+def download_s3_dir(client, resource, dist, local, bucket):
+    """
+    Taken from http://stackoverflow.com/questions/31918960/boto3-to-download-all-files-from-a-s3-bucket
+    :param client:
+    :param resource:
+    :param dist:
+    :param local:
+    :param bucket:
+    :return:
+    """
+    paginator = client.get_paginator('list_objects')
+    for result in paginator.paginate(Bucket=bucket, Delimiter='/', Prefix=dist, RequestPayer='requester'):
+        if result.get('CommonPrefixes') is not None:
+            for subdir in result.get('CommonPrefixes'):
+                download_s3_dir(client, resource, subdir.get('Prefix'), local, bucket)
+        if result.get('Contents') is not None:
+            for ffile in result.get('Contents'):
+                if not os.path.exists(os.path.dirname(local + os.sep + ffile.get('Key'))):
+                    os.makedirs(os.path.dirname(local + os.sep + ffile.get('Key')))
+                resource.meta.client.download_file(bucket, ffile.get('Key'), local + os.sep + ffile.get('Key'),
+                                                   ExtraArgs={'RequestPayer': 'requester'})
+
+def perform_export(s3_export):
+    s3 = boto3.resource('s3')
+    s3bucket = s3_export.arguments['bucket']
+    s3region = s3_export.arguments['region']
+    s3key = s3_export.arguments['key']
+    if s3region == 'us-east-1':
+        s3.create_bucket(Bucket=s3bucket)
+    else:
+        s3.create_bucket(Bucket=s3bucket, CreateBucketConfiguration={'LocationConstraint': s3region})
+    time.sleep(20)  # wait for it to create the bucket
+    path = "{}/{}/".format(settings.MEDIA_ROOT, s3_export.video.pk)
+    video = s3_export.video
+    a = serializers.VideoExportSerializer(instance=video)
+    data = copy.deepcopy(a.data)
+    data['labels'] = serializers.serialize_video_labels(video)
+    data['export_event_pk'] = s3_export.pk
+    exists = False
+    try:
+        s3.Object(s3bucket, '{}/table_data.json'.format(s3key).replace('//', '/')).load()
+    except ClientError as e:
+        if e.response['Error']['Code'] != "404":
+            raise ValueError,"Key s3://{}/{}/table_data.json already exists".format(s3bucket,s3key)
+    else:
+        return -1, "Error key already exists"
+    with file("{}/{}/table_data.json".format(settings.MEDIA_ROOT, s3_export.video.pk), 'w') as output:
+        json.dump(data, output)
+    s3bucket = s3_export.arguments['bucket']
+    s3key = s3_export.arguments['key']
+    upload = subprocess.Popen(args=["aws", "s3", "sync",'--quiet', ".", "s3://{}/{}/".format(s3bucket,s3key)],cwd=path)
+    upload.communicate()
+    upload.wait()
+    s3_export.completed = True
+    s3_export.save()
+    return upload.returncode, ""
+
+
+def perform_substitution(args,parent_task,inject_filters):
+    """
+    Its important to do a deep copy of args before executing any mutations.
+    :param args:
+    :param parent_task:
+    :return:
+    """
+    args = copy.deepcopy(args) # IMPORTANT otherwise the first task to execute on the worker will fill the filters
+    inject_filters = copy.deepcopy(inject_filters) # IMPORTANT otherwise the first task to execute on the worker will fill the filters
+    filters = args.get('filters',{})
+    parent_args = parent_task.arguments
+    if filters == '__parent__':
+        parent_filters = parent_args.get('filters',{})
+        logging.info('using filters from parent arguments: {}'.format(parent_args))
+        args['filters'] = parent_filters
+    elif filters:
+        for k,v in args.get('filters',{}).items():
+            if v == '__parent_event__':
+                args['filters'][k] = parent_task.pk
+            elif v == '__grand_parent_event__':
+                args['filters'][k] = parent_task.parent.pk
+    if inject_filters:
+        if 'filters' not in args:
+            args['filters'] = inject_filters
+        else:
+            args['filters'].update(inject_filters)
+    return args
+
+
+def process_next(task_id,inject_filters=None,custom_next_tasks=None,sync=True,launch_next=True):
+    if custom_next_tasks is None:
+        custom_next_tasks = []
+    dt = TEvent.objects.get(pk=task_id)
+    launched = []
+    logging.info("next tasks for {}".format(dt.operation))
+    next_tasks = dt.arguments.get('next_tasks',[]) if dt.arguments and launch_next else []
+    if sync:
+        for k in settings.SYNC_TASKS.get(dt.operation,[]):
+            args = perform_substitution(k['arguments'], dt,inject_filters)
+            logging.info("launching {}, {} with args {} as specified in config".format(dt.operation, k['operation'], args))
+            next_task = TEvent.objects.create(video=dt.video,operation=k['operation'],arguments=args,
+                                              parent=dt,parent_process=dt.parent_process)
+            launched.append(app.send_task(k['operation'], args=[next_task.pk, ],
+                                          queue=get_queue_name(k['operation'],args)).id)
+    for k in next_tasks+custom_next_tasks:
+        args = perform_substitution(k['arguments'], dt,inject_filters)
+        logging.info("launching {}, {} with args {} as specified in next_tasks".format(dt.operation, k['operation'], args))
+        next_task = TEvent.objects.create(video=dt.video,operation=k['operation'], arguments=args,
+                                          parent=dt,parent_process=dt.parent_process)
+        launched.append(app.send_task(k['operation'], args=[next_task.pk, ],
+                                      queue=get_queue_name(k['operation'],args)).id)
+    return launched
+
+
+def celery_40_bug_hack(start):
+    """
+    Celery 4.0.2 retries tasks due to ACK issues when running in solo mode,
+    Since Tensorflow ncessiates use of solo mode, we can manually check if the task is has already run and quickly finis it
+    Since the code never uses Celery results except for querying and retries are handled at application level this solves the
+    issue
+    :param start:
+    :return:
+    """
+    return start.started

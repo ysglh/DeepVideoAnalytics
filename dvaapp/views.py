@@ -659,10 +659,10 @@ def yt(request):
                           'operation': 'perform_import',
                           'arguments': {'source': "URL",
                                         'next_tasks':[{'video_id': video.pk,
-                                                       'operation': 'segment_video',
+                                                       'operation': 'perform_video_segmentation',
                                                        'arguments': {
                                                            'next_tasks': [
-                                                               {'operation': 'decode_video',
+                                                               {'operation': 'perform_video_decode',
                                                                 'arguments': {
                                                                     'rate': rate, 'rescale': rescale,
                                                                     'segments_batch_size': settings.DEFAULT_SEGMENTS_BATCH_SIZE,
@@ -1141,12 +1141,12 @@ def import_s3(request):
                                               'frames_batch_size': settings.DEFAULT_FRAMES_BATCH_SIZE,
                                               'next_tasks': settings.DEFAULT_PROCESSING_PLAN},
                                  'video_id': video.pk,
-                                 'operation': 'extract_frames'}
+                                 'operation': 'perform_dataset_extraction'}
                 segment_decode_task = {'video_id': video.pk,
-                                        'operation': 'segment_video',
+                                        'operation': 'perform_video_segmentation',
                                         'arguments': {
                                             'next_tasks': [
-                                                {'operation': 'decode_video',
+                                                {'operation': 'perform_video_decode',
                                                  'arguments': {
                                                      'rate': rate, 'rescale': rescale,
                                                      'segments_batch_size':settings.DEFAULT_SEGMENTS_BATCH_SIZE,

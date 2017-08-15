@@ -75,7 +75,7 @@ def delete_video_object(video_pk,deleter,garbage_collection=True):
             'tasks': [
                 {
                     'arguments': {'video_pk': video.pk},
-                    'operation': 'delete_video_by_id',
+                    'operation': 'perform_deletion',
                 }
             ]
         }
@@ -137,7 +137,7 @@ def handle_uploaded_file(f, name, extract=True, user=None, rate=None, rescale=No
                                          'frames_batch_size':settings.DEFAULT_FRAMES_BATCH_SIZE,
                                          'next_tasks':settings.DEFAULT_PROCESSING_PLAN},
                             'video_id':video.pk,
-                            'operation': 'extract_frames',
+                            'operation': 'perform_dataset_extraction',
                         }
                     ]
                 }
@@ -149,7 +149,7 @@ def handle_uploaded_file(f, name, extract=True, user=None, rate=None, rescale=No
                             'arguments':{
                                 'segments_batch_size': settings.DEFAULT_SEGMENTS_BATCH_SIZE,
                                 'next_tasks':[
-                                             {'operation':'decode_video',
+                                             {'operation':'perform_video_decode',
                                                'arguments':{
                                                    'rate': rate,
                                                    'rescale': rescale,
@@ -158,7 +158,7 @@ def handle_uploaded_file(f, name, extract=True, user=None, rate=None, rescale=No
                                               }
                                             ]},
                             'video_id':video.pk,
-                            'operation': 'segment_video',
+                            'operation': 'perform_video_segmentation',
                         }
                     ]
                 }

@@ -42,7 +42,7 @@ def create_yolo_test_data():
     from dvaapp.shared import handle_uploaded_file
     from django.core.files.uploadedfile import SimpleUploadedFile
     from dvaapp.models import Region,TEvent,Frame,Label,RegionLabel
-    from dvaapp.tasks import extract_frames,export_video
+    from dvaapp.tasks import perform_dataset_extraction,perform_export
     try:
         shutil.rmtree('/Users/aub3/tests/yolo_test')
     except:
@@ -73,7 +73,7 @@ def create_yolo_test_data():
     name = "yolo_test"
     f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
     dv = handle_uploaded_file(f, name)
-    extract_frames(TEvent.objects.create(video=dv).pk)
+    perform_dataset_extraction(TEvent.objects.create(video=dv).pk)
     for df in Frame.objects.filter(video=dv):
         for box in id_2_boxes[df.name]:
             r = Region()
@@ -93,7 +93,7 @@ def create_yolo_test_data():
             l.label = labels[c]
             l.region = r
             l.save()
-    export_video(TEvent.objects.create(video=dv).pk)
+    perform_export(TEvent.objects.create(video=dv,arguments={'destination':'FILE'}).pk)
     try:
         shutil.rmtree('/Users/aub3/tests/yolo_test')
     except:
@@ -107,7 +107,7 @@ def process_visual_genome():
     from dvaapp.shared import handle_uploaded_file
     from dvaapp import models
     from dvaapp.models import TEvent
-    from dvaapp.tasks import extract_frames, export_video
+    from dvaapp.tasks import perform_dataset_extraction, export_video
     from collections import defaultdict
     os.system('aws s3api get-object --request-payer "requester" --bucket visualdatanetwork --key visual_genome_objects.txt.gz  /root/DVA/visual_genome_objects.txt.gz')
     data = defaultdict(list)
@@ -131,7 +131,7 @@ def process_visual_genome():
     os.system(
         'aws s3api get-object --request-payer "requester" --bucket visualdatanetwork --key visual_genome.zip  {}'.format(
             outpath))
-    extract_frames(TEvent.objects.create(video=v).pk)
+    perform_dataset_extraction(TEvent.objects.create(video=v).pk)
     video = v
     models.Region.objects.all().filter(video=video).delete()
     buffer = []

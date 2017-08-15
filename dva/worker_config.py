@@ -15,13 +15,13 @@ QUEUES = [Q_EXTRACTOR,Q_INDEXER,Q_DETECTOR,Q_RETRIEVER,Q_FACE_RETRIEVER,Q_FACE_D
 INDEXER_TASKS = {'perform_indexing',}
 
 TASK_NAMES_TO_QUEUE = {
-    "segment_video":Q_EXTRACTOR,
-    "decode_video":Q_EXTRACTOR,
-    "extract_frames":Q_EXTRACTOR,
+    "perform_video_segmentation":Q_EXTRACTOR,
+    "perform_video_decode":Q_EXTRACTOR,
+    "perform_dataset_extraction":Q_EXTRACTOR,
     "perform_transformation":Q_EXTRACTOR,
     "perform_export":Q_EXTRACTOR,
-    "delete_video_by_id":Q_EXTRACTOR,
-    "sync_bucket":Q_EXTRACTOR,
+    "perform_deletion":Q_EXTRACTOR,
+    "perform_sync":Q_EXTRACTOR,
     "perform_detector_import":Q_EXTRACTOR,
     "perform_import":Q_EXTRACTOR,
     "perform_clustering": Q_CLUSTER,
@@ -40,11 +40,11 @@ DEFAULT_RESCALE = 0
 DEFAULT_RATE = 30
 
 TASK_NAMES_TO_TYPE = {
-    "segment_video": VIDEO_TASK,
-    "decode_video": VIDEO_TASK,
-    "extract_frames":VIDEO_TASK,
+    "perform_video_segmentation": VIDEO_TASK,
+    "perform_video_decode": VIDEO_TASK,
+    "perform_dataset_extraction":VIDEO_TASK,
     "perform_detector_import":IMPORT_TASK,
-    "delete_video_by_id": VIDEO_TASK,
+    "perform_deletion": VIDEO_TASK,
     "perform_clustering": CLUSTER_TASK,
     "perform_detector_training": TRAIN_TASK,
 }
@@ -98,25 +98,25 @@ DEFAULT_PROCESSING_PLAN =[
 
 
 SYNC_TASKS = {
-    "extract_frames":[
-        {'operation':'sync_bucket','arguments':{'dirname':'frames'}},
+    "perform_dataset_extraction":[
+        {'operation':'perform_sync','arguments':{'dirname':'frames'}},
     ],
-    "segment_video":[
-        {'operation':'sync_bucket','arguments':{'dirname':'segments'}},
+    "perform_video_segmentation":[
+        {'operation':'perform_sync','arguments':{'dirname':'segments'}},
     ],
-    "decode_video":[
-        {'operation': 'sync_bucket', 'arguments': {'dirname': 'frames'}},
+    "perform_video_decode":[
+        {'operation': 'perform_sync', 'arguments': {'dirname': 'frames'}},
     ],
     'perform_detection':[
     ],
     'perform_transformation':[
-        {'operation': 'sync_bucket', 'arguments': {'dirname': 'regions'}},
+        {'operation': 'perform_sync', 'arguments': {'dirname': 'regions'}},
     ],
     'perform_indexing':[
-        {'operation': 'sync_bucket', 'arguments': {'dirname': 'indexes'}},
+        {'operation': 'perform_sync', 'arguments': {'dirname': 'indexes'}},
     ],
     'perform_import':[
-        {'operation': 'sync_bucket', 'arguments': {}},
+        {'operation': 'perform_sync', 'arguments': {}},
     ],
     'perform_detector_training':[
     ],

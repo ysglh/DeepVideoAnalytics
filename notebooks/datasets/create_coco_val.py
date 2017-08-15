@@ -8,7 +8,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from dvaapp.shared import handle_uploaded_file
 from dvaapp import models
 from dvaapp.models import TEvent
-from dvaapp.tasks import extract_frames, export_video
+from dvaapp.tasks import perform_dataset_extraction, export_video
 from collections import defaultdict
 
 
@@ -57,7 +57,7 @@ command = 'aws s3api get-object --request-payer "requester" --bucket visualdatan
         outpath)
 print command
 os.system(command)
-extract_frames(TEvent.objects.create(video=v).pk)
+perform_dataset_extraction(TEvent.objects.create(video=v).pk)
 video = v
 buf = []
 batch_count = 0

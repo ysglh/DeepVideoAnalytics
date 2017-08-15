@@ -154,15 +154,15 @@ def perform_retrieval(task_id):
     return 0
 
 
-@app.task(track_started=True, name="extract_frames")
-def extract_frames(task_id):
+@app.task(track_started=True, name="perform_dataset_extraction")
+def perform_dataset_extraction(task_id):
     start = TEvent.objects.get(pk=task_id)
     if shared.celery_40_bug_hack(start):
         return 0
-    start.task_id = extract_frames.request.id
+    start.task_id = perform_dataset_extraction.request.id
     start.started = True
     start.ts = datetime.now()
-    start.operation = extract_frames.name
+    start.operation = perform_dataset_extraction.name
     args = start.arguments
     if args == {}:
         args['rescale'] = 0
@@ -194,15 +194,15 @@ def extract_frames(task_id):
     return 0
 
 
-@app.task(track_started=True, name="segment_video")
-def segment_video(task_id):
+@app.task(track_started=True, name="perform_video_segmentation")
+def perform_video_segmentation(task_id):
     start = TEvent.objects.get(pk=task_id)
     if shared.celery_40_bug_hack(start):
         return 0
-    start.task_id = segment_video.request.id
+    start.task_id = perform_video_segmentation.request.id
     start.started = True
     start.ts = datetime.now()
-    start.operation = segment_video.name
+    start.operation = perform_video_segmentation.name
     args = start.arguments
     if 'rescale' not in args:
         args['rescale'] = 0
@@ -218,8 +218,8 @@ def segment_video(task_id):
     v.segment_video()
     if args.get('sync',False):
         next_args = {'rescale': args['rescale'], 'rate': args['rate']}
-        next_task = TEvent.objects.create(video=dv, operation='decode_video', arguments=next_args, parent=start)
-        decode_video(next_task.pk)  # decode it synchronously for testing in Travis
+        next_task = TEvent.objects.create(video=dv, operation='perform_video_decode', arguments=next_args, parent=start)
+        perform_video_decode(next_task.pk)  # decode it synchronously for testing in Travis
         shared.process_next(task_id)
     else:
         step = args.get("segments_batch_size",settings.DEFAULT_SEGMENTS_BATCH_SIZE)
@@ -237,15 +237,15 @@ def segment_video(task_id):
     return 0
 
 
-@app.task(track_started=True,name="decode_video",ignore_result=False)
-def decode_video(task_id):
+@app.task(track_started=True,name="perform_video_decode",ignore_result=False)
+def perform_video_decode(task_id):
     start = TEvent.objects.get(pk=task_id)
     if shared.celery_40_bug_hack(start):
         return 0
-    start.task_id = decode_video.request.id
+    start.task_id = perform_video_decode.request.id
     start.started = True
     start.ts = datetime.now()
-    start.operation = decode_video.name
+    start.operation = perform_video_decode.name
     args = start.arguments
     start.save()
     start_time = time.time()
@@ -543,8 +543,8 @@ def perform_clustering(cluster_task_id, test=False):
     start.save()
 
 
-@app.task(track_started=True, name="sync_bucket")
-def sync_bucket(task_id):
+@app.task(track_started=True, name="perform_sync")
+def perform_sync(task_id):
     """
     TODO: Determine a way to rate limit consecutive sync bucket for a given
     (video,directory). As an alternative perform sync at a more granular level,
@@ -555,10 +555,10 @@ def sync_bucket(task_id):
     start = TEvent.objects.get(pk=task_id)
     if shared.celery_40_bug_hack(start):
         return 0
-    start.task_id = sync_bucket.request.id
+    start.task_id = perform_sync.request.id
     start.started = True
     start.ts = datetime.now()
-    start.operation = sync_bucket.name
+    start.operation = perform_sync.name
     start.save()
     start_time = time.time()
     video_id = start.video_id
@@ -587,15 +587,15 @@ def sync_bucket(task_id):
     return
 
 
-@app.task(track_started=True, name="delete_video_by_id")
-def delete_video_by_id(task_id):
+@app.task(track_started=True, name="perform_deletion")
+def perform_deletion(task_id):
     start = TEvent.objects.get(pk=task_id)
     if shared.celery_40_bug_hack(start):
         return 0
-    start.task_id = delete_video_by_id.request.id
+    start.task_id = perform_deletion.request.id
     start.started = True
     start.ts = datetime.now()
-    start.operation = delete_video_by_id.name
+    start.operation = perform_deletion.name
     start.save()
     start_time = time.time()
     args = start.arguments

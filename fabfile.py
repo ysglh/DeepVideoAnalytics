@@ -177,9 +177,9 @@ def ci():
     from dvaapp.models import Video, Clusters,IndexEntries,TEvent,VDNServer, DVAPQL
     from django.conf import settings
     from dvaapp.operations.processing import DVAPQLProcess
-    from dvaapp.tasks import extract_frames, perform_indexing, perform_export, perform_import,\
+    from dvaapp.tasks import perform_dataset_extraction, perform_indexing, perform_export, perform_import,\
         perform_clustering, perform_analysis, perform_detection,\
-        segment_video, perform_transformation
+        perform_video_segmentation, perform_transformation
     for fname in glob.glob('tests/ci/*.mp4'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")
@@ -196,10 +196,10 @@ def ci():
     for i,v in enumerate(Video.objects.all()):
         if v.dataset:
             arguments = {'sync':True}
-            extract_frames(TEvent.objects.create(video=v,arguments=arguments).pk)
+            perform_dataset_extraction(TEvent.objects.create(video=v,arguments=arguments).pk)
         else:
             arguments = {'sync':True}
-            segment_video(TEvent.objects.create(video=v,arguments=arguments).pk)
+            perform_video_segmentation(TEvent.objects.create(video=v,arguments=arguments).pk)
             arguments = {'index': 'inception'}
             perform_indexing(TEvent.objects.create(video=v,arguments=arguments).pk)
         if i ==0: # save travis time by just running detection on first video
@@ -763,13 +763,13 @@ def enable_media_bucket_static_hosting(bucket_name, allow_videos=False):
 def sync_efs_to_s3():
     setup_django()
     from dvaapp.models import Video,TEvent
-    from dvaapp.tasks import sync_bucket
+    from dvaapp.tasks import perform_sync
     for v in Video.objects.all():
         e = TEvent()
         e.video_id = v.pk
-        e.operation = 'sync_bucket'
+        e.operation = 'perform_sync'
         e.save()
-        sync_bucket(e.pk)
+        perform_sync(e.pk)
 
 
 
@@ -929,7 +929,7 @@ def qt():
     from django.core.files.uploadedfile import SimpleUploadedFile
     from dvaapp.views import handle_uploaded_file
     from dvaapp.models import Video, TEvent
-    from dvaapp.tasks import extract_frames,perform_detection,perform_indexing,segment_video
+    from dvaapp.tasks import perform_dataset_extraction,perform_detection,perform_indexing,perform_video_segmentation
     for fname in glob.glob('tests/ci/*.mp4'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/mp4")
@@ -939,7 +939,7 @@ def qt():
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
         v = handle_uploaded_file(f, name)
         # arguments = {'sync': True}
-        # segment_video(TEvent.objects.create(video=v, arguments=arguments).pk)
+        # perform_video_segmentation(TEvent.objects.create(video=v, arguments=arguments).pk)
         # arguments = {'detector': 'face_mtcnn'}
         # perform_detection(TEvent.objects.create(video=v).pk)
         # args = {'index': 'facenet','target': 'regions','filter':{'object_name__startswith':'MTCNN_face'}}

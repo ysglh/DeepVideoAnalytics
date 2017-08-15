@@ -12,12 +12,12 @@ EXAMPLES = {
         "bucket": "visualdatanetwork",
         "next_tasks": [
           {
-            "operation": "segment_video",
+            "operation": "perform_video_segmentation",
             "arguments": {
                 "segments_batch_size": 10,
                 "next_tasks": [
                 {
-                  "operation": "decode_video",
+                  "operation": "perform_video_decode",
                   "arguments": {
                     "rate": 30,
                     "rescale": 0,

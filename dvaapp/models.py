@@ -75,10 +75,10 @@ class DVAPQL(models.Model):
     """
     A query object with image_data, can have multiple children subspecies
     """
-    INGEST = 'I'
+    SCHEDULE = 'S'
     PROCESS = 'V'
     QUERY = 'Q'
-    TYPE_CHOICES = ((INGEST, 'Ingest'), (PROCESS, 'Process'), (QUERY, 'Query'))
+    TYPE_CHOICES = ((SCHEDULE, 'Schedule'), (PROCESS, 'Process'), (QUERY, 'Query'))
     process_type = models.CharField(max_length=1, choices=TYPE_CHOICES, default=QUERY, )
     created = models.DateTimeField('date created', auto_now_add=True)
     user = models.ForeignKey(User, null=True, related_name="submitter")

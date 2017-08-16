@@ -12,48 +12,52 @@
 </div>
 </section>
 <section class="content">
-    <form method="post" action="{% url "workers" %}">{% csrf_token %}
     <div class="row">
-        <div class="col-md-3">
+        <div class="col-md-4 col-lg-2">
+            <form method="post" action="{% url "workers" %}">{% csrf_token %}
             <div class="box box-primary">
                 <div class="box-header with-border"><h4>List workers</h4></div>
                 <div class="box-body">
                     <button class="btn btn-primary pull-right" type="submit" name="op" value="list_workers">Query</button>
                 </div>
             </div>
+            </form>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-4  col-lg-2" >
+            <form method="post" action="{% url "workers" %}">{% csrf_token %}
             <div class="box box-primary">
                 <div class="box-header with-border"><h4>List Managers</h4></div>
                 <div class="box-body">
                     <button class="btn btn-primary pull-right" type="submit" name="op" value="list">List managers</button>
                 </div>
             </div>
-        </div>
-        <div class="col-md-3">
+            </form>
             <div class="box box-primary">
+                <form method="post" action="{% url "workers" %}">{% csrf_token %}
                 <div class="box-header with-border"><h4>Get GPU utilization</h4></div>
                 <div class="box-body">
                     <button class="btn btn-primary pull-right" type="submit" name="op" value="gpuinfo">GPU use</button>
                 </div>
+                </form>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-4 col-lg-2">
             <div class="box box-primary">
-                <div class="box-header with-border"><h4>Get GPU utilization</h4></div>
+                <form method="post" action="{% url "workers" %}">{% csrf_token %}
+                <div class="box-header with-border"><h4>Launch queue</h4></div>
                 <div class="box-body">
                     <div class="form-group">
-                        <label><input name="host_name" required="required" type="text" class="form-control"></label>
-                        <label><input name="queue_name" type="text" required="required" class="form-control"></label>
+                        <label for="host_name">Host name<input name="host_name" required="required" type="text" class="form-control"></label>
                     </div>
-                    <button class="btn btn-primary pull-right" type="submit" name="op" value="launch">Launch queue</button>
+                    <div class="form-group">
+                        <label for="queue_name">Queue name<input name="queue_name" type="text" required="required" class="form-control"></label>
+                    </div>
+                    <button class="btn btn-primary form-actions" type="submit" name="op" value="launch">Launch queue</button>
                 </div>
+                </form>
             </div>
         </div>
-    </div>
-    </form>
-    <div class="row">
-        <div class="col-lg-12">
+        <div class="col-lg-6 col-md-12">
         <div class="box box-primary">
             <div class="box-header with-border">
                 <h4>Management Actions</h4>
@@ -62,10 +66,10 @@
                 <table class="table dataTables-dict">
                 <thead>
                 <tr>
-                    <th>Worker name</th>
-                    <th>queue name</th>
-                    <th>routing key</th>
-                    <th>time since</th>
+                    <th>op</th>
+                    <th>host</th>
+                    <th>message</th>
+                    <th>time</th>
                 </tr>
                 </thead>
                 <tbody>

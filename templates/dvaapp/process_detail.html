@@ -15,10 +15,8 @@
     <div class="col-lg-6">
         <div class="box box-primary">
             <div class="box-header with-border"><h3>Script</h3></div>
-            <div class="box-body">
-                <textarea style="width:90%" rows="7">
-                    {{ object.script }}
-                </textarea>
+            <div class="box-body text-center">
+                <div style="width:90%;height:500px;margin: auto" id="editor"></div>
             </div>
         </div>
     </div>
@@ -47,4 +45,18 @@
     </div>
 </div>
 </section>
+{% endblock %}
+{% block page_js%}
+<script>
+    var process_script = {{ json|safe }};
+    $(document).ready(function() {
+        InitializeTables();
+        var editor = ace.edit("editor",{
+            wrapBehavioursEnabled:true,
+            autoScrollEditorIntoView:true});
+        editor.setTheme("ace/theme/chrome");
+        editor.getSession().setMode("ace/mode/json");
+        editor.getSession().setValue(JSON.stringify(process_script,null,4));
+    })
+</script>
 {% endblock %}

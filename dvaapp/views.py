@@ -470,6 +470,7 @@ class ProcessDetail(UserPassesTestMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(ProcessDetail, self).get_context_data(**kwargs)
+        context['json'] = json.dumps(context['object'].script,indent=4)
         context['pending_tasks'] = TEvent.objects.all().filter(parent_process=self.object,started=False, errored=False).count()
         context['running_tasks'] = TEvent.objects.all().filter(parent_process=self.object,started=True, completed=False, errored=False).count()
         context['successful_tasks'] = TEvent.objects.all().filter(parent_process=self.object,completed=True).count()

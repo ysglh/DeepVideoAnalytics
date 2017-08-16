@@ -450,3 +450,11 @@ class DeletedVideo(models.Model):
 
     def __unicode__(self):
         return u'Deleted {}'.format(self.name)
+
+
+class ManagementAction(models.Model):
+    parent_task = models.CharField(max_length=500, default="")
+    op = models.CharField(max_length=500, default="")
+    host = models.CharField(max_length=500, default="")
+    message = models.TextField()
+    created = models.DateTimeField('date created', auto_now_add=True)

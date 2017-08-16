@@ -5,7 +5,7 @@ from PIL import Image
 from django.conf import settings
 from dva.celery import app
 from .models import Video, Frame, TEvent,  IndexEntries, ClusterCodes, Region, Tube, \
-    Clusters, CustomDetector, Segment, IndexerQuery, DeletedVideo
+    Clusters, CustomDetector, Segment, IndexerQuery, DeletedVideo, ManagementAction
 from .operations.indexing import IndexerTask
 from .operations.retrieval import RetrieverTask
 from .operations.detection import DetectorTask
@@ -671,18 +671,6 @@ def perform_detector_training(task_id):
     return 0
 
 
-@app.task(track_started=True,name="update_index")
-def update_index(indexer_entry_pk):
-    """
-    app.send_task('update_index',args=[5,],exchange='broadcast_tasks')
-    :param indexer_entry_pk:
-    :return:
-    """
-    print "TESTSTESTSTSTSTSTST"
-    logging.info("recieved {}".format(indexer_entry_pk))
-    return 0
-
-
 @app.task(track_started=True, name="perform_segmentation",base=SegmentorTask)
 def perform_segmentation(task_id):
     """
@@ -749,3 +737,49 @@ def perform_segmentation(task_id):
     start.seconds = time.time() - start_time
     start.save()
     return 0
+
+
+@app.task(track_started=True, name="perform_compression")
+def perform_compression(task_id):
+    """
+    TODO Compress a video or a dataset by removing all materialized regions
+    and frames/segments (for videos). While retaining metadata and indexes.
+    :param task_id:
+    :return:
+    """
+    raise NotImplementedError
+
+
+@app.task(track_started=True, name="perform_decompression")
+def perform_decompression(task_id):
+    """
+    TODO De-compress a compressed video or a dataset by re-creating all materialized regions
+    and frames/segments (for videos). Implementing this tasks correctly requires, exact
+    FFmpeg version otherwise the segements might be split at different frames.
+    :param task_id:
+    :return:
+    """
+    raise NotImplementedError
+
+
+@app.task(track_started=True,name="manage_host",bind=True)
+def manage_host(op,worker_name=None,queue_name=None):
+    """
+    Manage host
+
+    app.send_task('manage_host',args=["test",],exchange='qmanager')
+
+    1. Launch worker to consume from a specific queue
+    2. Gather GPU memory utilization info
+    """
+    message = ""
+    host_name = manage_host.request.hostname
+    if op == "test":
+        message = "test"
+    elif op == "launch":
+        if worker_name == host_name:
+            p = subprocess.Popen(['fab','startq:{}'.format(queue_name)],close_fds=True)
+            message = "launched {} with pid {} on {}".format(queue_name,p.pid,worker_name)
+    elif op == "gpuinfo":
+        message = subprocess.check_output(['nvidia-smi','--query-gpu=timestamp,memory.free,memory.total'])
+    ManagementAction.objects.create(op=op,parent_task=manage_host.request.id,message=message,host=host_name)

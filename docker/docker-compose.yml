@@ -30,6 +30,7 @@
        - DB_USER=pgdbuser
        - DB_PASS=pgdbpass
        - LAUNCH_SERVER=1
+       - LAUNCH_Q_qmanager=1
        - LAUNCH_Q_qindexer=1
        - LAUNCH_Q_qretriever=1
        - LAUNCH_Q_qextract=1

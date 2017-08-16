@@ -15,6 +15,7 @@ import io
 class RetrieverTask(celery.Task):
     _clusterer = None
     _visual_retriever = None
+    _index_count = 0
 
     @property
     def visual_retriever(self):
@@ -35,10 +36,18 @@ class RetrieverTask(celery.Task):
 
     def refresh_index(self, index_name):
         """
-        # TODO: speed this up by skipping refreshes when count is unchanged.
         :param index_name:
         :return:
         """
+        # TODO improve this by either having a seperate broadcast queues or using last update timestampl
+        last_count = RetrieverTask._index_count
+        current_count = IndexEntries.objects.count()
+        if last_count == 0 or last_count != current_count:
+            # update the count
+            RetrieverTask._index_count = current_count
+            self.update_index(index_name)
+
+    def update_index(self,index_name):
         index_entries = IndexEntries.objects.all()
         visual_index = self.visual_retriever[index_name]
         for index_entry in index_entries:

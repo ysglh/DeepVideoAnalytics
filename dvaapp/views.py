@@ -864,10 +864,16 @@ def workers(request):
         'actions':ManagementAction.objects.all()
     }
     if request.method == 'POST':
-        if request.POST.get("action","")=="list_workers":
+        op = request.POST.get("op","")
+        if op =="list_workers":
             context["queues"] = app.control.inspect(timeout=timeout).active_queues()
-        elif request.POST.get("action", "") == "gpuinfo":
+        elif op == "list":
             app.send_task('manage_host', args=["test", ], exchange='qmanager')
+        elif op == "gpuinfo":
+            app.send_task('manage_host', args=["test", ], exchange='qmanager')
+        elif op == "launch":
+            app.send_task('manage_host', args=[op,request.POST.get("host_name"),request.POST.get("queue_name")],
+                          exchange='qmanager')
     return render(request, 'workers.html', context)
 
 

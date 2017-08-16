@@ -8,7 +8,7 @@ from django.views.generic import ListView, DetailView
 from .forms import UploadFileForm, YTVideoForm, AnnotationForm
 from .models import Video, Frame, DVAPQL, QueryResults, TEvent, IndexEntries, VDNDataset, Region, VDNServer, \
     ClusterCodes, Clusters,  Tube, CustomDetector, VDNDetector, Segment, FrameLabel, SegmentLabel, \
-    VideoLabel, RegionLabel, TubeLabel, Label
+    VideoLabel, RegionLabel, TubeLabel, Label, ManagementAction
 from dva.celery import app
 import serializers
 from rest_framework import viewsets, mixins
@@ -861,11 +861,13 @@ def workers(request):
     timeout = 1.0
     context = {
         'timeout':timeout,
-        "queues":app.control.inspect(timeout=timeout).active_queues(),
-        "workers":app.control.inspect(timeout=timeout).active(),
+        'actions':ManagementAction.objects.all()
     }
     if request.method == 'POST':
-        raise NotImplementedError
+        if request.POST.get("action","")=="list_workers":
+            context["queues"] = app.control.inspect(timeout=timeout).active_queues()
+        elif request.POST.get("action", "") == "gpuinfo":
+            app.send_task('manage_host', args=["test", ], exchange='qmanager')
     return render(request, 'workers.html', context)
 
 

@@ -59,7 +59,7 @@ def pull_private():
 
 
 @task
-def start_container():
+def start_container_server():
     """
     Start container
     :param test:
@@ -68,6 +68,7 @@ def start_container():
     local('sleep 20')
     migrate()
     launch_queues_env()
+    init_server()
     if 'LAUNCH_SERVER' in os.environ:
         local('python manage.py runserver 0.0.0.0:8000')
     elif 'LAUNCH_SERVER_NGINX' in os.environ:
@@ -101,6 +102,16 @@ def start_container():
 
 
 
+
+@task
+def start_container_worker():
+    """
+    Start worker container
+    :param test:
+    :return:
+    """
+    local('sleep 20')
+    launch_queues_env(block_on_manager=True)
 
 @task
 def clean():
@@ -345,25 +356,36 @@ def launch():
     local('fab startq:qmanager &')
 
 @task
-def launch_queues_env():
+def launch_queues_env(block_on_manager=False):
     """
     Launch workers for each queue
-    :param detection: use fab launch_queues:1 to lauch detector queue in addition to all others
     :return:
     """
     import django, os
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
-    from dvaapp.models import Video,VDNServer
+    from django.conf import settings
     for k in os.environ:
-        if k.startswith('LAUNCH_Q_'):
+        if k.startswith('LAUNCH_Q_') and k != 'LAUNCH_Q_{}'.format(settings.Q_MANAGER):
             if k.strip() == 'LAUNCH_Q_qextract':
                 queue_name = k.split('_')[-1]
                 local('fab startq:{},{} &'.format(queue_name,os.environ['LAUNCH_Q_qextract']))
             else:
                 queue_name = k.split('_')[-1]
                 local('fab startq:{} &'.format(queue_name))
+    if block_on_manager: # the container process waits on the manager
+        local('fab startq:{}'.format(settings.Q_MANAGER))
+    else:
+        local('fab startq:{} &'.format(settings.Q_MANAGER))
+
+@task
+def init_server():
+    import django, os
+    sys.path.append(os.path.dirname(__file__))
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
+    django.setup()
+    from dvaapp.models import Video,VDNServer
     if not ('DISABLE_VDN' in os.environ):
         if VDNServer.objects.count() == 0:
             server = VDNServer()

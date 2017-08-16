@@ -766,9 +766,11 @@ def perform_decompression(task_id):
 def manage_host(self,op,worker_name=None,queue_name=None):
     """
     Manage host
-
-    app.send_task('manage_host',args=["test",],exchange='qmanager')
-
+    This task is handled by workers consuming from a broadcast management queue.
+    It  allows quick inspection of GPU memory utilization launch of additional queues.
+    Since TensorFlow workers need to be in SOLO concurrency mode, having additional set of workers
+    enables easy management without a long timeout.
+    Example use
     1. Launch worker to consume from a specific queue
     2. Gather GPU memory utilization info
     """

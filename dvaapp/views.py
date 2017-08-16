@@ -865,15 +865,19 @@ def workers(request):
     }
     if request.method == 'POST':
         op = request.POST.get("op","")
+        host_name = request.POST.get("host_name","").strip()
+        queue_name = request.POST.get("queue_name","").strip()
         if op =="list_workers":
             context["queues"] = app.control.inspect(timeout=timeout).active_queues()
         elif op == "list":
-            app.send_task('manage_host', args=["test", ], exchange='qmanager')
+            t = app.send_task('manage_host', args=[op, ], exchange='qmanager')
+            t.wait(timeout=timeout)
         elif op == "gpuinfo":
-            app.send_task('manage_host', args=["test", ], exchange='qmanager')
+            t = app.send_task('manage_host', args=[op, ], exchange='qmanager')
+            t.wait(timeout=timeout)
         elif op == "launch":
-            app.send_task('manage_host', args=[op,request.POST.get("host_name"),request.POST.get("queue_name")],
-                          exchange='qmanager')
+            t = app.send_task('manage_host', args=[op,host_name,queue_name],exchange='qmanager')
+            t.wait(timeout=timeout)
     return render(request, 'workers.html', context)
 
 

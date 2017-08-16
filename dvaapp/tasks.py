@@ -776,12 +776,17 @@ def manage_host(self,op,worker_name=None,queue_name=None):
     """
     message = ""
     host_name = self.request.hostname
-    if op == "test":
+    if op == "list":
         message = "test"
     elif op == "launch":
         if worker_name == host_name:
             p = subprocess.Popen(['fab','startq:{}'.format(queue_name)],close_fds=True)
             message = "launched {} with pid {} on {}".format(queue_name,p.pid,worker_name)
+        else:
+            message = "{} on {} ignored".format(queue_name, worker_name)
     elif op == "gpuinfo":
-        message = subprocess.check_output(['nvidia-smi','--query-gpu=timestamp,memory.free,memory.total'])
+        try:
+            message = subprocess.check_output(['nvidia-smi','--query-gpu=timestamp,memory.free,memory.total'])
+        except:
+            message = "No GPU available"
     ManagementAction.objects.create(op=op,parent_task=self.request.id,message=message,host=host_name)

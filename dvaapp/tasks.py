@@ -763,7 +763,7 @@ def perform_decompression(task_id):
 
 
 @app.task(track_started=True,name="manage_host",bind=True)
-def manage_host(op,worker_name=None,queue_name=None):
+def manage_host(self,op,worker_name=None,queue_name=None):
     """
     Manage host
 
@@ -773,7 +773,7 @@ def manage_host(op,worker_name=None,queue_name=None):
     2. Gather GPU memory utilization info
     """
     message = ""
-    host_name = manage_host.request.hostname
+    host_name = self.request.hostname
     if op == "test":
         message = "test"
     elif op == "launch":
@@ -782,4 +782,4 @@ def manage_host(op,worker_name=None,queue_name=None):
             message = "launched {} with pid {} on {}".format(queue_name,p.pid,worker_name)
     elif op == "gpuinfo":
         message = subprocess.check_output(['nvidia-smi','--query-gpu=timestamp,memory.free,memory.total'])
-    ManagementAction.objects.create(op=op,parent_task=manage_host.request.id,message=message,host=host_name)
+    ManagementAction.objects.create(op=op,parent_task=self.request.id,message=message,host=host_name)

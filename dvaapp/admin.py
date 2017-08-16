@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import Video, Frame, TEvent, IndexEntries, QueryResults, DVAPQL, VDNServer,\
     VDNDataset, ClusterCodes, Clusters, Region, Tube, CustomDetector, Segment, IndexerQuery, DeletedVideo, \
-    VideoLabel, FrameLabel, RegionLabel, TubeLabel, SegmentLabel, Label
+    VideoLabel, FrameLabel, RegionLabel, TubeLabel, SegmentLabel, Label, ManagementAction
 
 
 @admin.register(Label)
@@ -110,5 +110,10 @@ class TubeAdmin(admin.ModelAdmin):
 
 @admin.register(CustomDetector)
 class CustomDetectorAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(ManagementAction)
+class ManagementActionAdmin(admin.ModelAdmin):
     pass
 

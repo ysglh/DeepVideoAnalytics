@@ -57,30 +57,19 @@ def create_annotator_folders(annotator, create_subdirs=True):
         pass
 
 
-def delete_video_object(video_pk,deleter,garbage_collection=True):
-    video = Video.objects.get(pk=video_pk)
-    deleted = DeletedVideo()
-    deleted.name = video.name
-    deleted.deleter = deleter
-    deleted.uploader = video.uploader
-    deleted.url = video.url
-    deleted.description = video.description
-    deleted.original_pk = video_pk
-    deleted.save()
-    video.delete()
-    if garbage_collection:
-        p = processing.DVAPQLProcess()
-        query = {
-            'process_type': DVAPQL.PROCESS,
-            'tasks': [
-                {
-                    'arguments': {'video_pk': video.pk},
-                    'operation': 'perform_deletion',
-                }
-            ]
-        }
-        p.create_from_json(j=query, user=deleter)
-        p.launch()
+def delete_video_object(video_pk,deleter):
+    p = processing.DVAPQLProcess()
+    query = {
+        'process_type': DVAPQL.PROCESS,
+        'tasks': [
+            {
+                'arguments': {'video_pk': video_pk,'deleter_pk':deleter.pk},
+                'operation': 'perform_deletion',
+            }
+        ]
+    }
+    p.create_from_json(j=query, user=deleter)
+    p.launch()
 
 
 def handle_uploaded_file(f, name, extract=True, user=None, rate=None, rescale=None):

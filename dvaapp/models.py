@@ -445,7 +445,7 @@ class DeletedVideo(models.Model):
     description = models.TextField(default="")
     uploader = models.ForeignKey(User,null=True,related_name="user_uploader")
     url = models.TextField(default="")
-    deleter = models.ForeignKey(User,related_name="user_deleter")
+    deleter = models.ForeignKey(User,related_name="user_deleter",null=True)
     original_pk = models.IntegerField()
 
     def __unicode__(self):

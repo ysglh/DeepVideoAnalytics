@@ -4,7 +4,8 @@ from collections import defaultdict
 from PIL import Image
 from django.conf import settings
 from dva.celery import app
-from .models import Video, Frame, TEvent,  IndexEntries, ClusterCodes, Region, Tube, Clusters, CustomDetector, Segment, IndexerQuery
+from .models import Video, Frame, TEvent,  IndexEntries, ClusterCodes, Region, Tube, \
+    Clusters, CustomDetector, Segment, IndexerQuery, DeletedVideo
 from .operations.indexing import IndexerTask
 from .operations.retrieval import RetrieverTask
 from .operations.detection import DetectorTask
@@ -599,8 +600,19 @@ def perform_deletion(task_id):
     start.save()
     start_time = time.time()
     args = start.arguments
-    video_id = int(args['video_pk'])
-    src = '{}/{}/'.format(settings.MEDIA_ROOT, int(video_id))
+    video_pk = int(args['video_pk'])
+    deleter_pk = args.get('deleter_pk',None)
+    video = Video.objects.get(pk=video_pk)
+    deleted = DeletedVideo()
+    deleted.name = video.name
+    deleted.deleter_id = deleter_pk
+    deleted.uploader = video.uploader
+    deleted.url = video.url
+    deleted.description = video.description
+    deleted.original_pk = video_pk
+    deleted.save()
+    video.delete()
+    src = '{}/{}/'.format(settings.MEDIA_ROOT, int(video_pk))
     args = ['rm','-rf',src]
     command = " ".join(args)
     deleter = subprocess.Popen(args)
@@ -611,7 +623,7 @@ def perform_deletion(task_id):
         start.save()
         return
     if settings.MEDIA_BUCKET.strip():
-        dest = 's3://{}/{}/'.format(settings.MEDIA_BUCKET, int(video_id))
+        dest = 's3://{}/{}/'.format(settings.MEDIA_BUCKET, int(video_pk))
         args = ['aws', 's3', 'rm','--quiet','--recursive', dest]
         command = " ".join(args)
         syncer = subprocess.Popen(args)

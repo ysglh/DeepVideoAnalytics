@@ -507,7 +507,10 @@ def search(request):
 
 
 def home(request):
-    return render(request, 'home.html', {})
+    if request.user.is_authenticated:
+        return redirect("app")
+    else:
+        return render(request, 'home.html', {})
 
 
 @user_passes_test(user_check)

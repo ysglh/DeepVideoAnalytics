@@ -325,6 +325,9 @@ def perform_detection(task_id):
             elif detector_name == 'face':
                 dd.object_name = 'MTCNN_face'
                 dd.confidence = 100.0
+            elif detector_name == 'custom':
+                dd.object_name = '{}_'.format(detector_pk,d['object_name'])
+                dd.confidence = 100.0
             else:
                 raise NotImplementedError
             dd.x = d['x']

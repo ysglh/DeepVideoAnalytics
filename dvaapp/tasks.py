@@ -786,7 +786,7 @@ def manage_host(self,op,worker_name=None,queue_name=None):
             message = "{} on {} ignored".format(queue_name, worker_name)
     elif op == "gpuinfo":
         try:
-            message = subprocess.check_output(['nvidia-smi','--query-gpu=timestamp,memory.free,memory.total'])
+            message = subprocess.check_output(['nvidia-smi','--query-gpu=memory.free,memory.total','--format=csv']).splitlines()[1]
         except:
             message = "No GPU available"
     ManagementAction.objects.create(op=op,parent_task=self.request.id,message=message,host=host_name)

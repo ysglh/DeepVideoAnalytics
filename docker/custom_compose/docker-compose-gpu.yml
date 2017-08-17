@@ -62,9 +62,9 @@
        - DB_NAME=postgres
        - DB_USER=pgdbuser
        - DB_PASS=pgdbpass
-       - TEST=1
+       - LAUNCH_Q_qocr=1
        - AUTH_DISABLED=1
-     command: bash -c "sleep 60 && git pull && fab startq:qocr"
+     command: bash -c "sleep 60 && git pull && fab start_container_worker"
      depends_on:
        - db
        - rabbit

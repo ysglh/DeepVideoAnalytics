@@ -40,7 +40,8 @@
        - MEDIA_BUCKET=${MEDIA_BUCKET}
        - CELERY_MUTE=1
        - DVA_PRIVATE_ENABLE=1
-     command: bash -c "sleep 60 && git pull && fab pull_private && fab startq:qocr"
+       - LAUNCH_Q_qocr=1
+     command: bash -c "sleep 60 && git pull && fab pull_private && fab start_container_worker"
      volumes:
        - dvadata:/root/DVA/dva/media
  volumes:

@@ -539,23 +539,6 @@ def setup_django():
 
 
 @task
-def cluster():
-    from lopq.utils import load_xvecs
-    import django
-    sys.path.append(os.path.dirname(__file__))
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
-    django.setup()
-    from dvaapp.tasks import perform_clustering
-    from dvaapp.models import Video,Clusters,IndexEntries
-    c = Clusters()
-    c.indexer_algorithm = 'facenet'
-    c.included_index_entries_pk = [k.pk for k in IndexEntries.objects.all() if k.algorithm == c.indexer_algorithm]
-    c.components = 128
-    c.cluster_count = 32
-    c.save()
-    perform_clustering(c.pk,True)
-
-@task
 def heroku_migrate():
     local('heroku run python manage.py migrate')
 
@@ -586,12 +569,14 @@ def heroku_psql():
 
 
 @task
-def heroku_reset(password):
+def heroku_reset(password,bucket_name):
     if raw_input("Are you sure type yes >>") == 'yes':
         local('heroku pg:reset DATABASE_URL')
         heroku_migrate()
         heroku_setup_vdn(password)
         local('heroku run python manage.py createsuperuser')
+        print "emptying bucket"
+        local("aws s3 rm s3://{} --recursive --quiet".format(bucket_name))
 
 
 @task
@@ -612,8 +597,6 @@ def heroku_migrate():
 @task
 def heroku_setup_vdn(password):
     local('heroku run fab setup_vdn:{}'.format(password))
-
-
 
 
 @task
@@ -793,57 +776,6 @@ def sync_efs_to_s3():
         e.operation = 'perform_sync'
         e.save()
         perform_sync(e.pk)
-
-
-
-
-@task
-def detect_custom_objects(detector_pk,video_pk):
-    """
-    Detection using customized trained YOLO detectors
-    :param detector_pk:
-    :param video_pk:
-    :return:
-    """
-    setup_django()
-    from dvaapp.models import Region, Frame, CustomDetector
-    from django.conf import settings
-    from dvalib.yolo import trainer
-    from PIL import Image
-    args = {'detector_pk':int(detector_pk)}
-    video_pk = int(video_pk)
-    detector = CustomDetector.objects.get(pk=args['detector_pk'])
-    args['root_dir'] = "{}/detectors/{}/".format(settings.MEDIA_ROOT, detector.pk)
-    class_names = {k:v for k,v in json.loads(detector.class_names)}
-    i_class_names = {i: k for k, i in class_names.items()}
-    frames = {}
-    for f in Frame.objects.all().filter(video_id=video_pk):
-        frames[f.pk] = f
-    images = []
-    path_to_f = {}
-    for k,f in frames.iteritems():
-        path = "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,f.video_id,f.frame_index)
-        path_to_f[path] = f
-        images.append(path)
-    train_task = trainer.YOLOTrainer(boxes=[], images=images, class_names=i_class_names, args=args,test_mode=True)
-    results = train_task.predict()
-    for path, box_class, score, top, left, bottom, right in results:
-        r = Region()
-        r.region_type = r.DETECTION
-        r.confidence = int(100.0 * score)
-        r.object_name = "YOLO_{}_{}".format(detector.pk, box_class)
-        r.y = top
-        r.x = left
-        r.w = right - left
-        r.h = bottom - top
-        r.frame_id = path_to_f[path].pk
-        r.video_id = path_to_f[path].video_id
-        r.save()
-        right = r.w + r.x
-        bottom = r.h + r.y
-        img = Image.open(path)
-        img2 = img.crop((r.x,r.y,right, bottom))
-        img2.save("{}/{}/regions/{}.jpg".format(settings.MEDIA_ROOT, video_pk, r.pk))
 
 
 @task

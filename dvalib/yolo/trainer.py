@@ -184,3 +184,34 @@ class YOLOTrainer(object):
             else:
                 logging.warning("skipping {} contains less than 3 channels".format(i_path))
         return results
+
+    def load(self):
+        weights_name = '{}/phase_2_best.h5'.format(self.root_dir)
+        self.model_body.load_weights(weights_name)
+        yolo_outputs = yolo_head(self.model_body.output, self.anchors, len(self.class_names))
+        self.input_image_shape = K.placeholder(shape=(2,))
+        self.tfboxes, self.tfscores, self.tfclasses = yolo_eval(yolo_outputs, self.input_image_shape, score_threshold=0.5, iou_threshold=0)
+        self.sess = K.get_session()
+
+    def apply(self,path,min_score):
+        im = Image.open(path)
+        image_data = np.array(im.resize((416, 416), Image.BICUBIC), dtype=np.float) / 255.
+        image_data = np.expand_dims(image_data, 0)
+        feed_dict = {self.model_body.input: image_data, self.input_image_shape: [im.size[1], im.size[0]],
+                     K.learning_phase(): 0}
+        out_boxes, out_scores, out_classes = self.sess.run([self.tfboxes, self.tfscores, self.tfclasses],
+                                                           feed_dict=feed_dict)
+        results = []
+        for i, c in list(enumerate(out_classes)):
+            box_class = self.class_names[c]
+            box = out_boxes[i]
+            score = out_scores[i]
+            top, left, bottom, right = box
+            top = max(0, np.floor(top + 0.5).astype('int32'))
+            left = max(0, np.floor(left + 0.5).astype('int32'))
+            bottom = min(im.size[1], np.floor(bottom + 0.5).astype('int32'))
+            right = min(im.size[0], np.floor(right + 0.5).astype('int32'))
+            if score > min_score:
+                results.append({'x': left,'y':top,'w':right - left,'h':bottom - top,
+                                'score': score,'object_name':box_class})
+        return results

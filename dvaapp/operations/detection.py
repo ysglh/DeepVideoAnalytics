@@ -35,3 +35,7 @@ class DetectorTask(celery.Task):
                                        'face': detector.FaceDetector(),
                                        'textbox':detector.TextBoxDetector()}
         return DetectorTask._detectors
+
+    def load_detector(self,detector_pk,i_class_names,model_dir):
+        argdict = {'root_dir':model_dir,'detector_pk':detector_pk}
+        DetectorTask._detectors[detector_pk] = detector.YOLODetector(i_class_names=i_class_names,args=argdict)

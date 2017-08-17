@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-import subprocess, os, time, logging, requests, zipfile, io, sys
+import subprocess, os, time, logging, requests, zipfile, io, sys, json
 from collections import defaultdict
 from PIL import Image
 from django.conf import settings
@@ -283,62 +283,58 @@ def perform_detection(task_id):
     args = start.arguments
     detector_name = args['detector']
     if detector_name == 'custom':
-        detector_id = args['detector_pk']
-        cwd = os.path.join(os.path.abspath(__file__).split('tasks.py')[0], '../')
-        command = ['fab', 'detect_custom_objects:{},{}'.format(detector_id, video_id)]
-        custom_detector = subprocess.Popen(command,cwd=cwd)
-        custom_detector.wait()
-        if custom_detector.returncode != 0:
-            start.errored = True
-            start.error_message = "fab detect_custom_objects failed with return code {}".format(
-                custom_detector.returncode)
-            start.seconds = time.time() - start_time
-            start.save()
-            raise ValueError, start.error_message
+        detector_pk = int(args['detector_pk'])
+        if detector_pk not in perform_detection.get_static_detectors:
+            cd = CustomDetector.objects.get(pk=detector_pk)
+            model_dir = "{}/detectors/{}/".format(settings.MEDIA_ROOT, cd.pk)
+            class_names = {k: v for k, v in json.loads(cd.class_names)}
+            i_class_names = {i: k for k, i in class_names.items()}
+            perform_detection.load_detector(detector_pk,i_class_names,model_dir)
+        detector = perform_detection.get_static_detectors[detector_pk]
     else:
         detector = perform_detection.get_static_detectors[detector_name]
-        if detector.session is None:
-            logging.info("loading detection model")
-            detector.load()
-        dv = Video.objects.get(id=video_id)
-        if 'filters' in args:
-            kwargs = args['filters']
-            kwargs['video_id'] = video_id
-            frames = Frame.objects.all().filter(**kwargs)
-            logging.info("Running {} Using filters {}".format(detector_name,kwargs))
-        else:
-            frames = Frame.objects.all().filter(video=dv)
-        dd_list = []
-        path_list = []
-        for df in frames:
-            local_path = "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,video_id,df.frame_index)
-            detections = detector.detect(local_path)
-            for d in detections:
-                dd = Region()
-                dd.region_type = Region.DETECTION
-                dd.video_id = dv.pk
-                dd.frame_id = df.pk
-                dd.parent_frame_index = df.frame_index
-                dd.parent_segment_index = df.segment_index
-                if detector_name == 'coco':
-                    dd.object_name = 'SSD_{}'.format(d['object_name'])
-                    dd.confidence = 100.0 * d['score']
-                elif detector_name == 'textbox':
-                    dd.object_name = 'TEXTBOX'
-                    dd.confidence = 100.0 * d['score']
-                elif detector_name == 'face':
-                    dd.object_name = 'MTCNN_face'
-                    dd.confidence = 100.0
-                else:
-                    raise NotImplementedError
-                dd.x = d['x']
-                dd.y = d['y']
-                dd.w = d['w']
-                dd.h = d['h']
-                dd.event_id = task_id
-                dd_list.append(dd)
-                path_list.append(local_path)
-        _ = Region.objects.bulk_create(dd_list,1000)
+    if detector.session is None:
+        logging.info("loading detection model")
+        detector.load()
+    dv = Video.objects.get(id=video_id)
+    if 'filters' in args:
+        kwargs = args['filters']
+        kwargs['video_id'] = video_id
+        frames = Frame.objects.all().filter(**kwargs)
+        logging.info("Running {} Using filters {}".format(detector_name,kwargs))
+    else:
+        frames = Frame.objects.all().filter(video=dv)
+    dd_list = []
+    path_list = []
+    for df in frames:
+        local_path = "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,video_id,df.frame_index)
+        detections = detector.detect(local_path)
+        for d in detections:
+            dd = Region()
+            dd.region_type = Region.DETECTION
+            dd.video_id = dv.pk
+            dd.frame_id = df.pk
+            dd.parent_frame_index = df.frame_index
+            dd.parent_segment_index = df.segment_index
+            if detector_name == 'coco':
+                dd.object_name = 'SSD_{}'.format(d['object_name'])
+                dd.confidence = 100.0 * d['score']
+            elif detector_name == 'textbox':
+                dd.object_name = 'TEXTBOX'
+                dd.confidence = 100.0 * d['score']
+            elif detector_name == 'face':
+                dd.object_name = 'MTCNN_face'
+                dd.confidence = 100.0
+            else:
+                raise NotImplementedError
+            dd.x = d['x']
+            dd.y = d['y']
+            dd.w = d['w']
+            dd.h = d['h']
+            dd.event_id = task_id
+            dd_list.append(dd)
+            path_list.append(local_path)
+    _ = Region.objects.bulk_create(dd_list,1000)
     shared.process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time

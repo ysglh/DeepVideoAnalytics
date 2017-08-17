@@ -13,6 +13,7 @@ if os.path.isdir('/opt/ctpn/'):
     logging.info("Using Caffe only mode")
 else:
     import tensorflow as tf
+    from dvalib.yolo import trainer
     from .facenet import facenet
     from .facenet.align import detect_face
     from scipy import misc
@@ -143,6 +144,22 @@ class TFDetector(BaseDetector):
             self.scores = self.detection_graph.get_tensor_by_name('detection_scores:0')
             self.classes = self.detection_graph.get_tensor_by_name('detection_classes:0')
             self.num_detections = self.detection_graph.get_tensor_by_name('num_detections:0')
+
+
+class YOLODetector(BaseDetector):
+
+    def __init__(self,i_class_names,args):
+        super(YOLODetector, self).__init__()
+        self.model = trainer.YOLOTrainer(boxes=[], images=[], class_names=i_class_names, args=args,test_mode=True)
+        self.session = None
+
+    def detect(self,image_path,min_score=0.20):
+        return self.model.apply(image_path,min_score)
+
+    def load(self):
+        if self.session is None:
+            self.model.load()
+            self.session = True
 
 
 class FaceDetector():

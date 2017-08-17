@@ -530,17 +530,20 @@ def process_next(task_id,inject_filters=None,custom_next_tasks=None,sync=True,la
         for k in settings.SYNC_TASKS.get(dt.operation,[]):
             args = perform_substitution(k['arguments'], dt,inject_filters)
             logging.info("launching {}, {} with args {} as specified in config".format(dt.operation, k['operation'], args))
+            queue = get_queue_name(k['operation'], args)
             next_task = TEvent.objects.create(video=dt.video,operation=k['operation'],arguments=args,
-                                              parent=dt,parent_process=dt.parent_process)
+                                              parent=dt,parent_process=dt.parent_process,queue=queue)
+
             launched.append(app.send_task(k['operation'], args=[next_task.pk, ],
-                                          queue=get_queue_name(k['operation'],args)).id)
+                                          queue=queue).id)
     for k in next_tasks+custom_next_tasks:
         args = perform_substitution(k['arguments'], dt,inject_filters)
         logging.info("launching {}, {} with args {} as specified in next_tasks".format(dt.operation, k['operation'], args))
+        queue = get_queue_name(k['operation'], args)
         next_task = TEvent.objects.create(video=dt.video,operation=k['operation'], arguments=args,
-                                          parent=dt,parent_process=dt.parent_process)
+                                          parent=dt,parent_process=dt.parent_process,queue=queue)
         launched.append(app.send_task(k['operation'], args=[next_task.pk, ],
-                                      queue=get_queue_name(k['operation'],args)).id)
+                                      queue=queue).id)
     return launched
 
 

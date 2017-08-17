@@ -151,6 +151,7 @@ class TEvent(models.Model):
     error_message = models.TextField(default="")
     video = models.ForeignKey(Video, null=True)
     operation = models.CharField(max_length=100, default="")
+    queue = models.CharField(max_length=100, default="")
     created = models.DateTimeField('date created', auto_now_add=True)
     start_ts = models.DateTimeField('date started', null=True)
     seconds = models.FloatField(default=-1)
@@ -458,3 +459,17 @@ class ManagementAction(models.Model):
     host = models.CharField(max_length=500, default="")
     message = models.TextField()
     created = models.DateTimeField('date created', auto_now_add=True)
+
+
+class StoredDVAPQL(models.Model):
+    """
+    Stored processes
+    """
+    SCHEDULE = 'S'
+    PROCESS = 'V'
+    QUERY = 'Q'
+    TYPE_CHOICES = ((SCHEDULE, 'Schedule'), (PROCESS, 'Process'), (QUERY, 'Query'))
+    process_type = models.CharField(max_length=1, choices=TYPE_CHOICES, default=QUERY, )
+    created = models.DateTimeField('date created', auto_now_add=True)
+    creator = models.ForeignKey(User, null=True, related_name="script_creator")
+    script = JSONField(blank=True, null=True)

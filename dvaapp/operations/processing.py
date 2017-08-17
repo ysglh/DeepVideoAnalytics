@@ -112,10 +112,9 @@ class DVAPQLProcess(object):
                     dt.video_id = t['video_id']
                 dt.operation = t['operation']
                 dt.arguments = t.get('arguments',{})
+                dt.queue = get_queue_name(t['operation'],t.get('arguments',{}))
                 dt.save()
-                app.send_task(name=dt.operation,
-                              args=[dt.pk, ],
-                              queue=get_queue_name(dt.operation,dt.arguments))
+                app.send_task(name=dt.operation,args=[dt.pk, ],queue=dt.queue)
         elif self.process.script['process_type'] == DVAPQL.QUERY:
             for iq in IndexerQuery.objects.filter(parent_query=self.process):
                 operation = 'perform_indexing'
@@ -129,8 +128,8 @@ class DVAPQLProcess(object):
                          }
                     ]
                 }
-                next_task = TEvent.objects.create(parent_process=self.process, operation=operation, arguments=jargs)
-                queue_name = get_queue_name(next_task.operation, next_task.arguments)
+                queue_name = get_queue_name(operation, jargs)
+                next_task = TEvent.objects.create(parent_process=self.process, operation=operation, arguments=jargs,queue=queue_name)
                 self.task_results[iq.algorithm] = app.send_task(operation, args=[next_task.pk, ], queue=queue_name, priority=5)
                 self.context[iq.algorithm] = []
         else:

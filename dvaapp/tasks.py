@@ -327,7 +327,7 @@ def perform_detection(task_id):
                 dd.confidence = 100.0
             elif detector_name == 'custom':
                 dd.object_name = '{}_'.format(detector_pk,d['object_name'])
-                dd.confidence = 100.0
+                dd.confidence = 100.0 * d['score']
             else:
                 raise NotImplementedError
             dd.x = d['x']

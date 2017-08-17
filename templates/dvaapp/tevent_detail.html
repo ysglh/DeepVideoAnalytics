@@ -9,7 +9,8 @@
 <div class="row">
     <div class="box box-info">
         <div class="box-header">
-            <h2>Task {{ object.pk }} </h2>
+            <h3>Task {{ object.pk }} running {{ object.operation }} on {{ object.queue }} under <a href="/process/{{ object.parent_process_id }}"> process {{ object.parent_process_id }}</a></h3>
+            <h4>Video: {% if object.video %}<a href="/videos/{{ object.video_id }}">{{ object.video.name }}</a>{% endif %}</h4>
         </div>
     </div>
 </div>

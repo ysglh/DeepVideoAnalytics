@@ -46,6 +46,7 @@
                         <th>Process</th>
                         <th>Video</th>
                         <th>Operation</th>
+                        <th>Queue</th>
                         <th>ts</th>
                         <th>unix ts</th>
                         <th>duration</th>
@@ -61,6 +62,7 @@
                             <td><a href="/process/{{ e.parent_process_id }}">{{ e.parent_process_id }}</a></td>
                             <td>{% if e.video %}<a href="/videos/{{ e.video_id }}">{{ e.video.name }}</a>{% endif %}</td>
                             <td>{{ e.operation }}</td>
+                            <td>{{ e.queue }}</td>
                             <td class="text-center">{{ e.created|timesince}}</td>
                             <td class="text-center">{{ e.created|date:"U" }}</td>
                             <td class="text-right">{{ e.seconds|floatformat }}</td>

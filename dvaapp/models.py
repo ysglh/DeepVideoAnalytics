@@ -86,7 +86,6 @@ class DVAPQL(models.Model):
     script = JSONField(blank=True, null=True)
     results_metadata = models.TextField(default="")
     results_available = models.BooleanField(default=False)
-    federated = models.BooleanField(default=False)
 
 
 class IndexerQuery(models.Model):
@@ -264,20 +263,6 @@ class QueryResults(models.Model):
     rank = models.IntegerField()
     algorithm = models.CharField(max_length=100)
     distance = models.FloatField(default=0.0)
-
-
-class FederatedQueryResults(models.Model):
-    query = models.ForeignKey(DVAPQL)
-    rank = models.IntegerField()
-    user = models.ForeignKey(User)
-    server_name = models.CharField(max_length=100)
-    algorithm = models.CharField(max_length=100)
-    distance = models.FloatField(default=0.0)
-    results_metadata = models.TextField(default="")
-    results_available = models.BooleanField(default=False)
-    result_image_data = models.BinaryField(null=True)
-
-
 
 
 class ClusterCodes(models.Model):
@@ -472,4 +457,6 @@ class StoredDVAPQL(models.Model):
     process_type = models.CharField(max_length=1, choices=TYPE_CHOICES, default=QUERY, )
     created = models.DateTimeField('date created', auto_now_add=True)
     creator = models.ForeignKey(User, null=True, related_name="script_creator")
+    name = models.CharField(max_length=300,default="")
+    description = models.TextField(blank=True,default="")
     script = JSONField(blank=True, null=True)

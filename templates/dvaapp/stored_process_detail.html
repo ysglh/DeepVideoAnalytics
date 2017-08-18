@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block page_content %}
+<section class="content-header" style="padding-top:0px" xmlns="http://www.w3.org/1999/html">
+<div class="row">
+    <div class="box box-info">
+        <div class="box-header">
+            <h3>Stored process : {{ object.name }}</h3>
+        </div>
+    </div>
+</div>
+</section>
+<section class="content">
+<div class="row">
+    <div class="col-lg-8">
+        <form method="post" action="/submit_process">
+        <div class="box box-primary">
+            <div class="box-header with-border"><h3>Script</h3></div>
+            <div class="box-body text-center">
+                <textarea name="script" id="script" style="display:none" ></textarea>
+                <div style="width:90%;height:500px;margin: auto" id="editor"></div>
+            </div>
+            <div class="box-footer text-center">
+                {% csrf_token %}
+                <button class="btn btn-primary" type="submit">Submit & launch</button>
+            </div>
+        </div>
+        </form>
+    </div>
+    <div class="col-lg-4 text-center">
+        <div class="box box-primary">
+            <div class="box-header with-border"><h3>User & Created</h3></div>
+            <div class="box-body">
+                <h4>{{ object.creator }} created at {{ object.created }}</h4>
+            </div>
+        </div>
+        <div class="box box-primary">
+            <div class="box-header with-border"><h3>Description</h3></div>
+            <div class="box-body">
+                <textarea class="form-group" style="width:90%;height:200px;margin: auto">{{ object.description }}</textarea>
+            </div>
+        </div>
+    </div>
+</div>
+</section>
+{% endblock %}
+{% block page_js%}
+<script>
+    var process_script = {{ json|safe }};
+    $(document).ready(function() {
+        InitializeTables();
+        var editor = ace.edit("editor",{
+            wrapBehavioursEnabled:true,
+            autoScrollEditorIntoView:true});
+        editor.setTheme("ace/theme/chrome");
+        editor.getSession().setMode("ace/mode/json");
+        var scripttext = document.getElementById("script");
+        scripttext.textContent = JSON.stringify(process_script,null,4);
+        var textarea = $('textarea[name="script"]').hide();
+        editor.getSession().setValue(textarea.val());
+        editor.getSession().on('change', function(){
+          textarea.val(editor.getSession().getValue());
+        });
+
+    })
+</script>
+{% endblock %}

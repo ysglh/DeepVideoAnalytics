@@ -144,10 +144,7 @@ def clean():
             local("ps auxww | grep 'celery -A dva worker' | awk '{print $2}' | xargs kill -9")
         except:
             pass
-    server = VDNServer()
-    server.url = "http://www.visualdata.network/"
-    server.name = "VisualData.Network"
-    server.save()
+    init_server()
 
 @task
 def restart_queues():
@@ -379,13 +376,19 @@ def launch_queues_env(block_on_manager=False):
     else:
         local('fab startq:{} &'.format(settings.Q_MANAGER))
 
+
 @task
 def init_server():
-    import django, os
+    import django
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
-    from dvaapp.models import Video,VDNServer
+    from dvaapp.models import Video,VDNServer,StoredDVAPQL
+    if StoredDVAPQL.objects.count() == 0:
+        for fname in glob.glob('tests/scripts/*.json'):
+            StoredDVAPQL.objects.create(name=fname,
+                                        process_type=StoredDVAPQL.PROCESS,
+                                        script=json.loads(file(fname).read()))
     if not ('DISABLE_VDN' in os.environ):
         if VDNServer.objects.count() == 0:
             server = VDNServer()

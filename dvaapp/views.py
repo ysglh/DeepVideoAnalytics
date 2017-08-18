@@ -8,7 +8,7 @@ from django.views.generic import ListView, DetailView
 from .forms import UploadFileForm, YTVideoForm, AnnotationForm
 from .models import Video, Frame, DVAPQL, QueryResults, TEvent, IndexEntries, VDNDataset, Region, VDNServer, \
     ClusterCodes, Clusters,  Tube, CustomDetector, VDNDetector, Segment, FrameLabel, SegmentLabel, \
-    VideoLabel, RegionLabel, TubeLabel, Label, ManagementAction
+    VideoLabel, RegionLabel, TubeLabel, Label, ManagementAction, StoredDVAPQL
 from dva.celery import app
 import serializers
 from rest_framework import viewsets, mixins
@@ -479,6 +479,30 @@ class ProcessDetail(UserPassesTestMixin, DetailView):
 
     def test_func(self):
         return user_check(self.request.user)
+
+
+class StoredProcessList(UserPassesTestMixin, ListView):
+    model = StoredDVAPQL
+    template_name = "dvaapp/stored_process_list.html"
+    paginate_by = 20
+    ordering = "-created"
+
+    def test_func(self):
+        return user_check(self.request.user)
+
+
+class StoredProcessDetail(UserPassesTestMixin, DetailView):
+    model = StoredDVAPQL
+    template_name = "dvaapp/stored_process_detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(StoredProcessDetail, self).get_context_data(**kwargs)
+        context['json'] = json.dumps(context['object'].script,indent=4)
+        return context
+
+    def test_func(self):
+        return user_check(self.request.user)
+
 
 class VDNDatasetDetail(UserPassesTestMixin, DetailView):
     model = VDNDataset

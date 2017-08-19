@@ -5,7 +5,7 @@
 <div class="row">
     <div class="box box-info">
         <div class="box-header">
-            <h2>Stored processes</h2>
+            <h2>Launch new DVAPQL process or use / create a template</h2>
             {% if is_paginated %}
                 <div class="pagination text-center" style="width:100%">
                     <span class="page-links">
@@ -27,10 +27,31 @@
 </section>
 <section class="content">
     <div class="row">
-        <div class="col-lg-12">
+        <div class="col-lg-6">
+            <form method="post" action="/submit_process">
             <div class="box box-primary">
                 <div class="box-header with-border">
-                    <h4>Stored processes</h4>
+                    <h4>Launch a processing or query task specified using DVAPQL</h4>
+                </div>
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-lg-12 text-center">
+                            <textarea name="script" id="script" style="display:none" ></textarea>
+                            <div id="editor" style="width:90%;margin:auto;height:400px" ></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="box-footer text-center">
+                    {% csrf_token %}
+                    <button class="btn btn-primary" type="submit">Submit & launch</button>
+                </div>
+            </div>
+            </form>
+        </div>
+        <div class="col-lg-6">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h4>Stored process templates</h4>
                 </div>
                 <div class="box-body">
                     <table class="table dataTables">
@@ -65,8 +86,21 @@
 {% endblock %}
 {% block page_js%}
 <script>
+    var examples = {{ examples|safe }};
     $(document).ready(function() {
         InitializeTables();
+        var scripttext = document.getElementById("script");
+        scripttext.textContent = JSON.stringify(examples[0],null, 4);
+        var editor = ace.edit("editor",{
+            wrapBehavioursEnabled:true,
+            autoScrollEditorIntoView:true});
+        editor.setTheme("ace/theme/chrome");
+        editor.getSession().setMode("ace/mode/json");
+        var textarea = $('textarea[name="script"]').hide();
+        editor.getSession().setValue(textarea.val());
+        editor.getSession().on('change', function(){
+          textarea.val(editor.getSession().getValue());
+        });
     })
 </script>
 {% endblock %}

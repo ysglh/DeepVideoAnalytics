@@ -216,7 +216,7 @@ class Region(models.Model):
         (SEGMENTATION, 'Segmentation'),
         (TRANSFORM, 'Transform'),
     )
-    region_type = models.CharField(max_length=1,choices=REGION_TYPES)
+    region_type = models.CharField(max_length=1,choices=REGION_TYPES,db_index=True)
     video = models.ForeignKey(Video)
     user = models.ForeignKey(User,null=True)
     frame = models.ForeignKey(Frame,null=True)
@@ -454,7 +454,7 @@ class StoredDVAPQL(models.Model):
     PROCESS = 'V'
     QUERY = 'Q'
     TYPE_CHOICES = ((SCHEDULE, 'Schedule'), (PROCESS, 'Process'), (QUERY, 'Query'))
-    process_type = models.CharField(max_length=1, choices=TYPE_CHOICES, default=QUERY, )
+    process_type = models.CharField(max_length=1, choices=TYPE_CHOICES, default=QUERY,db_index=True)
     created = models.DateTimeField('date created', auto_now_add=True)
     creator = models.ForeignKey(User, null=True, related_name="script_creator")
     name = models.CharField(max_length=300,default="")

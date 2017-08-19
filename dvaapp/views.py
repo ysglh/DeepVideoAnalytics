@@ -453,7 +453,6 @@ class ProcessList(UserPassesTestMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super(ProcessList, self).get_context_data(**kwargs)
-        context['examples'] = json.dumps(EXAMPLES,indent=None)
         return context
 
     def test_func(self):
@@ -486,6 +485,11 @@ class StoredProcessList(UserPassesTestMixin, ListView):
     template_name = "dvaapp/stored_process_list.html"
     paginate_by = 20
     ordering = "-created"
+
+    def get_context_data(self, **kwargs):
+        context = super(StoredProcessList, self).get_context_data(**kwargs)
+        context['examples'] = json.dumps(EXAMPLES, indent=None)
+        return context
 
     def test_func(self):
         return user_check(self.request.user)
@@ -1057,7 +1061,7 @@ def textsearch(request):
 
 
 @user_passes_test(user_check)
-def ocr(request):
+def analysis(request):
     context = {'results': {},
                "videos": Video.objects.all().filter(),
                }

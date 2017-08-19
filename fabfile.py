@@ -935,3 +935,8 @@ def submit(path):
     p.create_from_json(j)
     p.launch()
     print "launched Process with id {} ".format(p.process.pk)
+
+
+@task
+def start_scheduler():
+    local("celery -A dva beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler")

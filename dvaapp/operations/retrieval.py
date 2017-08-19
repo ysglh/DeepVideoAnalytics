@@ -39,6 +39,7 @@ class RetrieverTask(celery.Task):
         :param index_name:
         :return:
         """
+        # TODO: Waiting for https://github.com/celery/celery/issues/3620 to be resolved to enabel ASYNC index updates
         # TODO improve this by either having a seperate broadcast queues or using last update timestampl
         last_count = RetrieverTask._index_count
         current_count = IndexEntries.objects.count()

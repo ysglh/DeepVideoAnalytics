@@ -24,7 +24,6 @@ app.conf.update(
 
 )
 app.conf.task_queue_max_priority = 10
-# TODO: Waiting for https://github.com/celery/celery/issues/3620 to be resolved
 app.conf.task_queues = (Broadcast('qmanager'),)
 app.conf.task_routes = {
     'manage_host': {'queue': 'qmanager'},

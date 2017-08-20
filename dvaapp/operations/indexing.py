@@ -28,8 +28,8 @@ class IndexerTask(celery.Task):
             #     config.gpu_options.per_process_gpu_memory_fraction = 0.2
             #     IndexerTask._session = indexer.tf.Session()
             IndexerTask._visual_indexer = {'inception': indexer.InceptionIndexer(indexer_root_dir+"inception/network.pb"),
-                                           'facenet': indexer.FacenetIndexer(indexer_root_dir+"vgg/vgg.pb"),
-                                           'vgg': indexer.VGGIndexer(indexer_root_dir+"facenet/facenet.pb")}
+                                           'facenet': indexer.FacenetIndexer(indexer_root_dir+"facenet/facenet.pb"),
+                                           'vgg': indexer.VGGIndexer(indexer_root_dir+"vgg/vgg.pb")}
         return IndexerTask._visual_indexer
 
     def index_frames(self,media_dir, frames,visual_index,task_pk):

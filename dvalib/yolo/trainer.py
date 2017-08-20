@@ -32,7 +32,7 @@ class YOLOTrainer(object):
         if test_mode:
             self.create_model(load_pretrained=False,freeze_body=False)
         else:
-            self.base_model = args['base_model'] if 'base_model' in args else "dvalib/yolo/model_data/yolo.h5"
+            self.base_model = args['base_model']
             self.process_data()
             self.get_detector_mask()
             self.create_model()

@@ -4,6 +4,7 @@ try:
     from dvalib import detector
 except ImportError:
     logging.warning("Could not import indexer / clustering assuming running in front-end mode / Heroku")
+from django.conf import settings
 
 coco_class_index_to_string = {1: u'person', 2: u'bicycle', 3: u'car', 4: u'motorcycle', 5: u'airplane', 6: u'bus',
                               7: u'train', 8: u'truck', 9: u'boat', 10: u'traffic light', 11: u'fire hydrant',
@@ -31,7 +32,9 @@ class DetectorTask(celery.Task):
     @property
     def get_static_detectors(self):
         if DetectorTask._detectors is None:
-            DetectorTask._detectors = {'coco': detector.TFDetector(model_path=model_path,class_index_to_string=coco_class_index_to_string),
+            detectors_root = "{}/detectors/".format(settings.MEDIA_ROOT)
+            DetectorTask._detectors = {'coco': detector.TFDetector(model_path=detectors_root+'coco/coco_mobilenet.pb',
+                                                                   class_index_to_string=coco_class_index_to_string),
                                        'face': detector.FaceDetector(),
                                        'textbox':detector.TextBoxDetector()}
         return DetectorTask._detectors

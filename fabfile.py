@@ -380,13 +380,10 @@ def launch_queues_env(block_on_manager=False):
 
 
 @task
-def download_models(root_dir):
+def download_indexers(root_dir):
     indexer_dir = "{}/indexers/".format(root_dir)
-    detectors_dir = "{}/detectors/".format(root_dir)
     if not os.path.isdir(indexer_dir):
         os.mkdir(indexer_dir)
-    if not os.path.isdir(detectors_dir):
-        os.mkdir(detectors_dir)
     with lcd(indexer_dir):
         ilist = [('facenet','https://www.dropbox.com/s/jytpgw8et09ede9/facenet.pb','facenet.pb'),
                  ('vgg', 'https://www.dropbox.com/s/3yzonc9nzo9xanv/vgg.pb', 'vgg.pb'),
@@ -400,6 +397,24 @@ def download_models(root_dir):
                                                                                                             lfname))
                 else:
                     local("mkdir {} && cd {} && wget --quiet {}".format(iname,iname,indexer_url))
+
+
+@task
+def download_detectors(root_dir):
+    detectors_dir = "{}/detectors/".format(root_dir)
+    if not os.path.isdir(detectors_dir):
+        os.mkdir(detectors_dir)
+    with lcd(detectors_dir):
+        ilist = [('coco','https://www.dropbox.com/s/nzz26b2p4wxygg3/coco_mobilenet.pb','coco_mobilenet.pb'),
+                 ('yolo', 'https://www.dropbox.com/s/zbff2rkoejx5k5r/yolo.h5', 'yolo.h5'),]
+        for iname, url, lfname in ilist:
+            if not os.path.isdir("{}/detectors/{}".format(root_dir,iname)):
+                if sys.platform == 'darwin':
+                    local("mkdir {} && cd {} && cp /users/aub3/Dropbox/DeepVideoAnalytics/shared/{}".format(iname,
+                                                                                                            iname,
+                                                                                                            lfname))
+                else:
+                    local("mkdir {} && cd {} && wget --quiet {}".format(iname,iname,url))
 
 
 
@@ -432,7 +447,8 @@ def init_fs():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from django.conf import settings
-    download_models(settings.MEDIA_ROOT)
+    download_indexers(settings.MEDIA_ROOT)
+    download_detectors(settings.MEDIA_ROOT)
 
 
 @task
@@ -835,6 +851,7 @@ def train_yolo(start_pk):
     detector = CustomDetector.objects.get(pk=args['detector_pk'])
     create_detector_folders(detector)
     args['root_dir'] = "{}/detectors/{}/".format(settings.MEDIA_ROOT,detector.pk)
+    args['base_model'] = "{}/detectors/yolo/yolo.h5"
     class_distribution, class_names, rboxes, rboxes_set, frames, i_class_names = create_detector_dataset(object_names,labels)
     images, boxes = [], []
     path_to_f = {}

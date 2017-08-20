@@ -7,5 +7,10 @@
 /repos/*
 /tests/*
 /darknet/*
-/tests/*
+/tests/*.mp4
+/tests/*.zip
+/tests/*.png
+/tests/*.jpg
+/tests/ci/*
+/tests/external/*
 /dvalib/data/*

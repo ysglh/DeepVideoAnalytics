@@ -137,8 +137,8 @@ DEFAULT_PROCESSING_PLAN_DATASET = [
              }},
         ]}
      },
-    {'operation': 'perform_indexing', 'arguments':
-        {'index': 'inception',
+    {'operation': 'perform_indexing', 'arguments':{
+         'index': 'inception',
          'frames_batch_size': DEFAULT_FRAMES_BATCH_SIZE,
          'target': 'frames',
      }},

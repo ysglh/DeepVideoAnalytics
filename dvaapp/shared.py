@@ -122,8 +122,7 @@ def handle_uploaded_file(f, name, extract=True, user=None, rate=None, rescale=No
                     'process_type':DVAPQL.PROCESS,
                     'tasks':[
                         {
-                            'arguments':{'rate': rate, 'rescale': rescale,
-                                         'frames_batch_size':settings.DEFAULT_FRAMES_BATCH_SIZE,
+                            'arguments':{'rescale': rescale,
                                          'next_tasks':settings.DEFAULT_PROCESSING_PLAN_DATASET},
                             'video_id':video.pk,
                             'operation': 'perform_dataset_extraction',

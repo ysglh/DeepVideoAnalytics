@@ -90,21 +90,24 @@ def get_map_filters(k, v):
                 map_filters.append({'frame_index__gte': gte})
     else:
         map_filters.append({})  # append an empty filter
+    # logging.info("Running with map filters {}".format(map_filters))
     return map_filters
 
 
-def launch(k, dt, inject_filters, map_filters = None, launch_type = ""):
+def launch_tasks(k, dt, inject_filters, map_filters = None, launch_type = ""):
     v = dt.video
     op = k['operation']
     p = dt.parent_process
     if map_filters is None:
         map_filters = [{},]
+    tids = []
     for f in map_filters:
         args = perform_substitution(k['arguments'], dt, inject_filters, f)
         logging.info("launching {} -> {} with args {} as specified in {}".format(dt.operation, op, args, launch_type))
         q = get_queue_name(k['operation'], args)
         next_task = TEvent.objects.create(video=v, operation=op, arguments=args, parent=dt, parent_process=p, queue=q)
-        return app.send_task(k['operation'], args=[next_task.pk, ], queue=q).id
+        tids.append(app.send_task(k['operation'], args=[next_task.pk, ], queue=q).id)
+    return tids
 
 
 def process_next(task_id,inject_filters=None,custom_next_tasks=None,sync=True,launch_next=True):
@@ -116,10 +119,10 @@ def process_next(task_id,inject_filters=None,custom_next_tasks=None,sync=True,la
     next_tasks = dt.arguments.get('next_tasks',[]) if dt.arguments and launch_next else []
     if sync:
         for k in settings.SYNC_TASKS.get(dt.operation,[]):
-            launched.append(launch(k,dt,inject_filters,None,'sync'))
+            launched += launch_tasks(k,dt,inject_filters,None,'sync')
     for k in next_tasks+custom_next_tasks:
         map_filters = get_map_filters(k,dt.video)
-        launched.append(launch(k, dt, inject_filters,map_filters,'next_tasks'))
+        launched += launch_tasks(k, dt, inject_filters,map_filters,'next_tasks')
     return launched
 
 

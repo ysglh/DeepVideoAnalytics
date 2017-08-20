@@ -124,7 +124,7 @@ def handle_uploaded_file(f, name, extract=True, user=None, rate=None, rescale=No
                         {
                             'arguments':{'rate': rate, 'rescale': rescale,
                                          'frames_batch_size':settings.DEFAULT_FRAMES_BATCH_SIZE,
-                                         'next_tasks':settings.DEFAULT_PROCESSING_PLAN},
+                                         'next_tasks':settings.DEFAULT_PROCESSING_PLAN_DATASET},
                             'video_id':video.pk,
                             'operation': 'perform_dataset_extraction',
                         }
@@ -136,13 +136,13 @@ def handle_uploaded_file(f, name, extract=True, user=None, rate=None, rescale=No
                     'tasks':[
                         {
                             'arguments':{
-                                'segments_batch_size': settings.DEFAULT_SEGMENTS_BATCH_SIZE,
                                 'next_tasks':[
                                              {'operation':'perform_video_decode',
                                                'arguments':{
+                                                   'segments_batch_size': settings.DEFAULT_SEGMENTS_BATCH_SIZE,
                                                    'rate': rate,
                                                    'rescale': rescale,
-                                                   'next_tasks':settings.DEFAULT_PROCESSING_PLAN
+                                                   'next_tasks':settings.DEFAULT_PROCESSING_PLAN_VIDEO
                                                }
                                               }
                                             ]},
@@ -489,62 +489,6 @@ def perform_s3_export(dv,s3key,s3bucket,s3region,export_event_pk=None,create_buc
     upload.communicate()
     upload.wait()
     return upload.returncode
-
-def perform_substitution(args,parent_task,inject_filters):
-    """
-    Its important to do a deep copy of args before executing any mutations.
-    :param args:
-    :param parent_task:
-    :return:
-    """
-    args = copy.deepcopy(args) # IMPORTANT otherwise the first task to execute on the worker will fill the filters
-    inject_filters = copy.deepcopy(inject_filters) # IMPORTANT otherwise the first task to execute on the worker will fill the filters
-    filters = args.get('filters',{})
-    parent_args = parent_task.arguments
-    if filters == '__parent__':
-        parent_filters = parent_args.get('filters',{})
-        logging.info('using filters from parent arguments: {}'.format(parent_args))
-        args['filters'] = parent_filters
-    elif filters:
-        for k,v in args.get('filters',{}).items():
-            if v == '__parent_event__':
-                args['filters'][k] = parent_task.pk
-            elif v == '__grand_parent_event__':
-                args['filters'][k] = parent_task.parent.pk
-    if inject_filters:
-        if 'filters' not in args:
-            args['filters'] = inject_filters
-        else:
-            args['filters'].update(inject_filters)
-    return args
-
-
-def process_next(task_id,inject_filters=None,custom_next_tasks=None,sync=True,launch_next=True):
-    if custom_next_tasks is None:
-        custom_next_tasks = []
-    dt = TEvent.objects.get(pk=task_id)
-    launched = []
-    logging.info("next tasks for {}".format(dt.operation))
-    next_tasks = dt.arguments.get('next_tasks',[]) if dt.arguments and launch_next else []
-    if sync:
-        for k in settings.SYNC_TASKS.get(dt.operation,[]):
-            args = perform_substitution(k['arguments'], dt,inject_filters)
-            logging.info("launching {}, {} with args {} as specified in config".format(dt.operation, k['operation'], args))
-            queue = get_queue_name(k['operation'], args)
-            next_task = TEvent.objects.create(video=dt.video,operation=k['operation'],arguments=args,
-                                              parent=dt,parent_process=dt.parent_process,queue=queue)
-
-            launched.append(app.send_task(k['operation'], args=[next_task.pk, ],
-                                          queue=queue).id)
-    for k in next_tasks+custom_next_tasks:
-        args = perform_substitution(k['arguments'], dt,inject_filters)
-        logging.info("launching {}, {} with args {} as specified in next_tasks".format(dt.operation, k['operation'], args))
-        queue = get_queue_name(k['operation'], args)
-        next_task = TEvent.objects.create(video=dt.video,operation=k['operation'], arguments=args,
-                                          parent=dt,parent_process=dt.parent_process,queue=queue)
-        launched.append(app.send_task(k['operation'], args=[next_task.pk, ],
-                                      queue=queue).id)
-    return launched
 
 
 def celery_40_bug_hack(start):

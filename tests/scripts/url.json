@@ -11,11 +11,11 @@
           {
             "operation": "perform_video_segmentation",
             "arguments": {
-              "segments_batch_size":10,
               "next_tasks": [
                 {
                   "operation": "perform_video_decode",
                   "arguments": {
+                    "segments_batch_size":10,
                     "rate": 30,
                     "rescale": 0,
                     "next_tasks": [

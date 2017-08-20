@@ -50,7 +50,7 @@ TASK_NAMES_TO_TYPE = {
     "perform_detector_training": TRAIN_TASK,
 }
 
-DEFAULT_PROCESSING_PLAN =[
+DEFAULT_PROCESSING_PLAN_VIDEO =[
     {'operation': 'perform_detection', 'arguments': {
         'filters':'__parent__',
         'detector':'coco',
@@ -94,6 +94,53 @@ DEFAULT_PROCESSING_PLAN =[
         {'index': 'inception',
          'target': 'frames',
          'filters':'__parent__'
+     }},
+]
+
+DEFAULT_PROCESSING_PLAN_DATASET = [
+    {'operation': 'perform_detection', 'arguments': {
+        'frames_batch_size': DEFAULT_FRAMES_BATCH_SIZE,
+        'detector':'coco',
+        'next_tasks':[
+            {'operation': 'perform_transformation',
+             'arguments': {
+                 'filters': {'event_id': '__parent_event__'},
+                 'next_tasks': [
+                     {'operation': 'perform_indexing',
+                      'arguments': {
+                          'index': 'inception',
+                          'target': 'regions',
+                          'filters': {'event_id': '__grand_parent_event__', 'w__gte': 50, 'h__gte': 50}
+                      }
+                      },
+                 ]
+             }},
+        ]}
+     },
+    {'operation': 'perform_detection', 'arguments': {
+        'detector':'face',
+        'frames_batch_size': DEFAULT_FRAMES_BATCH_SIZE,
+        'next_tasks':[
+            {'operation': 'perform_transformation',
+             'arguments': {
+                 'resize':[182,182],
+                 'filters': {'event_id': '__parent_event__'},
+                 'next_tasks': [
+                     {'operation': 'perform_indexing',
+                      'arguments': {
+                          'index': 'facenet',
+                          'target': 'regions',
+                          'filters': {'event_id': '__grand_parent_event__'}
+                      }
+                      },
+                 ]
+             }},
+        ]}
+     },
+    {'operation': 'perform_indexing', 'arguments':
+        {'index': 'inception',
+         'frames_batch_size': DEFAULT_FRAMES_BATCH_SIZE,
+         'target': 'frames',
      }},
 ]
 
@@ -159,11 +206,6 @@ DETECTORS = {
             'task':"perform_detection",
             'queue':Q_OCR,
         },
-    'custom':
-        {
-            'task':"perform_detection",
-            'queue':Q_DETECTOR,
-        },
     }
 
 
@@ -181,24 +223,24 @@ ANALYZERS = {
     }
 
 
-if 'VGG_ENABLE' in os.environ:
-    VISUAL_INDEXES['vgg']= {
-            'indexer_task': "perform_indexing",
-            'indexer_queue': Q_VGG,
-            'retriever_queue': Q_VGG,
-            'detection_specific': False
-        }
-    DEFAULT_PROCESSING_PLAN.append({'operation': 'perform_indexing', 'arguments': {'index': 'vgg', 'target': 'frames', 'filters': '__parent__'}})
-    for k in DEFAULT_PROCESSING_PLAN:
-        if k['operation'] == 'perform_detection' and k['arguments']['detector'] == 'coco':
-            k['arguments']['next_tasks'][0]['arguments']['next_tasks'].append({
-                'operation': 'perform_indexing',
-                'arguments': {'index': 'vgg',
-                              'target': 'regions',
-                              'filters': {'event_id': '__grand_parent_event__',
-                                          'w__gte': 50,
-                                          'h__gte': 50
-                                           }
-                              }
-            })
-
+# if 'VGG_ENABLE' in os.environ:
+#     VISUAL_INDEXES['vgg']= {
+#             'indexer_task': "perform_indexing",
+#             'indexer_queue': Q_VGG,
+#             'retriever_queue': Q_VGG,
+#             'detection_specific': False
+#         }
+#     DEFAULT_PROCESSING_PLAN.append({'operation': 'perform_indexing', 'arguments': {'index': 'vgg', 'target': 'frames', 'filters': '__parent__'}})
+#     for k in DEFAULT_PROCESSING_PLAN:
+#         if k['operation'] == 'perform_detection' and k['arguments']['detector'] == 'coco':
+#             k['arguments']['next_tasks'][0]['arguments']['next_tasks'].append({
+#                 'operation': 'perform_indexing',
+#                 'arguments': {'index': 'vgg',
+#                               'target': 'regions',
+#                               'filters': {'event_id': '__grand_parent_event__',
+#                                           'w__gte': 50,
+#                                           'h__gte': 50
+#                                            }
+#                               }
+#             })
+#

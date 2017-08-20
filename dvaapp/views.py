@@ -698,7 +698,7 @@ def yt(request):
                                                                 'arguments': {
                                                                     'rate': rate, 'rescale': rescale,
                                                                     'segments_batch_size': settings.DEFAULT_SEGMENTS_BATCH_SIZE,
-                                                                    'next_tasks': settings.DEFAULT_PROCESSING_PLAN
+                                                                    'next_tasks': settings.DEFAULT_PROCESSING_PLAN_VIDEO
                                                                 }
                                                                 }
                                                            ]},
@@ -1182,8 +1182,7 @@ def import_s3(request):
                 video.name = "pending S3 import {} s3://{}/{}".format(region, bucket, key)
                 video.save()
                 extract_task = {'arguments': {'rate': rate, 'rescale': rescale,
-                                              'frames_batch_size': settings.DEFAULT_FRAMES_BATCH_SIZE,
-                                              'next_tasks': settings.DEFAULT_PROCESSING_PLAN},
+                                              'next_tasks': settings.DEFAULT_PROCESSING_PLAN_DATASET},
                                  'video_id': video.pk,
                                  'operation': 'perform_dataset_extraction'}
                 segment_decode_task = {'video_id': video.pk,
@@ -1194,7 +1193,7 @@ def import_s3(request):
                                                  'arguments': {
                                                      'rate': rate, 'rescale': rescale,
                                                      'segments_batch_size':settings.DEFAULT_SEGMENTS_BATCH_SIZE,
-                                                     'next_tasks': settings.DEFAULT_PROCESSING_PLAN
+                                                     'next_tasks': settings.DEFAULT_PROCESSING_PLAN_VIDEO
                                                 }
                                             }
                                             ]},

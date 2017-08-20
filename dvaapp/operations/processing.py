@@ -1,4 +1,4 @@
-import base64
+import base64, copy
 import json,logging
 import boto3
 from django.conf import settings
@@ -14,6 +14,7 @@ from ..models import Video,DVAPQL,IndexerQuery,QueryResults,TEvent
 from collections import defaultdict
 from celery.result import AsyncResult
 
+
 def get_queue_name(operation,args):
     if operation in settings.TASK_NAMES_TO_QUEUE:
         return settings.TASK_NAMES_TO_QUEUE[operation]
@@ -22,9 +23,104 @@ def get_queue_name(operation,args):
     elif 'index' in args:
         return settings.VISUAL_INDEXES[args['index']]['indexer_queue']
     elif 'detector' in args:
-        return settings.DETECTORS[args['detector']]['queue']
+        if args['detector'] == 'custom':
+            return "qcustomdetector_{}".format(args['detector_pk']) # route it according to the custom detector
+        else:
+            return settings.DETECTORS[args['detector']]['queue']
     else:
         raise NotImplementedError,"{}, {}".format(operation,args)
+
+
+def perform_substitution(args,parent_task,inject_filters,map_filters):
+    """
+    Its important to do a deep copy of args before executing any mutations.
+    :param args:
+    :param parent_task:
+    :return:
+    """
+    args = copy.deepcopy(args) # IMPORTANT otherwise the first task to execute on the worker will fill the filters
+    inject_filters = copy.deepcopy(inject_filters) # IMPORTANT otherwise the first task to execute on the worker will fill the filters
+    map_filters = copy.deepcopy(map_filters) # IMPORTANT otherwise the first task to execute on the worker will fill the filters
+    filters = args.get('filters',{})
+    parent_args = parent_task.arguments
+    if filters == '__parent__':
+        parent_filters = parent_args.get('filters',{})
+        logging.info('using filters from parent arguments: {}'.format(parent_args))
+        args['filters'] = parent_filters
+    elif filters:
+        for k,v in args.get('filters',{}).items():
+            if v == '__parent_event__':
+                args['filters'][k] = parent_task.pk
+            elif v == '__grand_parent_event__':
+                args['filters'][k] = parent_task.parent.pk
+    if inject_filters:
+        if 'filters' not in args:
+            args['filters'] = inject_filters
+        else:
+            args['filters'].update(inject_filters)
+    if map_filters:
+        if 'filters' not in args:
+            args['filters'] = map_filters
+        else:
+            args['filters'].update(map_filters)
+    return args
+
+
+def get_map_filters(k, v):
+    """
+    TO DO add vstart=0,vstop=None
+    """
+    vstart = 0
+    map_filters = []
+    if 'segments_batch_size' in k['arguments']:
+        step = k['arguments']["segments_batch_size"]
+        vstop = v.segments
+        for gte, lt in [(start, start + step) for start in range(vstart, vstop, step)]:
+            if lt < v.segments:
+                map_filters.append({'segment_index__gte': gte, 'segment_index__lt': lt})
+            else:  # ensures off by one error does not happens [gte->
+                map_filters.append({'segment_index__gte': gte})
+    elif 'frames_batch_size' in k['arguments']:
+        step = k['arguments']["frames_batch_size"]
+        vstop = v.segments
+        for gte, lt in [(start, start + step) for start in range(vstart, vstop, step)]:
+            if lt < v.frames:  # to avoid off by one error
+                map_filters.append({'frame_index__gte': gte, 'frame_index__lt': lt})
+            else:
+                map_filters.append({'frame_index__gte': gte})
+    else:
+        map_filters.append({})  # append an empty filter
+    return map_filters
+
+
+def launch(k, dt, inject_filters, map_filters = None, launch_type = ""):
+    v = dt.video
+    op = k['operation']
+    p = dt.parent_process
+    if map_filters is None:
+        map_filters = [{},]
+    for f in map_filters:
+        args = perform_substitution(k['arguments'], dt, inject_filters, f)
+        logging.info("launching {} -> {} with args {} as specified in {}".format(dt.operation, op, args, launch_type))
+        q = get_queue_name(k['operation'], args)
+        next_task = TEvent.objects.create(video=v, operation=op, arguments=args, parent=dt, parent_process=p, queue=q)
+        return app.send_task(k['operation'], args=[next_task.pk, ], queue=q).id
+
+
+def process_next(task_id,inject_filters=None,custom_next_tasks=None,sync=True,launch_next=True):
+    if custom_next_tasks is None:
+        custom_next_tasks = []
+    dt = TEvent.objects.get(pk=task_id)
+    launched = []
+    logging.info("next tasks for {}".format(dt.operation))
+    next_tasks = dt.arguments.get('next_tasks',[]) if dt.arguments and launch_next else []
+    if sync:
+        for k in settings.SYNC_TASKS.get(dt.operation,[]):
+            launched.append(launch(k,dt,inject_filters,None,'sync'))
+    for k in next_tasks+custom_next_tasks:
+        map_filters = get_map_filters(k,dt.v)
+        launched.append(launch(k, dt, inject_filters,map_filters,'next_tasks'))
+    return launched
 
 
 class DVAPQLProcess(object):
@@ -106,15 +202,27 @@ class DVAPQLProcess(object):
     def launch(self):
         if self.process.script['process_type'] == DVAPQL.PROCESS:
             for t in self.process.script['tasks']:
-                dt = TEvent()
-                dt.parent_process = self.process
                 if 'video_id' in t:
-                    dt.video_id = t['video_id']
-                dt.operation = t['operation']
-                dt.arguments = t.get('arguments',{})
-                dt.queue = get_queue_name(t['operation'],t.get('arguments',{}))
-                dt.save()
-                app.send_task(name=dt.operation,args=[dt.pk, ],queue=dt.queue)
+                    v = Video.objects.get(pk=t['video_id'])
+                    map_filters = get_map_filters(t,v)
+                else:
+                    map_filters = [{}]
+                for f in map_filters:
+                    args = copy.deepcopy(t.get('arguments',{})) # make copy so that spec isnt mutated.
+                    if f:
+                        if 'filters' not in args:
+                            args['filters'] = f
+                        else:
+                            args['filters'].update(f)
+                    dt = TEvent()
+                    dt.parent_process = self.process
+                    if 'video_id' in t:
+                        dt.video_id = t['video_id']
+                    dt.operation = t['operation']
+                    dt.arguments = args
+                    dt.queue = get_queue_name(t['operation'],t.get('arguments',{}))
+                    dt.save()
+                    app.send_task(name=dt.operation,args=[dt.pk, ],queue=dt.queue)
         elif self.process.script['process_type'] == DVAPQL.QUERY:
             for iq in IndexerQuery.objects.filter(parent_query=self.process):
                 operation = 'perform_indexing'

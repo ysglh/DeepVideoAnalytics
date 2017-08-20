@@ -12,6 +12,7 @@ from .operations.detection import DetectorTask
 from .operations.segmentation import SegmentorTask
 from .operations.analysis import AnalyzerTask
 from .operations.decoding import VideoDecoder
+from .operations.processing import process_next
 from dvalib import clustering
 from datetime import datetime
 from . import shared
@@ -89,7 +90,7 @@ def perform_indexing(task_id):
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
-    return shared.process_next(task_id,sync=sync)
+    return process_next(task_id,sync=sync)
 
 
 @app.task(track_started=True, name="perform_transformation")
@@ -129,7 +130,7 @@ def perform_transformation(task_id):
             else:
                 cropped.save("{}/{}/regions/{}.jpg".format(settings.MEDIA_ROOT, video_id, dr.id))
     queryset.update(materialized=True)
-    shared.process_next(task_id)
+    process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
@@ -177,17 +178,7 @@ def perform_dataset_extraction(task_id):
         shared.create_video_folders(dv)
     v = VideoDecoder(dvideo=dv, media_dir=settings.MEDIA_ROOT)
     v.extract(args=args,start=start)
-    if args.get('sync',False):
-        # No need to inject just process everything together
-        shared.process_next(task_id)
-    else:
-        step = args.get("frames_batch_size",settings.DEFAULT_FRAMES_BATCH_SIZE)
-        for gte, lt in [(k, k + step) for k in range(0, dv.frames, step)]:
-            if lt < dv.frames: # to avoid off by one error
-                filters = {'frame_index__gte': gte, 'frame_index__lt': lt}
-            else:
-                filters = {'frame_index__gte': gte}
-            shared.process_next(task_id,inject_filters=filters)
+    process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
@@ -221,17 +212,9 @@ def perform_video_segmentation(task_id):
         next_args = {'rescale': args['rescale'], 'rate': args['rate']}
         next_task = TEvent.objects.create(video=dv, operation='perform_video_decode', arguments=next_args, parent=start)
         perform_video_decode(next_task.pk)  # decode it synchronously for testing in Travis
-        shared.process_next(task_id)
+        process_next(task_id,sync=True,launch_next=False)
     else:
-        step = args.get("segments_batch_size",settings.DEFAULT_SEGMENTS_BATCH_SIZE)
-        for gte, lt in [(k, k + step) for k in range(0, dv.segments, step)]:
-            if lt < dv.segments:
-                filters = {'segment_index__gte': gte, 'segment_index__lt': lt}
-            else:
-                # ensures off by one error does not happens [gte->
-                filters = {'segment_index__gte': gte}
-            shared.process_next(task_id, inject_filters=filters,sync=False) # Dont sync multiple times
-        shared.process_next(task_id,launch_next=False) # Sync
+        process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
@@ -257,7 +240,7 @@ def perform_video_decode(task_id):
     v = VideoDecoder(dvideo=dv, media_dir=settings.MEDIA_ROOT)
     for ds in Segment.objects.filter(**kwargs):
         v.decode_segment(ds=ds,denominator=args['rate'],rescale=args['rescale'])
-    shared.process_next(task_id)
+    process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
@@ -338,7 +321,7 @@ def perform_detection(task_id):
             dd_list.append(dd)
             path_list.append(local_path)
     _ = Region.objects.bulk_create(dd_list,1000)
-    shared.process_next(task_id)
+    process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
@@ -381,7 +364,7 @@ def perform_analysis(task_id):
         raise NotImplementedError
     else:
         raise NotImplementedError
-    shared.process_next(task_id)
+    process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
@@ -456,7 +439,7 @@ def perform_detector_import(task_id):
     serializers.import_detector(dd)
     dd.save()
     os.remove(source_zip)
-    shared.process_next(task_id)
+    process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
@@ -490,7 +473,7 @@ def perform_import(event_id):
         shared.import_local(dv)
     else:
         raise NotImplementedError
-    shared.process_next(start.pk)
+    process_next(start.pk)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()
@@ -731,7 +714,7 @@ def perform_segmentation(task_id):
         #     dd_list.append(dd)
         #     path_list.append(local_path)
     _ = Region.objects.bulk_create(dd_list,1000)
-    shared.process_next(task_id)
+    process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()

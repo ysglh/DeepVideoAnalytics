@@ -1,0 +1,13 @@
+{
+  "process_type": "V",
+  "tasks": [
+          {
+            "operation": "perform_indexing",
+            "arguments": {
+              "segments_batch_size": 5,
+              "index": "inception",
+              "target": "frames"
+            }
+      }
+  ]
+}

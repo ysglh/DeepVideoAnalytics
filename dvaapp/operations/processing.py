@@ -118,7 +118,7 @@ def process_next(task_id,inject_filters=None,custom_next_tasks=None,sync=True,la
         for k in settings.SYNC_TASKS.get(dt.operation,[]):
             launched.append(launch(k,dt,inject_filters,None,'sync'))
     for k in next_tasks+custom_next_tasks:
-        map_filters = get_map_filters(k,dt.v)
+        map_filters = get_map_filters(k,dt.video)
         launched.append(launch(k, dt, inject_filters,map_filters,'next_tasks'))
     return launched
 

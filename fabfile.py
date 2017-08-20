@@ -67,9 +67,9 @@ def start_container_server():
     """
     local('sleep 20')
     migrate()
-    launch_queues_env()
-    init_server()
     init_fs()
+    init_server()
+    launch_queues_env()
     if 'LAUNCH_SERVER' in os.environ:
         local('python manage.py runserver 0.0.0.0:8000')
     elif 'LAUNCH_SERVER_NGINX' in os.environ:

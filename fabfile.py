@@ -147,6 +147,7 @@ def clean():
         except:
             pass
     init_server()
+    init_fs()
 
 @task
 def restart_queues():
@@ -389,14 +390,14 @@ def download_indexers(root_dir):
                  ('vgg', 'https://www.dropbox.com/s/3yzonc9nzo9xanv/vgg.pb', 'vgg.pb'),
                  ('inception', 'https://www.dropbox.com/s/fc7li2vwn8lvsyu/network.pb', 'network.pb'),
                  ]
-        for iname, indexer_url, lfname in ilist:
-            if not os.path.isdir("{}/indexers/{}".format(root_dir,iname)):
+        for iname, iurl, lfname in ilist:
+            model_dir = "{}/indexers/{}".format(root_dir, iname)
+            if not os.path.isdir(model_dir):
+                os.mkdir(model_dir)
                 if sys.platform == 'darwin':
-                    local("mkdir {} && cd {} && cp /users/aub3/Dropbox/DeepVideoAnalytics/shared/{}".format(iname,
-                                                                                                            iname,
-                                                                                                            lfname))
+                    local("cd {} && cp /users/aub3/Dropbox/DeepVideoAnalytics/shared/{} .".format(iname,lfname))
                 else:
-                    local("mkdir {} && cd {} && wget --quiet {}".format(iname,iname,indexer_url))
+                    local("cd {} && wget --quiet {}".format(iname,iurl))
 
 
 @task
@@ -408,13 +409,13 @@ def download_detectors(root_dir):
         ilist = [('coco','https://www.dropbox.com/s/nzz26b2p4wxygg3/coco_mobilenet.pb','coco_mobilenet.pb'),
                  ('yolo', 'https://www.dropbox.com/s/zbff2rkoejx5k5r/yolo.h5', 'yolo.h5'),]
         for iname, url, lfname in ilist:
-            if not os.path.isdir("{}/detectors/{}".format(root_dir,iname)):
+            model_dir = "{}/detectors/{}".format(root_dir,iname)
+            if not os.path.isdir(model_dir):
+                os.mkdir(model_dir)
                 if sys.platform == 'darwin':
-                    local("mkdir {} && cd {} && cp /users/aub3/Dropbox/DeepVideoAnalytics/shared/{}".format(iname,
-                                                                                                            iname,
-                                                                                                            lfname))
+                    local("cd {} && cp /users/aub3/Dropbox/DeepVideoAnalytics/shared/{} .".format(iname,lfname))
                 else:
-                    local("mkdir {} && cd {} && wget --quiet {}".format(iname,iname,url))
+                    local("cd {} && wget --quiet {}".format(iname,url))
 
 
 

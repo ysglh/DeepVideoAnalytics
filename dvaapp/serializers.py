@@ -258,6 +258,7 @@ def import_detector(dd):
 
 def create_event(e, v):
     de = TEvent()
+    de.imported = True
     de.started = e.get('started', False)
     de.start_ts = e.get('start_ts', None)
     de.completed = e.get('completed', False)

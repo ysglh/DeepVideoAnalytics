@@ -158,6 +158,7 @@ class TEvent(models.Model):
     task_id = models.TextField(null=True)
     parent = models.ForeignKey('self',null=True)
     parent_process = models.ForeignKey(DVAPQL,null=True)
+    imported = models.BooleanField(default=False)
 
 
 class Frame(models.Model):

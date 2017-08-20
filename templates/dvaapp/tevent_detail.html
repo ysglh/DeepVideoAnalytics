@@ -29,13 +29,13 @@
                 </div>
                 <div class="col-lg-4">
                 {% if object.errored %}
-                    <a href="#" class="btn btn-danger btn-block">Failed</a>
+                    <a href="#" class="btn btn-danger btn-block">{% if e.imported %}Imported{% endif %} Failed</a>
                 {% elif object.seconds < 0 and not object.started %}
-                    <a href="#" class="btn btn-warning btn-block">Pending</a>
+                    <a href="#" class="btn btn-warning btn-block">{% if e.imported %}Imported{% endif %} Pending</a>
                 {% elif object.seconds < 0 and object.started and not object.completed%}
-                    <a href="#" class="btn btn-primary btn-block">Running</a>
+                    <a href="#" class="btn btn-primary btn-block">{% if e.imported %}Imported{% endif %} Running</a>
                 {% elif object.completed%}
-                    <a href="#" class="btn btn-success btn-block">Completed</a>
+                    <a href="#" class="btn btn-success btn-block">{% if e.imported %}Imported{% endif %} Completed</a>
                 {% else %}
                     <a href="#" class="btn btn-disabled btn-block">Unknown</a>
                 {% endif %}

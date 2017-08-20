@@ -50,7 +50,6 @@
                         <th>ts</th>
                         <th>unix ts</th>
                         <th>duration</th>
-                        <th>error</th>
                         <th class="text-center">status and details</th>
                         <th class="text-center">retry task</th>
                         <th class="text-center">mark as failed</th>
@@ -66,16 +65,15 @@
                             <td class="text-center">{{ e.created|timesince}}</td>
                             <td class="text-center">{{ e.created|date:"U" }}</td>
                             <td class="text-right">{{ e.seconds|floatformat }}</td>
-                            <td class="text-right">{{ e.error_message }}</td>
                             <td>
                                 {% if e.errored %}
-                                    <a href="/task_detail/{{ e.pk }}" class="btn btn-danger btn-block">Failed</a>
+                                    <a href="/task_detail/{{ e.pk }}" class="btn btn-danger btn-block">{% if e.imported %}Imported{% endif %} Failed</a>
                                 {% elif e.seconds < 0 and not e.started %}
-                                    <a href="/task_detail/{{ e.pk }}" class="btn btn-warning btn-block">Pending</a>
+                                    <a href="/task_detail/{{ e.pk }}" class="btn btn-warning btn-block">{% if e.imported %}Imported{% endif %} Pending</a>
                                 {% elif e.seconds < 0 and e.started and not e.completed%}
-                                    <a href="/task_detail/{{ e.pk }}" class="btn btn-primary btn-block">Running</a>
+                                    <a href="/task_detail/{{ e.pk }}" class="btn btn-primary btn-block">{% if e.imported %}Imported{% endif %} Running</a>
                                 {% elif e.completed%}
-                                    <a href="/task_detail/{{ e.pk }}" class="btn btn-success btn-block">Completed</a>
+                                    <a href="/task_detail/{{ e.pk }}" class="btn btn-success btn-block">{% if e.imported %}Imported{% endif %} Completed</a>
                                 {% else %}
                                     <a href="/task_detail/{{ e.pk }}" class="btn btn-info btn-block">Unknown</a>
                                 {% endif %}

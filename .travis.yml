@@ -49,7 +49,6 @@ before_script:
   - cd repos/lopq/python && python setup.py install && cd ../../..
   - python manage.py migrate
   - python manage.py runserver 8000 &
-  - cd dvalib/data/2016_08 && wget --quiet https://www.dropbox.com/s/umo0xtljm9an90x/model.ckpt && wget --quiet https://www.dropbox.com/s/f93axdtlb3ltj40/model.ckpt.meta && cd ../../..
   - cd tests && wget --quiet https://www.dropbox.com/s/xwbk5g1qit5s9em/WorldIsNotEnough.mp4 && cd ..
   - cd dvalib/crfasrnn/cpp && ./compile.sh && cd ../../..
   - "export DISPLAY=:99.0"

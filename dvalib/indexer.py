@@ -85,12 +85,13 @@ class InceptionIndexer(BaseIndexer):
     Batched inception indexer
     """
 
-    def __init__(self,batch_size=8,gpu_fraction=0.2,session=None):
+    def __init__(self,model_path,batch_size=8,gpu_fraction=0.2,session=None):
         super(InceptionIndexer, self).__init__()
         self.name = "inception"
         self.net = None
         self.tf = True
         self.session = session
+        self.network_path = model_path
         self.graph_def = None
         self.index, self.files, self.findex = None, {}, 0
         self.pool3 = None
@@ -105,14 +106,13 @@ class InceptionIndexer(BaseIndexer):
     def load(self):
         if self.graph_def is None:
             logging.warning("Loading the network {} , first apply / query will be slower".format(self.name))
-            network_path = os.path.abspath(__file__).split('indexer.py')[0]+'data/network.pb'
             with tf.variable_scope("inception_pre"):
                 self.filenames_placeholder = tf.placeholder("string",name="inception_filename")
                 dataset = tf.contrib.data.Dataset.from_tensor_slices(self.filenames_placeholder)
                 dataset = dataset.map(_parse_resize_inception_function)
                 dataset = dataset.batch(self.batch_size)
                 self.iterator = dataset.make_initializable_iterator()
-            with gfile.FastGFile(network_path, 'rb') as f:
+            with gfile.FastGFile(self.network_path, 'rb') as f:
                 self.graph_def = tf.GraphDef()
                 self.graph_def.ParseFromString(f.read())
                 self.image, self.fname = self.iterator.get_next()
@@ -155,11 +155,12 @@ class VGGIndexer(BaseIndexer):
     Batched VGG indexer
     """
 
-    def __init__(self,batch_size=8,gpu_fraction=0.2,session=None):
+    def __init__(self,model_path,batch_size=8,gpu_fraction=0.2,session=None):
         super(VGGIndexer, self).__init__()
         self.name = "vgg"
         self.net = None
         self.tf = True
+        self.model_path = model_path
         self.session = session
         self.graph_def = None
         self.index, self.files, self.findex = None, {}, 0
@@ -175,7 +176,7 @@ class VGGIndexer(BaseIndexer):
     def load(self):
         if self.graph_def is None:
             logging.warning("Loading the network {} , first apply / query will be slower".format(self.name))
-            network_path = os.path.abspath(__file__).split('indexer.py')[0]+'data/vgg.pb'
+            network_path = self.model_path
             with tf.variable_scope("vgg_pre"):
                 self.filenames_placeholder = tf.placeholder("string",name="vgg_filenames")
                 dataset = tf.contrib.data.Dataset.from_tensor_slices(self.filenames_placeholder)
@@ -222,10 +223,10 @@ class VGGIndexer(BaseIndexer):
 
 class FacenetIndexer(BaseIndexer):
 
-    def __init__(self):
+    def __init__(self,model_path):
         super(FacenetIndexer, self).__init__()
         self.name = "facenet"
-        self.network_path = os.path.abspath(__file__).split('indexer.py')[0]+'data/facenet.pb'
+        self.network_path = model_path
         self.embedding_op = "embeddings"
         self.input_op = "input"
         self.net = None

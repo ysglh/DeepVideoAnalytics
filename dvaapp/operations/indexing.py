@@ -1,6 +1,7 @@
 import logging, json
 import celery
 from PIL import Image
+from django.conf import settings
 
 try:
     from dvalib import indexer, clustering, retriever
@@ -20,14 +21,15 @@ class IndexerTask(celery.Task):
     @property
     def visual_indexer(self):
         if IndexerTask._visual_indexer is None:
+            indexer_root_dir = "{}/indexers/".format(settings.MEDIA_ROOT)
             # if IndexerTask._session is None:
             #     logging.info("Creating a global shared session")
             #     config = indexer.tf.ConfigProto()
             #     config.gpu_options.per_process_gpu_memory_fraction = 0.2
             #     IndexerTask._session = indexer.tf.Session()
-            IndexerTask._visual_indexer = {'inception': indexer.InceptionIndexer(),
-                                           'facenet': indexer.FacenetIndexer(),
-                                           'vgg': indexer.VGGIndexer()}
+            IndexerTask._visual_indexer = {'inception': indexer.InceptionIndexer(indexer_root_dir+"inception/network.pb"),
+                                           'facenet': indexer.FacenetIndexer(indexer_root_dir+"vgg/vgg.pb"),
+                                           'vgg': indexer.VGGIndexer(indexer_root_dir+"facenet/facenet.pb")}
         return IndexerTask._visual_indexer
 
     def index_frames(self,media_dir, frames,visual_index,task_pk):

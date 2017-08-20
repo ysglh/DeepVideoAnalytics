@@ -69,6 +69,7 @@ def start_container_server():
     migrate()
     launch_queues_env()
     init_server()
+    init_fs()
     if 'LAUNCH_SERVER' in os.environ:
         local('python manage.py runserver 0.0.0.0:8000')
     elif 'LAUNCH_SERVER_NGINX' in os.environ:
@@ -111,6 +112,7 @@ def start_container_worker():
     :return:
     """
     local('sleep 20')
+    init_fs()
     launch_queues_env(block_on_manager=True)
 
 @task
@@ -378,6 +380,30 @@ def launch_queues_env(block_on_manager=False):
 
 
 @task
+def download_models(root_dir):
+    indexer_dir = "{}/indexers/".format(root_dir)
+    detectors_dir = "{}/detectors/".format(root_dir)
+    if not os.path.isdir(indexer_dir):
+        os.mkdir(indexer_dir)
+    if not os.path.isdir(detectors_dir):
+        os.mkdir(detectors_dir)
+    with lcd(indexer_dir):
+        ilist = [('facenet','https://www.dropbox.com/s/jytpgw8et09ede9/facenet.pb','facenet.pb'),
+                 ('vgg', 'https://www.dropbox.com/s/3yzonc9nzo9xanv/vgg.pb', 'vgg.pb'),
+                 ('inception', 'https://www.dropbox.com/s/fc7li2vwn8lvsyu/network.pb', 'network.pb'),
+                 ]
+        for iname, indexer_url, lfname in ilist:
+            if not os.path.isdir("{}/indexers/{}".format(root_dir,iname)):
+                if sys.platform == 'darwin':
+                    local("mkdir {} && cd {} && cp /users/aub3/Dropbox/DeepVideoAnalytics/shared/{}".format(iname,
+                                                                                                            iname,
+                                                                                                            lfname))
+                else:
+                    local("mkdir {} && cd {} && wget --quiet {}".format(iname,iname,indexer_url))
+
+
+
+@task
 def init_server():
     import django
     sys.path.append(os.path.dirname(__file__))
@@ -397,6 +423,16 @@ def init_server():
             server.save()
     if 'TEST' in os.environ and Video.objects.count() == 0:
         test()
+
+
+@task
+def init_fs():
+    import django
+    sys.path.append(os.path.dirname(__file__))
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
+    django.setup()
+    from django.conf import settings
+    download_models(settings.MEDIA_ROOT)
 
 
 @task

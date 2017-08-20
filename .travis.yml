@@ -50,7 +50,6 @@ before_script:
   - python manage.py migrate
   - python manage.py runserver 8000 &
   - cd dvalib/data/2016_08 && wget --quiet https://www.dropbox.com/s/umo0xtljm9an90x/model.ckpt && wget --quiet https://www.dropbox.com/s/f93axdtlb3ltj40/model.ckpt.meta && cd ../../..
-  - cd dvalib/data && wget --quiet https://www.dropbox.com/s/jytpgw8et09ede9/facenet.pb && cd ../..
   - cd tests && wget --quiet https://www.dropbox.com/s/xwbk5g1qit5s9em/WorldIsNotEnough.mp4 && cd ..
   - cd dvalib/crfasrnn/cpp && ./compile.sh && cd ../../..
   - "export DISPLAY=:99.0"
@@ -58,7 +57,8 @@ before_script:
   - sleep 3 # give xvfb some time to start
 
 script:
-  - fab add_default_vdn_server
+  - fab init_server
+  - fab init_fs
   - fab ci
   - fab ci_face
   - wget --quiet localhost:8000

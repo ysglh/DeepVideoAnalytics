@@ -385,7 +385,7 @@ def init_server():
     django.setup()
     from dvaapp.models import Video,VDNServer,StoredDVAPQL
     if StoredDVAPQL.objects.count() == 0:
-        for fname in glob.glob('tests/scripts/*.json'):
+        for fname in glob.glob('dvaapp/test_scripts/*.json'):
             StoredDVAPQL.objects.create(name=fname,
                                         process_type=StoredDVAPQL.PROCESS,
                                         script=json.loads(file(fname).read()))

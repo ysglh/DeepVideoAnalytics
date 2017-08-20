@@ -50,7 +50,7 @@
                             <td>{{ p.user }}</td>
                             <td>{{ p.process_type }}</td>
                             <td class="text-center">{{ p.created|timesince}}</td>
-                            <td class="text-center">{{ p.created|date:"U" }}</td>
+                            <td class="text-center">{{ p.created }}</td>
                             <td class="text-center">
                                 {% if p.process_type == 'Q' %}
                                     <a href="/queries/{{ p.pk }}">details</a>

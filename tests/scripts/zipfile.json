@@ -4,7 +4,7 @@
     {
       "operation": "perform_import",
       "arguments": {
-        "source":"S3",
+        "source": "S3",
         "key": "exampledataset.zip",
         "bucket": "aub3temp",
         "next_tasks": [
@@ -12,51 +12,78 @@
             "operation": "perform_dataset_extraction",
             "arguments": {
               "next_tasks": [
-                              {"operation": "perform_detection", "arguments": {
-                  "frames_batch_size": 500,
-                  "detector":"coco",
-                  "next_tasks":[
-                      {"operation": "perform_transformation",
-                       "arguments": {
-                           "filters": {"event_id": "__parent_event__"},
-                           "next_tasks": [
-                               {"operation": "perform_indexing",
-                                "arguments": {
-                                    "index": "inception",
-                                    "target": "regions",
-                                    "filters": {"event_id": "__grand_parent_event__", "w__gte": 50, "h__gte": 50}
+                {
+                  "operation": "perform_detection",
+                  "arguments": {
+                    "frames_batch_size": 500,
+                    "detector": "coco",
+                    "next_tasks": [
+                      {
+                        "operation": "perform_transformation",
+                        "arguments": {
+                          "filters": {
+                            "event_id": "__parent_event__"
+                          },
+                          "next_tasks": [
+                            {
+                              "operation": "perform_indexing",
+                              "arguments": {
+                                "index": "inception",
+                                "target": "regions",
+                                "filters": {
+                                  "event_id": "__grand_parent_event__",
+                                  "w__gte": 50,
+                                  "h__gte": 50
                                 }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "operation": "perform_detection",
+                  "arguments": {
+                    "detector": "face",
+                    "frames_batch_size": 500,
+                    "next_tasks": [
+                      {
+                        "operation": "perform_transformation",
+                        "arguments": {
+                          "resize": [
+                            182,
+                            182
+                          ],
+                          "filters": {
+                            "event_id": "__parent_event__"
+                          },
+                          "next_tasks": [
+                            {
+                              "operation": "perform_indexing",
+                              "arguments": {
+                                "index": "facenet",
+                                "target": "regions",
+                                "filters": {
+                                  "event_id": "__grand_parent_event__"
                                 }
-                           ]
-                       }}
-                  ]}
-               },
-              {"operation": "perform_detection", "arguments": {
-                  "detector":"face",
-                  "frames_batch_size": 500,
-                  "next_tasks":[
-                      {"operation": "perform_transformation",
-                       "arguments": {
-                           "resize":[182,182],
-                           "filters": {"event_id": "__parent_event__"},
-                           "next_tasks": [
-                               {"operation": "perform_indexing",
-                                "arguments": {
-                                    "index": "facenet",
-                                    "target": "regions",
-                                    "filters": {"event_id": "__grand_parent_event__"}
-                                }
-                                }
-                           ]
-                       }}
-                  ]}
-               },
-              {"operation": "perform_indexing", "arguments":{
-                   "index": "inception",
-                   "frames_batch_size": 500,
-                   "target": "frames"
-               }}
-
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "operation": "perform_indexing",
+                  "arguments": {
+                    "index": "inception",
+                    "frames_batch_size": 500,
+                    "target": "frames"
+                  }
+                }
               ]
             }
           }

@@ -82,7 +82,7 @@ def get_map_filters(k, v):
                 map_filters.append({'segment_index__gte': gte})
     elif 'frames_batch_size' in k['arguments']:
         step = k['arguments']["frames_batch_size"]
-        vstop = v.segments
+        vstop = v.frames
         for gte, lt in [(start, start + step) for start in range(vstart, vstop, step)]:
             if lt < v.frames:  # to avoid off by one error
                 map_filters.append({'frame_index__gte': gte, 'frame_index__lt': lt})

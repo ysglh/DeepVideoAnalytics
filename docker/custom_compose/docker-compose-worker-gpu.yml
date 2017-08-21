@@ -2,7 +2,7 @@
  version: '3'
  services:
    dva:
-     image: akshayubhat/dva:gpu
+     image: akshayubhat/dva-auto:gpu
      container_name: dva-server
      environment:
        - DOCKER_MODE=true

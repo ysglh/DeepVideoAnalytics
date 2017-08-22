@@ -986,3 +986,23 @@ def submit(path):
 @task
 def start_scheduler():
     local("celery -A dva beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler")
+
+
+@task
+def test_api():
+    """
+    TEST REST API for CORS config
+    :return:
+    """
+    superu()
+    import django, requests
+    from django.contrib.auth.models import User
+    from rest_framework.authtoken.models import Token
+    sys.path.append(os.path.dirname(__file__))
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
+    django.setup()
+    token = Token.objects.get_or_create(user=User.objects.get(username="akshay"))
+    r = requests.post("http://localhost:8000/api/queries/",
+                      data={'script':file('dvaapp/test_scripts/url.json').read()},
+                      headers={'Authorization':'Token {}'.format(token)})
+    print r.status_code

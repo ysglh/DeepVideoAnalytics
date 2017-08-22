@@ -5,9 +5,9 @@
 <div class="row">
     <div class="box box-info">
         <div class="box-header">
-            <h4>Details for <a href="/videos/{{ object.video.pk }}">{{ object.video.name }}</a>
+            <h4>Details for <a href="/videos/{{ object.video_id }}">{{ object.video.name }}</a>
                 {% if object.video.dataset %} file named: {{ object.name }} {% else %} at {{ object.frame_index }}
-                <a href="/segments/by_index/{{ object.video.pk }}/{{ object.segment_index }}"> in Segment {{ object.segment_index }} </a>
+                <a href="/segments/by_index/{{ object.video_id }}/{{ object.segment_index }}"> in Segment {{ object.segment_index }} </a>
                 {% endif %}
             </h4>
         </div>
@@ -174,7 +174,13 @@
             <h4>{{ d.object_name }}</h4>
         </div>
         <div class="box-body text-center">
-            <img class="img-responsive" src="{{ MEDIA_URL }}{{ object.video.pk }}/regions/{{ d.pk }}.jpg" style="margin-left:auto;margin-right: auto">
+            {% if d.materialized %}
+                <img class="img-responsive" src="{{ MEDIA_URL }}{{ object.video_id }}/regions/{{ d.pk }}.jpg" style="margin-left:auto;margin-right: auto">
+            {% else %}
+                <div style="width: {{ k.w }}px; height: {{ k.h }}px; position: relative;overflow:hidden;margin: auto;">
+                    <img src="{{ url }}" id="image" style="position: absolute; top: -{{ k.y }}px; left: -{{ k.x }}px" />
+                </div>
+            {% endif %}
         </div>
         <div class="box-footer text-center">
             <h5>Confidence: {{ d.confidence|floatformat }}</h5>

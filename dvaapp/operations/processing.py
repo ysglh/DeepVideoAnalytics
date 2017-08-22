@@ -10,9 +10,14 @@ except ImportError:
     np = None
     logging.warning("Could not import indexer / clustering assuming running in front-end mode / Heroku")
 
-from ..models import Video,DVAPQL,IndexerQuery,QueryResults,TEvent
+from ..models import Video,DVAPQL,IndexerQuery,QueryResults,TEvent,Region
 from collections import defaultdict
 from celery.result import AsyncResult
+
+
+# def process_db_filter(args):
+#     if args['target'] == 'regions':
+#         return Region.objects.filter(**kwards)
 
 
 def get_queue_name(operation,args):

@@ -114,10 +114,30 @@ class RegionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Cre
     filter_fields = ('video',)
 
 
-class DVAPQLViewSet(viewsets.ReadOnlyModelViewSet):
+class DVAPQLViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
     queryset = DVAPQL.objects.all()
     serializer_class = serializers.DVAPQLSerializer
+
+    def perform_create(self, serializer):
+        # TODO enable token based authentication and launch DVAPQL process here
+        #serializer.save()
+        raise NotImplementedError
+
+    def perform_update(self, serializer):
+        """
+        Immutable Not allowed
+        :param serializer:
+        :return:
+        """
+        raise NotImplementedError
+
+    def perform_destroy(self, instance):
+        """
+        :param instance:
+        :return:
+        """
+        raise ValueError, "Not allowed to delete"
 
 
 class QueryResultsViewSet(viewsets.ReadOnlyModelViewSet):

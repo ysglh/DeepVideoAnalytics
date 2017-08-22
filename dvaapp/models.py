@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.postgres.fields import ArrayField, JSONField
+from django.conf import settings
 
 
 class VDNServer(models.Model):
@@ -178,6 +179,12 @@ class Frame(models.Model):
     def __unicode__(self):
         return u'{}:{}'.format(self.video_id, self.frame_index)
 
+    def path(self,media_root=None):
+        if media_root:
+            return "{}/{}/frames/{}.jpg".format(media_root, self.video_id, self.frame_index)
+        else:
+            return "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,self.video_id,self.frame_index)
+
 
 class Segment(models.Model):
     """
@@ -254,6 +261,11 @@ class Region(models.Model):
             self.parent_segment_index = self.frame.segment_index
         super(Region, self).save(*args, **kwargs)
 
+    def path(self,media_root):
+        if media_root:
+            return "{}/{}/regions/{}.jpg".format(media_root, self.video_id, self.pk)
+        else:
+            return "{}/{}/regions/{}.jpg".format(settings.MEDIA_ROOT, self.video_id, self.pk)
 
 class QueryResults(models.Model):
     query = models.ForeignKey(DVAPQL)

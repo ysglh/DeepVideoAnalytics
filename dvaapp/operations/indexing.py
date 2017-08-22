@@ -46,7 +46,7 @@ class IndexerTask(celery.Task):
                 'type': 'frame'
             }
             video_ids.add(df.video_id)
-            paths.append("{}/{}/frames/{}.jpg".format(media_dir, df.video_id, df.frame_index))
+            paths.append(df.path())
             entries.append(entry)
         if len(video_ids) != 1:
             raise NotImplementedError,"more/less than 1 video ids {}".format(video_ids)

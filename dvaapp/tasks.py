@@ -126,9 +126,9 @@ def perform_transformation(task_id):
             cropped = img.crop((dr.x, dr.y,dr.x + dr.w, dr.y + dr.h))
             if resize:
                 resized = cropped.resize(tuple(resize),Image.BICUBIC)
-                resized.save("{}/{}/regions/{}.jpg".format(settings.MEDIA_ROOT, video_id, dr.id))
+                resized.save(dr.path())
             else:
-                cropped.save("{}/{}/regions/{}.jpg".format(settings.MEDIA_ROOT, video_id, dr.id))
+                cropped.save(dr.path())
     queryset.update(materialized=True)
     process_next(task_id)
     start.completed = True
@@ -350,7 +350,7 @@ def perform_analysis(task_id):
     if target == 'frames':
         queryset = Frame.objects.all().filter(**kwargs)
         for f in queryset:
-            path = '{}/{}/frames/{}.jpg'.format(settings.MEDIA_ROOT,video_id,f.frame_index)
+            path = f.path()
             tags = analyzer.apply(path)
             a = Region()
             a.object_name = "OpenImagesTag"
@@ -686,7 +686,7 @@ def perform_segmentation(task_id):
     dd_list = []
     path_list = []
     for df in frames:
-        local_path = "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,video_id,df.frame_index)
+        local_path = df.path()
         segmentation = segmentor.detect(local_path)
         # for d in detections:
         #     dd = Region()

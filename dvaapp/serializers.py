@@ -102,9 +102,15 @@ class TubeLabelExportSerializer(serializers.ModelSerializer):
 
 
 class FrameSerializer(serializers.HyperlinkedModelSerializer):
+    media_url = serializers.SerializerMethodField()
+
+    def get_media_url(self,obj):
+        return "{}{}/frames/{}.jpg".format(settings.MEDIA_URL,obj.video_id,obj.frame_index)
+
     class Meta:
         model = Frame
-        fields = '__all__'
+        fields = ('url','media_url', 'video', 'frame_index', 'keyframe', 'w', 'h', 't',
+                  'name', 'subdir', 'id', 'segment_index')
 
 
 class SegmentSerializer(serializers.HyperlinkedModelSerializer):

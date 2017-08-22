@@ -1004,6 +1004,7 @@ def test_api():
         u = User.objects.get(username="akshay")
     except:
         superu()
+        u = User.objects.get(username="akshay")
     token = Token.objects.get_or_create(user=User.objects.get(username=u))
     r = requests.post("http://localhost:8000/api/queries/",
                       data={'script':file('dvaapp/test_scripts/url.json').read()},

@@ -995,11 +995,11 @@ def test_api():
     :return:
     """
     import django, requests
-    from django.contrib.auth.models import User
-    from rest_framework.authtoken.models import Token
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
+    from django.contrib.auth.models import User
+    from rest_framework.authtoken.models import Token
     try:
         u = User.objects.get(username="akshay")
     except:

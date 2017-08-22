@@ -989,12 +989,8 @@ def start_scheduler():
 
 
 @task
-def test_api(port=80):
-    """
-    TEST REST API for CORS config
-    :return:
-    """
-    import django, requests
+def store_token_for_testing():
+    import django
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
@@ -1006,7 +1002,21 @@ def test_api(port=80):
         superu()
         u = User.objects.get(username="akshay")
     token, _ = Token.objects.get_or_create(user=User.objects.get(username=u))
-    headers={'Authorization':'Token {}'.format(token.key)}
+    with open('creds.json','w') as creds:
+        creds.write(json.dumps({'token':token.key}))
+
+
+@task
+def test_api(port=80):
+    """
+    TEST REST API for CORS config
+    :return:
+    """
+    import requests
+    if not os.path.isfile('creds.json'):
+        store_token_for_testing()
+    token = json.loads('creds.json')['token']
+    headers={'Authorization':'Token {}'.format(token)}
     r = requests.post("http://localhost:{}/api/queries/".format(port),
                       data={'script':file('dvaapp/test_scripts/url.json').read()},
                       headers=headers)

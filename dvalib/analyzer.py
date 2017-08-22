@@ -8,17 +8,15 @@ from PIL import Image
 import logging
 import numpy as np
 
-try:
-    if os.environ.get('PYTORCH_MODE',True):
-        import dvalib.crnn.utils as utils
-        import dvalib.crnn.dataset as dataset
-        import torch
-        from torch.autograd import Variable
-        import dvalib.crnn.models.crnn as crnn
-        logging.info("In pytorch mode, not importing TF")
-    else:
-        logging.warning("Not importing anything assuming Caffe mode")
-except ImportError:
+
+if os.environ.get('PYTORCH_MODE',False):
+    import dvalib.crnn.utils as utils
+    import dvalib.crnn.dataset as dataset
+    import torch
+    from torch.autograd import Variable
+    import dvalib.crnn.models.crnn as crnn
+    logging.info("In pytorch mode, not importing TF")
+else:
     import tensorflow as tf
     from tensorflow.contrib.slim.python.slim.nets import inception
     from tensorflow.python.training import saver as tf_saver
@@ -46,7 +44,7 @@ def inception_preprocess(image, central_fraction=0.875):
 
 class OpenImagesAnnotator(BaseAnnotator):
 
-    def __init__(self):
+    def __init__(self,gpu_fraction=None):
         super(OpenImagesAnnotator, self).__init__()
         self.name = "inception"
         self.net = None
@@ -66,12 +64,17 @@ class OpenImagesAnnotator(BaseAnnotator):
         for line in tf.gfile.GFile(self.dict_path).readlines():
             words = [word.strip(' "\n') for word in line.split(',', 1)]
             self.label_dict[words[0]] = words[1]
+        if gpu_fraction:
+            self.gpu_fraction = gpu_fraction
+        else:
+            self.gpu_fraction = float(os.environ.get('GPU_MEMORY', 0.15))
+
 
     def load(self):
         if self.session is None:
             logging.warning("Loading the network {} , first apply / query will be slower".format(self.name))
             config = tf.ConfigProto()
-            config.gpu_options.per_process_gpu_memory_fraction = 0.15
+            config.gpu_options.per_process_gpu_memory_fraction = self.gpu_fraction
             network_path = os.path.abspath(__file__).split('annotator.py')[0]+'data/2016_08/model.ckpt'
             g = tf.Graph()
             with g.as_default():

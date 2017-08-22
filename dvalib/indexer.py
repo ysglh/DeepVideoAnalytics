@@ -1,14 +1,18 @@
-import numpy as np
 import os,logging,json
 from scipy import spatial
-try:
-    from tensorflow.python.platform import gfile
-    from facenet import facenet
-    import tensorflow as tf
-except ImportError:
-    logging.warning("Could not import Tensorflow assuming operating in either frontend or caffe/pytorch mode")
+import numpy as np
 import time
 from collections import namedtuple
+
+if os.environ.get('PYTORCH_MODE',False):
+    pass
+else:
+    try:
+        from tensorflow.python.platform import gfile
+        from facenet import facenet
+        import tensorflow as tf
+    except ImportError:
+        logging.warning("Could not import Tensorflow assuming operating in either frontend or caffe/pytorch mode")
 
 
 IndexRange = namedtuple('IndexRange',['start','end'])

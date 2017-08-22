@@ -938,22 +938,14 @@ def qt():
     django.setup()
     from django.core.files.uploadedfile import SimpleUploadedFile
     from dvaapp.views import handle_uploaded_file
-    from dvaapp.models import Video, TEvent
-    from dvaapp.tasks import perform_dataset_extraction,perform_detection,perform_indexing,perform_video_segmentation
-    for fname in glob.glob('tests/ci/*.mp4'):
-        name = fname.split('/')[-1].split('.')[0]
-        f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/mp4")
-        v = handle_uploaded_file(f, name)
+    # for fname in glob.glob('tests/ci/*.mp4'):
+    #     name = fname.split('/')[-1].split('.')[0]
+    #     f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/mp4")
+    #     v = handle_uploaded_file(f, name)
     for fname in glob.glob('tests/example*.zip'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
         v = handle_uploaded_file(f, name)
-        # arguments = {'sync': True}
-        # perform_video_segmentation(TEvent.objects.create(video=v, arguments=arguments).pk)
-        # arguments = {'detector': 'face_mtcnn'}
-        # perform_detection(TEvent.objects.create(video=v).pk)
-        # args = {'index': 'facenet','target': 'regions','filter':{'object_name__startswith':'MTCNN_face'}}
-        # perform_indexing(TEvent.objects.create(video=v,arguments=args).pk)
 
 
 @task

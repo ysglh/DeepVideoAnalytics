@@ -134,9 +134,9 @@ class Video(models.Model):
 
     def path(self,media_root=None):
         if media_root:
-            return "{}/{}/video/{}.mp4".format(media_root, self.video_id, self.video_id)
+            return "{}/{}/video/{}.mp4".format(media_root, self.pk, self.pk)
         else:
-            return "{}/{}/video/{}.mp4".format(settings.MEDIA_ROOT,self.video_id,self.video_id)
+            return "{}/{}/video/{}.mp4".format(settings.MEDIA_ROOT,self.pk,self.pk)
 
 
 

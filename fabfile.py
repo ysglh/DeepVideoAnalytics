@@ -989,7 +989,7 @@ def start_scheduler():
 
 
 @task
-def test_api():
+def test_api(port=80):
     """
     TEST REST API for CORS config
     :return:
@@ -1006,7 +1006,7 @@ def test_api():
         superu()
         u = User.objects.get(username="akshay")
     token = Token.objects.get_or_create(user=User.objects.get(username=u))
-    r = requests.post("http://localhost:80/api/queries/",
+    r = requests.post("http://localhost:{}/api/queries/".format(port),
                       data={'script':file('dvaapp/test_scripts/url.json').read()},
                       headers={'Authorization':'Token {}'.format(token)})
     print r.status_code

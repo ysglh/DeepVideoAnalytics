@@ -126,9 +126,20 @@ class SegmentSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class RegionSerializer(serializers.HyperlinkedModelSerializer):
+    media_url = serializers.SerializerMethodField()
+
+    def get_media_url(self,obj):
+        if obj.materialized:
+            return "{}{}/regions/{}.jpg".format(settings.MEDIA_URL,obj.video_id,obj.pk)
+        else:
+            return None
+
+
     class Meta:
         model = Region
-        fields = '__all__'
+        fields = ('media_url','region_type','video','user','frame','event','parent_frame_index',
+                  'parent_segment_index','text','metadata','full_frame','x','y','h','w',
+                  'polygon_points_json','created','object_name','confidence','materialized','png')
 
 
 class TubeSerializer(serializers.HyperlinkedModelSerializer):
@@ -566,8 +577,6 @@ class VideoImporter(object):
             da.event_id = self.event_to_pk[a['event']]
         da.parent_frame_index = a['parent_frame_index']
         da.parent_segment_index = a.get('parent_segment_index', -1)
-        if self.video.vdn_dataset:
-            da.vdn_dataset = self.video.vdn_dataset
         return da
 
     def create_frame(self, f):

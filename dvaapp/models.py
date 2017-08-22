@@ -256,7 +256,6 @@ class Region(models.Model):
     event = models.ForeignKey(TEvent, null=True)  # TEvent that created this region
     parent_frame_index = models.IntegerField(default=-1)
     parent_segment_index = models.IntegerField(default=-1,null=True)
-
     text = models.TextField(default="")
     metadata = JSONField(blank=True,null=True)
     full_frame = models.BooleanField(default=False)
@@ -264,10 +263,8 @@ class Region(models.Model):
     y = models.IntegerField(default=0)
     h = models.IntegerField(default=0)
     w = models.IntegerField(default=0)
-    polygon_points_json = models.TextField(default="[]")
+    polygon_points = JSONField(blank=True,null=True)
     created = models.DateTimeField('date created', auto_now_add=True)
-    vdn_dataset = models.ForeignKey(VDNDataset,null=True)
-    vdn_key = models.IntegerField(default=-1)
     object_name = models.CharField(max_length=100)
     confidence = models.FloatField(default=0.0)
     materialized = models.BooleanField(default=False)

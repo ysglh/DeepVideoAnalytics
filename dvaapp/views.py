@@ -26,6 +26,7 @@ from django.contrib.auth.decorators import user_passes_test,login_required
 from django.utils.decorators import method_decorator
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django_celery_results.models import TaskResult
+from rest_framework.authtoken.models import Token
 import logging
 try:
     from django.contrib.postgres.search import SearchVector
@@ -43,6 +44,10 @@ class LoginRequiredMixin(object):
 
 def user_check(user):
     return user.is_authenticated or settings.AUTH_DISABLED
+
+
+def force_user_check(user):
+    return user.is_authenticated
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
@@ -121,9 +126,10 @@ class DVAPQLViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.DVAPQLSerializer
 
     def perform_create(self, serializer):
-        # TODO enable token based authentication and launch DVAPQL process here
-        #serializer.save()
-        raise NotImplementedError
+        p = DVAPQLProcess()
+        spec = json.loads(self.request.POST.get('script'))
+        p.create_from_json(spec, self.request.user)
+        p.launch()
 
     def perform_update(self, serializer):
         """
@@ -1155,6 +1161,14 @@ def delete_object(request):
             if annotation.region_type == Region.ANNOTATION:
                 annotation.delete()
     return JsonResponse({'status': True})
+
+
+@user_passes_test(force_user_check)
+def security(request):
+    context = {}
+    context['username'] = request.user.username
+    context['token'], created = Token.objects.get_or_create(user=request.user)
+    return render(request, 'security.html', context=context)
 
 
 @user_passes_test(user_check)

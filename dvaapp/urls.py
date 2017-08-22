@@ -83,6 +83,7 @@ urlpatterns = [
     url(r'^annotate_frame/(?P<frame_pk>\d+)/$', views.annotate, name='annotate_frame'),
     url(r'^annotate_entire_frame/(?P<frame_pk>\d+)/$', views.annotate_entire_frame, name='annotate_entire_frame'),
     url(r'^delete', views.delete_object, name='delete_object'),
+    url(r'^security', views.security, name='security'),
     url(r'^api/', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^login/$', auth_views.login, name='login'),

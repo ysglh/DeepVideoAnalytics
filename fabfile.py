@@ -148,6 +148,8 @@ def clean():
             pass
     init_server()
     init_fs()
+    if sys.platform == 'darwin':
+        superu()
 
 @task
 def restart_queues():

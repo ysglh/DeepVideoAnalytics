@@ -24,7 +24,6 @@ virtualenv:
 
 env:
   global:
-    - YOLO_ENABLE=1
     - AUTH_DISABLED=1
 
 before_install:

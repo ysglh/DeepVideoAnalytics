@@ -1168,8 +1168,20 @@ def delete_object(request):
 def security(request):
     context = {}
     context['username'] = request.user.username
-    context['token'], created = Token.objects.get_or_create(user=request.user)
+    token, created = Token.objects.get_or_create(user=request.user)
+    context['token'] = token
     return render(request, 'security.html', context=context)
+
+
+@user_passes_test(force_user_check)
+def expire_token(request):
+    # TODO Check if this is correct
+    if request.method == 'POST':
+        if request.POST.get('expire',False):
+            token, created = Token.objects.get_or_create(user=request.user)
+            if not created:
+                token.delete()
+    return redirect("security")
 
 
 @user_passes_test(user_check)

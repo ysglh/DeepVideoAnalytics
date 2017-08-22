@@ -261,7 +261,7 @@ class Region(models.Model):
             self.parent_segment_index = self.frame.segment_index
         super(Region, self).save(*args, **kwargs)
 
-    def path(self,media_root):
+    def path(self,media_root=None):
         if media_root:
             return "{}/{}/regions/{}.jpg".format(media_root, self.video_id, self.pk)
         else:

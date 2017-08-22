@@ -73,3 +73,19 @@ script:
   - wget --quiet http://www.visualdata.network/vdn/api/
   - wget --quiet http://www.visualdata.network/vdn/
   - wget --quiet http://www.visualdata.network/vdn/get_token/
+  - wget --quiet localhost:8000/api/users/
+  - wget --quiet localhost:8000/api/videos/
+  - wget --quiet localhost:8000/api/tubes/
+  - wget --quiet localhost:8000/api/frames/
+  - wget --quiet localhost:8000/api/framelabels/
+  - wget --quiet localhost:8000/api/regionlabels/
+  - wget --quiet localhost:8000/api/segmentlabels/
+  - wget --quiet localhost:8000/api/tubelabels/
+  - wget --quiet localhost:8000/api/videolabels/
+  - wget --quiet localhost:8000/api/labels/
+  - wget --quiet localhost:8000/api/segments/
+  - wget --quiet localhost:8000/api/regions/
+  - wget --quiet localhost:8000/api/queries/
+  - wget --quiet localhost:8000/api/queryresults/
+  - wget --quiet localhost:8000/api/indexentries/
+  - wget --quiet localhost:8000/api/events/

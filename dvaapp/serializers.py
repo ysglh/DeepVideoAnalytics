@@ -137,9 +137,9 @@ class RegionSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Region
-        fields = ('media_url','region_type','video','user','frame','event','parent_frame_index',
+        fields = ('url','media_url','region_type','video','user','frame','event','parent_frame_index',
                   'parent_segment_index','text','metadata','full_frame','x','y','h','w',
-                  'polygon_points_json','created','object_name','confidence','materialized','png')
+                  'polygon_points','created','object_name','confidence','materialized','png')
 
 
 class TubeSerializer(serializers.HyperlinkedModelSerializer):

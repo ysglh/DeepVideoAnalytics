@@ -1015,7 +1015,7 @@ def test_api(port=80):
     import requests
     if not os.path.isfile('creds.json'):
         store_token_for_testing()
-    token = json.loads('creds.json')['token']
+    token = json.loads(file('creds.json').read())['token']
     headers={'Authorization':'Token {}'.format(token)}
     r = requests.post("http://localhost:{}/api/queries/".format(port),
                       data={'script':file('dvaapp/test_scripts/url.json').read()},

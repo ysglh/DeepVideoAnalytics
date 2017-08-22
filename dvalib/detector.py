@@ -92,7 +92,7 @@ class BaseDetector(object):
 
 class TFDetector(BaseDetector):
 
-    def __init__(self,model_path,class_index_to_string):
+    def __init__(self,model_path,class_index_to_string,gpu_fraction=None):
         super(TFDetector, self).__init__()
         self.model_path = model_path
         self.class_index_to_string = class_index_to_string
@@ -101,6 +101,11 @@ class TFDetector(BaseDetector):
         self.filenames_placeholder = None
         self.image = None
         self.fname = None
+        if gpu_fraction:
+            self.gpu_fraction = gpu_fraction
+        else:
+            self.gpu_fraction = float(os.environ.get('GPU_MEMORY', 0.20))
+
 
     def detect(self,image_path,min_score=0.20):
         self.session.run(self.iterator.initializer, feed_dict={self.filenames_placeholder: [image_path,]})
@@ -138,7 +143,7 @@ class TFDetector(BaseDetector):
                 self.image, self.fname = self.iterator.get_next()
                 tf.import_graph_def(self.od_graph_def, name='',input_map={'image_tensor': self.image})
             config = tf.ConfigProto()
-            config.gpu_options.per_process_gpu_memory_fraction = 0.20
+            config.gpu_options.per_process_gpu_memory_fraction = self.gpu_fraction
             self.session = tf.Session(graph=self.detection_graph,config=config)
             self.boxes = self.detection_graph.get_tensor_by_name('detection_boxes:0')
             self.scores = self.detection_graph.get_tensor_by_name('detection_scores:0')
@@ -164,19 +169,23 @@ class YOLODetector(BaseDetector):
 
 class FaceDetector():
 
-    def __init__(self,session=None):
+    def __init__(self,session=None,gpu_fraction=None):
         self.image_size = 182
         self.margin = 44
-        self.gpu_memory_fraction = 0.20
         self.session = session
         self.minsize = 20
         self.threshold = [0.6, 0.7, 0.7]
         self.factor = 0.709
+        if gpu_fraction:
+            self.gpu_fraction = gpu_fraction
+        else:
+            self.gpu_fraction = float(os.environ.get('GPU_MEMORY', 0.20))
+
 
     def load(self):
         logging.info('Creating networks and loading parameters')
         with tf.Graph().as_default():
-            gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=self.gpu_memory_fraction)
+            gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=self.gpu_fraction)
             self.session = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=False))
             with self.session.as_default():
                 self.pnet, self.rnet, self.onet = detect_face.create_mtcnn(self.session, None)

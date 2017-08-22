@@ -85,7 +85,7 @@ class InceptionIndexer(BaseIndexer):
     Batched inception indexer
     """
 
-    def __init__(self,model_path,batch_size=8,gpu_fraction=0.2,session=None):
+    def __init__(self,model_path,batch_size=8,gpu_fraction=None,session=None):
         super(InceptionIndexer, self).__init__()
         self.name = "inception"
         self.net = None
@@ -101,7 +101,10 @@ class InceptionIndexer(BaseIndexer):
         self.iterator = None
         self.support_batching = True
         self.batch_size = batch_size
-        self.gpu_fraction = gpu_fraction
+        if gpu_fraction:
+            self.gpu_fraction = gpu_fraction
+        else:
+            self.gpu_fraction = float(os.environ.get('GPU_MEMORY', 0.2))
 
     def load(self):
         if self.graph_def is None:
@@ -155,7 +158,7 @@ class VGGIndexer(BaseIndexer):
     Batched VGG indexer
     """
 
-    def __init__(self,model_path,batch_size=8,gpu_fraction=0.2,session=None):
+    def __init__(self,model_path,batch_size=8,gpu_fraction=None,session=None):
         super(VGGIndexer, self).__init__()
         self.name = "vgg"
         self.net = None
@@ -171,7 +174,10 @@ class VGGIndexer(BaseIndexer):
         self.iterator = None
         self.support_batching = True
         self.batch_size = batch_size
-        self.gpu_fraction = gpu_fraction
+        if gpu_fraction:
+            self.gpu_fraction = gpu_fraction
+        else:
+            self.gpu_fraction = float(os.environ.get('GPU_MEMORY', 0.2))
 
     def load(self):
         if self.graph_def is None:
@@ -223,7 +229,7 @@ class VGGIndexer(BaseIndexer):
 
 class FacenetIndexer(BaseIndexer):
 
-    def __init__(self,model_path):
+    def __init__(self,model_path,gpu_fraction=None):
         super(FacenetIndexer, self).__init__()
         self.name = "facenet"
         self.network_path = model_path
@@ -238,6 +244,11 @@ class FacenetIndexer(BaseIndexer):
         self.filenames_placeholder = None
         self.emb = None
         self.batch_size = 32
+        if gpu_fraction:
+            self.gpu_fraction = gpu_fraction
+        else:
+            self.gpu_fraction = float(os.environ.get('GPU_MEMORY', 0.15))
+
 
     def load(self):
         if self.graph_def is None:
@@ -257,7 +268,7 @@ class FacenetIndexer(BaseIndexer):
         if self.session is None:
             logging.warning("Creating a session {} , first apply / query will be slower".format(self.name))
             config = tf.ConfigProto()
-            config.gpu_options.per_process_gpu_memory_fraction = 0.15
+            config.gpu_options.per_process_gpu_memory_fraction = self.gpu_fraction
             self.session = tf.InteractiveSession(config=config)
 
     def apply(self, image_path):
@@ -326,7 +337,7 @@ class BaseCustomIndexer(object):
 
 class CustomTFIndexer(BaseCustomIndexer):
 
-    def __init__(self,name,network_path,input_op,embedding_op):
+    def __init__(self,name,network_path,input_op,embedding_op,gpu_fraction=None):
         super(CustomTFIndexer, self).__init__()
         self.name = name
         self.network_path = network_path
@@ -340,12 +351,17 @@ class CustomTFIndexer(BaseCustomIndexer):
         self.image = None
         self.filenames_placeholder = None
         self.emb = None
+        if gpu_fraction:
+            self.gpu_fraction = gpu_fraction
+        else:
+            self.gpu_fraction = float(os.environ.get('GPU_MEMORY', 0.15))
+
 
     def load(self):
         if self.session is None:
             logging.warning("Loading the network {} , first apply / query will be slower".format(self.name))
             config = tf.ConfigProto()
-            config.gpu_options.per_process_gpu_memory_fraction = 0.15
+            config.gpu_options.per_process_gpu_memory_fraction = self.gpu_fraction
             self.session = tf.InteractiveSession(config=config)
             self.filenames_placeholder = tf.placeholder("string")
             dataset = tf.contrib.data.Dataset.from_tensor_slices(self.filenames_placeholder)

@@ -81,52 +81,40 @@ INSTALLED_APPS = [
                      'rest_framework.authtoken'
                  ] + (['dvap', ] if DVA_PRIVATE_ENABLE else [])+ (['debug_toolbar','django_celery_beat'] if MACOS and DEBUG else [])
 
-if VDN_ENABLE:
-    MIDDLEWARE_CLASSES = [
-        'corsheaders.middleware.CorsMiddleware',
-        'django.middleware.security.SecurityMiddleware',
-        'django.contrib.sessions.middleware.SessionMiddleware',
-        'django.middleware.common.CommonMiddleware',
-        'django.middleware.csrf.CsrfViewMiddleware',
-        'django.contrib.auth.middleware.AuthenticationMiddleware',
-        'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
-        'django.contrib.messages.middleware.MessageMiddleware',
-        'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    ]
-    if MACOS and DEBUG:
-        MIDDLEWARE_CLASSES = ['debug_toolbar.middleware.DebugToolbarMiddleware',] +MIDDLEWARE_CLASSES
-    CORS_ORIGIN_ALLOW_ALL = True
+
+MIDDLEWARE_CLASSES = [
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+if MACOS and DEBUG:
+    MIDDLEWARE_CLASSES = ['debug_toolbar.middleware.DebugToolbarMiddleware',] +MIDDLEWARE_CLASSES
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_METHODS = ('POST', 'GET',)
+CORS_ALLOW_CREDENTIALS = True
+if VDN_ENABLE and HEROKU_DEPLOY:
     CORS_URLS_REGEX = r'^vdn/api/.*$'
-    CORS_ALLOW_METHODS = ('POST', 'GET',)
-    CORS_ALLOW_CREDENTIALS = True
-    REST_FRAMEWORK = {
-        'PAGE_SIZE': 10,
-        'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
-        'DEFAULT_PERMISSION_CLASSES': (
-            'rest_framework.permissions.IsAuthenticatedOrReadOnly',
-        ),
-        'DEFAULT_AUTHENTICATION_CLASSES': (
-            'rest_framework.authentication.BasicAuthentication',
-            'rest_framework.authentication.SessionAuthentication',
-            'rest_framework.authentication.TokenAuthentication',
-        )
-    }
 else:
-    MIDDLEWARE = [
-        'django.middleware.security.SecurityMiddleware',
-        'django.contrib.sessions.middleware.SessionMiddleware',
-        'django.middleware.common.CommonMiddleware',
-        'django.middleware.csrf.CsrfViewMiddleware',
-        'django.contrib.auth.middleware.AuthenticationMiddleware',
-        'django.contrib.messages.middleware.MessageMiddleware',
-        'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    ]
-    if MACOS and DEBUG:
-        MIDDLEWARE = ['debug_toolbar.middleware.DebugToolbarMiddleware',] + MIDDLEWARE
-    REST_FRAMEWORK = {
-        'PAGE_SIZE': 10,
-        'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
-    }
+    CORS_URLS_REGEX = r'^api/.*$'
+REST_FRAMEWORK = {
+    'PAGE_SIZE': 10,
+    'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    )
+}
 
 PATH_PROJECT = os.path.realpath(os.path.dirname(__file__))
 

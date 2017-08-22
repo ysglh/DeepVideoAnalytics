@@ -24,7 +24,7 @@ class VideoDecoder(object):
         self.dvideo = dvideo
         self.primary_key = self.dvideo.pk
         self.media_dir = media_dir
-        self.local_path = "{}/{}/video/{}.mp4".format(self.media_dir,self.primary_key,self.primary_key)
+        self.local_path = dvideo.path()
         self.segments_dir = "{}/{}/segments/".format(self.media_dir,self.primary_key)
         self.duration = None
         self.width = None
@@ -95,8 +95,7 @@ class VideoDecoder(object):
 
     def decode_segment(self,ds,denominator,rescale):
         output_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'frames')
-        segments_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'segments',)
-        input_segment = "{}{}.mp4".format(self.segments_dir, ds.segment_index)
+        input_segment = ds.path()
         ffmpeg_command = 'ffmpeg -fflags +igndts -loglevel panic -i {} -vf'.format(input_segment) # Alternative to igndts is setting vsync vfr
         df_list = []
         if rescale:
@@ -110,7 +109,7 @@ class VideoDecoder(object):
             _ = sp.check_output(shlex.split(command), stderr=sp.STDOUT)
         except:
             raise ValueError,"for {} could not run {}".format(self.dvideo.name,command)
-        with open("{}{}.txt".format(segments_dir, ds.segment_index)) as framelist:
+        with open(ds.framelist_path()) as framelist:
             segment_frames_dict = self.parse_segment_framelist(ds.segment_index, framelist.read())
         ordered_frames = sorted([(k,v) for k,v in segment_frames_dict.iteritems() if k%denominator == 0 or v['type'] == 'I'])
         frame_width, frame_height = 0, 0

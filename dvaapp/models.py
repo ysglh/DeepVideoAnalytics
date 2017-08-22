@@ -103,6 +103,12 @@ class IndexerQuery(models.Model):
     approximate = models.BooleanField(default=False)
     user = models.ForeignKey(User, null=True)
 
+    def path(self,media_root=None):
+        if media_root:
+            return "{}/queries/{}_{}.png".format(media_root, self.algorithm, self.parent_query.pk)
+        else:
+            return "{}/queries/{}_{}.png".format(settings.MEDIA_ROOT, self.algorithm, self.parent_query.pk)
+
 
 class Video(models.Model):
     name = models.CharField(max_length=500,default="")
@@ -125,6 +131,13 @@ class Video(models.Model):
 
     def __unicode__(self):
         return u'{}'.format(self.name)
+
+    def path(self,media_root=None):
+        if media_root:
+            return "{}/{}/video/{}.mp4".format(media_root, self.video_id, self.video_id)
+        else:
+            return "{}/{}/video/{}.mp4".format(settings.MEDIA_ROOT,self.video_id,self.video_id)
+
 
 
 class Clusters(models.Model):
@@ -206,6 +219,18 @@ class Segment(models.Model):
     def __unicode__(self):
         return u'{}:{}'.format(self.video_id, self.segment_index)
 
+    def path(self, media_root=None):
+        if media_root:
+            return "{}/{}/segments/{}.mp4".format(media_root, self.video_id, self.segment_index)
+        else:
+            return "{}/{}/segments/{}.mp4".format(settings.MEDIA_ROOT, self.video_id, self.segment_index)
+
+    def framelist_path(self, media_root=None):
+        if media_root:
+            return "{}/{}/segments/{}.txt".format(media_root, self.video_id, self.segment_index)
+        else:
+            return "{}/{}/segments/{}.txt".format(settings.MEDIA_ROOT, self.video_id, self.segment_index)
+
 
 class Region(models.Model):
     """
@@ -266,6 +291,13 @@ class Region(models.Model):
             return "{}/{}/regions/{}.jpg".format(media_root, self.video_id, self.pk)
         else:
             return "{}/{}/regions/{}.jpg".format(settings.MEDIA_ROOT, self.video_id, self.pk)
+
+    def frame_path(self,media_root=None):
+        if media_root:
+            return "{}/{}/frames/{}.jpg".format(media_root, self.video_id, self.parent_frame_index)
+        else:
+            return "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT, self.video_id, self.parent_frame_index)
+
 
 class QueryResults(models.Model):
     query = models.ForeignKey(DVAPQL)

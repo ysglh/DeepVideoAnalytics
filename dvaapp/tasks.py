@@ -41,7 +41,7 @@ def perform_indexing(task_id):
     sync = True
     if target == 'query':
         iq = IndexerQuery.objects.get(id=json_args['iq_id'])
-        local_path = "{}/queries/{}_{}.png".format(settings.MEDIA_ROOT, iq.algorithm, iq.parent_query.pk)
+        local_path = iq.path()
         with open(local_path, 'w') as fh:
             fh.write(str(iq.parent_query.image_data))
         vector = visual_index.apply(local_path)
@@ -118,8 +118,7 @@ def perform_transformation(task_id):
     logging.info("executing crop with kwargs {}".format(kwargs))
     queryset = Region.objects.all().filter(**kwargs)
     for dr in queryset:
-        path = "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,video_id,dr.parent_frame_index)
-        paths_to_regions[path].append(dr)
+        paths_to_regions[dr.frame_path()].append(dr)
     for path,regions in paths_to_regions.iteritems():
         img = Image.open(path)
         for dr in regions:
@@ -290,7 +289,7 @@ def perform_detection(task_id):
     dd_list = []
     path_list = []
     for df in frames:
-        local_path = "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,video_id,df.frame_index)
+        local_path = df.path()
         detections = detector.detect(local_path)
         for d in detections:
             dd = Region()

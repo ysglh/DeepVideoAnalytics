@@ -114,9 +114,15 @@ class FrameSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class SegmentSerializer(serializers.HyperlinkedModelSerializer):
+    media_url = serializers.SerializerMethodField()
+
+    def get_media_url(self,obj):
+        return "{}{}/segments/{}.mp4".format(settings.MEDIA_URL,obj.video_id,obj.segment_index)
+
     class Meta:
         model = Segment
-        fields = '__all__'
+        fields = ('video','segment_index','start_time','end_time','metadata',
+                  'frame_count','start_index','start_frame','end_frame','url','media_url')
 
 
 class RegionSerializer(serializers.HyperlinkedModelSerializer):

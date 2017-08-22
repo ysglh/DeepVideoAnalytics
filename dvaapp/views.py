@@ -40,6 +40,7 @@ class LoginRequiredMixin(object):
     def dispatch(self, *args, **kwargs):
         return super(LoginRequiredMixin, self).dispatch(*args, **kwargs)
 
+
 def user_check(user):
     return user.is_authenticated or settings.AUTH_DISABLED
 

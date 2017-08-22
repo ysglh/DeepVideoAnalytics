@@ -487,19 +487,16 @@ def startq(queue_name,conc=3):
     django.setup()
     from django.conf import settings
     mute = '--without-gossip --without-mingle --without-heartbeat' if 'CELERY_MUTE' in os.environ else ''
-    if queue_name in settings.QUEUES:
-        if queue_name == settings.Q_MANAGER:
-            command = 'celery -A dva worker -l info {} -c 1 -Q qmanager -n manager.%h -f logs/qmanager.log'.format(mute)
-        elif queue_name == settings.Q_EXTRACTOR:
-            command = 'celery -A dva worker -l info {} -c {} -Q {} -n {}.%h -f logs/{}.log'.format(mute,max(int(conc),2), queue_name,queue_name,queue_name)
-            # TODO: worker fails due to
-            # https://github.com/celery/celery/issues/3620
-        else:
-            command = 'celery -A dva worker -l info {} -P solo -c {} -Q {} -n {}.%h -f logs/{}.log'.format(mute,1, queue_name,queue_name,queue_name)
-        logging.info(command)
-        os.system(command)
+    if queue_name == settings.Q_MANAGER:
+        command = 'celery -A dva worker -l info {} -c 1 -Q qmanager -n manager.%h -f logs/qmanager.log'.format(mute)
+    elif queue_name == settings.Q_EXTRACTOR:
+        command = 'celery -A dva worker -l info {} -c {} -Q {} -n {}.%h -f logs/{}.log'.format(mute,max(int(conc),2), queue_name,queue_name,queue_name)
+        # TODO: worker fails due to
+        # https://github.com/celery/celery/issues/3620
     else:
-        raise ValueError, "Queue {} not found".format(queue_name)
+        command = 'celery -A dva worker -l info {} -P solo -c {} -Q {} -n {}.%h -f logs/{}.log'.format(mute,1, queue_name,queue_name,queue_name)
+    logging.info(command)
+    os.system(command)
 
 
 

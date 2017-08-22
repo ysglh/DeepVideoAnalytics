@@ -994,14 +994,17 @@ def test_api():
     TEST REST API for CORS config
     :return:
     """
-    superu()
     import django, requests
     from django.contrib.auth.models import User
     from rest_framework.authtoken.models import Token
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
-    token = Token.objects.get_or_create(user=User.objects.get(username="akshay"))
+    try:
+        u = User.objects.get(username="akshay")
+    except:
+        superu()
+    token = Token.objects.get_or_create(user=User.objects.get(username=u))
     r = requests.post("http://localhost:8000/api/queries/",
                       data={'script':file('dvaapp/test_scripts/url.json').read()},
                       headers={'Authorization':'Token {}'.format(token)})

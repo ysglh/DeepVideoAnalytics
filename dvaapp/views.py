@@ -126,7 +126,8 @@ class DVAPQLViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.DVAPQLSerializer
 
     def perform_create(self, serializer):
-        p = DVAPQLProcess()
+        instance = serializer.save(user=self.request.user)
+        p = DVAPQLProcess(instance)
         spec = json.loads(self.request.POST.get('script'))
         p.create_from_json(spec, self.request.user)
         p.launch()

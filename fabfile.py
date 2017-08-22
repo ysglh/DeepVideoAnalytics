@@ -1005,8 +1005,9 @@ def test_api(port=80):
     except:
         superu()
         u = User.objects.get(username="akshay")
-    token = Token.objects.get_or_create(user=User.objects.get(username=u))
+    token, _ = Token.objects.get_or_create(user=User.objects.get(username=u))
+    headers={'Authorization':'Token {}'.format(token.key)}
     r = requests.post("http://localhost:{}/api/queries/".format(port),
                       data={'script':file('dvaapp/test_scripts/url.json').read()},
-                      headers={'Authorization':'Token {}'.format(token)})
+                      headers=headers)
     print r.status_code

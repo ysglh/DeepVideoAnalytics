@@ -18,30 +18,12 @@ from rest_framework import routers
 from rest_framework.authtoken.models import Token
 
 
-class UserSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = User
-        fields = ('url', 'username','password')
-        extra_kwargs = {
-            'password': {'write_only': True},
-        }
-
-    # def create(self, validated_data):
-    #     user = User.objects.create_user(**validated_data)
-    #     return user
-    #
-    # def update(self, instance, validated_data):
-    #     if 'password' in validated_data:
-    #         password = validated_data.pop('password')
-    #         instance.set_password(password)
-    #     return super(UserSerializer, self).update(instance, validated_data)
-
-
 class DatasetSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         depth=1
         model = Dataset
         fields = '__all__'
+
 
 class DetectorSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -56,17 +38,10 @@ class AnnotationSerializer(serializers.HyperlinkedModelSerializer):
         fields = '__all__'
 
 
-
 class OrganizationSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Organization
         fields = '__all__'
-
-
-
-class UserViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
 
 
 class DatasetViewSet(viewsets.ModelViewSet):
@@ -146,13 +121,14 @@ class AnnotationViewSet(viewsets.ModelViewSet):
         else:
             raise ValueError,"User not allowed to delete"
 
+
 class OrganizationViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = Organization.objects.all()
     serializer_class = OrganizationSerializer
 
+
 router = routers.DefaultRouter()
-router.register(r'users', UserViewSet)
 router.register(r'datasets', DatasetViewSet)
 router.register(r'detectors', DetectorViewSet)
 router.register(r'organizations', OrganizationViewSet)

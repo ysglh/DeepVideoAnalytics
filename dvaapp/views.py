@@ -1141,8 +1141,7 @@ def submit_process(request):
                 p = DVAPQLProcess(process=DVAPQL.objects.get(pk=process_pk))
                 p.launch()
             return redirect("process_detail",pk=p.process.pk)
-        else:
-            raise ValueError,"User must be authenticated"
+
 
 @user_passes_test(user_check)
 def validate_process(request):

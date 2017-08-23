@@ -13,8 +13,7 @@ class AnalyzerTask(celery.Task):
 
     @property
     def get_static_analyzers(self):
-        analyzers_root = "{}/detectors/".format(settings.MEDIA_ROOT)
+        analyzers_root = "{}/analyzers/".format(settings.MEDIA_ROOT)
         if AnalyzerTask._analyzers is None:
-            AnalyzerTask._analyzers = {'tag': analyzer.OpenImagesAnnotator(analyzers_root+"openimages/"),
-                                       'text': analyzer.CRNNAnnotator(analyzers_root+"crnn/")}
+            AnalyzerTask._analyzers = {'crnn': analyzer.CRNNAnnotator(analyzers_root+"crnn/crnn.pth")}
         return AnalyzerTask._analyzers

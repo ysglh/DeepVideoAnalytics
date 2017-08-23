@@ -327,7 +327,7 @@ def perform_detection(task_id):
     return 0
 
 
-@app.task(track_started=True, name="perform_analysis",base_task=AnalyzerTask)
+@app.task(track_started=True, name="perform_analysis",base=AnalyzerTask)
 def perform_analysis(task_id):
     start = TEvent.objects.get(pk=task_id)
     if shared.celery_40_bug_hack(start):
@@ -348,19 +348,24 @@ def perform_analysis(task_id):
         path = f.path()
         object_name, text, metadata = analyzer.apply(path)
         a = Region()
+        a.region_type = Region.ANNOTATION
         a.object_name = object_name
         a.text = text
         a.metadata = metadata
         a.event_id = task_id
         a.video_id = f.video_id
-        if target == 'region':
+        if target == 'regions':
             a.x = f.x
             a.y = f.y
             a.w = f.w
             a.h = f.h
             a.frame_id = f.frame.id
-        elif target == 'frame':
+            a.parent_frame_index = f.parent_frame_index
+            a.parent_segment_index = f.parent_segment_index
+        elif target == 'frames':
             a.full_frame = True
+            a.parent_frame_index = f.frame_index
+            a.parent_segment_index = f.segment_index
             a.frame_id = f.id
         regions_batch.append(a)
     Region.objects.bulk_create(regions_batch,1000)

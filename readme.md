@@ -1,7 +1,7 @@
 # Deep Video Analytics  •  [![Build Status](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics.svg?branch=master)](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics)
 
-![UI Screenshot](notebooks/images/emma.png "Emma Watson, from poster of her latest subject appropriate movie The Circle")
-![Banner](notebooks/images/banner_small.png "banner")
+![UI Screenshot](architecture/figures/emma.png "Emma Watson, from poster of her latest subject appropriate movie The Circle")
+![Banner](architecture/figures/banner_small.png "banner")
 
 
 **Don't be worried by complexity of this banner, with latest version of docker installed correctly, you can run Deep Video Analytics in minutes locally (even without a GPU) using a single command.** 
@@ -43,8 +43,9 @@
 * Docker-compose
 * All packages in [requirements.txt](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/requirements.txt) & used in Dockerfiles.
 
-### Data & processing model
-![Data model](notebooks/images/infographic.png "graphic")
+### Data & Processing model
+![Data model](architecture/figures/data_model_2.png "data model")
+![Processing model](architecture/figures/task_model_2.png "processing model")
 
 
 

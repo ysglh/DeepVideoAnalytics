@@ -220,28 +220,3 @@ DETECTORS = {
             'queue':Q_OCR,
         },
     }
-
-
-
-
-# if 'VGG_ENABLE' in os.environ:
-#     VISUAL_INDEXES['vgg']= {
-#             'indexer_task': "perform_indexing",
-#             'indexer_queue': Q_VGG,
-#             'retriever_queue': Q_VGG,
-#             'detection_specific': False
-#         }
-#     DEFAULT_PROCESSING_PLAN.append({'operation': 'perform_indexing', 'arguments': {'index': 'vgg', 'target': 'frames', 'filters': '__parent__'}})
-#     for k in DEFAULT_PROCESSING_PLAN:
-#         if k['operation'] == 'perform_detection' and k['arguments']['detector'] == 'coco':
-#             k['arguments']['next_tasks'][0]['arguments']['next_tasks'].append({
-#                 'operation': 'perform_indexing',
-#                 'arguments': {'index': 'vgg',
-#                               'target': 'regions',
-#                               'filters': {'event_id': '__grand_parent_event__',
-#                                           'w__gte': 50,
-#                                           'h__gte': 50
-#                                            }
-#                               }
-#             })
-#

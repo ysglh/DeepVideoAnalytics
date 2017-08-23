@@ -67,9 +67,9 @@
 
 <div class="row">
     <div class="col-lg-6 text-center">
-        <h1 class="hidden-xs m-t" style="margin-top:30px">Visual Data Analytics platform</h1>
+        <h1 class="hidden-xs m-t" style="margin-top:30px">Data-centric approach to Computer Vision</h1>
         <h3 class="hidden-xs m-t" style="margin-bottom: 40px;line-height: 1.5;">
-            Deep Video Analytics & Visual Data Network aim to revolutionize visual data analysis by providing a comprehensive platform for storage, analysis & sharing.
+            Deep Video Analytics aims to revolutionize visual data analysis by providing a comprehensive platform for storage, analysis & sharing.
         </h3>
         <h3 class="hidden-xs ">Relational data : Postgres, MySQL, SQLite</h3>
         <h3  class="hidden-xs ">::</h3>
@@ -77,9 +77,9 @@
         <h3  class="hidden-xs ">::</h3>
         <h3  class="hidden-xs " style="margin-top:0px">Videos & Images : <span style="font-weight:bold">Deep Video Analytics</span></h3>
 
-        <h2 class="visible-xs m-t" style="margin-top:15px;">Visual Data Analytics platform</h2>
+        <h2 class="visible-xs m-t" style="margin-top:15px;">Data-centric approach to Computer Vision</h2>
         <h4 class="visible-xs" style="margin-bottom: 20px;line-height: 1.5;margin-top: 15px;">
-            Deep Video Analytics & Visual Data Network aim to revolutionize visual data analysis by providing a comprehensive platform for storage, analysis & sharing.
+            Deep Video Analytics aims to revolutionize visual data analysis by providing a comprehensive platform for storage, analysis & sharing.
         </h4>
     </div>
         <div class="col-lg-6 text-center">
@@ -156,13 +156,13 @@
             <h2>Features</h2>
             <ul>
                 <li><p>Visual Search as a primary interface</p></li>
-                <li><p>Upload videos, multiple images.</p></li>
-                <li><p>Provide Youtube url to be automatically downloaded.</p></li>
-                <li><p>Pre-trained recognition/detection, face recognition models.</p></li>
+                <li><p>Upload videos, image datasets.</p></li>
+                <li><p>Ingest from various sources such as AWS S3, Youtube.</p></li>
+                <li><p>Pre-trained recognition, detection & OCR models.</p></li>
                 <li><p>Train custom detector models</p></li>
-                <li><p>Metadata stored in Postgres, all operations performed asynchronously.</p></li>
-                <li><p>REST API to enable multiple front-ends.</p></li>
-                <li><p>Deep Video Analytics Processing and Query Language for sepcifying tasks</p></li>
+                <li><p>User Interface for visualization, annotation & monitoring.</p></li>
+                <li><p>REST API to simplify development of new front-ends applications.</p></li>
+                <li><p>Deep Video Analytics Processing and Query Language for specifying tasks</p></li>
                 <li><p>Videos, frames, indexes, etc. stored in media directory, served through nginx.</p></li>
                 <li><p>Perform full-text search on text metadata and names.</p></li>
                 <li><p>Configure by specifying environment variables.</p></li>
@@ -177,10 +177,6 @@
                 <li><p>Open Images multi-label inception v3 for text tags</p></li>
                 <li><p>Deep OCR using CTPN & CRNN</p></li>
             </ul>
-            <h2><span style="font-weight:bolder">Train custom models</span></h2>
-                <ul>
-                    <li><p>Train custom YOLO detection models using region annotations</p></li>
-                </ul>
             <h2> Import external datasets using VDN</h2>
             <ul>
                 <li><p>MSCOCO</p></li>
@@ -211,11 +207,12 @@
     </div>
     <div class="row">
         <div class="col-md-12 ">
-            <h4>DVAPQL enables transformation, querying of visual data in a consistent manner using Deep Video Analytics.
-                All functionality of Deep Video Analytics can be expressed in form of DVAPQL scripts which are then
-                launched on distributed workers.</h4>
-            <img style="margin:auto" src={% static 'private_static/insp_seed/img/new_model.png' %} class="img-responsive" />
+            <h4>DVAPQL enables processing and querying of visual data in a consistent manner using Deep Video Analytics.
+                All functionality of Deep Video Analytics can be expressed in form of DVAPQL scripts which are then launched on distributed workers.
+            </h4>
         </div>
+        <div class="col-md-6"><img style="margin:auto" src={% static 'private_static/insp_seed/img/task_model.png' %} class="img-responsive" /></div>
+        <div class="col-md-6"><img style="margin:auto" src={% static 'private_static/insp_seed/img/data_model.png' %} class="img-responsive" /></div>
     </div>
 </section>
 <section  class="container features" id="installation">

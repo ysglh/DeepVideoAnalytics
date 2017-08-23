@@ -48,6 +48,26 @@
        - rabbit
      volumes:
        - dvadata:/root/DVA/dva/media
+   dva-crnn:
+     image: akshayubhat/dva-auto:latest
+     container_name: dva-crnn
+     environment:
+       - DOCKER_MODE=true
+       - RABBIT_HOST=rabbit
+       - RABBIT_USER=dvauser
+       - RABBIT_PASS=localpass
+       - DB_HOST=db
+       - DB_NAME=postgres
+       - DB_USER=pgdbuser
+       - DB_PASS=pgdbpass
+       - LAUNCH_Q_qcrnn=1
+       - PYTORCH_MODE=1
+     command: bash -c "git pull && fab start_container_worker"
+     depends_on:
+       - db
+       - rabbit
+     volumes:
+       - dvadata:/root/DVA/dva/media
  volumes:
   dvapgdata:
   dvadata:

@@ -300,12 +300,7 @@ class VideoDetail(UserPassesTestMixin, DetailView):
         context['exports'] = TEvent.objects.all().filter(operation='perform_export', video=self.object)
         context['annotation_count'] = Region.objects.all().filter(video=self.object,
                                                                   region_type=Region.ANNOTATION).count()
-        if self.object.vdn_dataset:
-            context['exportable_annotation_count'] = Region.objects.all().filter(video=self.object,
-                                                                                 vdn_dataset__isnull=True,
-                                                                                 region_type=Region.ANNOTATION).count()
-        else:
-            context['exportable_annotation_count'] = 0
+        context['exportable_annotation_count'] = 0
         context['url'] = '{}{}/video/{}.mp4'.format(settings.MEDIA_URL, self.object.pk, self.object.pk)
         label_list = []
         show_all = self.request.GET.get('show_all_labels', False)

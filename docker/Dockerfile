@@ -8,6 +8,7 @@ RUN pip install --no-deps keras
 RUN pip install -r requirements.txt
 RUN apt-get install -y libhdf5-dev
 RUN pip install --no-deps h5py
+RUN pip install pip --upgrade
 RUN pip install --no-cache-dir http://download.pytorch.org/whl/cu75/torch-0.1.12.post2-cp27-none-linux_x86_64.whl
 RUN pip install torchvision
 WORKDIR "/root/DVA"

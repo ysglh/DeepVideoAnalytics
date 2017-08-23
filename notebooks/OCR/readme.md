@@ -44,8 +44,8 @@ You can find the notebook here
 ## Integration with Deep Video Analytics
 
 Both CTPN & CRNN have been integrated into [Deep Video Analytics](https://www.deepvideoanalytics.com) and now its possible to run OCR directly on videos/images
-without having to write any code. CTPN and CRNN run as tasks on a celery queue named "qocr". Workers consuming "qocr" need to run on
-dva_ctpn container image. This [OCR docker-compose](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/docker/custom_compose/docker-compose-gpu-ocr.yml) file describes the setup. The extracted bounding boxes and text are 
+without having to write any code. CTPN and CRNN run as tasks on a celery queues "qcrnn" & "qocr". Workers consuming "qocr" need to run on
+akshayubhat/dva-auto:caffe (Dockerfile.caffe) container image. This [docker-compose](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/docker/custom/docker-compose-gpu.yml) file describes the setup. The extracted bounding boxes and text are 
 represented as Regions. Further extracted text can be conveniently queried using Postgres full-text search through the User Interface.
 
 

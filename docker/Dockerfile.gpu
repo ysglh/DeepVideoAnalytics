@@ -11,6 +11,7 @@ RUN pip install torchvision
 RUN apt-get install -y libhdf5-dev
 RUN pip install --no-deps h5py
 WORKDIR "/root/DVA"
+RUN cd dvalib/crfasrnn/cpp && ./compile.sh && cd ../../..
 WORKDIR "/root/DVA/repos/lopq/python"
 RUN python setup.py install
 WORKDIR "/root/DVA"

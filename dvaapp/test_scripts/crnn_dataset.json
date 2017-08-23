@@ -1,0 +1,13 @@
+{
+  "process_type": "V",
+  "tasks": [
+          {
+            "operation": "perform_analysis",
+            "arguments": {
+              "frames_batch_size": 50,
+              "analyzer": "crnn",
+              "target": "frames"
+            }
+      }
+  ]
+}

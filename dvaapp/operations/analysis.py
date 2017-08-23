@@ -1,5 +1,7 @@
-import logging, os
+import logging
 import celery
+from django.conf import settings
+
 try:
     from dvalib import analyzer
 except ImportError:
@@ -11,7 +13,8 @@ class AnalyzerTask(celery.Task):
 
     @property
     def get_static_analyzers(self):
+        analyzers_root = "{}/detectors/".format(settings.MEDIA_ROOT)
         if AnalyzerTask._analyzers is None:
-            AnalyzerTask._analyzers = {'tag': analyzer.OpenImagesAnnotator(),
-                                       'text': analyzer.CRNNAnnotator()}
+            AnalyzerTask._analyzers = {'tag': analyzer.OpenImagesAnnotator(analyzers_root+"openimages/"),
+                                       'text': analyzer.CRNNAnnotator(analyzers_root+"crnn/")}
         return AnalyzerTask._analyzers

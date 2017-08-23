@@ -340,29 +340,30 @@ def perform_analysis(task_id):
     start_time = time.time()
     video_id = start.video_id
     args = start.arguments
-    target = args['target']
     analyzer_name = args['analyzer']
     analyzer = perform_analysis.get_static_analyzers[analyzer_name]
-    kwargs = args.get('filters',{})
-    kwargs['video_id'] = video_id
     regions_batch = []
-    if target == 'frames':
-        queryset = Frame.objects.all().filter(**kwargs)
-        for f in queryset:
-            path = f.path()
-            tags = analyzer.apply(path)
-            a = Region()
-            a.object_name = "OpenImagesTag"
-            a.text = " ".join([t for t,v in tags.iteritems() if v > 0.1])
-            a.metadata = {t:100.0*v for t,v in tags.iteritems() if v > 0.1}
-            a.frame_id = f.id
+    queryset, target = shared.build_queryset(args,video_id)
+    for f in queryset:
+        path = f.path()
+        object_name, text, metadata = analyzer.apply(path)
+        a = Region()
+        a.object_name = object_name
+        a.text = text
+        a.metadata = metadata
+        a.event_id = task_id
+        a.video_id = f.video_id
+        if target == 'region':
+            a.x = f.x
+            a.y = f.y
+            a.w = f.w
+            a.h = f.h
+            a.frame_id = f.frame.id
+        elif target == 'frame':
             a.full_frame = True
-            regions_batch.append(a)
-    elif target == 'regions':
-        queryset = Region.objects.all().filter(**kwargs)
-        raise NotImplementedError
-    else:
-        raise NotImplementedError
+            a.frame_id = f.id
+        regions_batch.append(a)
+    Region.objects.bulk_create(regions_batch,1000)
     process_next(task_id)
     start.completed = True
     start.seconds = time.time() - start_time

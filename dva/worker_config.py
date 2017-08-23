@@ -190,6 +190,19 @@ VISUAL_INDEXES = {
         },
     }
 
+
+ANALYZERS = {
+    'crnn':
+        {
+            'queue':"qcrnn",
+        },
+    'tag':
+        {
+            'queue': "qtag",
+        },
+}
+
+
 DETECTORS = {
     'face':
         {
@@ -209,18 +222,6 @@ DETECTORS = {
     }
 
 
-ANALYZERS = {
-    'tag':
-        {
-            'task':"perform_analysis",
-            'queue':Q_DETECTOR,
-        },
-    'ocr':
-        {
-            'task':"perform_analysis",
-            'queue':Q_OCR,
-        },
-    }
 
 
 # if 'VGG_ENABLE' in os.environ:

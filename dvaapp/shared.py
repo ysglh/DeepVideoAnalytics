@@ -7,7 +7,7 @@ from collections import defaultdict
 from operations import processing
 from operations.processing import get_queue_name
 from dva.celery import app
-from models import DVAPQL
+from models import DVAPQL,Region,Frame
 from . import serializers
 from botocore.exceptions import ClientError
 
@@ -663,3 +663,18 @@ def export_file(video_obj,export_event_pk=None):
     zipper.wait()
     shutil.rmtree("{}/exports/{}".format(settings.MEDIA_ROOT, video_id))
     return file_name
+
+
+def build_queryset(args,video_id=None):
+    target = args['target']
+    kwargs = args.get('filters',{})
+    if video_id:
+        kwargs['video_id'] = video_id
+    if target == 'frames':
+        queryset = Frame.objects.all().filter(**kwargs)
+    elif target == 'regions':
+        queryset = Region.objects.all().filter(**kwargs)
+    else:
+        queryset = None
+        raise ValueError
+    return queryset,target

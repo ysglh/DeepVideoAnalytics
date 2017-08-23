@@ -27,6 +27,8 @@ def get_queue_name(operation,args):
         return settings.VISUAL_INDEXES[args['index']]['retriever_queue']
     elif 'index' in args:
         return settings.VISUAL_INDEXES[args['index']]['indexer_queue']
+    elif 'analyzer' in args:
+        return settings.ANALYZERS[args['analyzer']]['queue']
     elif 'detector' in args:
         if args['detector'] == 'custom':
             return "qcustomdetector_{}".format(args['detector_pk']) # route it according to the custom detector

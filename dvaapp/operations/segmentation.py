@@ -13,7 +13,7 @@ class SegmentorTask(celery.Task):
     _segmentors = None
 
     @property
-    def get_static_detectors(self):
+    def get_static_segmentors(self):
         if SegmentorTask._segmentors is None:
             SegmentorTask._segmentors = {'voc':
                                              segmentor.CRFRNNSegmentor(model_path=model_path,

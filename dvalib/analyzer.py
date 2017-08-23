@@ -48,6 +48,7 @@ class OpenImagesAnnotator(BaseAnnotator):
     def __init__(self,gpu_fraction=None):
         super(OpenImagesAnnotator, self).__init__()
         self.name = "inception"
+        self.object_name = "tag"
         self.net = None
         self.tf = True
         self.session = None
@@ -95,15 +96,18 @@ class OpenImagesAnnotator(BaseAnnotator):
         predictions_eval = np.squeeze(self.session.run(self.predictions, {self.input_image: img_data}))
         results = {self.label_dict.get(self.labelmap[idx], 'unknown'):predictions_eval[idx]
                    for idx in predictions_eval.argsort()[-self.top_n:][::-1]}
-        return results
+        text = " ".join([t for t,v in results.iteritems() if v > 0.1])
+        metadata = {t:100.0*v for t,v in results.iteritems() if v > 0.1}
+        return self.object_name,text,metadata
 
 
 class CRNNAnnotator(BaseAnnotator):
 
-    def __init__(self):
+    def __init__(self,model_path):
         super(CRNNAnnotator, self).__init__()
         self.session = None
-        self.model_path = '/root/DVA/dvalib/crnn/data/crnn.pth'
+        self.object_name = "text"
+        self.model_path = model_path
         self.alphabet = '0123456789abcdefghijklmnopqrstuvwxyz'
         self.cuda = False
 
@@ -132,6 +136,6 @@ class CRNNAnnotator(BaseAnnotator):
         preds = preds.transpose(1, 0).contiguous().view(-1)
         preds_size = Variable(torch.IntTensor([preds.size(0)]))
         sim_pred = self.converter.decode(preds.data, preds_size.data, raw=False)
-        return sim_pred
+        return self.object_name,sim_pred,{}
 
 

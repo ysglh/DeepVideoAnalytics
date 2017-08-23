@@ -1,8 +1,14 @@
-import os,logging,subprocess, time, sys
-from collections import defaultdict
-import random
-from time import sleep
-if os.path.isdir('/opt/ctpn/'):
+import os,logging, sys
+try:
+    import PIL
+    from scipy import misc
+    import numpy as np
+except:
+    pass
+
+if os.environ.get('PYTORCH_MODE',False):
+    pass
+elif os.environ.get('CAFFE_MODE',False):
     sys.path.append('/opt/ctpn/CTPN/tools/')
     sys.path.append('/opt/ctpn/CTPN/src/')
     from cfg import Config as cfg
@@ -12,13 +18,14 @@ if os.path.isdir('/opt/ctpn/'):
     tf = None
     logging.info("Using Caffe only mode")
 else:
-    import tensorflow as tf
-    from dvalib.yolo import trainer
-    from .facenet import facenet
-    from .facenet.align import detect_face
-    from scipy import misc
-    import PIL
-    import numpy as np
+    try:
+        import tensorflow as tf
+        from dvalib.yolo import trainer
+        from .facenet import facenet
+        from .facenet.align import detect_face
+    except:
+        logging.info("Could not import TensorFlow assuming front-end mode")
+
 
 def _parse_function(filename):
     image_string = tf.read_file(filename)

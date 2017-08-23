@@ -422,6 +422,24 @@ def download_detectors(root_dir):
 
 
 @task
+def download_analyzers(root_dir):
+    analyzers_dir = "{}/analyzers/".format(root_dir)
+    if not os.path.isdir(analyzers_dir):
+        os.mkdir(analyzers_dir)
+    with lcd(analyzers_dir):
+        ilist = [('crnn','https://www.dropbox.com/s/l0vo83hmvv2aipn/crnn.pth','crnn.pth'),]
+        for iname, url, lfname in ilist:
+            model_dir = "{}/analyzers/{}".format(root_dir,iname)
+            if not os.path.isdir(model_dir):
+                os.mkdir(model_dir)
+                if sys.platform == 'darwin':
+                    local("cd {} && cp /users/aub3/Dropbox/DeepVideoAnalytics/shared/{} .".format(iname,lfname))
+                else:
+                    local("cd {} && wget --quiet {}".format(iname,url))
+
+
+
+@task
 def init_server():
     import django
     sys.path.append(os.path.dirname(__file__))
@@ -445,6 +463,10 @@ def init_server():
 
 @task
 def init_fs():
+    """
+    Initialized filesystem by downloading models
+    :return:
+    """
     import django
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
@@ -452,6 +474,7 @@ def init_fs():
     from django.conf import settings
     download_indexers(settings.MEDIA_ROOT)
     download_detectors(settings.MEDIA_ROOT)
+    download_analyzers(settings.MEDIA_ROOT)
 
 
 @task

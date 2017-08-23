@@ -58,8 +58,6 @@ RUN wget "https://www.dropbox.com/s/yyj53aet2emhvs7/ctpn_trained_model.caffemode
 RUN mkdir /opt/ctpn/CTPN/output
 VOLUME ['/opt/ctpn/CTPN/output/']
 RUN pip install --upgrade jupyter
-RUN pip install http://download.pytorch.org/whl/cu80/torch-0.1.12.post2-cp27-none-linux_x86_64.whl
-RUN pip install torchvision
 RUN mkdir -p -m 700 /root/.jupyter/ && \
     echo "c.NotebookApp.ip = '*'" >> /root/.jupyter/jupyter_notebook_config.py
 WORKDIR /opt/ctpn/CTPN/
@@ -71,7 +69,6 @@ WORKDIR "/root/DVA"
 RUN pip install --upgrade cffi
 RUN pip install -r requirements.txt
 EXPOSE 8888
-RUN wget "https://www.dropbox.com/s/l0vo83hmvv2aipn/crnn.pth?dl=1" -O /root/DVA/dvalib/crnn/data/crnn.pth
 RUN git pull
 CMD ["jupyter", "notebook", "--no-browser", "--allow-root"]
 VOLUME ["/root/DVA/dva/media"]

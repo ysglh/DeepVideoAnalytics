@@ -8,7 +8,6 @@ from PIL import Image
 import logging
 import numpy as np
 
-
 if os.environ.get('PYTORCH_MODE',False):
     import dvalib.crnn.utils as utils
     import dvalib.crnn.dataset as dataset
@@ -16,6 +15,8 @@ if os.environ.get('PYTORCH_MODE',False):
     from torch.autograd import Variable
     import dvalib.crnn.models.crnn as crnn
     logging.info("In pytorch mode, not importing TF")
+elif os.environ.get('CAFFE_MODE',False):
+    pass
 else:
     import tensorflow as tf
     from tensorflow.contrib.slim.python.slim.nets import inception

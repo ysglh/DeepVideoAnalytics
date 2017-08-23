@@ -6,6 +6,8 @@ from collections import namedtuple
 
 if os.environ.get('PYTORCH_MODE',False):
     pass
+elif os.environ.get('CAFFE_MODE',False):
+    pass
 else:
     try:
         from tensorflow.python.platform import gfile

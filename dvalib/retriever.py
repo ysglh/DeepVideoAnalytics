@@ -1,7 +1,6 @@
 import numpy as np
-import os,logging,json
+import logging
 from scipy import spatial
-import time
 from collections import namedtuple
 
 

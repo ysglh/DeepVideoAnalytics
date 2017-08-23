@@ -1,6 +1,13 @@
-from .crfasrnn.crfrnn_model import get_crfrnn_model_def
+import os, logging
 from PIL import Image
 import numpy as np
+
+if os.environ.get('PYTORCH_MODE',False):
+    logging.info("In pytorch mode, not importing TF")
+elif os.environ.get('CAFFE_MODE',False):
+    pass
+else:
+    from .crfasrnn.crfrnn_model import get_crfrnn_model_def
 
 
 class BaseSegmentor(object):

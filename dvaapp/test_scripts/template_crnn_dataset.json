@@ -3,7 +3,7 @@
   "tasks": [
           {
             "operation": "perform_analysis",
-            "video_id":__enter_video_id__,
+            "video_id":"__enter_video_id__",
             "arguments": {
               "frames_batch_size": 50,
               "analyzer": "crnn",

@@ -159,13 +159,13 @@
                 <li><p>Upload videos, multiple images.</p></li>
                 <li><p>Provide Youtube url to be automatically downloaded.</p></li>
                 <li><p>Pre-trained recognition/detection, face recognition models.</p></li>
-                <li><p>Train custom detector models (more type of models coming soon!)</p></li>
+                <li><p>Train custom detector models</p></li>
                 <li><p>Metadata stored in Postgres, all operations performed asynchronously.</p></li>
-                <li><p>Celery allows video & query flows to be easily modified.</p></li>
+                <li><p>REST API to enable multiple front-ends.</p></li>
+                <li><p>Deep Video Analytics Processing and Query Language for sepcifying tasks</p></li>
                 <li><p>Videos, frames, indexes, etc. stored in media directory, served through nginx.</p></li>
                 <li><p>Perform full-text search on text metadata and names.</p></li>
-                <li><p>Manually run code & tasks without UI using a Jupyter notebook.</p></li>
-                <li><p>Customize by specifying <a target="_blank" href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/notebooks/notes/environment.md">environment variables</a></p></li>
+                <li><p>Configure by specifying environment variables.</p></li>
             </ul>
         </div>
         <div class="col-md-6 ">
@@ -177,10 +177,9 @@
                 <li><p>Open Images multi-label inception v3 for text tags</p></li>
                 <li><p>Deep OCR using CTPN & CRNN</p></li>
             </ul>
-            <h2><span style="font-weight:bolder">Train custom models (New!)</span></h2>
+            <h2><span style="font-weight:bolder">Train custom models</span></h2>
                 <ul>
                     <li><p>Train custom YOLO detection models using region annotations</p></li>
-                    <li><p>More functionality for training and visualization coming soon!</p></li>
                 </ul>
             <h2> Import external datasets using VDN</h2>
             <ul>
@@ -203,39 +202,18 @@
         </div>
     </div>
 </section>
-<section class="container features" id="vdn">
-<div class="row">
-    <div class="col-lg-12 text-center">
-    <div class="navy-line"></div>
-    <h1 style="margin-bottom:10px" class="m-t hidden-xs hidden-md hidden-sm">Deep Video Analytics + <a target="_blank" href="http://visualdata.network/vdn/">Visual Data Network</a></h1>
-    <h2 style="margin-bottom:10px;margin-top:10px" class="m-t hidden-xs hidden-lg visible-md visible-sm">Deep Video Analytics + <a target="_blank" href="http://visualdata.network/vdn/">Visual Data Network</a></h2>
-    <div class="visible-xs m-t">
-        <h3 style="font-weight:bold;">Deep Video Analytics</h3>
-        <h3 style="font-weight:bold;">+</h3>
-        <h3 style="font-weight:bold;"><a target="_blank" href="http://visualdata.network">Visual Data Network</a></h3>
-    </div>
-    </div>
-    <div class="col-lg-6 col-md-6 m-t text-center">
-        <h3>Seamless integration with Visual Data Network</h3>
-        <a href="http://visualdata.network" target="_blank"><img src={% static 'private_static/insp_seed/img/VDN.png' %} class="img-responsive"></a>
-    </div>
-    <div class="col-lg-6 col-md-6 text-center m-t">
-        <h3>Quickly import pre-processed datasets</h3>
-        <div class="video-container">
-            <iframe height="320" src="https://www.youtube.com/embed/Vt5qsNQoUB4?rel=0&amp;controls=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe>
-        </div>
-    </div>
-</div>
-</section>
 <section class="container features">
     <div class="row">
         <div class="col-lg-12 text-center">
         <div class="navy-line"></div>
-            <h1>Data & processing model</h1>
+            <h1>Deep Video Analytics Processing & Query Language (DVAPQL)</h1>
         </div>
     </div>
     <div class="row">
         <div class="col-md-12 ">
+            <h4>DVAPQL enables transformation, querying of visual data in a consistent manner using Deep Video Analytics.
+                All functionality of Deep Video Analytics can be expressed in form of DVAPQL scripts which are then
+                launched on distributed workers.</h4>
             <img style="margin:auto" src={% static 'private_static/insp_seed/img/new_model.png' %} class="img-responsive" />
         </div>
     </div>
@@ -297,13 +275,36 @@ nvidia-docker-compose -f custom/docker-compose-gpu.yml up
         <div class="navy-line"></div>
         <div class="col-lg-12 text-center">
             <h1>Documentation & Presentation</h1>
-            <h4>Some documentation is available <a href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/tree/master/notebooks">here</a> along with a board for <a href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/projects/1">planned future tasks</a>.</h4>
-            <h4>For a quick overview of design choices and vision behind this project we strongly recommend going through following presentation.</h4>
+            <h4>For a quick overview of design choices and vision behind this project we <span style="font-weight: bold">strongly</span> recommend going through following presentation.</h4>
             <div class="hidden-sm hidden-xs"><iframe style="margin-top:25px" src="https://docs.google.com/presentation/d/1nweK60ywx1h-MMg75oo0E5jwBQtrFIVK6hPgMuB985U/embed?start=false&loop=false&delayms=3000" frameborder="0" width="960" height="569" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe></div>
             <div class="visible-sm"><iframe style="margin-top:20px" src="https://docs.google.com/presentation/d/1nweK60ywx1h-MMg75oo0E5jwBQtrFIVK6hPgMuB985U/embed?start=false&loop=false&delayms=3000" frameborder="0" width="480" height="299" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe></div>
             <div class="visible-xs"><iframe style="margin-top:20px" src="https://docs.google.com/presentation/d/1nweK60ywx1h-MMg75oo0E5jwBQtrFIVK6hPgMuB985U/embed?start=false&loop=false&delayms=3000" frameborder="0" width="320" height="209" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe></div>
         </div>
     </div>
+</section>
+<section class="container features" id="vdn">
+<div class="row">
+    <div class="col-lg-12 text-center">
+    <div class="navy-line"></div>
+    <h1 style="margin-bottom:10px" class="m-t hidden-xs hidden-md hidden-sm">Deep Video Analytics + <a target="_blank" href="http://visualdata.network/vdn/">Visual Data Network</a></h1>
+    <h2 style="margin-bottom:10px;margin-top:10px" class="m-t hidden-xs hidden-lg visible-md visible-sm">Deep Video Analytics + <a target="_blank" href="http://visualdata.network/vdn/">Visual Data Network</a></h2>
+    <div class="visible-xs m-t">
+        <h3 style="font-weight:bold;">Deep Video Analytics</h3>
+        <h3 style="font-weight:bold;">+</h3>
+        <h3 style="font-weight:bold;"><a target="_blank" href="http://visualdata.network">Visual Data Network</a></h3>
+    </div>
+    </div>
+    <div class="col-lg-6 col-md-6 m-t text-center">
+        <h3>Seamless integration with Visual Data Network</h3>
+        <a href="http://visualdata.network" target="_blank"><img src={% static 'private_static/insp_seed/img/VDN.png' %} class="img-responsive"></a>
+    </div>
+    <div class="col-lg-6 col-md-6 text-center m-t">
+        <h3>Quickly import pre-processed datasets</h3>
+        <div class="video-container">
+            <iframe height="320" src="https://www.youtube.com/embed/Vt5qsNQoUB4?rel=0&amp;controls=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe>
+        </div>
+    </div>
+</div>
 </section>
 <section class="container features">
     <div class="row">

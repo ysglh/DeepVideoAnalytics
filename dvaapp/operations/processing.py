@@ -13,7 +13,7 @@ except ImportError:
 from ..models import Video,DVAPQL,IndexerQuery,QueryResults,TEvent,Region
 from collections import defaultdict
 from celery.result import AsyncResult
-
+from . import queuing
 
 SYNC_TASKS = {
     "perform_dataset_extraction":[{'operation':'perform_sync','arguments':{'dirname':'frames'}},],
@@ -29,19 +29,19 @@ SYNC_TASKS = {
 
 
 def get_queue_name(operation,args):
-    if operation in settings.TASK_NAMES_TO_QUEUE:
-        return settings.TASK_NAMES_TO_QUEUE[operation]
+    if operation in queuing.TASK_NAMES_TO_QUEUE:
+        return queuing.TASK_NAMES_TO_QUEUE[operation]
     elif 'index' in args and operation == 'perform_retrieval':
-        return settings.VISUAL_INDEXES[args['index']]['retriever_queue']
+        return queuing.VISUAL_INDEXES[args['index']]['retriever_queue']
     elif 'index' in args:
-        return settings.VISUAL_INDEXES[args['index']]['indexer_queue']
+        return queuing.VISUAL_INDEXES[args['index']]['indexer_queue']
     elif 'analyzer' in args:
-        return settings.ANALYZERS[args['analyzer']]['queue']
+        return queuing.ANALYZERS[args['analyzer']]['queue']
     elif 'detector' in args:
         if args['detector'] == 'custom':
             return "qcustomdetector_{}".format(args['detector_pk']) # route it according to the custom detector
         else:
-            return settings.DETECTORS[args['detector']]['queue']
+            return queuing.DETECTORS[args['detector']]['queue']
     else:
         raise NotImplementedError,"{}, {}".format(operation,args)
 
@@ -148,7 +148,7 @@ class DVAPQLProcess(object):
         self.media_dir = media_dir
         self.task_results = {}
         self.context = {}
-        self.visual_indexes = settings.VISUAL_INDEXES
+        self.visual_indexes = queuing.VISUAL_INDEXES
 
     def store(self):
         if settings.HEROKU_DEPLOY:

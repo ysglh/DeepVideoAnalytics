@@ -126,9 +126,10 @@ def clean():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from django.conf import settings
+    from dvaapp.operations import queuing
     from dvaapp.models import VDNServer
     if sys.platform == 'darwin':
-        for qname in set(settings.TASK_NAMES_TO_QUEUE.values()):
+        for qname in set(queuing.TASK_NAMES_TO_QUEUE.values()):
             try:
                 local('rabbitmqadmin purge queue name={}'.format(qname))
             except:
@@ -367,9 +368,9 @@ def launch_queues_env(block_on_manager=False):
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
-    from django.conf import settings
+    from dvaapp.operations import queuing
     for k in os.environ:
-        if k.startswith('LAUNCH_Q_') and k != 'LAUNCH_Q_{}'.format(settings.Q_MANAGER):
+        if k.startswith('LAUNCH_Q_') and k != 'LAUNCH_Q_{}'.format(queuing.Q_MANAGER):
             if k.strip() == 'LAUNCH_Q_qextract':
                 queue_name = k.split('_')[-1]
                 local('fab startq:{},{} &'.format(queue_name,os.environ['LAUNCH_Q_qextract']))
@@ -377,9 +378,9 @@ def launch_queues_env(block_on_manager=False):
                 queue_name = k.split('_')[-1]
                 local('fab startq:{} &'.format(queue_name))
     if block_on_manager: # the container process waits on the manager
-        local('fab startq:{}'.format(settings.Q_MANAGER))
+        local('fab startq:{}'.format(queuing.Q_MANAGER))
     else:
-        local('fab startq:{} &'.format(settings.Q_MANAGER))
+        local('fab startq:{} &'.format(queuing.Q_MANAGER))
 
 
 @task
@@ -508,11 +509,11 @@ def startq(queue_name,conc=3):
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
-    from django.conf import settings
+    from dvaapp.operations import queuing
     mute = '--without-gossip --without-mingle --without-heartbeat' if 'CELERY_MUTE' in os.environ else ''
-    if queue_name == settings.Q_MANAGER:
+    if queue_name == queuing.Q_MANAGER:
         command = 'celery -A dva worker -l info {} -c 1 -Q qmanager -n manager.%h -f logs/qmanager.log'.format(mute)
-    elif queue_name == settings.Q_EXTRACTOR:
+    elif queue_name == queuing.Q_EXTRACTOR:
         command = 'celery -A dva worker -l info {} -c {} -Q {} -n {}.%h -f logs/{}.log'.format(mute,max(int(conc),2), queue_name,queue_name,queue_name)
         # TODO: worker fails due to
         # https://github.com/celery/celery/issues/3620

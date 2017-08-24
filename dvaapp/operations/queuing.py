@@ -1,5 +1,3 @@
-import os
-
 Q_MANAGER = 'qmanager'
 Q_EXTRACTOR = 'qextract'
 Q_INDEXER = 'qindexer'

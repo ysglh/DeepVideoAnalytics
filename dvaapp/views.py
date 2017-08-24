@@ -10,6 +10,7 @@ from .models import Video, Frame, DVAPQL, QueryResults, TEvent, IndexEntries, VD
     ClusterCodes, Clusters,  Tube, CustomDetector, VDNDetector, Segment, FrameLabel, SegmentLabel, \
     VideoLabel, RegionLabel, TubeLabel, Label, ManagementAction, StoredDVAPQL
 from dva.celery import app
+from dvaapp.operations import queuing
 import serializers
 from rest_framework import viewsets, mixins
 from django.contrib.auth.models import User
@@ -277,15 +278,6 @@ class TEventList(UserPassesTestMixin, ListView):
             context['header'] = "process : {}".format(process_pk)
         if self.kwargs.get('status',None):
             context['header'] += " with status {}".format(self.kwargs['status'])
-        # context['settings_queues'] = set(settings.TASK_NAMES_TO_QUEUE.values())
-        # task_list = []
-        # for k, v in settings.TASK_NAMES_TO_TYPE.iteritems():
-        #     task_list.append({'name': k,
-        #                       'type': v,
-        #                       'queue': settings.TASK_NAMES_TO_QUEUE[k],
-        #                       'edges': []
-        #                       })
-        # context['task_list'] = task_list
         return context
 
     def test_func(self):
@@ -580,7 +572,7 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
     else:
         form = UploadFileForm()
     context = {'form': form}
-    context['indexes'] = settings.VISUAL_INDEXES
+    context['indexes'] = queuing.VISUAL_INDEXES
     if query_pk:
         previous_query = DVAPQL.objects.get(pk=query_pk)
         context['initial_url'] = '{}queries/{}.png'.format(settings.MEDIA_URL, query_pk)
@@ -877,7 +869,7 @@ def status(request):
 @user_passes_test(user_check)
 def indexes(request):
     context = {
-        'visual_index_list': settings.VISUAL_INDEXES.items(),
+        'visual_index_list': queuing.VISUAL_INDEXES.items(),
         'index_entries': IndexEntries.objects.all(),
         "videos": Video.objects.all().filter(),
         "region_types": Region.REGION_TYPES

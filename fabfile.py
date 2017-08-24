@@ -1006,11 +1006,19 @@ def submit(path):
 
 @task
 def start_scheduler():
-    local("celery -A dva beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler")
+    """
+    Start celery-beat scheduler using django database as source for tasks.
+    :return:
+    """
+    local("celery -A dva beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler -f logs/beat.log")
 
 
 @task
 def store_token_for_testing():
+    """
+    Generate & store token for superuser (akshay) to test REST API.
+    :return:
+    """
     import django
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
@@ -1030,7 +1038,7 @@ def store_token_for_testing():
 @task
 def test_api(port=80):
     """
-    TEST REST API for CORS config
+    test REST API for CORS config
     :return:
     """
     import requests

@@ -77,8 +77,9 @@ INSTALLED_APPS = [
                      'django_filters',
                      'vdnapp',
                      'crispy_forms',
-                     'rest_framework.authtoken'
-                 ] + (['dvap', ] if DVA_PRIVATE_ENABLE else [])+ (['debug_toolbar','django_celery_beat'] if MACOS and DEBUG else [])
+                     'rest_framework.authtoken',
+                     'django_celery_beat'
+                 ] + (['dvap', ] if DVA_PRIVATE_ENABLE else [])+ (['debug_toolbar'] if MACOS and DEBUG else [])
 
 
 MIDDLEWARE_CLASSES = [

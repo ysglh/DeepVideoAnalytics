@@ -10,6 +10,7 @@ from dva.celery import app
 from models import DVAPQL,Region,Frame
 from . import serializers
 from botocore.exceptions import ClientError
+import defaults
 
 
 def refresh_task_status():
@@ -74,9 +75,9 @@ def delete_video_object(video_pk,deleter):
 
 def handle_uploaded_file(f, name, extract=True, user=None, rate=None, rescale=None):
     if rate is None:
-        rate = settings.DEFAULT_RATE
+        rate = defaults.DEFAULT_RATE
     if rescale is None:
-        rescale = settings.DEFAULT_RESCALE
+        rescale = defaults.DEFAULT_RESCALE
     video = Video()
     if user:
         video.uploader = user
@@ -123,7 +124,7 @@ def handle_uploaded_file(f, name, extract=True, user=None, rate=None, rescale=No
                     'tasks':[
                         {
                             'arguments':{'rescale': rescale,
-                                         'next_tasks':settings.DEFAULT_PROCESSING_PLAN_DATASET},
+                                         'next_tasks':defaults.DEFAULT_PROCESSING_PLAN_DATASET},
                             'video_id':video.pk,
                             'operation': 'perform_dataset_extraction',
                         }
@@ -138,10 +139,10 @@ def handle_uploaded_file(f, name, extract=True, user=None, rate=None, rescale=No
                                 'next_tasks':[
                                              {'operation':'perform_video_decode',
                                                'arguments':{
-                                                   'segments_batch_size': settings.DEFAULT_SEGMENTS_BATCH_SIZE,
+                                                   'segments_batch_size': defaults.DEFAULT_SEGMENTS_BATCH_SIZE,
                                                    'rate': rate,
                                                    'rescale': rescale,
-                                                   'next_tasks':settings.DEFAULT_PROCESSING_PLAN_VIDEO
+                                                   'next_tasks':defaults.DEFAULT_PROCESSING_PLAN_VIDEO
                                                }
                                               }
                                             ]},

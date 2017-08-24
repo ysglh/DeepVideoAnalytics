@@ -15,9 +15,17 @@ from collections import defaultdict
 from celery.result import AsyncResult
 
 
-# def process_db_filter(args):
-#     if args['target'] == 'regions':
-#         return Region.objects.filter(**kwards)
+SYNC_TASKS = {
+    "perform_dataset_extraction":[{'operation':'perform_sync','arguments':{'dirname':'frames'}},],
+    "perform_video_segmentation":[{'operation':'perform_sync','arguments':{'dirname':'segments'}},],
+    "perform_video_decode":[{'operation': 'perform_sync', 'arguments': {'dirname': 'frames'}},],
+    'perform_detection':[],
+    'perform_transformation':[{'operation': 'perform_sync', 'arguments': {'dirname': 'regions'}},],
+    'perform_indexing':[{'operation': 'perform_sync', 'arguments': {'dirname': 'indexes'}},],
+    'perform_import':[{'operation': 'perform_sync', 'arguments': {}},],
+    'perform_detector_training':[],
+    'perform_detector_import':[],
+}
 
 
 def get_queue_name(operation,args):
@@ -124,8 +132,8 @@ def process_next(task_id,inject_filters=None,custom_next_tasks=None,sync=True,la
     launched = []
     logging.info("next tasks for {}".format(dt.operation))
     next_tasks = dt.arguments.get('next_tasks',[]) if dt.arguments and launch_next else []
-    if sync:
-        for k in settings.SYNC_TASKS.get(dt.operation,[]):
+    if sync and settings.MEDIA_BUCKET:
+        for k in SYNC_TASKS.get(dt.operation,[]):
             launched += launch_tasks(k,dt,inject_filters,None,'sync')
     for k in next_tasks+custom_next_tasks:
         map_filters = get_map_filters(k,dt.video)

@@ -28,6 +28,8 @@ from django.contrib.auth.mixins import UserPassesTestMixin
 from django_celery_results.models import TaskResult
 from rest_framework.authtoken.models import Token
 import logging
+import defaults
+
 try:
     from django.contrib.postgres.search import SearchVector
 except ImportError:
@@ -604,7 +606,7 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
     context['tube_count'] = Tube.objects.all().count()
     context["videos"] = Video.objects.all().filter()
     context['custom_detector_count'] = CustomDetector.objects.all().count()
-    context['rate'] = settings.DEFAULT_RATE
+    context['rate'] = defaults.DEFAULT_RATE
     return render(request, 'dashboard.html', context)
 
 
@@ -720,8 +722,8 @@ def yt(request):
                                                                {'operation': 'perform_video_decode',
                                                                 'arguments': {
                                                                     'rate': rate, 'rescale': rescale,
-                                                                    'segments_batch_size': settings.DEFAULT_SEGMENTS_BATCH_SIZE,
-                                                                    'next_tasks': settings.DEFAULT_PROCESSING_PLAN_VIDEO
+                                                                    'segments_batch_size': defaults.DEFAULT_SEGMENTS_BATCH_SIZE,
+                                                                    'next_tasks': defaults.DEFAULT_PROCESSING_PLAN_VIDEO
                                                                 }
                                                                 }
                                                            ]},
@@ -1208,8 +1210,8 @@ def import_s3(request):
         keys = request.POST.get('key')
         region = request.POST.get('region')
         bucket = request.POST.get('bucket')
-        rate = request.POST.get('rate',settings.DEFAULT_RATE)
-        rescale = request.POST.get('rescale',settings.DEFAULT_RESCALE)
+        rate = request.POST.get('rate',defaults.DEFAULT_RATE)
+        rescale = request.POST.get('rescale',defaults.DEFAULT_RESCALE)
         process_spec = {
             'process_type': DVAPQL.PROCESS,
         }
@@ -1224,7 +1226,7 @@ def import_s3(request):
                 video.name = "pending S3 import {} s3://{}/{}".format(region, bucket, key)
                 video.save()
                 extract_task = {'arguments': {'rate': rate, 'rescale': rescale,
-                                              'next_tasks': settings.DEFAULT_PROCESSING_PLAN_DATASET},
+                                              'next_tasks': defaults.DEFAULT_PROCESSING_PLAN_DATASET},
                                  'video_id': video.pk,
                                  'operation': 'perform_dataset_extraction'}
                 segment_decode_task = {'video_id': video.pk,
@@ -1234,8 +1236,8 @@ def import_s3(request):
                                                 {'operation': 'perform_video_decode',
                                                  'arguments': {
                                                      'rate': rate, 'rescale': rescale,
-                                                     'segments_batch_size':settings.DEFAULT_SEGMENTS_BATCH_SIZE,
-                                                     'next_tasks': settings.DEFAULT_PROCESSING_PLAN_VIDEO
+                                                     'segments_batch_size':defaults.DEFAULT_SEGMENTS_BATCH_SIZE,
+                                                     'next_tasks': defaults.DEFAULT_PROCESSING_PLAN_VIDEO
                                                 }
                                             }
                                             ]},

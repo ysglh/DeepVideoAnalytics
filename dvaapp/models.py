@@ -1,5 +1,5 @@
 from __future__ import unicode_literals
-
+import os
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.postgres.fields import ArrayField, JSONField
@@ -138,6 +138,16 @@ class Video(models.Model):
         else:
             return "{}/{}/video/{}.mp4".format(settings.MEDIA_ROOT,self.pk,self.pk)
 
+    def create_directory(self, create_subdirs=True):
+        os.mkdir('{}/{}'.format(settings.MEDIA_ROOT, self.pk))
+        if create_subdirs:
+            os.mkdir('{}/{}/video/'.format(settings.MEDIA_ROOT, self.pk))
+            os.mkdir('{}/{}/frames/'.format(settings.MEDIA_ROOT, self.pk))
+            os.mkdir('{}/{}/segments/'.format(settings.MEDIA_ROOT, self.pk))
+            os.mkdir('{}/{}/indexes/'.format(settings.MEDIA_ROOT, self.pk))
+            os.mkdir('{}/{}/regions/'.format(settings.MEDIA_ROOT, self.pk))
+            os.mkdir('{}/{}/transforms/'.format(settings.MEDIA_ROOT, self.pk))
+            os.mkdir('{}/{}/audio/'.format(settings.MEDIA_ROOT, self.pk))
 
 
 class Clusters(models.Model):
@@ -359,6 +369,12 @@ class CustomDetector(models.Model):
     source = models.ForeignKey(TEvent, null=True)
     trained = models.BooleanField(default=False)
     created = models.DateTimeField('date created', auto_now_add=True)
+
+    def create_directory(self,create_subdirs=True):
+        try:
+            os.mkdir('{}/detectors/{}'.format(settings.MEDIA_ROOT, self.pk))
+        except:
+            pass
 
 
 class Tube(models.Model):

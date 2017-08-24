@@ -25,39 +25,6 @@ def refresh_task_status():
                 t.save()
 
 
-def create_video_folders(video, create_subdirs=True):
-    os.mkdir('{}/{}'.format(settings.MEDIA_ROOT, video.pk))
-    if create_subdirs:
-        os.mkdir('{}/{}/video/'.format(settings.MEDIA_ROOT, video.pk))
-        os.mkdir('{}/{}/frames/'.format(settings.MEDIA_ROOT, video.pk))
-        os.mkdir('{}/{}/segments/'.format(settings.MEDIA_ROOT, video.pk))
-        os.mkdir('{}/{}/indexes/'.format(settings.MEDIA_ROOT, video.pk))
-        os.mkdir('{}/{}/regions/'.format(settings.MEDIA_ROOT, video.pk))
-        os.mkdir('{}/{}/transforms/'.format(settings.MEDIA_ROOT, video.pk))
-        os.mkdir('{}/{}/audio/'.format(settings.MEDIA_ROOT, video.pk))
-
-
-def create_detector_folders(detector, create_subdirs=True):
-    try:
-        os.mkdir('{}/detectors/{}'.format(settings.MEDIA_ROOT, detector.pk))
-    except:
-        pass
-
-
-def create_indexer_folders(indexer, create_subdirs=True):
-    try:
-        os.mkdir('{}/indexers/{}'.format(settings.MEDIA_ROOT, indexer.pk))
-    except:
-        pass
-
-
-def create_annotator_folders(annotator, create_subdirs=True):
-    try:
-        os.mkdir('{}/annotators/{}'.format(settings.MEDIA_ROOT, annotator.pk))
-    except:
-        pass
-
-
 def delete_video_object(video_pk,deleter):
     p = processing.DVAPQLProcess()
     query = {
@@ -86,7 +53,7 @@ def handle_uploaded_file(f, name, extract=True, user=None, rate=None, rescale=No
     filename = f.name
     filename = filename.lower()
     if filename.endswith('.dva_export.zip'):
-        create_video_folders(video, create_subdirs=False)
+        video.create_directory(create_subdirs=False)
         with open('{}/{}/{}.{}'.format(settings.MEDIA_ROOT, video.pk, video.pk, filename.split('.')[-1]),
                   'wb+') as destination:
             for chunk in f.chunks():
@@ -107,7 +74,7 @@ def handle_uploaded_file(f, name, extract=True, user=None, rate=None, rescale=No
         p.create_from_json(j=query, user=user)
         p.launch()
     elif filename.endswith('.mp4') or filename.endswith('.flv') or filename.endswith('.zip'):
-        create_video_folders(video, create_subdirs=True)
+        video.create_directory(create_subdirs=True)
         with open('{}/{}/video/{}.{}'.format(settings.MEDIA_ROOT, video.pk, video.pk, filename.split('.')[-1]),
                   'wb+') as destination:
             for chunk in f.chunks():
@@ -163,13 +130,13 @@ def handle_downloaded_file(downloaded, video, name):
     video.save()
     filename = downloaded.split('/')[-1]
     if filename.endswith('.dva_export.zip'):
-        create_video_folders(video, create_subdirs=False)
+        video.create_directory(create_subdirs=False)
         os.rename(downloaded, '{}/{}/{}.{}'.format(settings.MEDIA_ROOT, video.pk, video.pk, filename.split('.')[-1]))
         video.uploaded = True
         video.save()
         import_local(video)
     elif filename.endswith('.mp4') or filename.endswith('.flv') or filename.endswith('.zip'):
-        create_video_folders(video, create_subdirs=True)
+        video.create_directory(create_subdirs=True)
         os.rename(downloaded,
                   '{}/{}/video/{}.{}'.format(settings.MEDIA_ROOT, video.pk, video.pk, filename.split('.')[-1]))
         video.uploaded = True
@@ -214,7 +181,7 @@ def create_annotation(form, object_name, labels, frame):
 
 
 def retrieve_video_via_url(dv,media_dir):
-    create_video_folders(dv, create_subdirs=True)
+    dv.create_directory(create_subdirs=True)
     output_dir = "{}/{}/{}/".format(media_dir, dv.pk, 'video')
     command = "youtube-dl -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4'  \"{}\" -o {}.mp4".format(dv.url,dv.pk)
     logging.info(command)
@@ -530,7 +497,7 @@ def import_s3(start,dv):
         handle_downloaded_file("{}/{}".format(settings.MEDIA_ROOT, fname), start.video,
                                "s3://{}/{}".format(s3bucket, s3key))
     else:
-        create_video_folders(start.video, create_subdirs=False)
+        start.video.create_directory(create_subdirs=False)
         command = ["aws", "s3", "cp", '--quiet', "s3://{}/{}/".format(s3bucket, s3key), '.', '--recursive']
         command_exec = " ".join(command)
         download = subprocess.Popen(args=command, cwd=path)
@@ -548,7 +515,7 @@ def import_s3(start,dv):
 
 
 def import_vdn_url(dv):
-    create_video_folders(dv, create_subdirs=False)
+    dv.create_directory(create_subdirs=False)
     if 'www.dropbox.com' in dv.vdn_dataset.download_url and not dv.vdn_dataset.download_url.endswith('?dl=1'):
         r = requests.get(dv.vdn_dataset.download_url + '?dl=1')
     else:
@@ -604,7 +571,7 @@ def import_local(dv):
 
 
 def import_vdn_s3(dv):
-    create_video_folders(dv, create_subdirs=False)
+    dv.create_directory(create_subdirs=False)
     client = boto3.client('s3')
     resource = boto3.resource('s3')
     key = dv.vdn_dataset.aws_key

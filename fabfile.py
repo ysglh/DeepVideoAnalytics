@@ -866,14 +866,14 @@ def train_yolo(start_pk):
     setup_django()
     from django.conf import settings
     from dvaapp.models import Region, Frame, CustomDetector, TEvent
-    from dvaapp.shared import create_detector_folders, create_detector_dataset
+    from dvaapp.shared import create_detector_dataset
     from dvalib.yolo import trainer
     start = TEvent.objects.get(pk=start_pk)
     args = start.arguments
     labels = set(args['labels']) if 'labels' in args else set()
     object_names = set(args['object_names']) if 'object_names' in args else set()
     detector = CustomDetector.objects.get(pk=args['detector_pk'])
-    create_detector_folders(detector)
+    detector.create_directory()
     args['root_dir'] = "{}/detectors/{}/".format(settings.MEDIA_ROOT,detector.pk)
     args['base_model'] = "{}/detectors/yolo/yolo.h5"
     class_distribution, class_names, rboxes, rboxes_set, frames, i_class_names = create_detector_dataset(object_names,labels)
@@ -934,7 +934,6 @@ def temp_import_detector(path="/Users/aub3/tempd"):
     :return:
     """
     setup_django()
-    from dvaapp.shared import create_detector_folders
     import json
     from django.conf import settings
     from dvaapp.models import CustomDetector
@@ -949,7 +948,7 @@ def temp_import_detector(path="/Users/aub3/tempd"):
     d.boxes_count = 500
     d.class_distribution = json.dumps(data['class_names'])
     d.save()
-    create_detector_folders(d)
+    d.create_directory()
     shutil.copy("{}/phase_2_best.h5".format(path),"{}/detectors/{}/phase_2_best.h5".format(settings.MEDIA_ROOT,d.pk))
 
 

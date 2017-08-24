@@ -174,7 +174,7 @@ def perform_dataset_extraction(task_id):
     video_id = start.video_id
     dv = Video.objects.get(id=video_id)
     if dv.youtube_video:
-        shared.create_video_folders(dv)
+        dv.create_directory()
     v = VideoDecoder(dvideo=dv, media_dir=settings.MEDIA_ROOT)
     v.extract(args=args,start=start)
     process_next(task_id)
@@ -426,7 +426,7 @@ def perform_detector_import(task_id):
     start.save()
     start_time = time.time()
     dd = CustomDetector.objects.get(pk=start.arguments['detector_pk'])
-    shared.create_detector_folders(dd, create_subdirs=False)
+    dd.create_directory(create_subdirs=False)
     if 'www.dropbox.com' in dd.vdn_detector.download_url and not dd.vdn_detector.download_url.endswith('?dl=1'):
         r = requests.get(dd.vdn_detector.download_url + '?dl=1')
     else:

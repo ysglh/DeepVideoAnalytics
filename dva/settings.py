@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os, dj_database_url, sys
-from .worker_config import *
 
 VDN_ENABLE = 'VDN_ENABLE' in os.environ
 DVA_PRIVATE_ENABLE = 'DVA_PRIVATE_ENABLE' in os.environ

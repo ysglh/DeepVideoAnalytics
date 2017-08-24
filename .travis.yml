@@ -68,7 +68,7 @@ script:
   - wget --quiet localhost:8000/tasks/
   - wget --quiet localhost:8000/clustering/
   - wget --quiet localhost:8000/textsearch/
-  - wget --quiet localhost:8000/detectors/
+  - wget --quiet localhost:8000/models/
   - wget --quiet localhost:8000/status
   - wget --quiet http://www.visualdata.network/vdn/api/
   - wget --quiet http://www.visualdata.network/vdn/

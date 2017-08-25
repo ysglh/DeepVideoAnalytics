@@ -177,8 +177,8 @@
             {% if d.materialized %}
                 <img class="img-responsive" src="{{ MEDIA_URL }}{{ object.video_id }}/regions/{{ d.pk }}.jpg" style="margin-left:auto;margin-right: auto">
             {% else %}
-                <div style="width: {{ k.w }}px; height: {{ k.h }}px; position: relative;overflow:hidden;margin: auto;">
-                    <img src="{{ url }}" id="image" style="position: absolute; top: -{{ k.y }}px; left: -{{ k.x }}px" />
+                <div style="width: {{ d.w }}px; height: {{ d.h }}px; position: relative;overflow:hidden;margin: auto;">
+                    <img src="{{ url }}" id="image" style="position: absolute; top: -{{ d.y }}px; left: -{{ d.x }}px" />
                 </div>
             {% endif %}
         </div>

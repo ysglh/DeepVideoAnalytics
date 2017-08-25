@@ -1072,7 +1072,7 @@ def import_detector(request):
         import_vdn_detector_url(server, url, user)
     else:
         raise NotImplementedError
-    return redirect('detectors')
+    return redirect('models')
 
 
 @user_passes_test(user_check)

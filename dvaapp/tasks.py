@@ -476,6 +476,8 @@ def perform_import(event_id):
         shared.import_vdn_s3(dv)
     elif source == 'LOCAL':
         shared.import_local(dv)
+    elif source == 'MASSIVE':
+        shared.import_external(start.arguments)
     else:
         raise NotImplementedError
     process_next(start.pk)
@@ -785,6 +787,19 @@ def perform_ingestion(task_id):
     Incrementally add segments/images to video/dataset.
     Used for ingesting video from streaming sources such as
     cameras, online livestreams,twitter feed of a developing event, etc.
+    :param task_id:
+    :return:
+    """
+    raise NotImplementedError
+
+
+@app.task(track_started=True,name="perform_stream_capture")
+def perform_stream_capture(task_id):
+    """
+    Capture camera or livestream
+    'livestreamer --player-continuous-http --player-no-close "{}" best -O --yes-run-as-root'.format(url)
+    'ffmpeg -re -i - -c:v libx264 -c:a aac -ac 1 -strict -2 -crf 18 -profile:v baseline -maxrate 3000k
+    -bufsize 1835k -pix_fmt yuv420p -flags -global_header -f segment -segment_time 0.1 "{}/%d.mp4"'.format(dirname)
     :param task_id:
     :return:
     """

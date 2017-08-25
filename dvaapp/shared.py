@@ -646,3 +646,26 @@ def build_queryset(args,video_id=None):
         queryset = None
         raise ValueError
     return queryset,target
+
+
+def import_external(args):
+    dataset = args['dataset']
+    if dataset == 'YFCC':
+        bucket = args.get('bucket','yahoo-webscope')
+        prefix = args.get('prefix','I3set14')
+        force_download = args.get('force_download', False)
+        fnames = args.get('files',['yfcc100m_autotags.bz2','yfcc100m_dataset.bz2','yfcc100m_places.bz2'])
+        for fname in fnames:
+            outfile = "{}/external/{}".format(settings.MEDIA_ROOT,fname)
+            if (not os.path.isfile(outfile)) or force_download:
+                command = ['aws','s3','cp',
+                           's3://{}/{}/{}'.format(bucket,prefix,fname),
+                           outfile]
+                sp = subprocess.Popen(command)
+                sp.wait()
+                if sp.returncode != 0:
+                    raise ValueError,"Returncode {} for command {}".format(sp.returncode," ".join(command))
+    elif dataset == 'AMOS':
+        raise NotImplementedError
+    else:
+        raise ValueError,"dataset:{} not configured".format(dataset)

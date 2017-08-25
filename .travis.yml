@@ -56,6 +56,7 @@ before_script:
 
 script:
   - fab init_server
+  - fab init_models
   - fab init_fs
   - fab ci
   - fab ci_face

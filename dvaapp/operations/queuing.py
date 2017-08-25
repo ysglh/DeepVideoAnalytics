@@ -10,9 +10,6 @@ Q_TRAINER = 'qtrainer'
 Q_OCR = 'qocr'
 Q_VGG = 'qvgg'
 
-QUEUES = [Q_EXTRACTOR,Q_INDEXER,Q_DETECTOR,Q_RETRIEVER,Q_FACE_RETRIEVER,Q_FACE_DETECTOR,Q_CLUSTER,Q_TRAINER,Q_OCR,Q_VGG,Q_MANAGER]
-INDEXER_TASKS = {'perform_indexing',}
-
 TASK_NAMES_TO_QUEUE = {
     "perform_video_segmentation":Q_EXTRACTOR,
     "perform_video_decode":Q_EXTRACTOR,
@@ -64,31 +61,13 @@ VISUAL_INDEXES = {
 
 
 ANALYZERS = {
-    'crnn':
-        {
-            'queue':"qcrnn",
-        },
-    'tag':
-        {
-            'queue': "qtag",
-        },
+    'crnn':{'queue':"qcrnn",},
+    'tag':{'queue': "qtag",},
 }
 
 
 DETECTORS = {
-    'face':
-        {
-            'task':"perform_detection",
-            'queue':Q_FACE_DETECTOR,
-        },
-    'coco':
-        {
-            'task':"perform_detection",
-            'queue':Q_DETECTOR,
-        },
-    'textbox':
-        {
-            'task':"perform_detection",
-            'queue':Q_OCR,
-        },
+    'face':{'task':"perform_detection",'queue':Q_FACE_DETECTOR,},
+    'coco':{'task':"perform_detection",'queue':Q_DETECTOR,},
+    'textbox':{'task':"perform_detection",'queue':Q_OCR,},
     }

@@ -8,7 +8,7 @@ from django.views.generic import ListView, DetailView
 from .forms import UploadFileForm, YTVideoForm, AnnotationForm
 from .models import Video, Frame, DVAPQL, QueryResults, TEvent, IndexEntries, VDNDataset, Region, VDNServer, \
     ClusterCodes, Clusters,  Tube, Detector, VDNDetector, Segment, FrameLabel, SegmentLabel, \
-    VideoLabel, RegionLabel, TubeLabel, Label, ManagementAction, StoredDVAPQL
+    VideoLabel, RegionLabel, TubeLabel, Label, ManagementAction, StoredDVAPQL, Analyzer, Indexer
 from dva.celery import app
 from dvaapp.operations import queuing
 import serializers
@@ -63,6 +63,24 @@ class VideoViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
     queryset = Video.objects.all()
     serializer_class = serializers.VideoSerializer
+
+
+class AnalyzerViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
+    queryset = Analyzer.objects.all()
+    serializer_class = serializers.AnalyzerSerializer
+
+
+class IndexerViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
+    queryset = Indexer.objects.all()
+    serializer_class = serializers.IndexerSerializer
+
+
+class DetectorViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
+    queryset = Detector.objects.all()
+    serializer_class = serializers.DetectorSerializer
 
 
 class FrameViewSet(viewsets.ReadOnlyModelViewSet):

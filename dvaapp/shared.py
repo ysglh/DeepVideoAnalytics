@@ -258,7 +258,7 @@ def pull_vdn_list(pk):
         response = r.json()
         for d in response['results']:
             datasets.append(d)
-    r = requests.get("{}vdn/api/detectors/".format(server.url))
+    r = requests.get("{}vdn/api/vdn_detectors/".format(server.url))
     response = r.json()
     for d in response['results']:
         detectors.append(d)

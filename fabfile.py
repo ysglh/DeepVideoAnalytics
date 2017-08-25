@@ -71,36 +71,6 @@ def start_container_server():
     init_server()
     init_models()
     launch_workers_and_scheduler_from_environment()
-    if 'LAUNCH_SERVER' in os.environ:
-        local('python manage.py runserver 0.0.0.0:8000')
-    elif 'LAUNCH_SERVER_NGINX' in os.environ:
-        local('chmod 0777 -R /tmp')
-        try:
-            local("mv docker/configs/nginx.conf /etc/nginx/")
-        except:
-            print "warning assuming that the config was already moved"
-            pass
-        if 'ENABLE_BASICAUTH' in os.environ:
-            try:
-                local("mv docker/configs/nginx-app_password.conf /etc/nginx/sites-available/default")
-            except:
-                print "warning assuming that the config was already moved"
-                pass
-        else:
-            try:
-                local("mv docker/configs/nginx-app.conf /etc/nginx/sites-available/default")
-            except:
-                print "warning assuming that the config was already moved"
-                pass
-        try:
-            local("mv docker/configs/supervisor-app.conf /etc/supervisor/conf.d/")
-        except:
-            print "warning assuming that the config was already moved"
-            pass
-        local("python manage.py collectstatic --no-input")
-        local("chmod 0777 -R dva/staticfiles/")
-        # local("chmod 0777 -R dva/media/")
-        local('supervisord -n')
 
 
 
@@ -114,7 +84,9 @@ def start_container_worker():
     """
     local('sleep 20')
     init_fs()
+    init_models()
     launch_workers_and_scheduler_from_environment(block_on_manager=True)
+    launch_server_from_environment()
 
 @task
 def clean():
@@ -149,6 +121,7 @@ def clean():
         except:
             pass
     init_server()
+    init_models()
     init_fs()
     if sys.platform == 'darwin':
         superu()
@@ -388,6 +361,44 @@ def launch_workers_and_scheduler_from_environment(block_on_manager=False):
         local('fab startq:{} &'.format(queuing.Q_MANAGER))
 
 
+def launch_server_from_environment():
+    """
+    Launch django development server or NGINX server.
+    :return:
+    """
+    if 'LAUNCH_SERVER' in os.environ:
+        local('python manage.py runserver 0.0.0.0:8000')
+    elif 'LAUNCH_SERVER_NGINX' in os.environ:
+        local('chmod 0777 -R /tmp')
+        try:
+            local("mv docker/configs/nginx.conf /etc/nginx/")
+        except:
+            print "warning assuming that the config was already moved"
+            pass
+        if 'ENABLE_BASICAUTH' in os.environ:
+            try:
+                local("mv docker/configs/nginx-app_password.conf /etc/nginx/sites-available/default")
+            except:
+                print "warning assuming that the config was already moved"
+                pass
+        else:
+            try:
+                local("mv docker/configs/nginx-app.conf /etc/nginx/sites-available/default")
+            except:
+                print "warning assuming that the config was already moved"
+                pass
+        try:
+            local("mv docker/configs/supervisor-app.conf /etc/supervisor/conf.d/")
+        except:
+            print "warning assuming that the config was already moved"
+            pass
+        local("python manage.py collectstatic --no-input")
+        local("chmod 0777 -R dva/staticfiles/")
+        # local("chmod 0777 -R dva/media/")
+        local('supervisord -n')
+
+
+
 @task
 def download_indexers(root_dir):
     indexer_dir = "{}/indexers/".format(root_dir)
@@ -474,12 +485,12 @@ def init_models():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from dvaapp.models import Detector,Analyzer,Indexer
-    _ = Detector.objects.get_or_create(name="coco",algorithm="mobilenet_ssd")
-    _ = Detector.objects.get_or_create(name="facenet",algorithm="mtcnn_facenet")
+    _ = Detector.objects.get_or_create(name="coco",algorithm="mobilenet_ssd",queue='qdetector')
+    _ = Detector.objects.get_or_create(name="facenet",algorithm="mtcnn_facenet",queue='qfacedetector')
     _ = Indexer.objects.get_or_create(name="inception",indexer_queue="qindexer",retriever_queue="qretriever")
     _ = Indexer.objects.get_or_create(name="facenet",indexer_queue="qfaceretriever",retriever_queue="qfaceretriever")
-    _ = Analyzer.objects.get_or_create(name="tag",queue="qindexer",retriever_queue="qretriever")
-    _ = Analyzer.objects.get_or_create(name="crnn",queue="qfaceretriever",retriever_queue="qfaceretriever")
+    _ = Analyzer.objects.get_or_create(name="tag",queue="q_analyzer_tag")
+    _ = Analyzer.objects.get_or_create(name="crnn",queue="q_analyzer_crnn")
 
 
 @task
@@ -745,7 +756,7 @@ def setup_vdn(password):
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
-    from vdnapp.models import User,Dataset,Organization,Detector
+    from vdnapp.models import User,Dataset,Organization,VDNRemoteDetector
     user = User(username="akshayvdn",password=password,email="aub3@cornell.edu")
     user.save()
     o = Organization()
@@ -787,7 +798,7 @@ def setup_vdn(password):
         ('License plate', 'https://www.dropbox.com/s/ztsl59pxgzvd14k/1.dva_detector.zip'),
     ]
     for name, url in detectors:
-        d = Detector()
+        d = VDNRemoteDetector()
         d.organization = o
         d.name = name
         d.download_url = url

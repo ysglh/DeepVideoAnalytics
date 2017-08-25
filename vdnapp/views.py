@@ -5,7 +5,7 @@ from django.core.exceptions import MultipleObjectsReturned
 from django.shortcuts import redirect
 from django.views.generic import ListView,DetailView
 from django.utils.decorators import method_decorator
-from .models import Dataset,User,Organization,Annotation,Detector
+from .models import Dataset,User,Organization,Annotation,VDNRemoteDetector
 from collections import defaultdict
 from django.template.defaulttags import register
 import google
@@ -25,10 +25,10 @@ class DatasetSerializer(serializers.HyperlinkedModelSerializer):
         fields = '__all__'
 
 
-class DetectorSerializer(serializers.HyperlinkedModelSerializer):
+class VDNRemoteDetectorSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         depth=1
-        model = Detector
+        model = VDNRemoteDetector
         fields = '__all__'
 
 
@@ -70,10 +70,10 @@ class DatasetViewSet(viewsets.ModelViewSet):
             raise ValueError, "User not allowed to delete"
 
 
-class DetectorViewSet(viewsets.ModelViewSet):
+class VDNDetectorViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)
-    queryset = Detector.objects.all()
-    serializer_class = DetectorSerializer
+    queryset = VDNRemoteDetector.objects.all()
+    serializer_class = VDNRemoteDetectorSerializer
 
     def perform_create(self, serializer):
         organization, created = Organization.objects.get_or_create(user=self.request.user)
@@ -130,7 +130,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 
 router = routers.DefaultRouter()
 router.register(r'datasets', DatasetViewSet)
-router.register(r'detectors', DetectorViewSet)
+router.register(r'vdn_detectors', VDNDetectorViewSet)
 router.register(r'organizations', OrganizationViewSet)
 router.register(r'annotations', AnnotationViewSet)
 
@@ -149,7 +149,7 @@ class LoginRequiredMixin(object):
 def marketing(request):
     context = {}
     context['dataset_list'] = Dataset.objects.all()
-    context['detector_list'] = Detector.objects.all()
+    context['detector_list'] = VDNRemoteDetector.objects.all()
     context['annotations'] = Annotation.objects.all()
     return render(request, 'vdnapp/vdn_index.html', context=context)
 

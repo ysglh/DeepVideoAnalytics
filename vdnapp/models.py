@@ -49,13 +49,7 @@ class Annotation(models.Model):
     created = models.DateTimeField('date created', auto_now_add=True)
 
 
-class Indexer(models.Model):
-    name = models.CharField(max_length=100,default="")
-    created = models.DateTimeField('date created', auto_now_add=True)
-    tfgraph_url = models.TextField(default="",blank=True)
-
-
-class Detector(models.Model):
+class VDNRemoteDetector(models.Model):
     name = models.CharField(max_length=100,default="")
     created = models.DateTimeField('date created', auto_now_add=True)
     description = models.TextField(default="")

@@ -382,6 +382,7 @@ class IndexEntries(models.Model):
 class Detector(models.Model):
     name = models.CharField(max_length=100)
     algorithm = models.CharField(max_length=100,default="")
+    queue = models.CharField(max_length=300,null=True)
     model_filename = models.CharField(max_length=200,default="")
     vdn_detector = models.ForeignKey(VDNDetector,null=True)
     arguments = models.TextField(default="")

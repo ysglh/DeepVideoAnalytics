@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Dataset, Annotation, Organization, Detector, Indexer
+from .models import Dataset, Annotation, Organization, VDNRemoteDetector
 from rest_framework.authtoken.admin import TokenAdmin
 
 
@@ -8,13 +8,8 @@ class DatasetAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(Detector)
-class DetectorAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(Indexer)
-class IndexerAdmin(admin.ModelAdmin):
+@admin.register(VDNRemoteDetector)
+class VDNRemoteDetectorAdmin(admin.ModelAdmin):
     pass
 
 

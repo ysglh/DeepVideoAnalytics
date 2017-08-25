@@ -4,22 +4,6 @@ from __future__ import unicode_literals
 
 from django.db import migrations
 
-# def forwards_func(apps, schema_editor):
-#     CustomIndexer = apps.get_model("dvaapp", "CustomIndexer")
-#     db_alias = schema_editor.connection.alias
-#     CustomIndexer.objects.using(db_alias).bulk_create([
-#         CustomIndexer(name="inception",algorithm="inception"),
-#         CustomIndexer(name="facenet",algorithm="facenet"),
-#         CustomIndexer(name="vgg",algorithm="vgg"),
-#     ])
-#
-#
-# def reverse_func(apps, schema_editor):
-#     CustomIndexer = apps.get_model("dvaapp", "CustomIndexer")
-#     db_alias = schema_editor.connection.alias
-#     CustomIndexer.objects.using(db_alias).filter(name="inception").delete()
-#     CustomIndexer.objects.using(db_alias).filter(name="facenet").delete()
-
 
 class Migration(migrations.Migration):
     initial = False
@@ -29,11 +13,11 @@ class Migration(migrations.Migration):
         # migrations.RunPython(forwards_func, reverse_func),
         migrations.RunSQL(
             """
-            CREATE INDEX region_text_index_metatext ON dvaapp_region USING GIST (to_tsvector('english', metadata_text));
+            CREATE INDEX region_text_index_text ON dvaapp_region USING GIST (to_tsvector('english', text));
             CREATE INDEX region_text_index_object_name ON dvaapp_region USING GIST (to_tsvector('english', object_name));
             CREATE INDEX frame_text_index_name ON dvaapp_frame USING GIST (to_tsvector('english', name ));
             CREATE INDEX frame_text_index_subdir ON dvaapp_frame USING GIST (to_tsvector('english', subdir));
-            CREATE INDEX label_text_index ON dvaapp_appliedlabel USING GIST (to_tsvector('english', label_name));
+            CREATE INDEX label_text_index ON dvaapp_label USING GIST (to_tsvector('english', name));
             """
         ),
     ]

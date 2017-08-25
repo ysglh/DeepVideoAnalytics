@@ -779,12 +779,12 @@ def manage_host(self,op,worker_name=None,queue_name=None):
     ManagementAction.objects.create(op=op,parent_task=self.request.id,message=message,host=host_name)
 
 
-@app.tasks(track_started=True,name="perform_ingestion")
+@app.task(track_started=True,name="perform_ingestion")
 def perform_ingestion(task_id):
     """
     Incrementally add segments/images to video/dataset.
     Used for ingesting video from streaming sources such as
-    cameras, online livestreams.
+    cameras, online livestreams,twitter feed of a developing event, etc.
     :param task_id:
     :return:
     """

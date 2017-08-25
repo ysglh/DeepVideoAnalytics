@@ -742,7 +742,6 @@ def setup_vdn(password):
         ('LFW_subset','https://www.dropbox.com/s/6nn84z4yzy47vuh/LFW.dva_export.zip'),
         ('MSCOCO_Sample_500','https://www.dropbox.com/s/qhzl9ig7yhems6j/MSCOCO_Sample.dva_export.zip'),
         ('Paris','https://www.dropbox.com/s/a7qf1f3j8vp4nuh/Paris.dva_export.zip'),
-        ('yolo_test_train_dataset_medium', 'https://www.dropbox.com/s/u1djt5obccczmcj/license_plates.zip'),
     ]
     for name,url in datasets:
         d = Dataset()
@@ -755,7 +754,6 @@ def setup_vdn(password):
         d.save()
     aws_datasets = [
         ('MSCOCO train ~14GB', 'us-east-1','visualdatanetwork','coco_train.dva_export.zip'),
-        ('Visual Genome objects ~16GB', 'us-east-1', 'visualdatanetwork', 'visual_genome.dva_export.zip'),
         ('aws_test_dir', 'us-east-1', 'visualdatanetwork', '007'),
     ]
     for name, region, bucket, key in aws_datasets:

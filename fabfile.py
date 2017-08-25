@@ -1058,9 +1058,10 @@ def test_api(port=80):
 @task
 def capture_stream(url="https://www.youtube.com/watch?v=vpm16w3ik0g"):
     command = 'livestreamer --player-continuous-http --player-no-close ' \
-              '"{}" best -O | ' \
+              '"{}" best -O --yes-run-as-root | ' \
               'ffmpeg -re -i - -c:v libx264 -c:a aac -ac 1 -strict -2 -crf 18 ' \
               '-profile:v baseline -maxrate 3000k -bufsize 1835k -pix_fmt yuv420p ' \
               '-flags -global_header -f segment -segment_time 0.1 "capture-%03d.mp4"'.format(url)
     if raw_input("This code uses os.system and is a huge security risk if url is malicious shell string. Type yes to confirm>>") == "yes":
+        print command
         os.system(command)

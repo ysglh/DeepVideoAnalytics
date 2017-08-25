@@ -777,3 +777,15 @@ def manage_host(self,op,worker_name=None,queue_name=None):
         except:
             message = "No GPU available"
     ManagementAction.objects.create(op=op,parent_task=self.request.id,message=message,host=host_name)
+
+
+@app.tasks(track_started=True,name="perform_ingestion")
+def perform_ingestion(task_id):
+    """
+    Incrementally add segments/images to video/dataset.
+    Used for ingesting video from streaming sources such as
+    cameras, online livestreams.
+    :param task_id:
+    :return:
+    """
+    raise NotImplementedError

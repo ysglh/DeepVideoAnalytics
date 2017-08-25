@@ -150,6 +150,20 @@ class Video(models.Model):
             os.mkdir('{}/{}/audio/'.format(settings.MEDIA_ROOT, self.pk))
 
 
+class IngestEntry(models.Model):
+    video = models.ForeignKey(Video)
+    ingest_index = models.IntegerField()
+    ingest_filename = models.CharField(max_length=500)
+    start_segment_index = models.IntegerField(null=True)
+    start_frame_index = models.IntegerField(null=True)
+    segments = models.IntegerField(null=True)
+    frames = models.IntegerField(null=True)
+    created = models.DateTimeField('date created', auto_now_add=True)
+
+    class Meta:
+        unique_together = (("video", "ingest_filename","ingest_index"),)
+
+
 class Clusters(models.Model):
     excluded_index_entries_pk = ArrayField(models.IntegerField(), default=[])
     included_index_entries_pk = ArrayField(models.IntegerField(), default=[])

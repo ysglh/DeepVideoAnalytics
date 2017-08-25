@@ -69,7 +69,7 @@ def start_container_server():
     migrate()
     init_fs()
     init_server()
-    launch_queues_env()
+    launch_workers_and_scheduler_from_environment()
     if 'LAUNCH_SERVER' in os.environ:
         local('python manage.py runserver 0.0.0.0:8000')
     elif 'LAUNCH_SERVER_NGINX' in os.environ:
@@ -113,7 +113,7 @@ def start_container_worker():
     """
     local('sleep 20')
     init_fs()
-    launch_queues_env(block_on_manager=True)
+    launch_workers_and_scheduler_from_environment(block_on_manager=True)
 
 @task
 def clean():
@@ -345,7 +345,6 @@ def superu():
 def launch():
     """
     Launch workers for each queue
-    :param detection: use fab launch_queues:1 to lauch detector queue in addition to all others
     :return:
     """
     local('fab startq:qextract &')
@@ -358,10 +357,12 @@ def launch():
     local('fab startq:qdetector &')
     local('fab startq:qmanager &')
 
-@task
-def launch_queues_env(block_on_manager=False):
+
+def launch_workers_and_scheduler_from_environment(block_on_manager=False):
     """
-    Launch workers for each queue
+    Launch workers and scheduler as specified in the environment variables.
+    Only one scheduler should be launched per deployment.
+
     :return:
     """
     import django, os
@@ -377,6 +378,9 @@ def launch_queues_env(block_on_manager=False):
             else:
                 queue_name = k.split('_')[-1]
                 local('fab startq:{} &'.format(queue_name))
+    if os.environ.get("LAUNCH_SCHEDULER",False):
+        # Should be launched only once per deployment
+        local('fab start_scheduler &')
     if block_on_manager: # the container process waits on the manager
         local('fab startq:{}'.format(queuing.Q_MANAGER))
     else:
@@ -1049,3 +1053,14 @@ def test_api(port=80):
                       data={'script':file('dvaapp/test_scripts/url.json').read()},
                       headers=headers)
     print r.status_code
+
+
+@task
+def capture_steam(url="https://www.youtube.com/watch?v=vpm16w3ik0g"):
+    command = 'livestreamer --player-continuous-http --player-no-close ' \
+              '"{}" best -O | ' \
+              'ffmpeg -re -i - -c:v libx264 -c:a aac -ac 1 -strict -2 -crf 18 ' \
+              '-profile:v baseline -maxrate 3000k -bufsize 1835k -pix_fmt yuv420p ' \
+              '-flags -global_header -f segment -segment_time 0.1 "capture-%03d.mp4"'.format(url)
+    if raw_input("This code uses os.system and is a huge security risk if url is malicious shell string. Type yes to confirm>>") == "yes":
+        os.system(command=command)

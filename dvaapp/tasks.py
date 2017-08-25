@@ -5,7 +5,7 @@ from PIL import Image
 from django.conf import settings
 from dva.celery import app
 from .models import Video, Frame, TEvent,  IndexEntries, ClusterCodes, Region, Tube, \
-    Clusters, CustomDetector, Segment, IndexerQuery, DeletedVideo, ManagementAction
+    Clusters, Detector, Segment, IndexerQuery, DeletedVideo, ManagementAction
 from .operations.indexing import IndexerTask
 from .operations.retrieval import RetrieverTask
 from .operations.detection import DetectorTask
@@ -267,7 +267,7 @@ def perform_detection(task_id):
     if detector_name == 'custom':
         detector_pk = int(args['detector_pk'])
         if detector_pk not in perform_detection.get_static_detectors:
-            cd = CustomDetector.objects.get(pk=detector_pk)
+            cd = Detector.objects.get(pk=detector_pk)
             model_dir = "{}/detectors/{}/".format(settings.MEDIA_ROOT, cd.pk)
             class_names = {k: v for k, v in json.loads(cd.class_names)}
             i_class_names = {i: k for k, i in class_names.items()}
@@ -425,7 +425,7 @@ def perform_detector_import(task_id):
     start.operation = perform_detector_import.name
     start.save()
     start_time = time.time()
-    dd = CustomDetector.objects.get(pk=start.arguments['detector_pk'])
+    dd = Detector.objects.get(pk=start.arguments['detector_pk'])
     dd.create_directory(create_subdirs=False)
     if 'www.dropbox.com' in dd.vdn_detector.download_url and not dd.vdn_detector.download_url.endswith('?dl=1'):
         r = requests.get(dd.vdn_detector.download_url + '?dl=1')

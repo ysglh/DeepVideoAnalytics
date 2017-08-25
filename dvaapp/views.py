@@ -7,7 +7,7 @@ import json
 from django.views.generic import ListView, DetailView
 from .forms import UploadFileForm, YTVideoForm, AnnotationForm
 from .models import Video, Frame, DVAPQL, QueryResults, TEvent, IndexEntries, VDNDataset, Region, VDNServer, \
-    ClusterCodes, Clusters,  Tube, CustomDetector, VDNDetector, Segment, FrameLabel, SegmentLabel, \
+    ClusterCodes, Clusters,  Tube, Detector, VDNDetector, Segment, FrameLabel, SegmentLabel, \
     VideoLabel, RegionLabel, TubeLabel, Label, ManagementAction, StoredDVAPQL
 from dva.celery import app
 from dvaapp.operations import queuing
@@ -365,7 +365,7 @@ class ClustersDetails(UserPassesTestMixin, DetailView):
 
 
 class DetectionDetail(UserPassesTestMixin, DetailView):
-    model = CustomDetector
+    model = Detector
 
     def get_context_data(self, **kwargs):
         context = super(DetectionDetail, self).get_context_data(**kwargs)
@@ -597,7 +597,7 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
     context['region_count'] = Region.objects.all().count()
     context['tube_count'] = Tube.objects.all().count()
     context["videos"] = Video.objects.all().filter()
-    context['custom_detector_count'] = CustomDetector.objects.all().count()
+    context['detector_count'] = Detector.objects.all().count()
     context['rate'] = defaults.DEFAULT_RATE
     return render(request, 'dashboard.html', context)
 
@@ -895,7 +895,7 @@ def workers(request):
 def training(request):
     context = {}
     context["videos"] = Video.objects.all().filter()
-    context["detectors"] = CustomDetector.objects.all()
+    context["detectors"] = Detector.objects.all()
     if request.method == 'POST':
         if request.POST.get('action') == 'estimate':
             args = request.POST.get('args')
@@ -923,7 +923,7 @@ def training(request):
             args['labels'] = [k.strip() for k in request.POST.get('labels').split(',') if k.strip()]
             args['object_names'] = [k.strip() for k in request.POST.get('object_names').split(',') if k.strip()]
             args['excluded_videos'] = request.POST.getlist('excluded_videos')
-            detector = CustomDetector()
+            detector = Detector()
             detector.name = args['name']
             detector.algorithm = "yolo"
             detector.arguments = json.dumps(args)
@@ -1204,10 +1204,10 @@ def models(request):
         'index_entries': IndexEntries.objects.all(),
         "videos": Video.objects.all().filter(),
         "region_types": Region.REGION_TYPES,
-        "detectors": CustomDetector.objects.all()
+        "detectors": Detector.objects.all()
     }
     detector_stats = []
-    for d in CustomDetector.objects.all():
+    for d in Detector.objects.all():
         class_dist = json.loads(d.class_distribution) if d.class_distribution.strip() else {}
         detector_stats.append(
             {
@@ -1283,7 +1283,7 @@ def train_detector(request):
         args['labels'] = [k.strip() for k in request.POST.get('labels').split(',') if k.strip()]
         args['object_names'] = [k.strip() for k in request.POST.get('object_names').split(',') if k.strip()]
         args['excluded_videos'] = request.POST.getlist('excluded_videos')
-        detector = CustomDetector()
+        detector = Detector()
         detector.name = args['name']
         detector.algorithm = "yolo"
         detector.arguments = json.dumps(args)

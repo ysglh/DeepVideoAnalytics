@@ -1,5 +1,5 @@
 import os, json, requests, copy, time, subprocess, logging, shutil, zipfile, boto3, random, calendar, shlex
-from models import Video, TEvent,  Region, VDNDataset, VDNServer, VDNDetector, CustomDetector, DeletedVideo, Label,\
+from models import Video, TEvent,  Region, VDNDataset, VDNServer, VDNDetector, Detector, DeletedVideo, Label,\
     RegionLabel
 from django.conf import settings
 from django_celery_results.models import TaskResult
@@ -356,7 +356,7 @@ def import_vdn_detector_url(server, url, user):
     r = requests.get(url)
     response = r.json()
     vdn_detector = create_vdn_detector(response, server)
-    detector = CustomDetector()
+    detector = Detector()
     detector.name = vdn_detector.name
     detector.vdn_detector = vdn_detector
     detector.save()

@@ -57,19 +57,30 @@ class VDNDetector(models.Model):
     organization_url = models.TextField()
 
 
-class CustomIndexer(models.Model):
+class Indexer(models.Model):
     """
     A custom indexer that can be used with any TF (eventually pytorch) network
     """
     name = models.CharField(max_length=100)
     algorithm = models.CharField(max_length=100,default="")
     model_filename = models.CharField(max_length=200,default="")
-    # vdn_detector = models.ForeignKey(VDNDetector,null=True)
     input_layer_name = models.CharField(max_length=300,default="")
     embedding_layer_name = models.CharField(max_length=300,default="")
     embedding_layer_size = models.CharField(max_length=300,default="")
     indexer_queue = models.CharField(max_length=300,default="")
     retriever_queue = models.CharField(max_length=300,default="")
+
+
+class Analyzer(models.Model):
+    """
+    """
+    name = models.CharField(max_length=100)
+    algorithm = models.CharField(max_length=100,default="")
+    model_filename = models.CharField(max_length=200,default="")
+    queue = models.CharField(max_length=300,default="")
+    produces_labels = models.BooleanField(default=False)
+    produces_json = models.BooleanField(default=False)
+    produces_text = models.BooleanField(default=False)
 
 
 class DVAPQL(models.Model):
@@ -94,7 +105,7 @@ class IndexerQuery(models.Model):
     created = models.DateTimeField('date created', auto_now_add=True)
     count = models.IntegerField(default=20)
     algorithm = models.CharField(max_length=500,default="")
-    indexer = models.ForeignKey(CustomIndexer,null=True)
+    indexer = models.ForeignKey(Indexer,null=True)
     excluded_index_entries_pk = ArrayField(models.IntegerField(), default=[])
     vector = models.BinaryField(null=True)
     results = models.BooleanField(default=False)
@@ -352,7 +363,7 @@ class IndexEntries(models.Model):
     features_file_name = models.CharField(max_length=100)
     entries_file_name = models.CharField(max_length=100)
     algorithm = models.CharField(max_length=100)
-    indexer = models.ForeignKey(CustomIndexer, null=True)
+    indexer = models.ForeignKey(Indexer, null=True)
     detection_name = models.CharField(max_length=100)
     count = models.IntegerField()
     approximate = models.BooleanField(default=False)
@@ -368,7 +379,7 @@ class IndexEntries(models.Model):
         return "{} in {} index by {}".format(self.detection_name, self.algorithm, self.video.name)
 
 
-class CustomDetector(models.Model):
+class Detector(models.Model):
     name = models.CharField(max_length=100)
     algorithm = models.CharField(max_length=100,default="")
     model_filename = models.CharField(max_length=200,default="")

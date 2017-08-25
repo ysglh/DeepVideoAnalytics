@@ -69,6 +69,7 @@ def start_container_server():
     migrate()
     init_fs()
     init_server()
+    init_models()
     launch_workers_and_scheduler_from_environment()
     if 'LAUNCH_SERVER' in os.environ:
         local('python manage.py runserver 0.0.0.0:8000')
@@ -464,6 +465,21 @@ def init_server():
             server.save()
     if 'TEST' in os.environ and Video.objects.count() == 0:
         test()
+
+
+@task
+def init_models():
+    import django
+    sys.path.append(os.path.dirname(__file__))
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
+    django.setup()
+    from dvaapp.models import Detector,Analyzer,Indexer
+    _ = Detector.objects.get_or_create(name="coco",algorithm="mobilenet_ssd")
+    _ = Detector.objects.get_or_create(name="facenet",algorithm="mtcnn_facenet")
+    _ = Indexer.objects.get_or_create(name="inception",indexer_queue="qindexer",retriever_queue="qretriever")
+    _ = Indexer.objects.get_or_create(name="facenet",indexer_queue="qfaceretriever",retriever_queue="qfaceretriever")
+    _ = Analyzer.objects.get_or_create(name="tag",queue="qindexer",retriever_queue="qretriever")
+    _ = Analyzer.objects.get_or_create(name="crnn",queue="qfaceretriever",retriever_queue="qfaceretriever")
 
 
 @task
@@ -867,14 +883,14 @@ def train_yolo(start_pk):
     """
     setup_django()
     from django.conf import settings
-    from dvaapp.models import Region, Frame, CustomDetector, TEvent
+    from dvaapp.models import Region, Frame, Detector, TEvent
     from dvaapp.shared import create_detector_dataset
     from dvalib.yolo import trainer
     start = TEvent.objects.get(pk=start_pk)
     args = start.arguments
     labels = set(args['labels']) if 'labels' in args else set()
     object_names = set(args['object_names']) if 'object_names' in args else set()
-    detector = CustomDetector.objects.get(pk=args['detector_pk'])
+    detector = Detector.objects.get(pk=args['detector_pk'])
     detector.create_directory()
     args['root_dir'] = "{}/detectors/{}/".format(settings.MEDIA_ROOT,detector.pk)
     args['base_model'] = "{}/detectors/yolo/yolo.h5"
@@ -938,8 +954,8 @@ def temp_import_detector(path="/Users/aub3/tempd"):
     setup_django()
     import json
     from django.conf import settings
-    from dvaapp.models import CustomDetector
-    d = CustomDetector()
+    from dvaapp.models import Detector
+    d = Detector()
     with open("{}/input.json".format(path)) as infile:
         data = json.load(infile)
     d.name = "test detector"

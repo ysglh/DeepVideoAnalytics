@@ -455,7 +455,7 @@ def init_models():
                                                    mode=m['mode'],
                                                    model_filename=m.get("model_filename",""),
                                                    detector_type=m.get("detector_type",""),
-                                                   class_index_to_strings=m.get("class_index_to_string",{})
+                                                   class_index_to_string=m.get("class_index_to_string",{})
                                                    )
             if m['url']:
                 download_model(settings.MEDIA_ROOT, "detectors", dm.pk, m['filename'], m['url'])

@@ -243,7 +243,7 @@ class Detector(models.Model):
     source = models.ForeignKey(TEvent, null=True)
     trained = models.BooleanField(default=False)
     created = models.DateTimeField('date created', auto_now_add=True)
-    class_index_to_strings = JSONField(null=True,blank=True)
+    class_index_to_string = JSONField(null=True,blank=True)
 
     def create_directory(self,create_subdirs=True):
         try:

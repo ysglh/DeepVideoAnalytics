@@ -60,14 +60,3 @@ VISUAL_INDEXES = {
     }
 
 
-ANALYZERS = {
-    'crnn':{'queue':"qcrnn",},
-    'tag':{'queue': "qtag",},
-}
-
-
-DETECTORS = {
-    'face':{'task':"perform_detection",'queue':Q_FACE_DETECTOR,},
-    'coco':{'task':"perform_detection",'queue':Q_DETECTOR,},
-    'textbox':{'task':"perform_detection",'queue':Q_OCR,},
-    }

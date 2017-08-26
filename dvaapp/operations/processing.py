@@ -10,7 +10,7 @@ except ImportError:
     np = None
     logging.warning("Could not import indexer / clustering assuming running in front-end mode / Heroku")
 
-from ..models import Video,DVAPQL,IndexerQuery,QueryResults,TEvent,Region
+from ..models import Video,DVAPQL,IndexerQuery,QueryResults,TEvent,Region,Analyzer,Indexer,Detector
 from collections import defaultdict
 from celery.result import AsyncResult
 from . import queuing
@@ -27,21 +27,33 @@ SYNC_TASKS = {
     'perform_detector_import':[],
 }
 
+ANALYER_NAME_TO_PK = {}
+INDEXER_NAME_TO_PK = {}
+DETECTOR_NAME_TO_PK = {}
+
 
 def get_queue_name(operation,args):
     if operation in queuing.TASK_NAMES_TO_QUEUE:
         return queuing.TASK_NAMES_TO_QUEUE[operation]
     elif 'index' in args and operation == 'perform_retrieval':
-        return queuing.VISUAL_INDEXES[args['index']]['retriever_queue']
+        if args['index'] in INDEXER_NAME_TO_PK:
+            INDEXER_NAME_TO_PK[args['index']] = Indexer.objects.get(name=args['index']).pk
+        return 'q_retriever_{}'.format(INDEXER_NAME_TO_PK[args['index']])
     elif 'index' in args:
-        return queuing.VISUAL_INDEXES[args['index']]['indexer_queue']
+        if args['index'] in INDEXER_NAME_TO_PK:
+            INDEXER_NAME_TO_PK[args['index']] = Indexer.objects.get(name=args['index']).pk
+        return 'q_indexer_{}'.format(INDEXER_NAME_TO_PK[args['index']])
     elif 'analyzer' in args:
-        return queuing.ANALYZERS[args['analyzer']]['queue']
+        if args['analyzer'] in ANALYER_NAME_TO_PK:
+            ANALYER_NAME_TO_PK[args['analyzer']] = Analyzer.objects.get(name=args['analyzer']).pk
+        return 'q_analyzer_{}'.format(ANALYER_NAME_TO_PK[args['analyzer']])
     elif 'detector' in args:
-        if args['detector'] == 'custom':
-            return "qcustomdetector_{}".format(args['detector_pk']) # route it according to the custom detector
+        if 'detector_pk' in args:
+            return "q_detector_{}".format(args['detector_pk'])
         else:
-            return queuing.DETECTORS[args['detector']]['queue']
+            if args['detector'] in DETECTOR_NAME_TO_PK:
+                DETECTOR_NAME_TO_PK[args['analyzer']] = Detector.objects.get(name=args['detector']).pk
+            return 'q_detector_{}'.format(DETECTOR_NAME_TO_PK[args['detector']])
     else:
         raise NotImplementedError,"{}, {}".format(operation,args)
 

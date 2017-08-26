@@ -343,9 +343,25 @@ def launch_workers_and_scheduler_from_environment(block_on_manager=False):
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
+    from dvaapp.models import Detector,Indexer,Analyzer
     from dvaapp.operations import queuing
     for k in os.environ:
-        if k.startswith('LAUNCH_Q_') and k != 'LAUNCH_Q_{}'.format(queuing.Q_MANAGER):
+        if k.startswith('LAUNCH_BY_NAME_'):
+            qtype,model_name = k.split('_')[-2:]
+            if qtype == 'indexer':
+                queue_name = 'q_indexer_{}'.format(Indexer.objects.get(name=model_name).pk)
+            elif qtype == 'retriever':
+                queue_name = 'q_retriever_{}'.format(Indexer.objects.get(name=model_name).pk)
+            elif qtype == 'detector':
+                queue_name = 'q_detector_{}'.format(Detector.objects.get(name=model_name).pk)
+            elif qtype == 'analyzer':
+                queue_name = 'q_analyzer_{}'.format(Analyzer.objects.get(name=model_name).pk)
+            else:
+                raise ValueError,k
+            command = 'fab startq:{} &'.format(queue_name)
+            logging.info("'{}' for {}".format(command,k))
+            local(command)
+        elif k.startswith('LAUNCH_Q_') and k != 'LAUNCH_Q_{}'.format(queuing.Q_MANAGER):
             if k.strip() == 'LAUNCH_Q_qextract':
                 queue_name = k.split('_')[-1]
                 local('fab startq:{},{} &'.format(queue_name,os.environ['LAUNCH_Q_qextract']))
@@ -485,12 +501,12 @@ def init_models():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from dvaapp.models import Detector,Analyzer,Indexer
-    _ = Detector.objects.get_or_create(name="coco",algorithm="mobilenet_ssd",queue='qdetector')
-    _ = Detector.objects.get_or_create(name="facenet",algorithm="mtcnn_facenet",queue='qfacedetector')
-    _ = Indexer.objects.get_or_create(name="inception",indexer_queue="qindexer",retriever_queue="qretriever")
-    _ = Indexer.objects.get_or_create(name="facenet",indexer_queue="qfaceretriever",retriever_queue="qfaceretriever")
-    _ = Analyzer.objects.get_or_create(name="tag",queue="q_analyzer_tag")
-    _ = Analyzer.objects.get_or_create(name="crnn",queue="q_analyzer_crnn")
+    _ = Detector.objects.get_or_create(name="coco",algorithm="mobilenet_ssd")
+    _ = Detector.objects.get_or_create(name="face",algorithm="mtcnn_facenet")
+    _ = Indexer.objects.get_or_create(name="inception")
+    _ = Indexer.objects.get_or_create(name="facenet")
+    _ = Analyzer.objects.get_or_create(name="tag")
+    _ = Analyzer.objects.get_or_create(name="crnn")
 
 
 @task

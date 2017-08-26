@@ -67,8 +67,6 @@ class Indexer(models.Model):
     input_layer_name = models.CharField(max_length=300,default="")
     embedding_layer_name = models.CharField(max_length=300,default="")
     embedding_layer_size = models.CharField(max_length=300,default="")
-    indexer_queue = models.CharField(max_length=300,default="")
-    retriever_queue = models.CharField(max_length=300,default="")
 
 
 class Analyzer(models.Model):
@@ -77,7 +75,6 @@ class Analyzer(models.Model):
     name = models.CharField(max_length=100)
     algorithm = models.CharField(max_length=100,default="")
     model_filename = models.CharField(max_length=200,default="")
-    queue = models.CharField(max_length=300,default="")
     produces_labels = models.BooleanField(default=False)
     produces_json = models.BooleanField(default=False)
     produces_text = models.BooleanField(default=False)
@@ -382,7 +379,6 @@ class IndexEntries(models.Model):
 class Detector(models.Model):
     name = models.CharField(max_length=100)
     algorithm = models.CharField(max_length=100,default="")
-    queue = models.CharField(max_length=300,null=True)
     model_filename = models.CharField(max_length=200,default="")
     vdn_detector = models.ForeignKey(VDNDetector,null=True)
     arguments = models.TextField(default="")

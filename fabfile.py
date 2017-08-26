@@ -1,11 +1,8 @@
-import os,logging,time,boto3, glob,subprocess,calendar,sys
-from fabric.api import task,local,run,put,get,lcd,cd,sudo,env,puts
+import os, logging, time, boto3, glob, subprocess, calendar, sys
+from fabric.api import task, local, run, put, get, lcd, cd, sudo, env, puts
 import json
-import random
-import gzip
 import shutil
-from urllib import urlretrieve
-from collections import defaultdict
+
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                     datefmt='%m-%d %H:%M',
@@ -17,7 +14,6 @@ logging.basicConfig(level=logging.INFO,
 def shell():
     """
     start a local django shell
-    :return:
     """
     local('python manage.py shell')
 
@@ -26,7 +22,6 @@ def shell():
 def local_static():
     """
     Collect static
-    :return:
     """
     local('python manage.py collectstatic')
 
@@ -35,21 +30,24 @@ def local_static():
 def migrate():
     """
     Make migrations and migrate database
-    :return:
     """
     local('python manage.py makemigrations')
     local('python manage.py migrate')
+
 
 @task
 def server():
     """
     Start server locally
-    :return:
     """
     local("python manage.py runserver")
 
+
 @task
 def pull_private():
+    """
+    Pull from private repo
+    """
     local('aws s3 cp s3://aub3config/.netrc /root/.netrc')
     local('git clone https://github.com/AKSHAYUBHAT/DeepVideoAnalyticsDemo')
     local('mv DeepVideoAnalyticsDemo dvap')
@@ -61,12 +59,10 @@ def pull_private():
 @task
 def start_container_server():
     """
-    Start container
-    :param test:
-    :return:
+    Start container with queues launched as specified in environment variable and a server
     """
     local('sleep 20')
-    migrate() # move this to compose command after git pull.
+    migrate()  # move this to compose command after git pull.
     init_fs()
     init_server()
     init_models()
@@ -77,20 +73,18 @@ def start_container_server():
 @task
 def start_container_worker():
     """
-    Start worker container
-    :param test:
-    :return:
+    Start container with queues launched as specified in environment
     """
-    local('sleep 50') # To avoid race condition where worker starts before migration is finished
+    local('sleep 50')  # To avoid race condition where worker starts before migration is finished
     init_fs()
     init_models()
     launch_workers_and_scheduler_from_environment(block_on_manager=True)
+
 
 @task
 def clean():
     """
     Reset database, migrate, clear media folder, and (only on my dev machine) kill workers/clear all queues.
-    :return:
     """
     import django, os
     sys.path.append(os.path.dirname(__file__))
@@ -123,14 +117,16 @@ def clean():
     if sys.platform == 'darwin':
         superu()
 
+
 @task
 def restart_queues():
     """
-    tries to kill all celery workers and restarts them
-    :return:
+    Kill all workers and launch them again
+
     """
     kill()
     launch()
+
 
 @task
 def kill():
@@ -143,8 +139,8 @@ def kill():
 @task
 def ci():
     """
-    Used in conjunction with travis for Continuous Integration testing
-    :return:
+    Perform Continuous Integration testing using Travis
+
     """
     import django
     sys.path.append(os.path.dirname(__file__))
@@ -152,13 +148,13 @@ def ci():
     django.setup()
     import base64
     from django.core.files.uploadedfile import SimpleUploadedFile
-    from dvaapp.views import handle_uploaded_file, pull_vdn_list\
-        ,import_vdn_dataset_url
-    from dvaapp.models import Video, Clusters,IndexEntries,TEvent,VDNServer, DVAPQL
+    from dvaapp.views import handle_uploaded_file, pull_vdn_list \
+        , import_vdn_dataset_url
+    from dvaapp.models import Video, Clusters, IndexEntries, TEvent, VDNServer, DVAPQL
     from django.conf import settings
     from dvaapp.operations.processing import DVAPQLProcess
-    from dvaapp.tasks import perform_dataset_extraction, perform_indexing, perform_export, perform_import,\
-        perform_clustering, perform_analysis, perform_detection,\
+    from dvaapp.tasks import perform_dataset_extraction, perform_indexing, perform_export, perform_import, \
+        perform_clustering, perform_detection, \
         perform_video_segmentation, perform_transformation
     for fname in glob.glob('tests/ci/*.mp4'):
         name = fname.split('/')[-1].split('.')[0]
@@ -173,57 +169,59 @@ def ci():
             name = fname.split('/')[-1].split('.')[0]
             f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
             handle_uploaded_file(f, name)
-    for i,v in enumerate(Video.objects.all()):
+    for i, v in enumerate(Video.objects.all()):
         if v.dataset:
-            arguments = {'sync':True}
-            perform_dataset_extraction(TEvent.objects.create(video=v,arguments=arguments).pk)
+            arguments = {'sync': True}
+            perform_dataset_extraction(TEvent.objects.create(video=v, arguments=arguments).pk)
         else:
-            arguments = {'sync':True}
-            perform_video_segmentation(TEvent.objects.create(video=v,arguments=arguments).pk)
+            arguments = {'sync': True}
+            perform_video_segmentation(TEvent.objects.create(video=v, arguments=arguments).pk)
             arguments = {'index': 'inception'}
-            perform_indexing(TEvent.objects.create(video=v,arguments=arguments).pk)
-        if i ==0: # save travis time by just running detection on first video
+            perform_indexing(TEvent.objects.create(video=v, arguments=arguments).pk)
+        if i == 0:  # save travis time by just running detection on first video
             # face_mtcnn
             arguments = {'detector': 'face'}
-            dt = TEvent.objects.create(video=v,arguments=arguments)
+            dt = TEvent.objects.create(video=v, arguments=arguments)
             perform_detection(dt.pk)
-            arguments = {'filters':{'event_id':dt.pk},}
-            perform_transformation(TEvent.objects.create(video=v,arguments=arguments).pk)
+            arguments = {'filters': {'event_id': dt.pk}, }
+            perform_transformation(TEvent.objects.create(video=v, arguments=arguments).pk)
             # coco_mobilenet
             arguments = {'detector': 'coco'}
             dt = TEvent.objects.create(video=v, arguments=arguments)
             perform_detection(dt.pk)
-            arguments = {'filters':{'event_id':dt.pk},}
-            perform_transformation(TEvent.objects.create(video=v,arguments=arguments).pk)
+            arguments = {'filters': {'event_id': dt.pk}, }
+            perform_transformation(TEvent.objects.create(video=v, arguments=arguments).pk)
             # inception on crops from detector
-            arguments = {'index':'inception','target': 'regions','filters': {'event_id': dt.pk, 'w__gte': 50, 'h__gte': 50}}
-            perform_indexing(TEvent.objects.create(video=v,arguments=arguments).pk)
+            arguments = {'index': 'inception', 'target': 'regions',
+                         'filters': {'event_id': dt.pk, 'w__gte': 50, 'h__gte': 50}}
+            perform_indexing(TEvent.objects.create(video=v, arguments=arguments).pk)
             # assign_open_images_text_tags_by_id(TEvent.objects.create(video=v).pk)
-        temp = TEvent.objects.create(video=v,arguments={'destination':"FILE"})
+        temp = TEvent.objects.create(video=v, arguments={'destination': "FILE"})
         perform_export(temp.pk)
         temp.refresh_from_db()
         fname = temp.arguments['file_name']
-        f = SimpleUploadedFile(fname, file("{}/exports/{}".format(settings.MEDIA_ROOT,fname)).read(), content_type="application/zip")
+        f = SimpleUploadedFile(fname, file("{}/exports/{}".format(settings.MEDIA_ROOT, fname)).read(),
+                               content_type="application/zip")
         vimported = handle_uploaded_file(f, fname)
-        perform_import(TEvent.objects.create(video=vimported,arguments={"source":"LOCAL"}).pk)
+        perform_import(TEvent.objects.create(video=vimported, arguments={"source": "LOCAL"}).pk)
     dc = Clusters()
     dc.indexer_algorithm = 'inception'
     dc.included_index_entries_pk = [k.pk for k in IndexEntries.objects.all().filter(algorithm=dc.indexer_algorithm)]
     dc.components = 32
     dc.save()
     clustering_task = TEvent()
-    clustering_task.arguments = {'clusters_id':dc.pk}
+    clustering_task.arguments = {'clusters_id': dc.pk}
     clustering_task.operation = 'perform_clustering'
     clustering_task.save()
     perform_clustering(clustering_task.pk)
     query_dict = {
         'process_type': DVAPQL.QUERY,
-        'image_data_b64':base64.encodestring(file('tests/query.png').read()),
-        'indexer_queries':[
+        'image_data_b64': base64.encodestring(file('tests/query.png').read()),
+        'indexer_queries': [
             {
-                'algorithm':'inception',
-                'count':10,
-                'approximate':False
+                'algorithm': 'inception',
+                'count': 10,
+                'approximate': False
             }
         ]
     }
@@ -232,12 +230,12 @@ def ci():
     # execute_index_subquery(qp.indexer_queries[0].pk)
     query_dict = {
         'process_type': DVAPQL.QUERY,
-        'image_data_b64':base64.encodestring(file('tests/query.png').read()),
-        'indexer_queries':[
+        'image_data_b64': base64.encodestring(file('tests/query.png').read()),
+        'indexer_queries': [
             {
-                'algorithm':'inception',
-                'count':10,
-                'approximate':True
+                'algorithm': 'inception',
+                'count': 10,
+                'approximate': True
             }
         ]
     }
@@ -248,15 +246,15 @@ def ci():
     for k in datasets:
         if k['name'] == 'MSCOCO_Sample_500':
             print 'FOUND MSCOCO SAMPLE'
-            import_vdn_dataset_url(VDNServer.objects.get(pk=1),k['url'],None)
+            import_vdn_dataset_url(VDNServer.objects.get(pk=1), k['url'], None)
     test_backup()
 
 
 @task
 def ci_face():
     """
-    Used in conjunction with travis for Continuous Integration for testing face indexing
-    :return:
+    Perform Continuous Integration testing using Travis for face detection / indexing
+
     """
     import django
     sys.path.append(os.path.dirname(__file__))
@@ -264,21 +262,20 @@ def ci_face():
     django.setup()
     from dvaapp.models import Video, TEvent
     from dvaapp.tasks import perform_indexing
-    for i,v in enumerate(Video.objects.all()):
-        if i ==0: # save travis time by just running detection on first video
+    for i, v in enumerate(Video.objects.all()):
+        if i == 0:  # save travis time by just running detection on first video
             args = {
-                'filter':{'object_name__startswith':'MTCNN_face'},
-                'index':'facenet',
-                'target':'regions'}
-            perform_indexing(TEvent.objects.create(video=v,arguments=args).pk)
+                'filter': {'object_name__startswith': 'MTCNN_face'},
+                'index': 'facenet',
+                'target': 'regions'}
+            perform_indexing(TEvent.objects.create(video=v, arguments=args).pk)
 
 
 @task
 def quick():
     """
-    Used on my local Mac for quickly cleaning and testing
-    :param detection:
-    :return:
+    Clear and launch for testing on dev machine
+
     """
     clean()
     superu()
@@ -289,8 +286,8 @@ def quick():
 @task
 def test_backup():
     """
-    Test if backup followed by restore works
-    :return:
+    Test backup
+
     """
     local('fab backup')
     clean()
@@ -298,26 +295,30 @@ def test_backup():
 
 
 @task
-def superu():
+def superu(username="akshay", email="akshay@test.com", password="super"):
     """
     Create a superuser
-    :return:
+    :param username: 
+    :param email: 
+    :param password: 
     """
-    local('echo "from django.contrib.auth.models import User; User.objects.create_superuser(\'akshay\', \'akshay@test.com\', \'super\')" | python manage.py shell')
+    local(
+        'echo "from django.contrib.auth.models import User; User.objects.create_superuser(\'{}\', \'{}\', \'{}\')" | python manage.py shell'.format(
+            username, email, password))
 
 
 @task
 def launch():
     """
-    Launch workers for each queue
-    :return:
+    Launch workers on dev machine by adding environment variables
+
     """
-    envars = ['LAUNCH_BY_NAME_indexer_inception','LAUNCH_BY_NAME_indexer_facenet',
-              'LAUNCH_BY_NAME_retriever_inception','LAUNCH_BY_NAME_retriever_facenet',
-              'LAUNCH_BY_NAME_detector_coco','LAUNCH_BY_NAME_detector_face',
-              'LAUNCH_Q_qclusterer','LAUNCH_Q_qextract']
+    envars = ['LAUNCH_BY_NAME_indexer_inception', 'LAUNCH_BY_NAME_indexer_facenet',
+              'LAUNCH_BY_NAME_retriever_inception', 'LAUNCH_BY_NAME_retriever_facenet',
+              'LAUNCH_BY_NAME_detector_coco', 'LAUNCH_BY_NAME_detector_face',
+              'LAUNCH_Q_qclusterer', 'LAUNCH_Q_qextract']
     for k in envars:
-        os.environ[k]="1"
+        os.environ[k] = "1"
     launch_workers_and_scheduler_from_environment(False)
 
 
@@ -326,17 +327,16 @@ def launch_workers_and_scheduler_from_environment(block_on_manager=False):
     Launch workers and scheduler as specified in the environment variables.
     Only one scheduler should be launched per deployment.
 
-    :return:
     """
     import django, os
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
-    from dvaapp.models import Detector,Indexer,Analyzer
+    from dvaapp.models import Detector, Indexer, Analyzer
     from dvaapp.operations import queuing
     for k in os.environ:
         if k.startswith('LAUNCH_BY_NAME_'):
-            qtype,model_name = k.split('_')[-2:]
+            qtype, model_name = k.split('_')[-2:]
             if qtype == 'indexer':
                 queue_name = 'q_indexer_{}'.format(Indexer.objects.get(name=model_name).pk)
             elif qtype == 'retriever':
@@ -346,21 +346,21 @@ def launch_workers_and_scheduler_from_environment(block_on_manager=False):
             elif qtype == 'analyzer':
                 queue_name = 'q_analyzer_{}'.format(Analyzer.objects.get(name=model_name).pk)
             else:
-                raise ValueError,k
+                raise ValueError, k
             command = 'fab startq:{} &'.format(queue_name)
-            logging.info("'{}' for {}".format(command,k))
+            logging.info("'{}' for {}".format(command, k))
             local(command)
         elif k.startswith('LAUNCH_Q_') and k != 'LAUNCH_Q_{}'.format(queuing.Q_MANAGER):
             if k.strip() == 'LAUNCH_Q_qextract':
                 queue_name = k.split('_')[-1]
-                local('fab startq:{},{} &'.format(queue_name,os.environ['LAUNCH_Q_qextract']))
+                local('fab startq:{},{} &'.format(queue_name, os.environ['LAUNCH_Q_qextract']))
             else:
                 queue_name = k.split('_')[-1]
                 local('fab startq:{} &'.format(queue_name))
-    if os.environ.get("LAUNCH_SCHEDULER",False):
+    if os.environ.get("LAUNCH_SCHEDULER", False):
         # Should be launched only once per deployment
         local('fab start_scheduler &')
-    if block_on_manager: # the container process waits on the manager
+    if block_on_manager:  # the container process waits on the manager
         local('fab startq:{}'.format(queuing.Q_MANAGER))
     else:
         local('fab startq:{} &'.format(queuing.Q_MANAGER))
@@ -368,8 +368,8 @@ def launch_workers_and_scheduler_from_environment(block_on_manager=False):
 
 def launch_server_from_environment():
     """
-    Launch django development server or NGINX server.
-    :return:
+    Launch django development server or NGINX server as specified in environment variable
+
     """
     if 'LAUNCH_SERVER' in os.environ:
         local('python manage.py runserver 0.0.0.0:8000')
@@ -405,11 +405,15 @@ def launch_server_from_environment():
 
 @task
 def init_server():
+    """
+    Initialize server database by adding default VDN server and DVAPQL templates
+ 
+    """
     import django
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
-    from dvaapp.models import Video,VDNServer,StoredDVAPQL
+    from dvaapp.models import Video, VDNServer, StoredDVAPQL
     if StoredDVAPQL.objects.count() == 0:
         for fname in glob.glob('dvaapp/test_scripts/*.json'):
             StoredDVAPQL.objects.create(name=fname,
@@ -425,23 +429,30 @@ def init_server():
         test()
 
 
-@task
-def download_model(root_dir,model_type_dir_name,model_dir_name,filename,url):
-    model_type_dir = "{}/{}/".format(root_dir,model_type_dir_name)
+def download_model(root_dir, model_type_dir_name, model_dir_name, filename, url):
+    """
+    Download model to filesystem
+    """
+    model_type_dir = "{}/{}/".format(root_dir, model_type_dir_name)
     if not os.path.isdir(model_type_dir):
         os.mkdir(model_type_dir)
-    model_dir = "{}/{}/{}".format(root_dir,model_type_dir_name,model_dir_name)
+    model_dir = "{}/{}/{}".format(root_dir, model_type_dir_name, model_dir_name)
     with lcd(model_type_dir):
         if not os.path.isdir(model_dir):
             os.mkdir(model_dir)
             if sys.platform == 'darwin':
-                local("cd {} && cp /users/aub3/Dropbox/DeepVideoAnalytics/shared/{} .".format(model_dir_name,filename))
+                local("cd {} && cp /users/aub3/Dropbox/DeepVideoAnalytics/shared/{} .".format(model_dir_name, filename))
             else:
-                local("cd {} && wget --quiet {}".format(model_dir_name,url))
+                local("cd {} && wget --quiet {}".format(model_dir_name, url))
 
 
 @task
 def init_models():
+    """
+    Initialize default models in database specified in models.json,
+    and download models to filesystem. Models are downloaded even if the database
+    entries exist , but files doe not  since the worker might not be running in shared filesystem model.
+    """
     import django
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
@@ -455,30 +466,33 @@ def init_models():
             dm, _ = Detector.objects.get_or_create(name=m['name'],
                                                    algorithm=m['algorithm'],
                                                    mode=m['mode'],
-                                                   model_filename=m.get("filename",""),
-                                                   detector_type=m.get("detector_type",""),
-                                                   class_index_to_string=m.get("class_index_to_string",{})
+                                                   model_filename=m.get("filename", ""),
+                                                   detector_type=m.get("detector_type", ""),
+                                                   class_index_to_string=m.get("class_index_to_string", {})
                                                    )
             if m['url']:
                 download_model(settings.MEDIA_ROOT, "detectors", dm.pk, m['filename'], m['url'])
         if m['model_type'] == "indexer":
-            dm, _ = Indexer.objects.get_or_create(name=m['name'],mode=m['mode'])
+            dm, _ = Indexer.objects.get_or_create(name=m['name'], mode=m['mode'])
             if m['url']:
                 download_model(settings.MEDIA_ROOT, "indexers", dm.pk, m['filename'], m['url'])
         if m['model_type'] == "analyzer":
-            dm, _ = Analyzer.objects.get_or_create(name=m['name'],mode=m['mode'])
+            dm, _ = Analyzer.objects.get_or_create(name=m['name'], mode=m['mode'])
             if m['url']:
                 download_model(settings.MEDIA_ROOT, "analyzers", dm.pk, m['filename'], m['url'])
 
 
 @task
 def init_fs():
+    """
+    Initialize filesystem by creating directories
+    """
     import django
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from django.conf import settings
-    for create_dirname in ['queries', 'exports','external']:
+    for create_dirname in ['queries', 'exports', 'external']:
         if not os.path.isdir("{}/{}".format(settings.MEDIA_ROOT, create_dirname)):
             try:
                 os.mkdir("{}/{}".format(settings.MEDIA_ROOT, create_dirname))
@@ -487,31 +501,12 @@ def init_fs():
 
 
 @task
-def add_default_vdn_server():
-    """
-    Add http://www.visualdata.network/ as default VDN server
-    :return:
-    """
-    import django, os
-    sys.path.append(os.path.dirname(__file__))
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
-    django.setup()
-    from dvaapp.models import Video,VDNServer
-    if VDNServer.objects.count() == 0:
-        server = VDNServer()
-        server.url = "http://www.visualdata.network/"
-        server.name = "VisualData.Network"
-        server.save()
-
-
-@task
-def startq(queue_name,conc=3):
+def startq(queue_name, conc=3):
     """
     Start worker to handle a queue, Usage: fab startq:indexer
     Concurrency is set to 1 but you can edit code to change.
-    :param queue_name: indexer, extractor, retriever, detector
     :param conc:conccurency only for extractor
-    :return:
+
     """
     import django, os
     sys.path.append(os.path.dirname(__file__))
@@ -522,21 +517,25 @@ def startq(queue_name,conc=3):
     if queue_name == queuing.Q_MANAGER:
         command = 'celery -A dva worker -l info {} -c 1 -Q qmanager -n manager.%h -f logs/qmanager.log'.format(mute)
     elif queue_name == queuing.Q_EXTRACTOR:
-        command = 'celery -A dva worker -l info {} -c {} -Q {} -n {}.%h -f logs/{}.log'.format(mute,max(int(conc),2), queue_name,queue_name,queue_name)
+        command = 'celery -A dva worker -l info {} -c {} -Q {} -n {}.%h -f logs/{}.log'.format(mute, max(int(conc), 2),
+                                                                                               queue_name, queue_name,
+                                                                                               queue_name)
         # TODO: worker fails due to
         # https://github.com/celery/celery/issues/3620
     else:
-        command = 'celery -A dva worker -l info {} -P solo -c {} -Q {} -n {}.%h -f logs/{}.log'.format(mute,1, queue_name,queue_name,queue_name)
+        command = 'celery -A dva worker -l info {} -P solo -c {} -Q {} -n {}.%h -f logs/{}.log'.format(mute, 1,
+                                                                                                       queue_name,
+                                                                                                       queue_name,
+                                                                                                       queue_name)
     logging.info(command)
     os.system(command)
-
 
 
 @task
 def test():
     """
     Run tests by launching tasks
-    :return:
+
     """
     import django
     sys.path.append(os.path.dirname(__file__))
@@ -558,7 +557,7 @@ def test():
 def backup():
     """
     Take a backup, backups are store as a single zip file in backups/ folder
-    :return:
+
     """
     import django
     sys.path.append(os.path.dirname(__file__))
@@ -586,12 +585,13 @@ def backup():
     os.remove('{}/postgres.dump'.format(media_dir))
     print zipper.returncode
 
+
 @task
 def restore(path):
     """
     Restore a backup using path provided. Note that arugment are provided in following format. fab restore:backups/backup_1.zip
     :param path:
-    :return:
+
     """
     import django
     sys.path.append(os.path.dirname(__file__))
@@ -608,7 +608,8 @@ def restore(path):
     pg = '/Users/aub3/PostgreSQL/pg96/bin/psql' if sys.platform == 'darwin' else 'psql'
     with open('{}/postgres.dump'.format(media_dir)) as dumpfile:
         dump = subprocess.Popen(
-            [pg, '--dbname', 'postgresql://{}:{}@{}:5432/{}'.format(db['USER'], db['PASSWORD'], db['HOST'], db['NAME'])],
+            [pg, '--dbname',
+             'postgresql://{}:{}@{}:5432/{}'.format(db['USER'], db['PASSWORD'], db['HOST'], db['NAME'])],
             cwd=media_dir, stdin=dumpfile)
         dump.communicate()
     print dump.returncode
@@ -617,6 +618,10 @@ def restore(path):
 
 
 def setup_django():
+    """
+    setup django
+    :return:
+    """
     import django
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
@@ -625,36 +630,49 @@ def setup_django():
 
 @task
 def heroku_migrate():
+    """
+    Migrate heroku postgres database
+    """
     local('heroku run python manage.py migrate')
-
-
-# @task
-# def heroku_update_env():
-#     local('heroku config:get DATABASE_URL > db.env')
 
 
 @task
 def heroku_shell():
+    """
+    Launch heroku django shell for remote debug
+    """
     local('heroku run python manage.py shell')
 
 
 @task
 def heroku_bash():
+    """
+    Launch heroku bash for remote debug
+    """
     local('heroku run bash')
 
 
 @task
 def heroku_config():
+    """
+    View heroku config
+    """
     local('heroku config')
 
 
 @task
 def heroku_psql():
+    """
+    Launch heroku database shell for remote debug
+    """
     local('heroku pg:psql')
 
 
 @task
-def heroku_reset(password,bucket_name):
+def heroku_reset(password, bucket_name):
+    """
+    Reset heroku database and empty S3 bucket used for www.deepvideoanalytics.com
+    """
     if raw_input("Are you sure type yes >>") == 'yes':
         local('heroku pg:reset DATABASE_URL')
         heroku_migrate()
@@ -666,21 +684,19 @@ def heroku_reset(password,bucket_name):
 
 @task
 def heroku_super():
+    """
+    Create superuser for heroku
+    """
     local('heroku run python manage.py createsuperuser')
 
 
 @task
-def heroku_local_static():
-    local('python manage.py collectstatic')
-
-
-@task
-def heroku_migrate():
-    local('heroku run python manage.py migrate')
-
-
-@task
 def heroku_setup_vdn(password):
+    """
+    Run VDN setup on heroku
+    :param password:
+    :return:
+    """
     local('heroku run fab setup_vdn:{}'.format(password))
 
 
@@ -688,67 +704,68 @@ def heroku_setup_vdn(password):
 def make_requester_pays(bucket_name):
     """
     Convert AWS S3 bucket into requester pays bucket
-    DOES NOT WORKS,
     :param bucket_name:
-    :return:
     """
     s3 = boto3.resource('s3')
     bucket_request_payment = s3.BucketRequestPayment(bucket_name)
     response = bucket_request_payment.put(RequestPaymentConfiguration={'Payer': 'Requester'})
     bucket_policy = s3.BucketPolicy(bucket_name)
     policy = {
-          "Id": "Policy1493037034955",
-          "Version": "2012-10-17",
-          "Statement": [
+        "Id": "Policy1493037034955",
+        "Version": "2012-10-17",
+        "Statement": [
             {
-              "Sid": "Stmt1493036947566",
-              "Action": [
-                "s3:ListBucket"
-              ],
-              "Effect": "Allow",
-              "Resource": "arn:aws:s3:::{}".format(bucket_name),
-              "Principal": "*"
+                "Sid": "Stmt1493036947566",
+                "Action": [
+                    "s3:ListBucket"
+                ],
+                "Effect": "Allow",
+                "Resource": "arn:aws:s3:::{}".format(bucket_name),
+                "Principal": "*"
             },
             {
-              "Sid": "Stmt1493037029723",
-              "Action": [
-                "s3:GetObject"
-              ],
-              "Effect": "Allow",
-              "Resource": "arn:aws:s3:::{}/*".format(bucket_name),
-              "Principal": {
-                "AWS": [
-                  "*"
-                ]
-              }
+                "Sid": "Stmt1493037029723",
+                "Action": [
+                    "s3:GetObject"
+                ],
+                "Effect": "Allow",
+                "Resource": "arn:aws:s3:::{}/*".format(bucket_name),
+                "Principal": {
+                    "AWS": [
+                        "*"
+                    ]
+                }
             }
-          ]}
+        ]}
     response = bucket_policy.put(Policy=json.dumps(policy))
-
 
 
 @task
 def setup_vdn(password):
+    """
+    Setup Visual Data Network database with initial data
+    :param password:
+    """
     import django
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
-    from vdnapp.models import User,Dataset,Organization,VDNRemoteDetector
-    user = User(username="akshayvdn",password=password,email="aub3@cornell.edu")
+    from vdnapp.models import User, VDNRemoteDataset, Organization, VDNRemoteDetector
+    user = User(username="akshayvdn", password=password, email="aub3@cornell.edu")
     user.save()
     o = Organization()
     o.user = user
     o.description = "Default organization"
     o.name = "Akshay Bhat"
     o.save()
-    Dataset.objects.all().delete()
+    VDNRemoteDataset.objects.all().delete()
     datasets = [
-        ('LFW_subset','https://www.dropbox.com/s/6nn84z4yzy47vuh/LFW.dva_export.zip'),
-        ('MSCOCO_Sample_500','https://www.dropbox.com/s/qhzl9ig7yhems6j/MSCOCO_Sample.dva_export.zip'),
-        ('Paris','https://www.dropbox.com/s/a7qf1f3j8vp4nuh/Paris.dva_export.zip'),
+        ('LFW_subset', 'https://www.dropbox.com/s/6nn84z4yzy47vuh/LFW.dva_export.zip'),
+        ('MSCOCO_Sample_500', 'https://www.dropbox.com/s/qhzl9ig7yhems6j/MSCOCO_Sample.dva_export.zip'),
+        ('Paris', 'https://www.dropbox.com/s/a7qf1f3j8vp4nuh/Paris.dva_export.zip'),
     ]
-    for name,url in datasets:
-        d = Dataset()
+    for name, url in datasets:
+        d = VDNRemoteDataset()
         d.organization = o
         d.download_url = url
         d.name = name
@@ -757,11 +774,11 @@ def setup_vdn(password):
         d.description = name
         d.save()
     aws_datasets = [
-        ('MSCOCO train ~14GB', 'us-east-1','visualdatanetwork','coco_train.dva_export.zip'),
+        ('MSCOCO train ~14GB', 'us-east-1', 'visualdatanetwork', 'coco_train.dva_export.zip'),
         ('aws_test_dir', 'us-east-1', 'visualdatanetwork', '007'),
     ]
     for name, region, bucket, key in aws_datasets:
-        d = Dataset()
+        d = VDNRemoteDataset()
         d.organization = o
         d.name = name
         d.aws_region = region
@@ -785,12 +802,19 @@ def setup_vdn(password):
 
 @task
 def heroku_setup():
+    """
+    Setup heroku by adding custom buildpack for private repo and disabling collect static
+    """
     local('heroku buildpacks:add https://github.com/AKSHAYUBHAT/heroku-buildpack-run.git')
     local('heroku config:set DISABLE_COLLECTSTATIC=1')
 
 
 @task
 def sync_static(bucket_name='dvastatic'):
+    """
+    Sync static folder with AWS S3 bucket
+    :param bucket_name:
+    """
     local_static()
     with lcd('dva'):
         local('aws s3 sync staticfiles/ s3://{}/'.format(bucket_name))
@@ -804,7 +828,7 @@ def enable_media_bucket_static_hosting(bucket_name, allow_videos=False):
     An alternative is using presigned url but it will require a django filter
     https://stackoverflow.com/questions/33549254/how-to-generate-url-from-boto3-in-amazon-web-services
     :param bucket_name:
-    :return:
+    :param allow_videos: set True if you wish to serve videos from S3 (costly!)
     """
     s3 = boto3.client('s3')
     cors_configuration = {
@@ -827,38 +851,25 @@ def enable_media_bucket_static_hosting(bucket_name, allow_videos=False):
             'Resource': "arn:aws:s3:::%s/*.jpg" % bucket_name
         },
             {
-            'Sid': 'AddPerm',
-            'Effect': 'Allow',
-            'Principal': '*',
-            'Action': ['s3:GetObject'],
-            'Resource': "arn:aws:s3:::%s/*.png" % bucket_name
-        }]
-    }
-    if allow_videos:
-        bucket_policy['Statement'].append({
                 'Sid': 'AddPerm',
                 'Effect': 'Allow',
                 'Principal': '*',
                 'Action': ['s3:GetObject'],
-                'Resource': "arn:aws:s3:::%s/*.mp4" % bucket_name
-            })
+                'Resource': "arn:aws:s3:::%s/*.png" % bucket_name
+            }]
+    }
+    if allow_videos:
+        bucket_policy['Statement'].append({
+            'Sid': 'AddPerm',
+            'Effect': 'Allow',
+            'Principal': '*',
+            'Action': ['s3:GetObject'],
+            'Resource': "arn:aws:s3:::%s/*.mp4" % bucket_name
+        })
     bucket_policy = json.dumps(bucket_policy)
     s3.put_bucket_policy(Bucket=bucket_name, Policy=bucket_policy)
-    website_configuration = {'ErrorDocument': {'Key': 'error.html'},'IndexDocument': {'Suffix': 'index.html'},}
-    s3.put_bucket_website(Bucket=bucket_name,WebsiteConfiguration=website_configuration)
-
-
-@task
-def sync_efs_to_s3():
-    setup_django()
-    from dvaapp.models import Video,TEvent
-    from dvaapp.tasks import perform_sync
-    for v in Video.objects.all():
-        e = TEvent()
-        e.video_id = v.pk
-        e.operation = 'perform_sync'
-        e.save()
-        perform_sync(e.pk)
+    website_configuration = {'ErrorDocument': {'Key': 'error.html'}, 'IndexDocument': {'Suffix': 'index.html'}, }
+    s3.put_bucket_website(Bucket=bucket_name, WebsiteConfiguration=website_configuration)
 
 
 @task
@@ -867,7 +878,7 @@ def train_yolo(start_pk):
     Train a yolo model specified in a TaskEvent.
     This is necessary to ensure that the Tensorflow process exits and releases the allocated GPU memory.
     :param start_pk: TEvent PK with information about lauching the training task
-    :return:
+
     """
     setup_django()
     from django.conf import settings
@@ -880,30 +891,31 @@ def train_yolo(start_pk):
     object_names = set(args['object_names']) if 'object_names' in args else set()
     detector = Detector.objects.get(pk=args['detector_pk'])
     detector.create_directory()
-    args['root_dir'] = "{}/detectors/{}/".format(settings.MEDIA_ROOT,detector.pk)
+    args['root_dir'] = "{}/detectors/{}/".format(settings.MEDIA_ROOT, detector.pk)
     args['base_model'] = "{}/detectors/yolo/yolo.h5"
-    class_distribution, class_names, rboxes, rboxes_set, frames, i_class_names = create_detector_dataset(object_names,labels)
+    class_distribution, class_names, rboxes, rboxes_set, frames, i_class_names = create_detector_dataset(object_names,
+                                                                                                         labels)
     images, boxes = [], []
     path_to_f = {}
-    for k,f in frames.iteritems():
-        path = "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,f.video_id,f.frame_index)
+    for k, f in frames.iteritems():
+        path = "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT, f.video_id, f.frame_index)
         path_to_f[path] = f
         images.append(path)
         boxes.append(rboxes[k])
         # print k,rboxes[k]
-    with open("{}/input.json".format(args['root_dir']),'w') as input_data:
-        json.dump({'boxes':boxes,
-                   'images':images,
-                   'args':args,
-                   'class_names':class_names.items(),
-                   'class_distribution':class_distribution.items()},
+    with open("{}/input.json".format(args['root_dir']), 'w') as input_data:
+        json.dump({'boxes': boxes,
+                   'images': images,
+                   'args': args,
+                   'class_names': class_names.items(),
+                   'class_distribution': class_distribution.items()},
                   input_data)
     detector.boxes_count = sum([len(k) for k in boxes])
     detector.frames_count = len(images)
     detector.classes_count = len(class_names)
     detector.save()
     args['class_names'] = i_class_names
-    train_task = trainer.YOLOTrainer(boxes=boxes,images=images,args=args)
+    train_task = trainer.YOLOTrainer(boxes=boxes, images=images, args=args)
     train_task.train()
     detector.phase_1_log = file("{}/phase_1.log".format(args['root_dir'])).read()
     detector.phase_2_log = file("{}/phase_2.log".format(args['root_dir'])).read()
@@ -917,7 +929,7 @@ def train_yolo(start_pk):
         r = Region()
         r.region_type = r.ANNOTATION
         r.confidence = int(100.0 * score)
-        r.object_name = "YOLO_{}_{}".format(detector.pk,box_class)
+        r.object_name = "YOLO_{}_{}".format(detector.pk, box_class)
         r.y = top
         r.x = left
         r.w = right - left
@@ -925,10 +937,10 @@ def train_yolo(start_pk):
         r.frame_id = path_to_f[path].pk
         r.video_id = path_to_f[path].video_id
         bulk_regions.append(r)
-    Region.objects.bulk_create(bulk_regions,batch_size=1000)
-    folder_name = "{}/detectors/{}".format(settings.MEDIA_ROOT,detector.pk)
-    file_name = '{}/exports/{}.dva_detector.zip'.format(settings.MEDIA_ROOT,detector.pk)
-    zipper = subprocess.Popen(['zip', file_name, '-r', '.'],cwd=folder_name)
+    Region.objects.bulk_create(bulk_regions, batch_size=1000)
+    folder_name = "{}/detectors/{}".format(settings.MEDIA_ROOT, detector.pk)
+    file_name = '{}/exports/{}.dva_detector.zip'.format(settings.MEDIA_ROOT, detector.pk)
+    zipper = subprocess.Popen(['zip', file_name, '-r', '.'], cwd=folder_name)
     zipper.wait()
     return 0
 
@@ -936,9 +948,7 @@ def train_yolo(start_pk):
 @task
 def temp_import_detector(path="/Users/aub3/tempd"):
     """
-    For testing pre-developed detectors
-    :param path:
-    :return:
+    Test importing detectors
     """
     setup_django()
     import json
@@ -956,11 +966,14 @@ def temp_import_detector(path="/Users/aub3/tempd"):
     d.class_distribution = json.dumps(data['class_names'])
     d.save()
     d.create_directory()
-    shutil.copy("{}/phase_2_best.h5".format(path),"{}/detectors/{}/phase_2_best.h5".format(settings.MEDIA_ROOT,d.pk))
+    shutil.copy("{}/phase_2_best.h5".format(path), "{}/detectors/{}/phase_2_best.h5".format(settings.MEDIA_ROOT, d.pk))
 
 
 @task
 def qt():
+    """
+    Add short videos/datasets and launch default tasks for quick testing
+    """
     import django
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
@@ -978,24 +991,10 @@ def qt():
 
 
 @task
-def create_custom_migrations():
-    """
-    Create custom migration files for adding default indexers (inception_v3, facenet)
-    and postgres text search indexes for fulltext search
-
-    To reset postgres on dev machine use "drop schema public cascade;create schema public;"
-    :return:
-    """
-    local('python manage.py makemigrations --empty --name textsearch_indexes dvaapp')
-    local('python manage.py makemigrations --empty --name default_indexers dvaapp')
-
-
-@task
 def submit(path):
     """
     Submit a DVAPQL process to run
     :param path:
-    :return: id of the submitted process
     """
     import django
     sys.path.append(os.path.dirname(__file__))
@@ -1014,7 +1013,7 @@ def submit(path):
 def start_scheduler():
     """
     Start celery-beat scheduler using django database as source for tasks.
-    :return:
+
     """
     local("celery -A dva beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler -f logs/beat.log")
 
@@ -1022,8 +1021,7 @@ def start_scheduler():
 @task
 def store_token_for_testing():
     """
-    Generate & store token for superuser (akshay) to test REST API.
-    :return:
+    Generate & store authentication token for superuser (akshay) to test REST API.
     """
     import django
     sys.path.append(os.path.dirname(__file__))
@@ -1037,34 +1035,37 @@ def store_token_for_testing():
         superu()
         u = User.objects.get(username="akshay")
     token, _ = Token.objects.get_or_create(user=User.objects.get(username=u))
-    with open('creds.json','w') as creds:
-        creds.write(json.dumps({'token':token.key}))
+    with open('creds.json', 'w') as creds:
+        creds.write(json.dumps({'token': token.key}))
 
 
 @task
 def test_api(port=80):
     """
-    test REST API for CORS config
-    :return:
+    test REST API for CORS config by submitting a DVAPQL query to /api endpoint
     """
     import requests
     if not os.path.isfile('creds.json'):
         store_token_for_testing()
     token = json.loads(file('creds.json').read())['token']
-    headers={'Authorization':'Token {}'.format(token)}
+    headers = {'Authorization': 'Token {}'.format(token)}
     r = requests.post("http://localhost:{}/api/queries/".format(port),
-                      data={'script':file('dvaapp/test_scripts/url.json').read()},
+                      data={'script': file('dvaapp/test_scripts/url.json').read()},
                       headers=headers)
     print r.status_code
 
 
 @task
 def capture_stream(url="https://www.youtube.com/watch?v=vpm16w3ik0g"):
+    """
+    Test capturing live video feed (experimental)
+    """
     command = 'livestreamer --player-continuous-http --player-no-close ' \
               '"{}" best -O --yes-run-as-root | ' \
               'ffmpeg -re -i - -c:v libx264 -c:a aac -ac 1 -strict -2 -crf 18 ' \
               '-profile:v baseline -maxrate 3000k -bufsize 1835k -pix_fmt yuv420p ' \
               '-flags -global_header -f segment -segment_time 0.1 "%d.mp4"'.format(url)
-    if raw_input("This code uses os.system and is a huge security risk if url is malicious shell string. Type yes to confirm>>") == "yes":
+    if raw_input(
+            "This code uses os.system and is a huge security risk if url is malicious shell string. Type yes to confirm>>") == "yes":
         print command
         os.system(command)

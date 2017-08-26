@@ -429,12 +429,13 @@ def download_model(root_dir,model_type_dir_name,model_dir_name,filename,url):
     if not os.path.isdir(model_type_dir):
         os.mkdir(model_type_dir)
     model_dir = "{}/{}/{}".format(root_dir,model_type_dir_name,model_dir_name)
-    if not os.path.isdir(model_dir):
-        os.mkdir(model_dir)
-        if sys.platform == 'darwin':
-            local("cd {} && cp /users/aub3/Dropbox/DeepVideoAnalytics/shared/{} .".format(model_dir_name,filename))
-        else:
-            local("cd {} && wget --quiet {}".format(model_dir_name,url))
+    with lcd(model_type_dir):
+        if not os.path.isdir(model_dir):
+            os.mkdir(model_dir)
+            if sys.platform == 'darwin':
+                local("cd {} && cp /users/aub3/Dropbox/DeepVideoAnalytics/shared/{} .".format(model_dir_name,filename))
+            else:
+                local("cd {} && wget --quiet {}".format(model_dir_name,url))
 
 
 @task

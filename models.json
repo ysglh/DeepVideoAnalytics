@@ -12,7 +12,7 @@
     "name": "textbox",
     "url": null,
     "filename": null,
-    "algorithm":"mtcnn_facenet",
+    "algorithm":"CTPN",
     "mode": "C"
   },
   {

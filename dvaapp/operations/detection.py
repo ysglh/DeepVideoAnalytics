@@ -6,7 +6,7 @@ except ImportError:
     logging.warning("Could not import indexer / clustering assuming running in front-end mode / Heroku")
 from django.conf import settings
 
-coco_class_index_to_string = {1: u'person', 2: u'bicycle', 3: u'car', 4: u'motorcycle', 5: u'airplane', 6: u'bus',
+cocostring = {1: u'person', 2: u'bicycle', 3: u'car', 4: u'motorcycle', 5: u'airplane', 6: u'bus',
                               7: u'train', 8: u'truck', 9: u'boat', 10: u'traffic light', 11: u'fire hydrant',
                               13: u'stop sign', 14: u'parking meter', 15: u'bench', 16: u'bird', 17: u'cat',
                               18: u'dog', 19: u'horse', 20: u'sheep', 21: u'cow', 22: u'elephant', 23: u'bear',
@@ -35,8 +35,7 @@ class DetectorTask(celery.Task):
         if cd.pk not in DetectorTask._detectors:
             droot = "{}/detectors/".format(settings.MEDIA_ROOT)
             if cd.name == 'coco':
-                DetectorTask._detectors[cd.pk] = detector.TFDetector(model_path=droot+'{}/coco_mobilenet.pb'.format(cd.pk),
-                                                                       class_index_to_string=coco_class_index_to_string),
+                DetectorTask._detectors[cd.pk] = detector.TFDetector(model_path=droot+'{}/coco_mobilenet.pb'.format(cd.pk),class_index_to_string=cocostring)
             elif cd.name == 'face':
                 DetectorTask._detectors[cd.pk] = detector.FaceDetector()
             elif cd.nam == 'textbox':

@@ -321,15 +321,13 @@ def launch():
     Launch workers for each queue
     :return:
     """
-    local('fab startq:qextract &')
-    local('fab startq:qindexer &')
-    local('fab startq:qvgg &')
-    local('fab startq:qretriever &')
-    local('fab startq:qfaceretriever &')
-    local('fab startq:qfacedetector &')
-    local('fab startq:qclusterer &')
-    local('fab startq:qdetector &')
-    local('fab startq:qmanager &')
+    envars = ['LAUNCH_BY_NAME_indexer_inception','LAUNCH_BY_NAME_indexer_facenet',
+              'LAUNCH_BY_NAME_retriever_inception','LAUNCH_BY_NAME_retriever_facenet',
+              'LAUNCH_BY_NAME_detector_coco','LAUNCH_BY_NAME_detector_face',
+              'LAUNCH_Q_qclusterer','LAUNCH_Q_qextract']
+    for k in envars:
+        os.environ[k]="1"
+    launch_workers_and_scheduler_from_environment(False)
 
 
 def launch_workers_and_scheduler_from_environment(block_on_manager=False):

@@ -450,15 +450,15 @@ def init_models():
         models = json.load(modelfile)
     for m in models:
         if m['model_type'] == "detector":
-            _ = Detector.objects.get_or_create(name=m['name'],algorithm=m['algorithm'],mode=m['mode'])
+            dm, _ = Detector.objects.get_or_create(name=m['name'],algorithm=m['algorithm'],mode=m['mode'])
             if m['url']:
-                download_model(settings.MEDIA_ROOT, "detectors", m['name'], m['filename'], m['url'])
+                download_model(settings.MEDIA_ROOT, "detectors", dm.pk, m['filename'], m['url'])
         if m['model_type'] == "indexer":
-            _ = Indexer.objects.get_or_create(name=m['name'],mode=m['mode'])
+            dm, _ = Indexer.objects.get_or_create(name=m['name'],mode=m['mode'])
             if m['url']:
-                download_model(settings.MEDIA_ROOT, "indexers", m['name'], m['filename'], m['url'])
+                download_model(settings.MEDIA_ROOT, "indexers", dm.pk, m['filename'], m['url'])
         if m['model_type'] == "analyzer":
-            _ = Analyzer.objects.get_or_create(name=m['name'],mode=m['mode'])
+            dm, _ = Analyzer.objects.get_or_create(name=m['name'],mode=m['mode'])
             if m['url']:
                 download_model(settings.MEDIA_ROOT, "analyzers", m['name'], m['filename'], m['url'])
 

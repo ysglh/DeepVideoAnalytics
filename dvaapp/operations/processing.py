@@ -36,23 +36,23 @@ def get_queue_name(operation,args):
     if operation in queuing.TASK_NAMES_TO_QUEUE:
         return queuing.TASK_NAMES_TO_QUEUE[operation]
     elif 'index' in args and operation == 'perform_retrieval':
-        if args['index'] in INDEXER_NAME_TO_PK:
+        if args['index'] not in INDEXER_NAME_TO_PK:
             INDEXER_NAME_TO_PK[args['index']] = Indexer.objects.get(name=args['index']).pk
         return 'q_retriever_{}'.format(INDEXER_NAME_TO_PK[args['index']])
     elif 'index' in args:
-        if args['index'] in INDEXER_NAME_TO_PK:
+        if args['index'] not in INDEXER_NAME_TO_PK:
             INDEXER_NAME_TO_PK[args['index']] = Indexer.objects.get(name=args['index']).pk
         return 'q_indexer_{}'.format(INDEXER_NAME_TO_PK[args['index']])
     elif 'analyzer' in args:
-        if args['analyzer'] in ANALYER_NAME_TO_PK:
+        if args['analyzer'] not in ANALYER_NAME_TO_PK:
             ANALYER_NAME_TO_PK[args['analyzer']] = Analyzer.objects.get(name=args['analyzer']).pk
         return 'q_analyzer_{}'.format(ANALYER_NAME_TO_PK[args['analyzer']])
     elif 'detector' in args:
         if 'detector_pk' in args:
             return "q_detector_{}".format(args['detector_pk'])
         else:
-            if args['detector'] in DETECTOR_NAME_TO_PK:
-                DETECTOR_NAME_TO_PK[args['analyzer']] = Detector.objects.get(name=args['detector']).pk
+            if args['detector'] not in DETECTOR_NAME_TO_PK:
+                DETECTOR_NAME_TO_PK[args['detector']] = Detector.objects.get(name=args['detector']).pk
             return 'q_detector_{}'.format(DETECTOR_NAME_TO_PK[args['detector']])
     else:
         raise NotImplementedError,"{}, {}".format(operation,args)

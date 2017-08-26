@@ -67,7 +67,6 @@ def start_container_server():
     """
     local('sleep 20')
     migrate()
-    init_fs()
     init_server()
     init_models()
     launch_workers_and_scheduler_from_environment()
@@ -82,7 +81,6 @@ def start_container_worker():
     :return:
     """
     local('sleep 20')
-    init_fs()
     init_models()
     launch_workers_and_scheduler_from_environment(block_on_manager=True)
 
@@ -120,7 +118,6 @@ def clean():
             pass
     init_server()
     init_models()
-    init_fs()
     if sys.platform == 'darwin':
         superu()
 
@@ -404,64 +401,6 @@ def launch_server_from_environment():
         local('supervisord -n')
 
 
-
-@task
-def download_indexers(root_dir):
-    indexer_dir = "{}/indexers/".format(root_dir)
-    if not os.path.isdir(indexer_dir):
-        os.mkdir(indexer_dir)
-    with lcd(indexer_dir):
-        ilist = [('facenet','https://www.dropbox.com/s/jytpgw8et09ede9/facenet.pb','facenet.pb'),
-                 ('vgg', 'https://www.dropbox.com/s/3yzonc9nzo9xanv/vgg.pb', 'vgg.pb'),
-                 ('inception', 'https://www.dropbox.com/s/fc7li2vwn8lvsyu/network.pb', 'network.pb'),
-                 ]
-        for iname, iurl, lfname in ilist:
-            model_dir = "{}/indexers/{}".format(root_dir, iname)
-            if not os.path.isdir(model_dir):
-                os.mkdir(model_dir)
-                if sys.platform == 'darwin':
-                    local("cd {} && cp /users/aub3/Dropbox/DeepVideoAnalytics/shared/{} .".format(iname,lfname))
-                else:
-                    local("cd {} && wget --quiet {}".format(iname,iurl))
-
-
-@task
-def download_detectors(root_dir):
-    detectors_dir = "{}/detectors/".format(root_dir)
-    if not os.path.isdir(detectors_dir):
-        os.mkdir(detectors_dir)
-    with lcd(detectors_dir):
-        ilist = [('coco','https://www.dropbox.com/s/nzz26b2p4wxygg3/coco_mobilenet.pb','coco_mobilenet.pb'),
-                 ('yolo', 'https://www.dropbox.com/s/zbff2rkoejx5k5r/yolo.h5', 'yolo.h5'),]
-        for iname, url, lfname in ilist:
-            model_dir = "{}/detectors/{}".format(root_dir,iname)
-            if not os.path.isdir(model_dir):
-                os.mkdir(model_dir)
-                if sys.platform == 'darwin':
-                    local("cd {} && cp /users/aub3/Dropbox/DeepVideoAnalytics/shared/{} .".format(iname,lfname))
-                else:
-                    local("cd {} && wget --quiet {}".format(iname,url))
-
-
-
-@task
-def download_analyzers(root_dir):
-    analyzers_dir = "{}/analyzers/".format(root_dir)
-    if not os.path.isdir(analyzers_dir):
-        os.mkdir(analyzers_dir)
-    with lcd(analyzers_dir):
-        ilist = [('crnn','https://www.dropbox.com/s/l0vo83hmvv2aipn/crnn.pth','crnn.pth'),]
-        for iname, url, lfname in ilist:
-            model_dir = "{}/analyzers/{}".format(root_dir,iname)
-            if not os.path.isdir(model_dir):
-                os.mkdir(model_dir)
-                if sys.platform == 'darwin':
-                    local("cd {} && cp /users/aub3/Dropbox/DeepVideoAnalytics/shared/{} .".format(iname,lfname))
-                else:
-                    local("cd {} && wget --quiet {}".format(iname,url))
-
-
-
 @task
 def init_server():
     import django
@@ -485,19 +424,42 @@ def init_server():
 
 
 @task
+def download_model(root_dir,model_type_dir_name,model_dir_name,filename,url):
+    model_type_dir = "{}/{}/".format(root_dir,model_type_dir_name)
+    if not os.path.isdir(model_type_dir):
+        os.mkdir(model_type_dir)
+    model_dir = "{}/{}/{}".format(root_dir,model_type_dir_name,model_dir_name)
+    if not os.path.isdir(model_dir):
+        os.mkdir(model_dir)
+        if sys.platform == 'darwin':
+            local("cd {} && cp /users/aub3/Dropbox/DeepVideoAnalytics/shared/{} .".format(model_dir_name,filename))
+        else:
+            local("cd {} && wget --quiet {}".format(model_dir_name,url))
+
+
+@task
 def init_models():
     import django
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
-    from dvaapp.models import Detector,Analyzer,Indexer
-    _ = Detector.objects.get_or_create(name="coco",algorithm="mobilenet_ssd")
-    _ = Detector.objects.get_or_create(name="face",algorithm="mtcnn_facenet")
-    _ = Detector.objects.get_or_create(name="textbox",algorithm="cptn")
-    _ = Indexer.objects.get_or_create(name="inception")
-    _ = Indexer.objects.get_or_create(name="facenet")
-    _ = Analyzer.objects.get_or_create(name="tag")
-    _ = Analyzer.objects.get_or_create(name="crnn")
+    from django.conf import settings
+    from dvaapp.models import Detector, Analyzer, Indexer
+    with open("models.json") as modelfile:
+        models = json.load(modelfile)
+    for m in models:
+        if m['model_type'] == "detector":
+            _ = Detector.objects.get_or_create(name=m['name'],algorithm=m['algorithm'],mode=m['mode'])
+            if m['url']:
+                download_model(settings.MEDIA_ROOT, "detectors", m['name'], m['filename'], m['url'])
+        if m['model_type'] == "indexer":
+            _ = Indexer.objects.get_or_create(name=m['name'],mode=m['mode'])
+            if m['url']:
+                download_model(settings.MEDIA_ROOT, "indexers", m['name'], m['filename'], m['url'])
+        if m['model_type'] == "analyzer":
+            _ = Analyzer.objects.get_or_create(name=m['name'],mode=m['mode'])
+            if m['url']:
+                download_model(settings.MEDIA_ROOT, "analyzers", m['name'], m['filename'], m['url'])
 
 
 @task

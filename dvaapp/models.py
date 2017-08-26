@@ -57,29 +57,6 @@ class VDNDetector(models.Model):
     organization_url = models.TextField()
 
 
-class Indexer(models.Model):
-    """
-    A custom indexer that can be used with any TF (eventually pytorch) network
-    """
-    name = models.CharField(max_length=100)
-    algorithm = models.CharField(max_length=100,default="")
-    model_filename = models.CharField(max_length=200,default="")
-    input_layer_name = models.CharField(max_length=300,default="")
-    embedding_layer_name = models.CharField(max_length=300,default="")
-    embedding_layer_size = models.CharField(max_length=300,default="")
-
-
-class Analyzer(models.Model):
-    """
-    """
-    name = models.CharField(max_length=100)
-    algorithm = models.CharField(max_length=100,default="")
-    model_filename = models.CharField(max_length=200,default="")
-    produces_labels = models.BooleanField(default=False)
-    produces_json = models.BooleanField(default=False)
-    produces_text = models.BooleanField(default=False)
-
-
 class DVAPQL(models.Model):
     """
     A query object with image_data, can have multiple children subspecies
@@ -376,29 +353,6 @@ class IndexEntries(models.Model):
         return "{} in {} index by {}".format(self.detection_name, self.algorithm, self.video.name)
 
 
-class Detector(models.Model):
-    name = models.CharField(max_length=100)
-    algorithm = models.CharField(max_length=100,default="")
-    model_filename = models.CharField(max_length=200,default="")
-    vdn_detector = models.ForeignKey(VDNDetector,null=True)
-    arguments = models.TextField(default="")
-    phase_1_log = models.TextField(default="")
-    phase_2_log = models.TextField(default="")
-    class_distribution = models.TextField(default="")
-    class_names = models.TextField(default="")
-    frames_count = models.IntegerField(default=0)
-    boxes_count = models.IntegerField(default=0)
-    source = models.ForeignKey(TEvent, null=True)
-    trained = models.BooleanField(default=False)
-    created = models.DateTimeField('date created', auto_now_add=True)
-
-    def create_directory(self,create_subdirs=True):
-        try:
-            os.mkdir('{}/detectors/{}'.format(settings.MEDIA_ROOT, self.pk))
-        except:
-            pass
-
-
 class Tube(models.Model):
     """
     A tube is a collection of sequential frames / regions that track a certain object
@@ -540,3 +494,84 @@ class StoredDVAPQL(models.Model):
     name = models.CharField(max_length=300,default="")
     description = models.TextField(blank=True,default="")
     script = JSONField(blank=True, null=True)
+
+
+class Indexer(models.Model):
+    """
+    An indexer that can be used with any TF (eventually pytorch) network
+    """
+    TENSORFLOW = 'T'
+    CAFFE = 'C'
+    PYTORCH = 'P'
+    OPENCV = 'O'
+    MODES = (
+        (TENSORFLOW, 'Tensorflow'),
+        (CAFFE, 'Caffe'),
+        (PYTORCH, 'Pytorch'),
+        (OPENCV, 'OpenCV'),
+    )
+    mode = models.CharField(max_length=1,choices=MODES,db_index=True,default=TENSORFLOW)
+    name = models.CharField(max_length=100)
+    algorithm = models.CharField(max_length=100,default="")
+    model_filename = models.CharField(max_length=200,default="")
+    input_layer_name = models.CharField(max_length=300,default="")
+    embedding_layer_name = models.CharField(max_length=300,default="")
+    embedding_layer_size = models.CharField(max_length=300,default="")
+    created = models.DateTimeField('date created', auto_now_add=True)
+
+
+class Analyzer(models.Model):
+    """
+    """
+    TENSORFLOW = 'T'
+    CAFFE = 'C'
+    PYTORCH = 'P'
+    OPENCV = 'O'
+    MODES = (
+        (TENSORFLOW, 'Tensorflow'),
+        (CAFFE, 'Caffe'),
+        (PYTORCH, 'Pytorch'),
+        (OPENCV, 'OpenCV'),
+    )
+    mode = models.CharField(max_length=1,choices=MODES,db_index=True,default=TENSORFLOW)
+    name = models.CharField(max_length=100)
+    algorithm = models.CharField(max_length=100,default="")
+    model_filename = models.CharField(max_length=200,default="")
+    produces_labels = models.BooleanField(default=False)
+    produces_json = models.BooleanField(default=False)
+    produces_text = models.BooleanField(default=False)
+    created = models.DateTimeField('date created', auto_now_add=True)
+
+
+class Detector(models.Model):
+    TENSORFLOW = 'T'
+    CAFFE = 'C'
+    PYTORCH = 'P'
+    OPENCV = 'O'
+    MODES = (
+        (TENSORFLOW, 'Tensorflow'),
+        (CAFFE, 'Caffe'),
+        (PYTORCH, 'Pytorch'),
+        (OPENCV, 'OpenCV'),
+    )
+    mode = models.CharField(max_length=1,choices=MODES,db_index=True,default=TENSORFLOW)
+    name = models.CharField(max_length=100)
+    algorithm = models.CharField(max_length=100,default="")
+    model_filename = models.CharField(max_length=200,default="")
+    vdn_detector = models.ForeignKey(VDNDetector,null=True)
+    arguments = models.TextField(default="")
+    phase_1_log = models.TextField(default="")
+    phase_2_log = models.TextField(default="")
+    class_distribution = models.TextField(default="")
+    class_names = models.TextField(default="")
+    frames_count = models.IntegerField(default=0)
+    boxes_count = models.IntegerField(default=0)
+    source = models.ForeignKey(TEvent, null=True)
+    trained = models.BooleanField(default=False)
+    created = models.DateTimeField('date created', auto_now_add=True)
+
+    def create_directory(self,create_subdirs=True):
+        try:
+            os.mkdir('{}/detectors/{}'.format(settings.MEDIA_ROOT, self.pk))
+        except:
+            pass

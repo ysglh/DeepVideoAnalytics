@@ -1,0 +1,54 @@
+[
+  {
+    "model_type": "detector",
+    "name": "coco",
+    "url": "https://www.dropbox.com/s/nzz26b2p4wxygg3/coco_mobilenet.pb",
+    "filename": "coco_mobilenet.pb",
+    "algorithm":"mobilenet_ssd",
+    "mode": "T"
+  },
+  {
+    "model_type": "detector",
+    "name": "textbox",
+    "url": null,
+    "filename": null,
+    "algorithm":"mtcnn_facenet",
+    "mode": "C"
+  },
+  {
+    "model_type": "detector",
+    "name": "face",
+    "url": null,
+    "filename": null,
+    "algorithm":"mtcnn_facenet",
+    "mode": "T"
+  },
+  {
+    "model_type": "indexer",
+    "name": "inception",
+    "url": "https://www.dropbox.com/s/fc7li2vwn8lvsyu/network.pb",
+    "filename": "network.pb",
+    "mode": "T"
+  },
+  {
+    "model_type": "indexer",
+    "name": "facenet",
+    "url": "https://www.dropbox.com/s/jytpgw8et09ede9/facenet.pb",
+    "filename": "facenet.pb",
+    "mode": "T"
+  },
+  {
+    "model_type": "indexer",
+    "name": "vgg",
+    "url": "https://www.dropbox.com/s/3yzonc9nzo9xanv/vgg.pb",
+    "filename": "vgg.pb",
+    "mode": "T"
+  },
+  {
+    "model_type": "analyzer",
+    "name": "crnn",
+    "url": "https://www.dropbox.com/s/l0vo83hmvv2aipn/crnn.pth",
+    "filename": "crnn.pth",
+    "mode": "P"
+  }
+]

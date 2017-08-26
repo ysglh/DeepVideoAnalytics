@@ -231,7 +231,7 @@ class Detector(models.Model):
     detector_type = models.CharField(max_length=1,choices=DETECTOR_TYPES,db_index=True,null=True)
     name = models.CharField(max_length=100)
     algorithm = models.CharField(max_length=100,default="")
-    model_filename = models.CharField(max_length=200,default="")
+    model_filename = models.CharField(max_length=200,null=True)
     vdn_detector = models.ForeignKey(VDNDetector,null=True)
     arguments = models.TextField(default="")
     phase_1_log = models.TextField(default="")

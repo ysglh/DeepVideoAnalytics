@@ -23,20 +23,16 @@
                 <thead>
                 <tr>
                     <th>Index name</th>
-                    <th>Indexer task</th>
                     <th>Indexer queue</th>
                     <th>Retriever queue</th>
-                    <th>Detection specific</th>
                 </tr>
                 </thead>
                 <tbody>
-                {% for name,i in visual_index_list %}
+                {% for i in visual_index_list %}
                     <tr>
-                        <td>{{ name }} </td>
-                        <td>{{ i.indexer_task }}</td>
-                        <td>{{ i.indexer_queue }}</td>
-                        <td>{{ i.retriever_queue }}</td>
-                        <td>{{ i.detection_specific }}</td>
+                        <td>{{ i.name }} </td>
+                        <td>q_indexer_{{ i.pk }}</td>
+                        <td>q_retriever_{{ i.pk }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -89,8 +85,8 @@
                         <div class="form-group">
                             <label for="task_name">Indexing algorithm</label>
                             <select class="js-example-basic" id="visual_index_name" class="form-control" name="visual_index_name" style="width:100%">
-                            {% for name,i in visual_index_list %}
-                                <option value="{{ name }}">{{ name }}</option>
+                            {% for i in visual_index_list %}
+                                <option value="{{ i.name }}">{{ i.name }}</option>
                             {% endfor %}
                             </select>
                         </div>

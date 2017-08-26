@@ -1,4 +1,4 @@
-import logging, os
+import logging, os, json
 import celery
 try:
     from dvalib import detector
@@ -25,19 +25,25 @@ coco_class_index_to_string = {1: u'person', 2: u'bicycle', 3: u'car', 4: u'motor
 
 
 class DetectorTask(celery.Task):
-    _detectors = None
-    _clusterer = None
+    _detectors = {}
 
     @property
     def get_static_detectors(self):
-        if DetectorTask._detectors is None:
-            detectors_root = "{}/detectors/".format(settings.MEDIA_ROOT)
-            DetectorTask._detectors = {'coco': detector.TFDetector(model_path=detectors_root+'coco/coco_mobilenet.pb',
-                                                                   class_index_to_string=coco_class_index_to_string),
-                                       'face': detector.FaceDetector(),
-                                       'textbox':detector.TextBoxDetector()}
         return DetectorTask._detectors
 
-    def load_detector(self,detector_pk,i_class_names,model_dir):
-        argdict = {'root_dir':model_dir,'detector_pk':detector_pk}
-        DetectorTask._detectors[detector_pk] = detector.YOLODetector(i_class_names=i_class_names,args=argdict)
+    def load_detector(self,cd):
+        if cd.pk not in DetectorTask._detectors:
+            droot = "{}/detectors/".format(settings.MEDIA_ROOT)
+            if cd.name == 'coco':
+                DetectorTask._detectors[cd.pk] = detector.TFDetector(model_path=droot+'{}/coco_mobilenet.pb'.format(detector_pk),
+                                                                       class_index_to_string=coco_class_index_to_string),
+            elif cd.name == 'face':
+                DetectorTask._detectors[cd.pk] = detector.FaceDetector()
+            elif cd.nam == 'textbox':
+                DetectorTask._detectors[cd.pk] = detector.TextBoxDetector()
+            else:
+                model_dir = "{}/detectors/{}/".format(settings.MEDIA_ROOT, cd.pk)
+                class_names = {k: v for k, v in json.loads(cd.class_names)}
+                i_class_names = {i: k for k, i in class_names.items()}
+                argdict = {'root_dir':model_dir,'detector_pk':cd.pk}
+                DetectorTask._detectors[cd.pk] = detector.YOLODetector(i_class_names=i_class_names,args=argdict)

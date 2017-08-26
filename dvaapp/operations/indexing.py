@@ -14,23 +14,24 @@ from ..models import IndexEntries
 
 
 class IndexerTask(celery.Task):
-    _visual_indexer = None
-    _clusterer = None
+    _visual_indexer = {}
     _session = None
 
     @property
     def visual_indexer(self):
-        if IndexerTask._visual_indexer is None:
-            indexer_root_dir = "{}/indexers/".format(settings.MEDIA_ROOT)
-            # if IndexerTask._session is None:
-            #     logging.info("Creating a global shared session")
-            #     config = indexer.tf.ConfigProto()
-            #     config.gpu_options.per_process_gpu_memory_fraction = 0.2
-            #     IndexerTask._session = indexer.tf.Session()
-            IndexerTask._visual_indexer = {'inception': indexer.InceptionIndexer(indexer_root_dir+"inception/network.pb"),
-                                           'facenet': indexer.FacenetIndexer(indexer_root_dir+"facenet/facenet.pb"),
-                                           'vgg': indexer.VGGIndexer(indexer_root_dir+"vgg/vgg.pb")}
         return IndexerTask._visual_indexer
+
+    def load_indexer(self,di):
+        if di.pk not in IndexerTask._visual_indexer:
+            iroot = "{}/indexers/".format(settings.MEDIA_ROOT)
+            if di.name == 'inception':
+                IndexerTask._visual_indexer[di.name] = indexer.InceptionIndexer(iroot+"{}/network.pb".format(di.pk))
+            elif di.name == 'facenet':
+                IndexerTask._visual_indexer[di.name] = indexer.FacenetIndexer(iroot+"{}/facenet.pb".format(di.pk))
+            elif di.name == 'vgg':
+                IndexerTask._visual_indexer[di.name] = indexer.VGGIndexer(iroot+"{}/vgg.pb".format(di.pk))
+            else:
+                raise ValueError,"unregistered indexer with id {}".format(di.pk)
 
     def index_frames(self,media_dir, frames,visual_index,task_pk):
         visual_index.load()

@@ -5,7 +5,7 @@ from PIL import Image
 from django.conf import settings
 from dva.celery import app
 from .models import Video, Frame, TEvent,  IndexEntries, ClusterCodes, Region, Tube, \
-    Clusters, Detector, Segment, IndexerQuery, DeletedVideo, ManagementAction
+    Clusters, Detector, Segment, IndexerQuery, DeletedVideo, ManagementAction, Indexer, Analyzer
 from .operations.indexing import IndexerTask
 from .operations.retrieval import RetrieverTask
 from .operations.detection import DetectorTask
@@ -37,6 +37,9 @@ def perform_indexing(task_id):
     index_name = json_args['index']
     start.save()
     start_time = time.time()
+    if index_name not in perform_indexing.visual_indexer:
+        di = Indexer.objects.get(name=index_name)
+        perform_indexing.load_indexer(di)
     visual_index = perform_indexing.visual_indexer[index_name]
     sync = True
     if target == 'query':
@@ -264,17 +267,13 @@ def perform_detection(task_id):
     video_id = start.video_id
     args = start.arguments
     detector_name = args['detector']
-    if detector_name == 'custom':
+    if 'detector_pk' in args:
         detector_pk = int(args['detector_pk'])
-        if detector_pk not in perform_detection.get_static_detectors:
-            cd = Detector.objects.get(pk=detector_pk)
-            model_dir = "{}/detectors/{}/".format(settings.MEDIA_ROOT, cd.pk)
-            class_names = {k: v for k, v in json.loads(cd.class_names)}
-            i_class_names = {i: k for k, i in class_names.items()}
-            perform_detection.load_detector(detector_pk,i_class_names,model_dir)
-        detector = perform_detection.get_static_detectors[detector_pk]
+        cd = Detector.objects.get(pk=detector_pk)
     else:
-        detector = perform_detection.get_static_detectors[detector_name]
+        cd = Detector.objects.get(name=detector_name)
+    perform_detection.load_detector(cd)
+    detector = perform_detection.get_static_detectors[cd.pk]
     if detector.session is None:
         logging.info("loading detection model")
         detector.load()

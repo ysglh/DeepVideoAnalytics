@@ -96,7 +96,6 @@ def clean():
     django.setup()
     from django.conf import settings
     from dvaapp.operations import queuing
-    from dvaapp.models import VDNServer
     if sys.platform == 'darwin':
         for qname in set(queuing.TASK_NAMES_TO_QUEUE.values()):
             try:

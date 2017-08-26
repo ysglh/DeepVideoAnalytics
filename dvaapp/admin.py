@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import Video, Frame, TEvent, IndexEntries, QueryResults, DVAPQL, VDNServer,\
-    VDNDataset, ClusterCodes, Clusters, Region, Tube, Detector, Segment, IndexerQuery, DeletedVideo, \
+    ClusterCodes, Clusters, Region, Tube, Detector, Segment, IndexerQuery, DeletedVideo, \
     VideoLabel, FrameLabel, RegionLabel, TubeLabel, SegmentLabel, Label, ManagementAction, StoredDVAPQL, Analyzer, Indexer
 
 
@@ -80,11 +80,6 @@ class IndexEntriesAdmin(admin.ModelAdmin):
 
 @admin.register(VDNServer)
 class VDNServerAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(VDNDataset)
-class VDNDatasetAdmin(admin.ModelAdmin):
     pass
 
 

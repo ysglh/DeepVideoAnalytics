@@ -427,12 +427,13 @@ def perform_detector_import(task_id):
     start.operation = perform_detector_import.name
     start.save()
     start_time = time.time()
+    args = start.arguments
     dd = Detector.objects.get(pk=start.arguments['detector_pk'])
     dd.create_directory(create_subdirs=False)
-    if 'www.dropbox.com' in dd.vdn_detector.download_url and not dd.vdn_detector.download_url.endswith('?dl=1'):
-        r = requests.get(dd.vdn_detector.download_url + '?dl=1')
+    if 'www.dropbox.com' in args['download_url'] and not args['download_url'].endswith('?dl=1'):
+        r = requests.get(args['download_url'] + '?dl=1')
     else:
-        r = requests.get(dd.vdn_detector.download_url)
+        r = requests.get(args['download_url'])
     output_filename = "{}/detectors/{}.zip".format(settings.MEDIA_ROOT, dd.pk)
     with open(output_filename, 'wb') as f:
         for chunk in r.iter_content(chunk_size=1024):

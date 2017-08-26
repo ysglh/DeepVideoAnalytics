@@ -6,8 +6,8 @@ import glob
 import json
 from django.views.generic import ListView, DetailView
 from .forms import UploadFileForm, YTVideoForm, AnnotationForm
-from .models import Video, Frame, DVAPQL, QueryResults, TEvent, IndexEntries, VDNDataset, Region, VDNServer, \
-    ClusterCodes, Clusters,  Tube, Detector, VDNDetector, Segment, FrameLabel, SegmentLabel, \
+from .models import Video, Frame, DVAPQL, QueryResults, TEvent, IndexEntries, Region, VDNServer, \
+    ClusterCodes, Clusters,  Tube, Detector,  Segment, FrameLabel, SegmentLabel, \
     VideoLabel, RegionLabel, TubeLabel, Label, ManagementAction, StoredDVAPQL, Analyzer, Indexer
 from dva.celery import app
 from dvaapp.operations import queuing
@@ -18,8 +18,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticate
 from django.db.models import Count
 import math
 from django.db.models import Max
-from shared import handle_uploaded_file, create_annotation, create_child_vdn_dataset, \
-    create_root_vdn_dataset, handle_video_url, pull_vdn_list, \
+from shared import handle_uploaded_file, create_annotation, handle_video_url, pull_vdn_list, \
     import_vdn_dataset_url, create_detector_dataset, import_vdn_detector_url, refresh_task_status, \
     delete_video_object
 from operations.processing import DVAPQLProcess
@@ -200,12 +199,6 @@ class VDNServerViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
     queryset = VDNServer.objects.all()
     serializer_class = serializers.VDNServerSerializer
-
-
-class VDNDatasetViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
-    queryset = VDNDataset.objects.all()
-    serializer_class = serializers.VDNDatasetSerializer
 
 
 class TubeViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
@@ -543,17 +536,6 @@ class StoredProcessDetail(UserPassesTestMixin, DetailView):
         return user_check(self.request.user)
 
 
-class VDNDatasetDetail(UserPassesTestMixin, DetailView):
-    model = VDNDataset
-
-    def get_context_data(self, **kwargs):
-        context = super(VDNDatasetDetail, self).get_context_data(**kwargs)
-        context['video'] = Video.objects.get(vdn_dataset=context['object'])
-
-    def test_func(self):
-        return user_check(self.request.user)
-
-
 @user_passes_test(user_check)
 def search(request):
     if request.method == 'POST':
@@ -603,7 +585,6 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
     context['frame_count'] = Frame.objects.count()
     context['query_count'] = DVAPQL.objects.count()
     context['index_entries_count'] = IndexEntries.objects.count()
-    context['external_datasets_count'] = VDNDataset.objects.count()
     context['external_servers_count'] = VDNServer.objects.count()
     context['task_events_count'] = TEvent.objects.count()
     context['pending_tasks'] = TEvent.objects.all().filter(started=False, errored=False).count()
@@ -802,77 +783,6 @@ def coarse_code_detail(request, pk, coarse_code):
         'objects': ClusterCodes.objects.all().filter(coarse_text=coarse_code, clusters_id=pk)
     }
     return render(request, 'coarse_code_details.html', context)
-
-
-@user_passes_test(user_check)
-def push(request, video_id):
-    video = Video.objects.get(pk=video_id)
-    if request.method == 'POST':
-        push_type = request.POST.get('push_type')
-        server = VDNServer.objects.get(pk=request.POST.get('server_pk'))
-        token = request.POST.get('token_{}'.format(server.pk))
-        server.last_token = token
-        server.save()
-        server_url = server.url
-        if not server_url.endswith('/'):
-            server_url += '/'
-        headers = {'Authorization': 'Token {}'.format(server.last_token)}
-        if push_type == 'annotation':
-            new_vdn_dataset = create_child_vdn_dataset(video, server, headers)
-            for key in request.POST:
-                if key.startswith('annotation_') and request.POST[key]:
-                    annotation = Region.objects.get(pk=int(key.split('annotation_')[1]))
-                    data = {
-                        'label': annotation.label,
-                        'text': annotation.text,
-                        'x': annotation.x,
-                        'y': annotation.y,
-                        'w': annotation.w,
-                        'h': annotation.h,
-                        'full_frame': annotation.full_frame,
-                        'parent_frame_index': annotation.parent_frame_index,
-                        'dataset_id': int(new_vdn_dataset.url.split('/')[-2]),
-                    }
-                    r = requests.post("{}/api/annotations/".format(server_url), data=data, headers=headers)
-                    if r.status_code == 201:
-                        annotation.vdn_dataset = new_vdn_dataset
-                        annotation.save()
-                    else:
-                        raise ValueError
-        elif push_type == 'dataset':
-            key = request.POST.get('key')
-            region = request.POST.get('region')
-            bucket = request.POST.get('bucket')
-            name = request.POST.get('name')
-            description = request.POST.get('description')
-            vdn = create_root_vdn_dataset(region, bucket, key, server, headers, name, description)
-            video.vdn_dataset = vdn
-            spec = {
-                'process_type':DVAPQL.PROCESS,
-                'tasks':[
-                    {
-                        'operation':'perform_export',
-                        'arumgents': {'key':key,
-                                      'bucket':bucket,
-                                      'region':region,
-                                      'destination':'S3'}
-                     }
-                ]
-            }
-            p = DVAPQLProcess()
-            p.create_from_json(spec,request.user)
-            p.launch()
-        else:
-            raise NotImplementedError
-
-    servers = VDNServer.objects.all()
-    context = {'video': video, 'servers': servers}
-    if video.vdn_dataset:
-        context['annotations'] = Region.objects.all().filter(video=video, vdn_dataset__isnull=True,
-                                                             region_type=Region.ANNOTATION)
-    else:
-        context['annotations'] = Region.objects.all().filter(video=video, region_type=Region.ANNOTATION)
-    return render(request, 'push.html', context)
 
 
 @user_passes_test(user_check)
@@ -1156,8 +1066,6 @@ def external(request):
         'servers': VDNServer.objects.all(),
         'available_datasets': {server: json.loads(server.last_response_datasets) for server in VDNServer.objects.all()},
         'available_detectors': {server: json.loads(server.last_response_detectors) for server in VDNServer.objects.all()},
-        'vdn_datasets': VDNDataset.objects.all(),
-        'vdn_detectors': VDNDetector.objects.all()
     }
     return render(request, 'external_data.html', context)
 

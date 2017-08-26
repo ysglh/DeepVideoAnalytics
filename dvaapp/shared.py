@@ -1,5 +1,5 @@
 import os, json, requests, copy, time, subprocess, logging, shutil, zipfile, boto3, random, calendar, shlex
-from models import Video, TEvent,  Region, VDNDataset, VDNServer, VDNDetector, Detector, DeletedVideo, Label,\
+from models import Video, TEvent,  Region, VDNServer, Detector, DeletedVideo, Label,\
     RegionLabel
 from django.conf import settings
 from django_celery_results.models import TaskResult
@@ -195,53 +195,6 @@ def handle_video_url(name, url, user = None):
     return Video.objects.create(name=name,url=url,youtube_video=True,uploader=user)
 
 
-def create_child_vdn_dataset(parent_video, server, headers):
-    server_url = server.url
-    if not server_url.endswith('/'):
-        server_url += '/'
-    new_dataset = {'root': False,
-                   'parent_url': parent_video.vdn_dataset.url,
-                   'description': 'automatically created child'}
-    r = requests.post("{}api/datasets/".format(server_url), data=new_dataset, headers=headers)
-    if r.status_code == 201:
-        vdn_dataset = VDNDataset()
-        vdn_dataset.url = r.json()['url']
-        vdn_dataset.root = False
-        vdn_dataset.response = r.text
-        vdn_dataset.server = server
-        vdn_dataset.parent_local = parent_video.vdn_dataset
-        vdn_dataset.save()
-        return vdn_dataset
-    else:
-        raise ValueError, "{} {} {} {}".format("{}api/datasets/".format(server_url), headers, r.status_code,
-                                               new_dataset)
-
-
-def create_root_vdn_dataset(region, bucket, key, server, headers, name, description):
-    new_dataset = {'root': True,
-                   'aws_requester_pays': True,
-                   'aws_region': region,
-                   'aws_bucket': bucket,
-                   'aws_key': key,
-                   'name': name,
-                   'description': description
-                   }
-    server_url = server.url
-    if not server_url.endswith('/'):
-        server_url += '/'
-    r = requests.post("{}api/datasets/".format(server_url), data=new_dataset, headers=headers)
-    if r.status_code == 201:
-        vdn_dataset = VDNDataset()
-        vdn_dataset.url = r.json()['url']
-        vdn_dataset.root = True
-        vdn_dataset.response = r.text
-        vdn_dataset.server = server
-        vdn_dataset.save()
-        return vdn_dataset
-    else:
-        raise ValueError, "Could not crated dataset"
-
-
 def pull_vdn_list(pk):
     """
     Pull list of datasets from configured VDN servers
@@ -273,37 +226,16 @@ def pull_vdn_list(pk):
     return server, datasets, detectors
 
 
-
-
-def create_dataset(d, server):
-    dataset = VDNDataset()
-    dataset.server = server
-    dataset.name = d['name']
-    dataset.description = d['description']
-    dataset.download_url = d['download_url']
-    dataset.url = d['url']
-    dataset.aws_bucket = d['aws_bucket']
-    dataset.aws_key = d['aws_key']
-    dataset.aws_region = d['aws_region']
-    dataset.aws_requester_pays = d['aws_requester_pays']
-    dataset.organization_url = d['organization']['url']
-    dataset.response = json.dumps(d)
-    dataset.save()
-    return dataset
-
-
 def import_vdn_dataset_url(server, url, user):
     r = requests.get(url)
     response = r.json()
-    vdn_dataset = create_dataset(response, server)
-    vdn_dataset.save()
     video = Video()
+    video.description = "import from {} : {} ".format(server.url,response['description'])
     if user:
         video.uploader = user
-    video.name = vdn_dataset.name
-    video.vdn_dataset = vdn_dataset
+    video.name = response['name']
     video.save()
-    if vdn_dataset.download_url:
+    if response['download_url']:
         p = processing.DVAPQLProcess()
         query = {
             'process_type': DVAPQL.PROCESS,
@@ -317,7 +249,7 @@ def import_vdn_dataset_url(server, url, user):
         }
         p.create_from_json(j=query, user=user)
         p.launch()
-    elif vdn_dataset.aws_key and vdn_dataset.aws_bucket:
+    elif response['aws_key'] and response['aws_bucket']:
         p = processing.DVAPQLProcess()
         query = {
             'process_type': DVAPQL.PROCESS,
@@ -335,46 +267,27 @@ def import_vdn_dataset_url(server, url, user):
         raise NotImplementedError
 
 
-def create_vdn_detector(d, server):
-    vdn_detector = VDNDetector()
-    vdn_detector.server = server
-    vdn_detector.name = d['name']
-    vdn_detector.description = d['description']
-    vdn_detector.download_url = d['download_url']
-    vdn_detector.url = d['url']
-    vdn_detector.aws_bucket = d['aws_bucket']
-    vdn_detector.aws_key = d['aws_key']
-    vdn_detector.aws_region = d['aws_region']
-    vdn_detector.aws_requester_pays = d['aws_requester_pays']
-    vdn_detector.organization_url = d['organization']['url']
-    vdn_detector.response = json.dumps(d)
-    vdn_detector.save()
-    return vdn_detector
-
-
 def import_vdn_detector_url(server, url, user):
     r = requests.get(url)
     response = r.json()
-    vdn_detector = create_vdn_detector(response, server)
     detector = Detector()
-    detector.name = vdn_detector.name
-    detector.detector_type = detector.YOLO
-    detector.vdn_detector = vdn_detector
+    detector.name = response['name']
+    detector.detector_type = response.get('detector_type',detector.YOLO)
     detector.save()
-    if vdn_detector.download_url:
+    if response.get('download_url',False):
         p = processing.DVAPQLProcess()
         query = {
             'process_type': DVAPQL.PROCESS,
             'tasks': [
                 {
-                    'arguments': {'detector_pk': detector.pk},
+                    'arguments': {'detector_pk': detector.pk,'download_url':response['download_url']},
                     'operation': 'perform_detector_import',
                 }
             ]
         }
         p.create_from_json(j=query, user=user)
         p.launch()
-    elif vdn_detector.aws_key and vdn_detector.aws_bucket:
+    elif response.get('aws_key',False) and response.get('aws_bucket',False):
         raise NotImplementedError
     else:
         raise NotImplementedError

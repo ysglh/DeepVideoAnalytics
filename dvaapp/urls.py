@@ -26,7 +26,6 @@ router.register(r'queryresults', views.QueryResultsViewSet)
 router.register(r'indexentries', views.IndexEntriesViewSet)
 router.register(r'events', views.TEventViewSet)
 router.register(r'vdnservers', views.VDNServerViewSet)
-router.register(r'vdndatasets', views.VDNDatasetViewSet)
 router.register(r'clusters', views.ClustersViewSet)
 router.register(r'clustercodes', views.ClusterCodesViewSet)
 
@@ -71,14 +70,12 @@ urlpatterns = [
     url(r'^Search$', views.search),
     url(r'^videos/(?P<pk>\d+)/$', views.VideoDetail.as_view(), name='video_detail'),
     url(r'^clustering/(?P<pk>\d+)/$', views.ClustersDetails.as_view(), name='clusters_detail'),
-    url(r'^vdn_datasets/(?P<pk>\d+)/$', views.VDNDatasetDetail.as_view(), name='vdn_dataset_detail'),
     url(r'^frames/$', views.FrameList.as_view()),
     url(r'^frames/(?P<pk>\d+)/$', views.FrameDetail.as_view(), name='frame_detail'),
     url(r'^segments/(?P<pk>\d+)/$', views.SegmentDetail.as_view(), name='segment_detail'),
     url(r'^queries/(?P<pk>\d+)/$', views.VisualSearchDetail.as_view(), name='query_detail'),
     url(r'^retry/$', views.retry_task, name='restart_task'),
     url(r'^failed/$', views.mark_task_failed, name='mark_task_failed'),
-    url(r'^push/(?P<video_id>\d+)/$', views.push, name='push'),
     url(r'^coarse_code/(?P<pk>\d+)/(?P<coarse_code>\w+)$', views.coarse_code_detail, name='coarse_code_detail'),
     url(r'^segments/by_index/(?P<video_pk>\d+)/(?P<segment_index>\w+)$', views.segment_by_index, name='segment_by_index'),
     url(r'^requery/(?P<query_pk>\d+)/$', views.index, name='requery'),

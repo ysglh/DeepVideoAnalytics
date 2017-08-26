@@ -160,7 +160,7 @@ class DVAPQLProcess(object):
         self.media_dir = media_dir
         self.task_results = {}
         self.context = {}
-        self.visual_indexes = queuing.VISUAL_INDEXES
+        self.visual_indexes = {k.name:{'name':k.name,'algorithm':k.name} for k in Indexer.objects.all()}
 
     def store(self):
         if settings.HEROKU_DEPLOY:

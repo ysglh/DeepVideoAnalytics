@@ -590,7 +590,7 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
     else:
         form = UploadFileForm()
     context = {'form': form}
-    context['indexes'] = queuing.VISUAL_INDEXES
+    context['indexes'] = {k.name:{'pk':k.pk,'name':k.name,'algorithm':k.name} for k in Indexer.objects.all()}
     if query_pk:
         previous_query = DVAPQL.objects.get(pk=query_pk)
         context['initial_url'] = '{}queries/{}.png'.format(settings.MEDIA_URL, query_pk)
@@ -1218,7 +1218,7 @@ def rename_video(request):
 @user_passes_test(user_check)
 def models(request):
     context = {
-        'visual_index_list': queuing.VISUAL_INDEXES.items(),
+        'visual_index_list': Indexer.objects.all(),
         'index_entries': IndexEntries.objects.all(),
         "videos": Video.objects.all().filter(),
         "region_types": Region.REGION_TYPES,

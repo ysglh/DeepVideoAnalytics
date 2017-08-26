@@ -1,13 +1,7 @@
 Q_MANAGER = 'qmanager'
 Q_EXTRACTOR = 'qextract'
-Q_INDEXER = 'qindexer'
-Q_DETECTOR = 'qdetector'
-Q_RETRIEVER = 'qretriever'
-Q_FACE_RETRIEVER = 'qfaceretriever'
-Q_FACE_DETECTOR = 'qfacedetector'
 Q_CLUSTER = 'qclusterer'
 Q_TRAINER = 'qtrainer'
-Q_OCR = 'qocr'
 Q_VGG = 'qvgg'
 
 TASK_NAMES_TO_QUEUE = {
@@ -40,23 +34,4 @@ TASK_NAMES_TO_TYPE = {
     "perform_clustering": CLUSTER_TASK,
     "perform_detector_training": TRAIN_TASK,
 }
-
-
-VISUAL_INDEXES = {
-    'inception':
-        {
-            'indexer_task':"perform_indexing",
-            'indexer_queue':Q_INDEXER,
-            'retriever_queue':Q_RETRIEVER,
-            'detection_specific':False
-        },
-    'facenet':
-        {
-            'indexer_task': "perform_indexing",
-            'indexer_queue': Q_FACE_RETRIEVER,
-            'retriever_queue': Q_FACE_RETRIEVER,
-            'detection_specific': True
-        },
-    }
-
 

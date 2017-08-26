@@ -102,7 +102,7 @@ class TFDetector(BaseDetector):
     def __init__(self,model_path,class_index_to_string,gpu_fraction=None):
         super(TFDetector, self).__init__()
         self.model_path = model_path
-        self.class_index_to_string = class_index_to_string
+        self.class_index_to_string = {int(k):v for k,v in class_index_to_string.items()}
         self.session = None
         self.dataset = None
         self.filenames_placeholder = None
@@ -160,9 +160,9 @@ class TFDetector(BaseDetector):
 
 class YOLODetector(BaseDetector):
 
-    def __init__(self,i_class_names,args):
+    def __init__(self,args):
         super(YOLODetector, self).__init__()
-        self.model = trainer.YOLOTrainer(boxes=[], images=[], class_names=i_class_names, args=args,test_mode=True)
+        self.model = trainer.YOLOTrainer(boxes=[], images=[], args=args,test_mode=True)
         self.session = None
 
     def detect(self,image_path,min_score=0.20):

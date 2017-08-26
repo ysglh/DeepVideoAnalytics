@@ -450,7 +450,13 @@ def init_models():
         models = json.load(modelfile)
     for m in models:
         if m['model_type'] == "detector":
-            dm, _ = Detector.objects.get_or_create(name=m['name'],algorithm=m['algorithm'],mode=m['mode'])
+            dm, _ = Detector.objects.get_or_create(name=m['name'],
+                                                   algorithm=m['algorithm'],
+                                                   mode=m['mode'],
+                                                   model_filename=m.get("model_filename",""),
+                                                   detector_type=m.get("detector_type",""),
+                                                   class_index_to_string=m.get("class_index_to_string",{})
+                                                   )
             if m['url']:
                 download_model(settings.MEDIA_ROOT, "detectors", dm.pk, m['filename'], m['url'])
         if m['model_type'] == "indexer":
@@ -879,7 +885,8 @@ def train_yolo(start_pk):
     detector.frames_count = len(images)
     detector.classes_count = len(class_names)
     detector.save()
-    train_task = trainer.YOLOTrainer(boxes=boxes,images=images,class_names=i_class_names,args=args)
+    args['class_names'] = i_class_names
+    train_task = trainer.YOLOTrainer(boxes=boxes,images=images,args=args)
     train_task.train()
     detector.phase_1_log = file("{}/phase_1.log".format(args['root_dir'])).read()
     detector.phase_2_log = file("{}/phase_2.log".format(args['root_dir'])).read()

@@ -358,6 +358,7 @@ def import_vdn_detector_url(server, url, user):
     vdn_detector = create_vdn_detector(response, server)
     detector = Detector()
     detector.name = vdn_detector.name
+    detector.detector_type = detector.YOLO
     detector.vdn_detector = vdn_detector
     detector.save()
     if vdn_detector.download_url:

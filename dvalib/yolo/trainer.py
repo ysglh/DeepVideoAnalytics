@@ -14,14 +14,14 @@ DEFAULT_ANCHORS = [(0.57273, 0.677385), (1.87446, 2.06253), (3.33843, 5.47434), 
 
 class YOLOTrainer(object):
 
-    def __init__(self,images,boxes,class_names,args,test_mode=False):
+    def __init__(self,images,boxes,args,test_mode=False):
         self.images = images
         self.args = args
         self.boxes = boxes
         self.processed_boxes = None
         self.processed_images = None
         self.detectors_mask, self.matching_true_boxes = None, None
-        self.class_names = class_names
+        self.class_names = args['class_names']
         self.anchors = np.array(args['anchors'] if 'anchors' in args else DEFAULT_ANCHORS)
         self.validation_split = args['validation_split'] if 'validation_split' in args else 0.1
         self.model_body = None

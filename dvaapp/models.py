@@ -1,5 +1,5 @@
 from __future__ import unicode_literals
-import os
+import os, json
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.postgres.fields import ArrayField, JSONField
@@ -215,13 +215,20 @@ class Detector(models.Model):
     CAFFE = 'C'
     PYTORCH = 'P'
     OPENCV = 'O'
+    YOLO = 'Y'
+    TFD = 'T'
     MODES = (
         (TENSORFLOW, 'Tensorflow'),
         (CAFFE, 'Caffe'),
         (PYTORCH, 'Pytorch'),
         (OPENCV, 'OpenCV'),
     )
+    DETECTOR_TYPES = (
+        (TFD, 'Tensorflow'),
+        (YOLO, 'YOLO V2'),
+    )
     mode = models.CharField(max_length=1,choices=MODES,db_index=True,default=TENSORFLOW)
+    detector_type = models.CharField(max_length=1,choices=DETECTOR_TYPES,db_index=True,null=True)
     name = models.CharField(max_length=100)
     algorithm = models.CharField(max_length=100,default="")
     model_filename = models.CharField(max_length=200,default="")
@@ -236,6 +243,7 @@ class Detector(models.Model):
     source = models.ForeignKey(TEvent, null=True)
     trained = models.BooleanField(default=False)
     created = models.DateTimeField('date created', auto_now_add=True)
+    class_index_to_strings = JSONField(null=True,blank=True)
 
     def create_directory(self,create_subdirs=True):
         try:
@@ -243,6 +251,19 @@ class Detector(models.Model):
         except:
             pass
 
+    def get_model_path(self,root_dir=None):
+        if root_dir is None:
+            root_dir = settings.MEDIA_ROOT
+        return "{}/detectors/{}/{}".format(root_dir,self.pk,self.model_filename)
+
+    def get_yolo_args(self):
+        model_dir = "{}/detectors/{}/".format(settings.MEDIA_ROOT, self.pk)
+        class_names = {k: v for k, v in json.loads(self.class_names)}
+        args = {'root_dir': model_dir,
+                'detector_pk': self.pk,
+                'class_names':{i: k for k, i in class_names.items()}
+                }
+        return args
 
 class IndexerQuery(models.Model):
     parent_query = models.ForeignKey(DVAPQL)

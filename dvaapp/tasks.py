@@ -474,9 +474,9 @@ def perform_import(event_id):
     elif source == 'S3':
         shared.import_s3(start,dv)
     elif source == 'VDN_URL':
-        shared.import_vdn_url(dv)
+        shared.import_vdn_url(dv,start.arguments['url'])
     elif source == 'VDN_S3':
-        shared.import_vdn_s3(dv)
+        shared.import_vdn_s3(dv,start.arguments['key'],start.arguments['bucket'])
     elif source == 'LOCAL':
         shared.import_local(dv)
     elif source == 'MASSIVE':

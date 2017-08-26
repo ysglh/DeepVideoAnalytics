@@ -241,7 +241,7 @@ def import_vdn_dataset_url(server, url, user):
             'process_type': DVAPQL.PROCESS,
             'tasks': [
                 {
-                    'arguments': {'source':'VDN_URL'},
+                    'arguments': {'source':'VDN_URL','url':response['download_url']},
                     'video_id': video.pk,
                     'operation': 'perform_import',
                 }
@@ -255,7 +255,7 @@ def import_vdn_dataset_url(server, url, user):
             'process_type': DVAPQL.PROCESS,
             'tasks': [
                 {
-                    'arguments': {'source':'VDN_S3'},
+                    'arguments': {'source':'VDN_S3','key':response['aws_key'],'bucket':response['aws_bucket']},
                     'video_id': video.pk,
                     'operation': 'perform_import',
                 }
@@ -428,12 +428,12 @@ def import_s3(start,dv):
         importer.import_video()
 
 
-def import_vdn_url(dv):
+def import_vdn_url(dv,download_url):
     dv.create_directory(create_subdirs=False)
-    if 'www.dropbox.com' in dv.vdn_dataset.download_url and not dv.vdn_dataset.download_url.endswith('?dl=1'):
-        r = requests.get(dv.vdn_dataset.download_url + '?dl=1')
+    if 'www.dropbox.com' in download_url and not download_url.endswith('?dl=1'):
+        r = requests.get(download_url + '?dl=1')
     else:
-        r = requests.get(dv.vdn_dataset.download_url)
+        r = requests.get(download_url)
     output_filename = "{}/{}/{}.zip".format(settings.MEDIA_ROOT, dv.pk, dv.pk)
     with open(output_filename, 'wb') as f:
         for chunk in r.iter_content(chunk_size=1024):
@@ -484,12 +484,10 @@ def import_local(dv):
     os.remove(source_zip)
 
 
-def import_vdn_s3(dv):
+def import_vdn_s3(dv,key,bucket):
     dv.create_directory(create_subdirs=False)
     client = boto3.client('s3')
     resource = boto3.resource('s3')
-    key = dv.vdn_dataset.aws_key
-    bucket = dv.vdn_dataset.aws_bucket
     if key.endswith('.dva_export.zip'):
         ofname = "{}/{}/{}.zip".format(settings.MEDIA_ROOT, dv.pk, dv.pk)
         resource.meta.client.download_file(bucket, key, ofname, ExtraArgs={'RequestPayer': 'requester'})

@@ -66,7 +66,7 @@ def start_container_server():
     :return:
     """
     local('sleep 20')
-    migrate()
+    migrate() # move this to compose command after git pull.
     init_fs()
     init_server()
     init_models()
@@ -81,7 +81,7 @@ def start_container_worker():
     :param test:
     :return:
     """
-    local('sleep 20')
+    local('sleep 50') # To avoid race condition where worker starts before migration is finished
     init_fs()
     init_models()
     launch_workers_and_scheduler_from_environment(block_on_manager=True)

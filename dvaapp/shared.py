@@ -5,8 +5,6 @@ from django.conf import settings
 from django_celery_results.models import TaskResult
 from collections import defaultdict
 from operations import processing
-from operations.processing import get_queue_name
-from dva.celery import app
 from models import DVAPQL,Region,Frame
 from . import serializers
 from botocore.exceptions import ClientError

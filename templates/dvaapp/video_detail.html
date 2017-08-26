@@ -22,7 +22,6 @@
                     <th class="text-center">width</th>
                     <th class="text-center">created</th>
                     <th class="text-center">youtube</th>
-                    <th class="text-center">VDN source</th>
 
                 </tr>
                 </thead>
@@ -39,7 +38,6 @@
                         <td class="text-right">{{ object.width }} </td>
                         <td class="text-center">{{ object.created }}</td>
                         <td class="text-center">{% if object.youtube_video %}<a href="{{ object.url }}" target="_blank">youtube link</a>{% endif %}</td>
-                        <td class="text-center">{% if object.vdn_dataset %}<a href="{{ object.vdn_dataset.url }}" target="_blank">source</a>{% endif %}</td>
                     </tr>
                 </tbody>
                 </table>
@@ -193,27 +191,6 @@
             {% endif %}
             </div>
         </div>
-        <div class="box box-primary" >
-        <div class="box-body">
-        <div class="row">
-            {% if not video.vdn_dataset %}
-                <div class="col-sm-12 text-center">
-                    <a href="/push/{{ video.id }}" class="btn btn-primary"> <i class="fa fa-upload"></i>  Push video/dataset to remote VDN server</a>
-                </div>
-            {% else %}
-                {% if exportable_annotation_count %}
-                <div class="col-sm-12 text-center">
-                    <p>You have <span style="font-weight:bold">{{ exportable_annotation_count }}</span> local annotations to push to a remote VDN server.
-                    </p>
-                    <a  href="/push/{{ video.id }}" class="btn btn-primary"> <i class="fa fa-upload"></i>  Push annotations</a>
-                </div>
-            {% else %}
-                <div class="col-sm-12 text-center"><h4>No pending changes</h4></div>
-            {% endif %}
-            {% endif %}
-            </div>
-        </div>
-    </div>
 </div>
 </div>
 <div class="row">

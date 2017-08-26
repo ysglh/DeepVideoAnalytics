@@ -11,14 +11,14 @@
        - BROKER_URL=${BROKER_URL}
        - DATABASE_URL=${DATABASE_URL}
        - SECRET_KEY=${SECRET_KEY}
-       - LAUNCH_Q_qindexer=1
-       - LAUNCH_Q_qretriever=1
-       - LAUNCH_Q_qextract=1
-       - LAUNCH_Q_qdetector=1
-       - LAUNCH_Q_qfaceretriever=1
+       - LAUNCH_BY_NAME_indexer_inception=1
+       - LAUNCH_BY_NAME_indexer_facenet=1
+       - LAUNCH_BY_NAME_retriever_inception=1
+       - LAUNCH_BY_NAME_retriever_facenet=1
+       - LAUNCH_BY_NAME_detector_coco=1
+       - LAUNCH_BY_NAME_detector_face=1
        - LAUNCH_Q_qclusterer=1
-       - LAUNCH_Q_qfacedetector=1
-       - LAUNCH_Q_qtrainer=1
+       - LAUNCH_Q_qextract=1
        - CELERY_MUTE=1
        - MEDIA_BUCKET=${MEDIA_BUCKET}
        - GPU_AVAILABLE=1
@@ -40,7 +40,7 @@
        - MEDIA_BUCKET=${MEDIA_BUCKET}
        - CELERY_MUTE=1
        - DVA_PRIVATE_ENABLE=1
-       - LAUNCH_Q_qocr=1
+       - LAUNCH_BY_NAME_detector_textbox=1
        - CAFFE_MODE=1
      command: bash -c "sleep 60 && git pull && fab pull_private && fab start_container_worker"
      volumes:
@@ -57,7 +57,7 @@
        - MEDIA_BUCKET=${MEDIA_BUCKET}
        - CELERY_MUTE=1
        - DVA_PRIVATE_ENABLE=1
-       - LAUNCH_Q_qcrnn=1
+       - LAUNCH_BY_NAME_analyzer_crnn=1
        - PYTORCH_MODE=1
      command: bash -c "sleep 60 && git pull && fab pull_private && fab start_container_worker"
      volumes:

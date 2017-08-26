@@ -72,8 +72,6 @@ script:
   - wget --quiet localhost:8000/models/
   - wget --quiet localhost:8000/status
   - wget --quiet http://www.visualdata.network/vdn/api/
-  - wget --quiet http://www.visualdata.network/vdn/
-  - wget --quiet http://www.visualdata.network/vdn/get_token/
   - wget --quiet localhost:8000/api/users/
   - wget --quiet localhost:8000/api/videos/
   - wget --quiet localhost:8000/api/tubes/

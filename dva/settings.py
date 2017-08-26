@@ -233,12 +233,6 @@ else:
     STATIC_URL = '/static/'
     MEDIA_ROOT = '/Users/aub3/media/' if sys.platform == 'darwin' else os.path.join(PROJECT_ROOT, 'media')
     MEDIA_URL = '/media/'
-    for create_dirname in ['queries', 'exports', 'detectors','indexers','analyzers','segmentors','external']:
-        if not os.path.isdir("{}/{}".format(MEDIA_ROOT, create_dirname)):
-            try:
-                os.mkdir("{}/{}".format(MEDIA_ROOT, create_dirname))
-            except:
-                pass
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400
 

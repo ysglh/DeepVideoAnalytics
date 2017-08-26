@@ -55,6 +55,7 @@ before_script:
   - sleep 3 # give xvfb some time to start
 
 script:
+  - fab init_fs
   - fab init_server
   - fab init_models
   - fab ci

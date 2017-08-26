@@ -67,6 +67,7 @@ def start_container_server():
     """
     local('sleep 20')
     migrate()
+    init_fs()
     init_server()
     init_models()
     launch_workers_and_scheduler_from_environment()
@@ -81,6 +82,7 @@ def start_container_worker():
     :return:
     """
     local('sleep 20')
+    init_fs()
     init_models()
     launch_workers_and_scheduler_from_environment(block_on_manager=True)
 
@@ -115,6 +117,7 @@ def clean():
             local("ps auxww | grep 'celery -A dva worker' | awk '{print $2}' | xargs kill -9")
         except:
             pass
+    init_fs()
     init_server()
     init_models()
     if sys.platform == 'darwin':
@@ -466,6 +469,21 @@ def init_models():
             dm, _ = Analyzer.objects.get_or_create(name=m['name'],mode=m['mode'])
             if m['url']:
                 download_model(settings.MEDIA_ROOT, "analyzers", dm.pk, m['filename'], m['url'])
+
+
+@task
+def init_fs():
+    import django
+    sys.path.append(os.path.dirname(__file__))
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
+    django.setup()
+    from django.conf import settings
+    for create_dirname in ['queries', 'exports','external']:
+        if not os.path.isdir("{}/{}".format(settings.MEDIA_ROOT, create_dirname)):
+            try:
+                os.mkdir("{}/{}".format(settings.MEDIA_ROOT, create_dirname))
+            except:
+                pass
 
 
 @task

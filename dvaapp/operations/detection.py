@@ -35,7 +35,7 @@ class DetectorTask(celery.Task):
         if cd.pk not in DetectorTask._detectors:
             droot = "{}/detectors/".format(settings.MEDIA_ROOT)
             if cd.name == 'coco':
-                DetectorTask._detectors[cd.pk] = detector.TFDetector(model_path=droot+'{}/coco_mobilenet.pb'.format(detector_pk),
+                DetectorTask._detectors[cd.pk] = detector.TFDetector(model_path=droot+'{}/coco_mobilenet.pb'.format(cd.pk),
                                                                        class_index_to_string=coco_class_index_to_string),
             elif cd.name == 'face':
                 DetectorTask._detectors[cd.pk] = detector.FaceDetector()

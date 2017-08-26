@@ -22,7 +22,7 @@ class IndexerTask(celery.Task):
         return IndexerTask._visual_indexer
 
     def load_indexer(self,di):
-        if di.pk not in IndexerTask._visual_indexer:
+        if di.name not in IndexerTask._visual_indexer:
             iroot = "{}/indexers/".format(settings.MEDIA_ROOT)
             if di.name == 'inception':
                 IndexerTask._visual_indexer[di.name] = indexer.InceptionIndexer(iroot+"{}/network.pb".format(di.pk))

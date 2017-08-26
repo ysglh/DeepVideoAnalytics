@@ -340,6 +340,9 @@ def perform_analysis(task_id):
     video_id = start.video_id
     args = start.arguments
     analyzer_name = args['analyzer']
+    if analyzer_name not in perform_analysis._analyzers:
+        da = Analyzer.objects.get(name=analyzer_name)
+        perform_analysis.load_analyzer(da)
     analyzer = perform_analysis.get_static_analyzers[analyzer_name]
     regions_batch = []
     queryset, target = shared.build_queryset(args,video_id)

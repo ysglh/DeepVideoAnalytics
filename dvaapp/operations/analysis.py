@@ -9,11 +9,16 @@ except ImportError:
 
 
 class AnalyzerTask(celery.Task):
-    _analyzers = None
+    _analyzers = {}
 
     @property
     def get_static_analyzers(self):
-        analyzers_root = "{}/analyzers/".format(settings.MEDIA_ROOT)
-        if AnalyzerTask._analyzers is None:
-            AnalyzerTask._analyzers = {'crnn': analyzer.CRNNAnnotator(analyzers_root+"crnn/crnn.pth")}
         return AnalyzerTask._analyzers
+
+    def load_analyzer(self,da):
+        if da.name not in AnalyzerTask._analyzers:
+            aroot = "{}/analyzers/".format(settings.MEDIA_ROOT)
+            if da.name == 'crnn':
+                AnalyzerTask._analyzers[da.name] = analyzer.CRNNAnnotator(aroot+"{}/crnn.pth".format(da.pk))
+            else:
+                raise ValueError,"analyzer by id {} not found".format(da.pk)

@@ -460,23 +460,7 @@ def init_models():
         if m['model_type'] == "analyzer":
             dm, _ = Analyzer.objects.get_or_create(name=m['name'],mode=m['mode'])
             if m['url']:
-                download_model(settings.MEDIA_ROOT, "analyzers", m['name'], m['filename'], m['url'])
-
-
-@task
-def init_fs():
-    """
-    Initialized filesystem by downloading models
-    :return:
-    """
-    import django
-    sys.path.append(os.path.dirname(__file__))
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
-    django.setup()
-    from django.conf import settings
-    download_indexers(settings.MEDIA_ROOT)
-    download_detectors(settings.MEDIA_ROOT)
-    download_analyzers(settings.MEDIA_ROOT)
+                download_model(settings.MEDIA_ROOT, "analyzers", dm.pk, m['filename'], m['url'])
 
 
 @task

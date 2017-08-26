@@ -63,7 +63,7 @@
        - DB_NAME=postgres
        - DB_USER=pgdbuser
        - DB_PASS=pgdbpass
-       - LAUNCH_Q_qocr=1
+       - LAUNCH_BY_NAME_detector_textbox=1
        - AUTH_DISABLED=1
        - CAFFE_MODE=1
      command: bash -c "sleep 60 && git pull && fab start_container_worker"
@@ -85,7 +85,7 @@
        - DB_NAME=postgres
        - DB_USER=pgdbuser
        - DB_PASS=pgdbpass
-       - LAUNCH_Q_qcrnn=1
+       - LAUNCH_BY_NAME_analyzer_crnn=1
        - AUTH_DISABLED=1
        - PYTORCH_MODE=1
      command: bash -c "sleep 60 && git pull && fab start_container_worker"

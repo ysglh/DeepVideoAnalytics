@@ -493,6 +493,7 @@ def init_models():
     from dvaapp.models import Detector,Analyzer,Indexer
     _ = Detector.objects.get_or_create(name="coco",algorithm="mobilenet_ssd")
     _ = Detector.objects.get_or_create(name="face",algorithm="mtcnn_facenet")
+    _ = Detector.objects.get_or_create(name="textbox",algorithm="cptn")
     _ = Indexer.objects.get_or_create(name="inception")
     _ = Indexer.objects.get_or_create(name="facenet")
     _ = Analyzer.objects.get_or_create(name="tag")

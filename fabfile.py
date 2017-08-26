@@ -71,8 +71,7 @@ def start_container_server():
     init_server()
     init_models()
     launch_workers_and_scheduler_from_environment()
-
-
+    launch_server_from_environment()
 
 
 @task
@@ -86,7 +85,6 @@ def start_container_worker():
     init_fs()
     init_models()
     launch_workers_and_scheduler_from_environment(block_on_manager=True)
-    launch_server_from_environment()
 
 @task
 def clean():

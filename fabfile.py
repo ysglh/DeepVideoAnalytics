@@ -453,7 +453,7 @@ def init_models():
             dm, _ = Detector.objects.get_or_create(name=m['name'],
                                                    algorithm=m['algorithm'],
                                                    mode=m['mode'],
-                                                   model_filename=m.get("model_filename",""),
+                                                   model_filename=m.get("filename",""),
                                                    detector_type=m.get("detector_type",""),
                                                    class_index_to_string=m.get("class_index_to_string",{})
                                                    )

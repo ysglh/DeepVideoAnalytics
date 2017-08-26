@@ -19,7 +19,7 @@ class Organization(models.Model):
     user = models.OneToOneField(User)
 
 
-class Dataset(models.Model):
+class VDNRemoteDataset(models.Model):
     name = models.CharField(max_length=100,default="")
     root = models.BooleanField(default=True)
     created = models.DateTimeField('date created', auto_now_add=True)
@@ -34,19 +34,6 @@ class Dataset(models.Model):
 
     def __unicode__(self):
         return u'{}'.format(self.name)
-
-
-class Annotation(models.Model):
-    dataset = models.ForeignKey(Dataset,null=True)
-    parent_frame_index = models.IntegerField(default=-1)
-    text = models.TextField(default="")
-    label = models.TextField(default="empty")
-    full_frame = models.BooleanField(default=True)
-    x = models.IntegerField(default=0)
-    y = models.IntegerField(default=0)
-    h = models.IntegerField(default=0)
-    w = models.IntegerField(default=0)
-    created = models.DateTimeField('date created', auto_now_add=True)
 
 
 class VDNRemoteDetector(models.Model):

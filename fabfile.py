@@ -131,13 +131,7 @@ def restart_queues():
     :return:
     """
     kill()
-    local('fab startq:qmanager &')
-    local('fab startq:qextractor &')
-    local('fab startq:qindexer &')
-    local('fab startq:qretriever &')
-    local('fab startq:qface &')
-    local('fab startq:qfacedetector &')
-    local('fab startq:qdetector &')
+    launch()
 
 @task
 def kill():

@@ -176,8 +176,8 @@ def ci():
         else:
             arguments = {'sync': True}
             perform_video_segmentation(TEvent.objects.create(video=v, arguments=arguments).pk)
-            arguments = {'index': 'inception'}
-            perform_indexing(TEvent.objects.create(video=v, arguments=arguments).pk)
+        arguments = {'index': 'inception', 'target': 'frames'}
+        perform_indexing(TEvent.objects.create(video=v, arguments=arguments).pk)
         if i == 0:  # save travis time by just running detection on first video
             # face_mtcnn
             arguments = {'detector': 'face'}

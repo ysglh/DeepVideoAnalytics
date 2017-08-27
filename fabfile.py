@@ -246,7 +246,7 @@ def ci():
     for k in datasets:
         if k['name'] == 'MSCOCO_Sample_500':
             print 'FOUND MSCOCO SAMPLE'
-            import_vdn_dataset_url(VDNServer.objects.get(pk=1), k['url'], None)
+            import_vdn_dataset_url(VDNServer.objects.get(pk=1), k['url'], None, k)
     test_backup()
 
 

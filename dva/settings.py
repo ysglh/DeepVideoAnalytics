@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 
 import os, dj_database_url, sys
 
-VDN_ENABLE = 'VDN_ENABLE' in os.environ
 DVA_PRIVATE_ENABLE = 'DVA_PRIVATE_ENABLE' in os.environ
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -75,7 +74,6 @@ INSTALLED_APPS = [
                      'corsheaders',
                      'rest_framework',
                      'django_filters',
-                     'vdnapp',
                      'crispy_forms',
                      'rest_framework.authtoken',
                      'django_celery_beat'
@@ -99,9 +97,7 @@ if MACOS and DEBUG:
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_METHODS = ('POST', 'GET',)
 CORS_ALLOW_CREDENTIALS = True
-if VDN_ENABLE and HEROKU_DEPLOY:
-    CORS_URLS_REGEX = r'^vdn/api/.*$'
-else:
+if not HEROKU_DEPLOY:
     CORS_URLS_REGEX = r'^api/.*$'
 REST_FRAMEWORK = {
     'PAGE_SIZE': 10,

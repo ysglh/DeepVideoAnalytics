@@ -1,4 +1,4 @@
-import logging, json
+import logging, json, uuid
 import celery
 from PIL import Image
 from django.conf import settings
@@ -33,73 +33,53 @@ class IndexerTask(celery.Task):
             else:
                 raise ValueError,"unregistered indexer with id {}".format(di.pk)
 
-    def index_frames(self,media_dir, frames,visual_index,task_pk):
+    def index_queryset(self,index_name,visual_index,event,target,queryset):
         visual_index.load()
-        entries = []
-        paths = []
-        video_ids = set()
-        for i, df in enumerate(frames):
-            entry = {
-                'frame_index': df.frame_index,
-                'frame_primary_key': df.pk,
-                'video_primary_key': df.video_id,
-                'index': i,
-                'type': 'frame'
-            }
-            video_ids.add(df.video_id)
+        entries, paths, images = [], [], {}
+        for i, df in enumerate(queryset):
+            if target == 'frames':
+                entry = {'frame_index': df.frame_index,
+                         'frame_primary_key': df.pk,
+                         'video_primary_key': event.video_id,
+                         'index': i,
+                         'type': 'frame'}
+            elif target == 'regions':
+                entry = {
+                    'frame_index': df.frame.frame_index,
+                    'detection_primary_key': df.pk,
+                    'frame_primary_key': df.frame.pk,
+                    'video_primary_key': event.video_id,
+                    'index': i,
+                    'type': df.region_type
+                }
+                if not df.materialized:
+                    frame_path = df.frame_path()
+                    if frame_path not in images:
+                        images[frame_path] = Image.open(frame_path)
+                    img2 = images[frame_path].crop((df.x, df.y, df.x + df.w, df.y + df.h))
+                    img2.save(df.path())
+            else:
+                raise ValueError,"{} target not configured".format(target)
             paths.append(df.path())
             entries.append(entry)
-        if len(video_ids) != 1:
-            raise NotImplementedError,"more/less than 1 video ids {}".format(video_ids)
-        else:
-            video_id = video_ids.pop()
-        features = visual_index.index_paths(paths)
-        feat_fname = "{}/{}/indexes/frames_{}_{}.npy".format(media_dir, video_id, visual_index.name,task_pk)
-        entries_fname = "{}/{}/indexes/frames_{}_{}.json".format(media_dir, video_id, visual_index.name,task_pk)
-        with open(feat_fname, 'w') as feats:
-            np.save(feats, np.array(features))
-        with open(entries_fname, 'w') as entryfile:
-            json.dump(entries, entryfile)
-        return visual_index.name,entries,feat_fname,entries_fname
-
-    def index_regions(self, media_dir, regions,regions_name,visual_index):
-        visual_index.load()
-        video_ids = set()
-        entries = []
-        paths = []
-        for i, d in enumerate(regions):
-            entry = {
-                'frame_index': d.frame.frame_index,
-                'detection_primary_key': d.pk,
-                'frame_primary_key': d.frame.pk,
-                'video_primary_key': d.frame.video_id,
-                'index': i,
-                'type': d.region_type
-            }
-            path = "{}/{}/regions/{}.jpg".format(media_dir, d.frame.video_id, d.pk)
-            video_ids.add(d.frame.video_id)
-            if d.materialized:
-                paths.append(path)
-            else:
-                img = Image.open("{}/{}/frames/{}.jpg".format(media_dir, d.frame.video_id, d.frame.frame_index))
-                img2 = img.crop((d.x, d.y, d.x+d.w, d.y+d.h))
-                img2.save(path)
-                paths.append(path)
-                d.materialized = True
-                d.save()
-            entries.append(entry)
-        feat_fname = None
-        entries_fname = None
         if entries:
-            if len(video_ids) != 1:
-                raise NotImplementedError,"more/less than 1 video ids {}".format(video_ids)
-            else:
-                video_id = video_ids.pop()
             features = visual_index.index_paths(paths)
-            feat_fname = "{}/{}/indexes/{}_{}.npy".format(media_dir, video_id,regions_name, visual_index.name)
-            entries_fname = "{}/{}/indexes/{}_{}.json".format(media_dir, video_id,regions_name, visual_index.name)
+            uid = str(uuid.uuid1()).replace('-','_')
+            feat_fname = "{}/{}/indexes/{}.npy".format(settings.MEDIA_ROOT,event.video_id,uid)
+            entries_fname = "{}/{}/indexes/{}.json".format(settings.MEDIA_ROOT,event.video_id,uid)
             with open(feat_fname, 'w') as feats:
                 np.save(feats, np.array(features))
             with open(entries_fname, 'w') as entryfile:
                 json.dump(entries, entryfile)
-        return visual_index.name,entries,feat_fname,entries_fname
+            i = IndexEntries()
+            i.video_id = event.video_id
+            i.count = len(entries)
+            i.contains_detections = target == "regions"
+            i.contains_frames = target == "frames"
+            i.detection_name = '{}_subset_by_{}'.format(target,event.pk)
+            i.algorithm = index_name
+            i.entries_file_name = entries_fname.split('/')[-1]
+            i.features_file_name = feat_fname.split('/')[-1]
+            i.source_id = event.pk
+            i.source_filter_json = event.arguments
+            i.save()

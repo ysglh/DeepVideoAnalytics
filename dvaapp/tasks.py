@@ -57,33 +57,8 @@ def perform_indexing(task_id):
         iq.parent_query.save()
         sync = False
     else:
-        video_id = start.video_id
-        dv = Video.objects.get(id=video_id)
-        arguments = json_args.get('filters', {})
-        arguments['video_id'] = dv.pk
-        media_dir = settings.MEDIA_ROOT
-        target,queryset = shared.build_queryset(args=start.arguments,video_id=start.video_id)
-        detection_name = '{}_subset_by_{}'.format(target,start.pk)
-        logging.info("Indexing {} {}".format(queryset.count(),target))
-        if target == 'frames':
-            index_name, index_results, feat_fname, entries_fname = perform_indexing.index_frames(media_dir,queryset, visual_index,start.pk)
-        elif target == 'regions':
-            index_name, index_results, feat_fname, entries_fname = perform_indexing.index_regions(media_dir, queryset, detection_name, visual_index)
-        else:
-            raise NotImplementedError
-        if entries_fname:
-            i = IndexEntries()
-            i.video_id = start.video_id
-            i.count = len(index_results)
-            i.contains_detections = target == "regions"
-            i.contains_frames = target == "frames"
-            i.detection_name = detection_name
-            i.algorithm = index_name
-            i.entries_file_name = entries_fname.split('/')[-1]
-            i.features_file_name = feat_fname.split('/')[-1]
-            i.source = start
-            i.source_filter_json = start.arguments
-            i.save()
+        queryset, target = shared.build_queryset(args=start.arguments,video_id=start.video_id)
+        perform_indexing.index_queryset(index_name,visual_index,start,target,queryset)
     start.completed = True
     start.seconds = time.time() - start_time
     start.save()

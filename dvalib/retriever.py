@@ -31,20 +31,12 @@ class BaseRetriever(object):
             logging.info(self.index.shape)
 
     def nearest(self, vector=None, n=12):
-        temp = []
-        dist = []
-        for k in xrange(self.index.shape[0]):
-            temp.append(self.index[k])
-            if (k+1) % 50000 == 0:
-                temp = np.transpose(np.dstack(temp)[0])
-                dist.append(spatial.distance.cdist(vector,temp))
-                temp = []
-        if temp:
-            temp = np.transpose(np.dstack(temp)[0])
-            dist.append(spatial.distance.cdist(vector,temp))
+        dist = None
         results = []
-        if dist:
-            dist = np.hstack(dist)
+        if self.index is not None:
+            # logging.info("{} and {}".format(vector.shape,self.index.shape))
+            dist = spatial.distance.cdist(vector,self.index)
+        if dist is not None:
             ranked = np.squeeze(dist.argsort())
             for i, k in enumerate(ranked[:n]):
                 temp = {'rank':i+1,'algo':self.name,'dist':float(dist[0,k])}

@@ -376,24 +376,24 @@ def launch_server_from_environment():
     elif 'LAUNCH_SERVER_NGINX' in os.environ:
         local('chmod 0777 -R /tmp')
         try:
-            local("mv docker/configs/nginx.conf /etc/nginx/")
+            local("mv configs/nginx.conf /etc/nginx/")
         except:
             print "warning assuming that the config was already moved"
             pass
         if 'ENABLE_BASICAUTH' in os.environ:
             try:
-                local("mv docker/configs/nginx-app_password.conf /etc/nginx/sites-available/default")
+                local("mv configs/nginx-app_password.conf /etc/nginx/sites-available/default")
             except:
                 print "warning assuming that the config was already moved"
                 pass
         else:
             try:
-                local("mv docker/configs/nginx-app.conf /etc/nginx/sites-available/default")
+                local("mv configs/nginx-app.conf /etc/nginx/sites-available/default")
             except:
                 print "warning assuming that the config was already moved"
                 pass
         try:
-            local("mv docker/configs/supervisor-app.conf /etc/supervisor/conf.d/")
+            local("mv configs/supervisor-app.conf /etc/supervisor/conf.d/")
         except:
             print "warning assuming that the config was already moved"
             pass
@@ -459,7 +459,7 @@ def init_models():
     django.setup()
     from django.conf import settings
     from dvaapp.models import Detector, Analyzer, Indexer
-    with open("models.json") as modelfile:
+    with open("configs/models.json") as modelfile:
         models = json.load(modelfile)
     for m in models:
         if m['model_type'] == "detector":

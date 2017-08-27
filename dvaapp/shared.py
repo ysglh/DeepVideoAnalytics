@@ -224,9 +224,15 @@ def pull_vdn_list(pk):
     return server, datasets, detectors
 
 
-def import_vdn_dataset_url(server, url, user):
-    r = requests.get(url)
-    response = r.json()
+def import_vdn_dataset_url(server, url, user, cached_response):
+    response = None
+    try:
+        r = requests.get(url)
+        response = r.json()
+    except:
+        pass
+    if not response:
+        response = cached_response
     video = Video()
     video.description = "import from {} : {} ".format(server.url,response['description'])
     if user:
@@ -265,9 +271,15 @@ def import_vdn_dataset_url(server, url, user):
         raise NotImplementedError
 
 
-def import_vdn_detector_url(server, url, user):
-    r = requests.get(url)
-    response = r.json()
+def import_vdn_detector_url(server, url, user, cached_response):
+    response = None
+    try:
+        r = requests.get(url)
+        response = r.json()
+    except:
+        pass
+    if not response:
+        response = cached_response
     detector = Detector()
     detector.name = response['name']
     detector.detector_type = response.get('detector_type',detector.YOLO)

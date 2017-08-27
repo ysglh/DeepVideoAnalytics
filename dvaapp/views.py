@@ -985,7 +985,8 @@ def import_dataset(request):
         url = request.POST.get('dataset_url')
         server = VDNServer.objects.get(pk=request.POST.get('server_pk'))
         user = request.user if request.user.is_authenticated else None
-        import_vdn_dataset_url(server, url, user)
+        cached_response = server.last_response_datasets[request.POST.get('dindex')]
+        import_vdn_dataset_url(server, url, user, cached_response)
     else:
         raise NotImplementedError
     return redirect('video_list')
@@ -997,7 +998,8 @@ def import_detector(request):
         url = request.POST.get('detector_url')
         server = VDNServer.objects.get(pk=request.POST.get('server_pk'))
         user = request.user if request.user.is_authenticated else None
-        import_vdn_detector_url(server, url, user)
+        cached_response = server.last_response_datasets[request.POST.get('dindex')]
+        import_vdn_detector_url(server, url, user, cached_response)
     else:
         raise NotImplementedError
     return redirect('models')

@@ -633,66 +633,6 @@ def setup_django():
 
 
 @task
-def setup_vdn(password):
-    """
-    Setup Visual Data Network database with initial data
-    :param password:
-    """
-    import django
-    sys.path.append(os.path.dirname(__file__))
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
-    django.setup()
-    from vdnapp.models import User, VDNRemoteDataset, Organization, VDNRemoteDetector
-    user = User(username="akshayvdn", password=password, email="aub3@cornell.edu")
-    user.save()
-    o = Organization()
-    o.user = user
-    o.description = "Default organization"
-    o.name = "Akshay Bhat"
-    o.save()
-    VDNRemoteDataset.objects.all().delete()
-    datasets = [
-        ('LFW_subset', 'https://www.dropbox.com/s/6nn84z4yzy47vuh/LFW.dva_export.zip'),
-        ('MSCOCO_Sample_500', 'https://www.dropbox.com/s/qhzl9ig7yhems6j/MSCOCO_Sample.dva_export.zip'),
-        ('Paris', 'https://www.dropbox.com/s/a7qf1f3j8vp4nuh/Paris.dva_export.zip'),
-    ]
-    for name, url in datasets:
-        d = VDNRemoteDataset()
-        d.organization = o
-        d.download_url = url
-        d.name = name
-        d.root = True
-        d.aws_requester_pays = False
-        d.description = name
-        d.save()
-    aws_datasets = [
-        ('MSCOCO train ~14GB', 'us-east-1', 'visualdatanetwork', 'coco_train.dva_export.zip'),
-        ('aws_test_dir', 'us-east-1', 'visualdatanetwork', '007'),
-    ]
-    for name, region, bucket, key in aws_datasets:
-        d = VDNRemoteDataset()
-        d.organization = o
-        d.name = name
-        d.aws_region = region
-        d.aws_bucket = bucket
-        d.aws_key = key
-        d.root = True
-        d.aws_requester_pays = True
-        d.description = name
-        d.save()
-    detectors = [
-        ('License plate', 'https://www.dropbox.com/s/ztsl59pxgzvd14k/1.dva_detector.zip'),
-    ]
-    for name, url in detectors:
-        d = VDNRemoteDetector()
-        d.organization = o
-        d.name = name
-        d.download_url = url
-        d.description = name
-        d.save()
-
-
-@task
 def train_yolo(start_pk):
     """
     Train a yolo model specified in a TaskEvent.

@@ -49,14 +49,13 @@ def heroku_psql():
 
 
 @task
-def heroku_reset(password, bucket_name):
+def heroku_reset(bucket_name):
     """
     Reset heroku database and empty S3 bucket used for www.deepvideoanalytics.com
     """
     if raw_input("Are you sure type yes >>") == 'yes':
         local('heroku pg:reset DATABASE_URL')
         heroku_migrate()
-        heroku_setup_vdn(password)
         local('heroku run python manage.py createsuperuser')
         print "emptying bucket"
         local("aws s3 rm s3://{} --recursive --quiet".format(bucket_name))
@@ -68,16 +67,6 @@ def heroku_super():
     Create superuser for heroku
     """
     local('heroku run python manage.py createsuperuser')
-
-
-@task
-def heroku_setup_vdn(password):
-    """
-    Run VDN setup on heroku
-    :param password:
-    :return:
-    """
-    local('heroku run fab setup_vdn:{}'.format(password))
 
 
 @task

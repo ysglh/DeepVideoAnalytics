@@ -12,8 +12,8 @@ class VDNServer(models.Model):
     """
     url = models.URLField()
     name = models.CharField(max_length=200)
-    last_response_datasets = models.TextField(default='[]')
-    last_response_detectors = models.TextField(default='[]')
+    last_response_datasets = JSONField(blank=True,null=True)
+    last_response_detectors = JSONField(blank=True,null=True)
     last_token = models.CharField(max_length=300, default="")
 
 

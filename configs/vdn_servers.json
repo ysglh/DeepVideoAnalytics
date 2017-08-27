@@ -1,0 +1,129 @@
+[
+  {
+    "name": "Visual Data Network",
+    "url": "http://www.visualdata.network/",
+    "last_response_datasets": [
+      {
+        "aws_key": "",
+        "description": "LFW_subset",
+        "created": "2017-08-25T16:39:54.258687Z",
+        "url": "http://www.visualdata.network/vdn/api/vdn_datasets/1/",
+        "aws_region": "",
+        "download_url": "https://www.dropbox.com/s/6nn84z4yzy47vuh/LFW.dva_export.zip",
+        "aws_requester_pays": false,
+        "parent_url": "",
+        "organization": {
+          "url": "http://www.visualdata.network/vdn/api/organizations/1/",
+          "description": "Default organization",
+          "user": "http://www.visualdata.network/api/users/1/",
+          "name": "Akshay Bhat",
+          "created": "2017-08-25T16:39:54.247384Z"
+        },
+        "aws_bucket": "",
+        "root": true,
+        "name": "LFW_subset"
+      },
+      {
+        "aws_key": "",
+        "description": "MSCOCO_Sample_500",
+        "created": "2017-08-25T16:39:54.276958Z",
+        "url": "http://www.visualdata.network/vdn/api/vdn_datasets/2/",
+        "aws_region": "",
+        "download_url": "https://www.dropbox.com/s/qhzl9ig7yhems6j/MSCOCO_Sample.dva_export.zip",
+        "aws_requester_pays": false,
+        "parent_url": "",
+        "organization": {
+          "url": "http://www.visualdata.network/vdn/api/organizations/1/",
+          "description": "Default organization",
+          "user": "http://www.visualdata.network/api/users/1/",
+          "name": "Akshay Bhat",
+          "created": "2017-08-25T16:39:54.247384Z"
+        },
+        "aws_bucket": "",
+        "root": true,
+        "name": "MSCOCO_Sample_500"
+      },
+      {
+        "aws_key": "",
+        "description": "Paris",
+        "created": "2017-08-25T16:39:54.280653Z",
+        "url": "http://www.visualdata.network/vdn/api/vdn_datasets/3/",
+        "aws_region": "",
+        "download_url": "https://www.dropbox.com/s/a7qf1f3j8vp4nuh/Paris.dva_export.zip",
+        "aws_requester_pays": false,
+        "parent_url": "",
+        "organization": {
+          "url": "http://www.visualdata.network/vdn/api/organizations/1/",
+          "description": "Default organization",
+          "user": "http://www.visualdata.network/api/users/1/",
+          "name": "Akshay Bhat",
+          "created": "2017-08-25T16:39:54.247384Z"
+        },
+        "aws_bucket": "",
+        "root": true,
+        "name": "Paris"
+      },
+      {
+        "aws_key": "coco_train.dva_export.zip",
+        "description": "MSCOCO train ~14GB",
+        "created": "2017-08-25T16:39:54.284367Z",
+        "url": "http://www.visualdata.network/vdn/api/vdn_datasets/4/",
+        "aws_region": "us-east-1",
+        "download_url": "",
+        "aws_requester_pays": true,
+        "parent_url": "",
+        "organization": {
+          "url": "http://www.visualdata.network/vdn/api/organizations/1/",
+          "description": "Default organization",
+          "user": "http://www.visualdata.network/api/users/1/",
+          "name": "Akshay Bhat",
+          "created": "2017-08-25T16:39:54.247384Z"
+        },
+        "aws_bucket": "visualdatanetwork",
+        "root": true,
+        "name": "MSCOCO train ~14GB"
+      },
+      {
+        "aws_key": "007",
+        "description": "aws_test_dir",
+        "created": "2017-08-25T16:39:54.288147Z",
+        "url": "http://www.visualdata.network/vdn/api/vdn_datasets/5/",
+        "aws_region": "us-east-1",
+        "download_url": "",
+        "aws_requester_pays": true,
+        "parent_url": "",
+        "organization": {
+          "url": "http://www.visualdata.network/vdn/api/organizations/1/",
+          "description": "Default organization",
+          "user": "http://www.visualdata.network/api/users/1/",
+          "name": "Akshay Bhat",
+          "created": "2017-08-25T16:39:54.247384Z"
+        },
+        "aws_bucket": "visualdatanetwork",
+        "root": true,
+        "name": "aws_test_dir"
+      }
+    ],
+    "last_response_detectors": [
+      {
+        "description": "License plate",
+        "created": "2017-08-25T16:39:54.292027Z",
+        "url": "http://www.visualdata.network/vdn/api/vdn_detectors/1/",
+        "aws_region": "",
+        "download_url": "https://www.dropbox.com/s/ztsl59pxgzvd14k/1.dva_detector.zip",
+        "aws_key": "",
+        "aws_requester_pays": false,
+        "organization": {
+          "url": "http://www.visualdata.network/vdn/api/organizations/1/",
+          "description": "Default organization",
+          "user": "http://www.visualdata.network/api/users/1/",
+          "name": "Akshay Bhat",
+          "created": "2017-08-25T16:39:54.247384Z"
+        },
+        "aws_bucket": "",
+        "name": "License plate"
+      }
+    ]
+  }
+]
+

@@ -1062,11 +1062,14 @@ def import_s3(request):
 def external(request):
     if request.method == 'POST':
         pk = request.POST.get('server_pk')
-        pull_vdn_list(pk)
+        try:
+            pull_vdn_list(pk)
+        except:
+            pass
     context = {
         'servers': VDNServer.objects.all(),
-        'available_datasets': {server: json.loads(server.last_response_datasets) for server in VDNServer.objects.all()},
-        'available_detectors': {server: json.loads(server.last_response_detectors) for server in VDNServer.objects.all()},
+        'available_datasets': {server: server.last_response_datasets for server in VDNServer.objects.all()},
+        'available_detectors': {server: server.last_response_detectors for server in VDNServer.objects.all()},
     }
     return render(request, 'external_data.html', context)
 

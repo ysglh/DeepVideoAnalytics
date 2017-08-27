@@ -415,16 +415,20 @@ def init_server():
     django.setup()
     from dvaapp.models import Video, VDNServer, StoredDVAPQL
     if StoredDVAPQL.objects.count() == 0:
-        for fname in glob.glob('dvaapp/test_scripts/*.json'):
+        for fname in glob.glob('configs/templates/*.json'):
             StoredDVAPQL.objects.create(name=fname,
                                         process_type=StoredDVAPQL.PROCESS,
                                         script=json.loads(file(fname).read()))
     if not ('DISABLE_VDN' in os.environ):
         if VDNServer.objects.count() == 0:
-            server = VDNServer()
-            server.url = "http://www.visualdata.network/"
-            server.name = "VisualData.Network"
-            server.save()
+            servers = json.loads(file('configs/vdn_servers.json').read())
+            for s in servers:
+                server = VDNServer()
+                server.url = s['url']
+                server.name = s['name']
+                server.last_response_datasets = s['last_response_datasets']
+                server.last_response_detectors = s['last_response_detectors']
+                server.save()
     if 'TEST' in os.environ and Video.objects.count() == 0:
         test()
 

@@ -62,33 +62,27 @@ def perform_indexing(task_id):
         arguments = json_args.get('filters', {})
         arguments['video_id'] = dv.pk
         media_dir = settings.MEDIA_ROOT
+        target,queryset = shared.build_queryset(args=start.arguments,video_id=start.video_id)
+        detection_name = '{}_subset_by_{}'.format(target,start.pk)
+        logging.info("Indexing {} {}".format(queryset.count(),target))
         if target == 'frames':
-            frames = Frame.objects.all().filter(**arguments)
-            index_name, index_results, feat_fname, entries_fname = perform_indexing.index_frames(media_dir,frames, visual_index,start.pk)
-            detection_name = 'Frames_subset_by_{}'.format(start.pk)
-            contains_frames = True
-            contains_detections = False
+            index_name, index_results, feat_fname, entries_fname = perform_indexing.index_frames(media_dir,queryset, visual_index,start.pk)
         elif target == 'regions':
-            detections = Region.objects.all().filter(**arguments)
-            logging.info("Indexing {} Regions".format(detections.count()))
-            detection_name = 'Faces_subset_by_{}'.format(start.pk) if index_name == 'facenet' else 'Regions_subset_by_{}'.format(start.pk)
-            index_name, index_results, feat_fname, entries_fname = perform_indexing.index_regions(media_dir, detections, detection_name, visual_index)
-            contains_frames = False
-            contains_detections = True
+            index_name, index_results, feat_fname, entries_fname = perform_indexing.index_regions(media_dir, queryset, detection_name, visual_index)
         else:
             raise NotImplementedError
         if entries_fname:
             i = IndexEntries()
-            i.video = dv
+            i.video_id = start.video_id
             i.count = len(index_results)
-            i.contains_detections = contains_detections
-            i.contains_frames = contains_frames
+            i.contains_detections = target == "regions"
+            i.contains_frames = target == "frames"
             i.detection_name = detection_name
             i.algorithm = index_name
             i.entries_file_name = entries_fname.split('/')[-1]
             i.features_file_name = feat_fname.split('/')[-1]
             i.source = start
-            i.source_filter_json = arguments
+            i.source_filter_json = start.arguments
             i.save()
     start.completed = True
     start.seconds = time.time() - start_time

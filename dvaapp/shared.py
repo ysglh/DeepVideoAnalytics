@@ -218,8 +218,8 @@ def pull_vdn_list(pk):
         response = r.json()
         for d in response['results']:
             detectors.append(d)
-    server.last_response_datasets = json.dumps(datasets)
-    server.last_response_detectors = json.dumps(detectors)
+    server.last_response_datasets = datasets
+    server.last_response_detectors = detectors
     server.save()
     return server, datasets, detectors
 

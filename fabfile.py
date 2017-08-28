@@ -57,29 +57,23 @@ def pull_private():
 
 
 @task
-def start_container_server():
-    """
-    Start container with queues launched as specified in environment variable and a server
-    """
-    local('sleep 20')
-    migrate()  # move this to compose command after git pull.
-    init_fs()
-    init_server()
-    init_models()
-    launch_workers_and_scheduler_from_environment()
-    launch_server_from_environment()
-
-
-@task
-def start_container_worker():
+def start_container(container_type):
     """
     Start container with queues launched as specified in environment
     """
-    local('sleep 50')  # To avoid race condition where worker starts before migration is finished
-    init_fs()
-    init_models()
-    launch_workers_and_scheduler_from_environment(block_on_manager=True)
-
+    if container_type == 'worker':
+        time.sleep(30)  # To avoid race condition where worker starts before migration is finished
+        init_fs()
+        init_models()
+        launch_workers_and_scheduler_from_environment(block_on_manager=True)
+    elif container_type == 'server':
+        init_fs()
+        init_server()
+        init_models()
+        launch_workers_and_scheduler_from_environment()
+        launch_server_from_environment()
+    else:
+        raise ValueError,"invalid container_type = {}".format(container_type)
 
 @task
 def clean():

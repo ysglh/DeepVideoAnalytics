@@ -41,7 +41,7 @@
        - LAUNCH_SCHEDULER=1
        - TEST=1
        - AUTH_DISABLED=1
-     command: bash -c "youtube-dl -U && git pull && fab start_container_server"
+     command: bash -c "youtube-dl -U && git pull && sleep 10 && fab migrate && fab start_container:server"
      ports:
        - "8000:8000"
      depends_on:
@@ -63,7 +63,7 @@
        - DB_PASS=pgdbpass
        - LAUNCH_BY_NAME_analyzer_crnn=1
        - PYTORCH_MODE=1
-     command: bash -c "git pull && fab start_container_worker"
+     command: bash -c "git pull && fab start_container:worker"
      depends_on:
        - db
        - rabbit

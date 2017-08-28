@@ -114,7 +114,7 @@ class TEvent(models.Model):
     queue = models.CharField(max_length=100, default="")
     created = models.DateTimeField('date created', auto_now_add=True)
     start_ts = models.DateTimeField('date started', null=True)
-    seconds = models.FloatField(default=-1)
+    duration = models.FloatField(default=-1)
     arguments = JSONField(blank=True,null=True)
     task_id = models.TextField(null=True)
     parent = models.ForeignKey('self',null=True)
@@ -222,6 +222,7 @@ class Detector(models.Model):
                 'class_names':{i: k for k, i in class_names.items()}
                 }
         return args
+
 
 class IndexerQuery(models.Model):
     parent_query = models.ForeignKey(DVAPQL)

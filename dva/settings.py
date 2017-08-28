@@ -20,6 +20,17 @@ HEROKU_DEPLOY = 'HEROKU_DEPLOY' in os.environ
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
+# Disable shared NFS / data volume mode
+# In this mode the DVAPQL task tree is dynamically edited and an "perform_pull" task
+# is added before each task. Further all tasks consume from two queues the default named queue
+# and a unique queue (where the task gets deferred to pending a pull from remote).
+# TODO copy implementation from private branch.
+
+DISABLE_NFS = os.environ.get('DISABLE_NFS',False)
+
+if DISABLE_NFS and (MEDIA_BUCKET is None):
+    raise EnvironmentError,"Either an NFS/Data volume or a remote S3 bucket is required!"
+
 # SECURITY WARNING: keep the secret key used in production secret!
 if 'SECRET_KEY' in os.environ or HEROKU_DEPLOY:
     SECRET_KEY = os.environ['SECRET_KEY']
@@ -242,3 +253,4 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     # 'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
+

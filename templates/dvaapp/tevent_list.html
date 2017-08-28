@@ -64,13 +64,13 @@
                             <td>{{ e.queue }}</td>
                             <td class="text-center">{{ e.created|timesince}}</td>
                             <td class="text-center">{{ e.created|date:"U" }}</td>
-                            <td class="text-right">{{ e.seconds|floatformat }}</td>
+                            <td class="text-right">{{ e.duration|floatformat }}</td>
                             <td>
                                 {% if e.errored %}
                                     <a href="/task_detail/{{ e.pk }}" class="btn btn-danger btn-block">{% if e.imported %}Imported{% endif %} Failed</a>
-                                {% elif e.seconds < 0 and not e.started %}
+                                {% elif e.duration < 0 and not e.started %}
                                     <a href="/task_detail/{{ e.pk }}" class="btn btn-warning btn-block">{% if e.imported %}Imported{% endif %} Pending</a>
-                                {% elif e.seconds < 0 and e.started and not e.completed%}
+                                {% elif e.duration < 0 and e.started and not e.completed%}
                                     <a href="/task_detail/{{ e.pk }}" class="btn btn-primary btn-block">{% if e.imported %}Imported{% endif %} Running</a>
                                 {% elif e.completed%}
                                     <a href="/task_detail/{{ e.pk }}" class="btn btn-success btn-block">{% if e.imported %}Imported{% endif %} Completed</a>

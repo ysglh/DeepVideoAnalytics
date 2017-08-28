@@ -25,14 +25,14 @@
                 <div class="col-lg-8">
                     <h4>Task id: {{ object.task_id }}</h4>
                     <h4>Submitted: {{ object.created|timesince }}</h4>
-                    <h4>Execution time: {{  object.seconds|floatformat}}</h4>
+                    <h4>Execution time: {{  object.duration|floatformat}}</h4>
                 </div>
                 <div class="col-lg-4">
                 {% if object.errored %}
                     <a href="#" class="btn btn-danger btn-block">{% if e.imported %}Imported{% endif %} Failed</a>
-                {% elif object.seconds < 0 and not object.started %}
+                {% elif object.duration < 0 and not object.started %}
                     <a href="#" class="btn btn-warning btn-block">{% if e.imported %}Imported{% endif %} Pending</a>
-                {% elif object.seconds < 0 and object.started and not object.completed%}
+                {% elif object.duration < 0 and object.started and not object.completed%}
                     <a href="#" class="btn btn-primary btn-block">{% if e.imported %}Imported{% endif %} Running</a>
                 {% elif object.completed%}
                     <a href="#" class="btn btn-success btn-block">{% if e.imported %}Imported{% endif %} Completed</a>

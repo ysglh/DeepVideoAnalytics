@@ -262,14 +262,14 @@ class TEventList(UserPassesTestMixin, ListView):
             kwargs['parent_process_id']=self.kwargs['process_pk']
         if self.kwargs.get('status',None):
             if self.kwargs['status'] == 'running':
-                kwargs['seconds__lt'] = 0
+                kwargs['duration__lt'] = 0
                 kwargs['started'] = True
                 kwargs['completed'] = False
                 kwargs['errored'] = False
             elif self.kwargs['status'] == 'successful':
                 kwargs['completed'] = True
             elif self.kwargs['status'] == 'pending':
-                kwargs['seconds__lt'] = 0
+                kwargs['duration__lt'] = 0
                 kwargs['started'] = False
                 kwargs['errored'] = False
             elif self.kwargs['status'] == 'failed':

@@ -302,7 +302,10 @@ def create_event(e, v):
     de.video_id = v.pk
     de.operation = e.get('operation', "")
     de.created = e['created']
-    de.seconds = e.get('seconds', -1)
+    if 'seconds' in e:
+        de.duration = e.get('seconds', -1)
+    else:
+        de.duration = e.get('duration', -1)
     de.arguments = e.get('arguments', {})
     de.task_id = e.get('task_id', "")
     return de
@@ -462,14 +465,14 @@ class VideoImporter(object):
                 ce.save()
         if 'export_event_pk' in self.json:
             last = TEvent.objects.get(pk=self.event_to_pk[self.json['export_event_pk']])
-            last.seconds = 0
+            last.duration = 0
             last.completed = True
             last.save()
         else:
             # Unless specified this is the export task that led to the video being exported
             #  and hence should be marked as completed
             last = TEvent.objects.get(pk=self.event_to_pk[max(old_ids)])
-            last.seconds = 0
+            last.duration = 0
             last.completed = True
             last.save()
 

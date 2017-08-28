@@ -60,7 +60,7 @@ def perform_indexing(task_id):
         queryset, target = shared.build_queryset(args=start.arguments,video_id=start.video_id)
         perform_indexing.index_queryset(index_name,visual_index,start,target,queryset)
     start.completed = True
-    start.seconds = time.time() - start_time
+    start.duration = time.time() - start_time
     start.save()
     return process_next(task_id,sync=sync)
 
@@ -103,7 +103,7 @@ def perform_transformation(task_id):
     queryset.update(materialized=True)
     process_next(task_id)
     start.completed = True
-    start.seconds = time.time() - start_time
+    start.duration = time.time() - start_time
     start.save()
 
 
@@ -122,7 +122,7 @@ def perform_retrieval(task_id):
     iq = IndexerQuery.objects.get(pk=args['iq_id'])
     perform_retrieval.retrieve(iq,iq.algorithm)
     start.completed = True
-    start.seconds = time.time() - start_time
+    start.duration = time.time() - start_time
     start.save()
     return 0
 
@@ -151,7 +151,7 @@ def perform_dataset_extraction(task_id):
     v.extract(args=args,start=start)
     process_next(task_id)
     start.completed = True
-    start.seconds = time.time() - start_time
+    start.duration = time.time() - start_time
     start.save()
     os.remove("{}/{}/video/{}.zip".format(settings.MEDIA_ROOT, dv.pk, dv.pk))
     return 0
@@ -187,7 +187,7 @@ def perform_video_segmentation(task_id):
     else:
         process_next(task_id)
     start.completed = True
-    start.seconds = time.time() - start_time
+    start.duration = time.time() - start_time
     start.save()
     return 0
 
@@ -213,7 +213,7 @@ def perform_video_decode(task_id):
         v.decode_segment(ds=ds,denominator=args['rate'],rescale=args['rescale'])
     process_next(task_id)
     start.completed = True
-    start.seconds = time.time() - start_time
+    start.duration = time.time() - start_time
     start.save()
     return task_id
 
@@ -290,7 +290,7 @@ def perform_detection(task_id):
     _ = Region.objects.bulk_create(dd_list,1000)
     process_next(task_id)
     start.completed = True
-    start.seconds = time.time() - start_time
+    start.duration = time.time() - start_time
     start.save()
     return 0
 
@@ -342,7 +342,7 @@ def perform_analysis(task_id):
     Region.objects.bulk_create(regions_batch,1000)
     process_next(task_id)
     start.completed = True
-    start.seconds = time.time() - start_time
+    start.duration = time.time() - start_time
     start.save()
     return 0
 
@@ -376,12 +376,12 @@ def perform_export(task_id):
     except:
         start.errored = True
         start.error_message = "Could not export"
-        start.seconds = time.time() - start_time
+        start.duration = time.time() - start_time
         start.save()
         exc_info = sys.exc_info()
         raise exc_info[0], exc_info[1], exc_info[2]
     start.completed = True
-    start.seconds = time.time() - start_time
+    start.duration = time.time() - start_time
     start.save()
 
 
@@ -418,7 +418,7 @@ def perform_detector_import(task_id):
     os.remove(source_zip)
     process_next(task_id)
     start.completed = True
-    start.seconds = time.time() - start_time
+    start.duration = time.time() - start_time
     start.save()
 
 
@@ -454,7 +454,7 @@ def perform_import(event_id):
         raise NotImplementedError
     process_next(start.pk)
     start.completed = True
-    start.seconds = time.time() - start_time
+    start.duration = time.time() - start_time
     start.save()
 
 
@@ -501,7 +501,7 @@ def perform_clustering(cluster_task_id, test=False):
     dc.completed = True
     dc.save()
     start.completed = True
-    start.seconds = time.time() - start_time
+    start.duration = time.time() - start_time
     start.save()
 
 
@@ -544,7 +544,7 @@ def perform_sync(task_id):
         logging.info("Media bucket name not specified, nothing was synced.")
         start.error_message = "Media bucket name is empty".format(settings.MEDIA_BUCKET)
     start.completed = True
-    start.seconds = time.time() - start_time
+    start.duration = time.time() - start_time
     start.save()
     return
 
@@ -598,7 +598,7 @@ def perform_deletion(task_id):
         logging.info("Media bucket name not specified, nothing was synced.")
         start.error_message = "Media bucket name is empty".format(settings.MEDIA_BUCKET)
     start.completed = True
-    start.seconds = time.time() - start_time
+    start.duration = time.time() - start_time
     start.save()
     return
 
@@ -623,11 +623,11 @@ def perform_detector_training(task_id):
     if train_detector.returncode != 0:
         start.errored = True
         start.error_message = "fab train_yolo:{} failed with return code {}".format(start.pk,train_detector.returncode)
-        start.seconds = time.time() - start_time
+        start.duration = time.time() - start_time
         start.save()
         raise ValueError, start.error_message
     start.completed = True
-    start.seconds = time.time() - start_time
+    start.duration = time.time() - start_time
     start.save()
     return 0
 
@@ -695,7 +695,7 @@ def perform_segmentation(task_id):
     _ = Region.objects.bulk_create(dd_list,1000)
     process_next(task_id)
     start.completed = True
-    start.seconds = time.time() - start_time
+    start.duration = time.time() - start_time
     start.save()
     return 0
 

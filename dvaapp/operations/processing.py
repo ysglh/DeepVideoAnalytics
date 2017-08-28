@@ -156,7 +156,7 @@ def process_next(task_id,inject_filters=None,custom_next_tasks=None,sync=True,la
 
 def mark_as_completed(start):
     start.completed = True
-    start.duration = (datetime.now() - start.ts).total_seconds()
+    start.duration = (datetime.now() - start.start_ts).total_seconds()
     start.save()
 
 

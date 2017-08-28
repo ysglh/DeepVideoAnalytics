@@ -29,7 +29,7 @@ def start_task(task_id,task,args,**kwargs):
     if task.name.startswith('perform'):
         start = TEvent.objects.get(pk=args[0])
         start.task_id = task_id
-        start.ts = datetime.now()
+        start.start_ts = datetime.now()
         start.save()
 
 
@@ -346,7 +346,7 @@ def perform_export(task_id):
     except:
         start.errored = True
         start.error_message = "Could not export"
-        start.duration = (datetime.now() - start.ts).total_seconds()
+        start.duration = (datetime.now() - start.start_ts).total_seconds()
         start.save()
         exc_info = sys.exc_info()
         raise exc_info[0], exc_info[1], exc_info[2]
@@ -560,7 +560,7 @@ def perform_detector_training(task_id):
     if train_detector.returncode != 0:
         start.errored = True
         start.error_message = "fab train_yolo:{} failed with return code {}".format(start.pk,train_detector.returncode)
-        start.duration = (datetime.now() - start.ts).total_seconds()
+        start.duration = (datetime.now() - start.start_ts).total_seconds()
         start.save()
         raise ValueError, start.error_message
     mark_as_completed(start)

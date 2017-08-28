@@ -12,7 +12,7 @@ from .operations.detection import DetectorTask
 from .operations.segmentation import SegmentorTask
 from .operations.analysis import AnalyzerTask
 from .operations.decoding import VideoDecoder
-from .operations.processing import process_next
+from .operations.processing import process_next, mark_as_completed
 from dvalib import clustering
 from datetime import datetime
 from . import shared
@@ -36,7 +36,6 @@ def perform_indexing(task_id):
     target = json_args.get('target','frames')
     index_name = json_args['index']
     start.save()
-    start_time = time.time()
     if index_name not in perform_indexing.visual_indexer:
         di = Indexer.objects.get(name=index_name)
         perform_indexing.load_indexer(di)
@@ -59,10 +58,9 @@ def perform_indexing(task_id):
     else:
         queryset, target = shared.build_queryset(args=start.arguments,video_id=start.video_id)
         perform_indexing.index_queryset(index_name,visual_index,start,target,queryset)
-    start.completed = True
-    start.duration = time.time() - start_time
-    start.save()
-    return process_next(task_id,sync=sync)
+    next_ids = process_next(task_id,sync=sync)
+    mark_as_completed(start)
+    return next_ids
 
 
 @app.task(track_started=True, name="perform_transformation")
@@ -78,9 +76,7 @@ def perform_transformation(task_id):
     start.task_id = perform_transformation.request.id
     start.started = True
     start.ts = datetime.now()
-    start_time = time.time()
     start.operation = perform_transformation.name
-    video_id = start.video_id
     args = start.arguments
     resize = args.get('resize',None)
     kwargs = args.get('filters',{})
@@ -102,15 +98,12 @@ def perform_transformation(task_id):
                 cropped.save(dr.path())
     queryset.update(materialized=True)
     process_next(task_id)
-    start.completed = True
-    start.duration = time.time() - start_time
-    start.save()
+    mark_as_completed(start)
 
 
 @app.task(track_started=True, name="perform_retrieval", base=RetrieverTask)
 def perform_retrieval(task_id):
     start = TEvent.objects.get(pk=task_id)
-    start_time = time.time()
     if shared.celery_40_bug_hack(start):
         return 0
     args = start.arguments
@@ -121,9 +114,7 @@ def perform_retrieval(task_id):
     start.save()
     iq = IndexerQuery.objects.get(pk=args['iq_id'])
     perform_retrieval.retrieve(iq,iq.algorithm)
-    start.completed = True
-    start.duration = time.time() - start_time
-    start.save()
+    mark_as_completed(start)
     return 0
 
 
@@ -142,7 +133,6 @@ def perform_dataset_extraction(task_id):
         args['rate'] = 30
         start.arguments = args
     start.save()
-    start_time = time.time()
     video_id = start.video_id
     dv = Video.objects.get(id=video_id)
     if dv.youtube_video:
@@ -150,10 +140,8 @@ def perform_dataset_extraction(task_id):
     v = VideoDecoder(dvideo=dv, media_dir=settings.MEDIA_ROOT)
     v.extract(args=args,start=start)
     process_next(task_id)
-    start.completed = True
-    start.duration = time.time() - start_time
-    start.save()
     os.remove("{}/{}/video/{}.zip".format(settings.MEDIA_ROOT, dv.pk, dv.pk))
+    mark_as_completed(start)
     return 0
 
 
@@ -173,7 +161,6 @@ def perform_video_segmentation(task_id):
         args['rate'] = 30
     start.arguments = args
     start.save()
-    start_time = time.time()
     video_id = start.video_id
     dv = Video.objects.get(id=video_id)
     v = VideoDecoder(dvideo=dv, media_dir=settings.MEDIA_ROOT)
@@ -186,9 +173,7 @@ def perform_video_segmentation(task_id):
         process_next(task_id,sync=True,launch_next=False)
     else:
         process_next(task_id)
-    start.completed = True
-    start.duration = time.time() - start_time
-    start.save()
+    mark_as_completed(start)
     return 0
 
 
@@ -203,7 +188,6 @@ def perform_video_decode(task_id):
     start.operation = perform_video_decode.name
     args = start.arguments
     start.save()
-    start_time = time.time()
     video_id = start.video_id
     dv = Video.objects.get(id=video_id)
     kwargs = args.get('filters',{})
@@ -212,9 +196,7 @@ def perform_video_decode(task_id):
     for ds in Segment.objects.filter(**kwargs):
         v.decode_segment(ds=ds,denominator=args['rate'],rescale=args['rescale'])
     process_next(task_id)
-    start.completed = True
-    start.duration = time.time() - start_time
-    start.save()
+    mark_as_completed(start)
     return task_id
 
 
@@ -232,7 +214,6 @@ def perform_detection(task_id):
     start.ts = datetime.now()
     start.operation = perform_detection.name
     start.save()
-    start_time = time.time()
     video_id = start.video_id
     args = start.arguments
     detector_name = args['detector']
@@ -289,9 +270,7 @@ def perform_detection(task_id):
             path_list.append(local_path)
     _ = Region.objects.bulk_create(dd_list,1000)
     process_next(task_id)
-    start.completed = True
-    start.duration = time.time() - start_time
-    start.save()
+    mark_as_completed(start)
     return 0
 
 
@@ -305,7 +284,6 @@ def perform_analysis(task_id):
     start.ts = datetime.now()
     start.operation = perform_analysis.name
     start.save()
-    start_time = time.time()
     video_id = start.video_id
     args = start.arguments
     analyzer_name = args['analyzer']
@@ -341,9 +319,7 @@ def perform_analysis(task_id):
         regions_batch.append(a)
     Region.objects.bulk_create(regions_batch,1000)
     process_next(task_id)
-    start.completed = True
-    start.duration = time.time() - start_time
-    start.save()
+    mark_as_completed(start)
     return 0
 
 
@@ -357,7 +333,6 @@ def perform_export(task_id):
     start.ts = datetime.now()
     start.operation = perform_export.name
     start.save()
-    start_time = time.time()
     video_id = start.video_id
     dv = Video.objects.get(pk=video_id)
     destination = start.arguments['destination']
@@ -376,14 +351,11 @@ def perform_export(task_id):
     except:
         start.errored = True
         start.error_message = "Could not export"
-        start.duration = time.time() - start_time
+        start.duration = (datetime.now() - start.ts).total_seconds()
         start.save()
         exc_info = sys.exc_info()
         raise exc_info[0], exc_info[1], exc_info[2]
-    start.completed = True
-    start.duration = time.time() - start_time
-    start.save()
-
+    mark_as_completed(start)
 
 @app.task(track_started=True, name="perform_detector_import")
 def perform_detector_import(task_id):
@@ -395,7 +367,6 @@ def perform_detector_import(task_id):
     start.task_id = perform_detector_import.request.id
     start.operation = perform_detector_import.name
     start.save()
-    start_time = time.time()
     args = start.arguments
     dd = Detector.objects.get(pk=start.arguments['detector_pk'])
     dd.create_directory(create_subdirs=False)
@@ -417,10 +388,7 @@ def perform_detector_import(task_id):
     dd.save()
     os.remove(source_zip)
     process_next(task_id)
-    start.completed = True
-    start.duration = time.time() - start_time
-    start.save()
-
+    mark_as_completed(start)
 
 @app.task(track_started=True, name="perform_import")
 def perform_import(event_id):
@@ -432,7 +400,6 @@ def perform_import(event_id):
     start.task_id = perform_import.request.id
     start.operation = perform_import.name
     start.save()
-    start_time = time.time()
     source = start.arguments['source']
     dv = start.video
     if source == 'URL':
@@ -453,10 +420,7 @@ def perform_import(event_id):
     else:
         raise NotImplementedError
     process_next(start.pk)
-    start.completed = True
-    start.duration = time.time() - start_time
-    start.save()
-
+    mark_as_completed(start)
 
 @app.task(track_started=True, name="perform_clustering")
 def perform_clustering(cluster_task_id, test=False):
@@ -468,7 +432,6 @@ def perform_clustering(cluster_task_id, test=False):
     start.ts = datetime.now()
     start.operation = perform_clustering.name
     start.save()
-    start_time = time.time()
     clusters_dir = "{}/clusters/".format(settings.MEDIA_ROOT)
     if not os.path.isdir(clusters_dir):
         os.mkdir(clusters_dir)
@@ -500,10 +463,7 @@ def perform_clustering(cluster_task_id, test=False):
     c.save()
     dc.completed = True
     dc.save()
-    start.completed = True
-    start.duration = time.time() - start_time
-    start.save()
-
+    mark_as_completed(start)
 
 @app.task(track_started=True, name="perform_sync")
 def perform_sync(task_id):
@@ -522,7 +482,6 @@ def perform_sync(task_id):
     start.ts = datetime.now()
     start.operation = perform_sync.name
     start.save()
-    start_time = time.time()
     video_id = start.video_id
     args = start.arguments
     if settings.MEDIA_BUCKET.strip():
@@ -543,9 +502,7 @@ def perform_sync(task_id):
     else:
         logging.info("Media bucket name not specified, nothing was synced.")
         start.error_message = "Media bucket name is empty".format(settings.MEDIA_BUCKET)
-    start.completed = True
-    start.duration = time.time() - start_time
-    start.save()
+    mark_as_completed(start)
     return
 
 
@@ -559,7 +516,6 @@ def perform_deletion(task_id):
     start.ts = datetime.now()
     start.operation = perform_deletion.name
     start.save()
-    start_time = time.time()
     args = start.arguments
     video_pk = int(args['video_pk'])
     deleter_pk = args.get('deleter_pk',None)
@@ -597,9 +553,7 @@ def perform_deletion(task_id):
     else:
         logging.info("Media bucket name not specified, nothing was synced.")
         start.error_message = "Media bucket name is empty".format(settings.MEDIA_BUCKET)
-    start.completed = True
-    start.duration = time.time() - start_time
-    start.save()
+    mark_as_completed(start)
     return
 
 
@@ -617,18 +571,15 @@ def perform_detector_training(task_id):
     start.ts = datetime.now()
     start.operation = perform_detector_training.name
     start.save()
-    start_time = time.time()
     train_detector = subprocess.Popen(['fab', 'train_yolo:{}'.format(start.pk)],cwd=os.path.join(os.path.abspath(__file__).split('tasks.py')[0], '../'))
     train_detector.wait()
     if train_detector.returncode != 0:
         start.errored = True
         start.error_message = "fab train_yolo:{} failed with return code {}".format(start.pk,train_detector.returncode)
-        start.duration = time.time() - start_time
+        start.duration = (datetime.now() - start.ts).total_seconds()
         start.save()
         raise ValueError, start.error_message
-    start.completed = True
-    start.duration = time.time() - start_time
-    start.save()
+    mark_as_completed(start)
     return 0
 
 
@@ -646,7 +597,6 @@ def perform_segmentation(task_id):
     start.ts = datetime.now()
     start.operation = perform_segmentation.name
     start.save()
-    start_time = time.time()
     video_id = start.video_id
     args = start.arguments
     segmentor_name = args['segmentor']
@@ -694,9 +644,7 @@ def perform_segmentation(task_id):
         #     path_list.append(local_path)
     _ = Region.objects.bulk_create(dd_list,1000)
     process_next(task_id)
-    start.completed = True
-    start.duration = time.time() - start_time
-    start.save()
+    mark_as_completed(start)
     return 0
 
 

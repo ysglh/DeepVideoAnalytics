@@ -1,4 +1,5 @@
 import base64, copy
+from datetime import datetime
 import json,logging
 import boto3
 from django.conf import settings
@@ -151,6 +152,12 @@ def process_next(task_id,inject_filters=None,custom_next_tasks=None,sync=True,la
         map_filters = get_map_filters(k,dt.video)
         launched += launch_tasks(k, dt, inject_filters,map_filters,'next_tasks')
     return launched
+
+
+def mark_as_completed(start):
+    start.completed = True
+    start.duration = (datetime.now() - start.ts).total_seconds()
+    start.save()
 
 
 class DVAPQLProcess(object):

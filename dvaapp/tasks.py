@@ -15,6 +15,7 @@ from .operations.decoding import VideoDecoder
 from .operations.processing import process_next, mark_as_completed
 from dvalib import clustering
 from datetime import datetime
+from celery.signals import task_prerun
 from . import shared
 try:
     import numpy as np
@@ -23,15 +24,23 @@ except ImportError:
 from . import serializers
 
 
+@task_prerun.connect
+def start_task(task_id,task,args,**kwargs):
+    if task.name.startswith('perform'):
+        start = TEvent.objects.get(pk=args[0])
+        start.task_id = task_id
+        start.ts = datetime.now()
+        start.save()
+
+
 @app.task(track_started=True, name="perform_indexing", base=IndexerTask)
 def perform_indexing(task_id):
     start = TEvent.objects.get(pk=task_id)
-    if shared.celery_40_bug_hack(start):
-        return 0
-    start.task_id = perform_indexing.request.id
-    start.started = True
-    start.ts = datetime.now()
-    start.operation = perform_indexing.name
+    if start.started:
+        return 0  # to handle celery bug with ACK in SOLO mode
+    else:
+        start.started = True
+        start.save()
     json_args = start.arguments
     target = json_args.get('target','frames')
     index_name = json_args['index']
@@ -71,12 +80,11 @@ def perform_transformation(task_id):
     :return:
     """
     start = TEvent.objects.get(pk=task_id)
-    if shared.celery_40_bug_hack(start):
-        return 0
-    start.task_id = perform_transformation.request.id
-    start.started = True
-    start.ts = datetime.now()
-    start.operation = perform_transformation.name
+    if start.started:
+        return 0  # to handle celery bug with ACK in SOLO mode
+    else:
+        start.started = True
+        start.save()
     args = start.arguments
     resize = args.get('resize',None)
     kwargs = args.get('filters',{})
@@ -104,14 +112,12 @@ def perform_transformation(task_id):
 @app.task(track_started=True, name="perform_retrieval", base=RetrieverTask)
 def perform_retrieval(task_id):
     start = TEvent.objects.get(pk=task_id)
-    if shared.celery_40_bug_hack(start):
-        return 0
+    if start.started:
+        return 0  # to handle celery bug with ACK in SOLO mode
+    else:
+        start.started = True
+        start.save()
     args = start.arguments
-    start.task_id = perform_retrieval.request.id
-    start.started = True
-    start.ts = datetime.now()
-    start.operation = perform_retrieval.name
-    start.save()
     iq = IndexerQuery.objects.get(pk=args['iq_id'])
     perform_retrieval.retrieve(iq,iq.algorithm)
     mark_as_completed(start)
@@ -121,12 +127,11 @@ def perform_retrieval(task_id):
 @app.task(track_started=True, name="perform_dataset_extraction")
 def perform_dataset_extraction(task_id):
     start = TEvent.objects.get(pk=task_id)
-    if shared.celery_40_bug_hack(start):
-        return 0
-    start.task_id = perform_dataset_extraction.request.id
-    start.started = True
-    start.ts = datetime.now()
-    start.operation = perform_dataset_extraction.name
+    if start.started:
+        return 0  # to handle celery bug with ACK in SOLO mode
+    else:
+        start.started = True
+        start.save()
     args = start.arguments
     if args == {}:
         args['rescale'] = 0
@@ -148,19 +153,17 @@ def perform_dataset_extraction(task_id):
 @app.task(track_started=True, name="perform_video_segmentation")
 def perform_video_segmentation(task_id):
     start = TEvent.objects.get(pk=task_id)
-    if shared.celery_40_bug_hack(start):
-        return 0
-    start.task_id = perform_video_segmentation.request.id
-    start.started = True
-    start.ts = datetime.now()
-    start.operation = perform_video_segmentation.name
+    if start.started:
+        return 0  # to handle celery bug with ACK in SOLO mode
+    else:
+        start.started = True
+        start.save()
     args = start.arguments
     if 'rescale' not in args:
         args['rescale'] = 0
     if 'rate' not in args:
         args['rate'] = 30
     start.arguments = args
-    start.save()
     video_id = start.video_id
     dv = Video.objects.get(id=video_id)
     v = VideoDecoder(dvideo=dv, media_dir=settings.MEDIA_ROOT)
@@ -180,14 +183,12 @@ def perform_video_segmentation(task_id):
 @app.task(track_started=True,name="perform_video_decode",ignore_result=False)
 def perform_video_decode(task_id):
     start = TEvent.objects.get(pk=task_id)
-    if shared.celery_40_bug_hack(start):
-        return 0
-    start.task_id = perform_video_decode.request.id
-    start.started = True
-    start.ts = datetime.now()
-    start.operation = perform_video_decode.name
+    if start.started:
+        return 0  # to handle celery bug with ACK in SOLO mode
+    else:
+        start.started = True
+        start.save()
     args = start.arguments
-    start.save()
     video_id = start.video_id
     dv = Video.objects.get(id=video_id)
     kwargs = args.get('filters',{})
@@ -207,13 +208,11 @@ def perform_detection(task_id):
     :return:
     """
     start = TEvent.objects.get(pk=task_id)
-    if shared.celery_40_bug_hack(start):
-        return 0
-    start.task_id = perform_detection.request.id
-    start.started = True
-    start.ts = datetime.now()
-    start.operation = perform_detection.name
-    start.save()
+    if start.started:
+        return 0  # to handle celery bug with ACK in SOLO mode
+    else:
+        start.started = True
+        start.save()
     video_id = start.video_id
     args = start.arguments
     detector_name = args['detector']
@@ -277,13 +276,11 @@ def perform_detection(task_id):
 @app.task(track_started=True, name="perform_analysis",base=AnalyzerTask)
 def perform_analysis(task_id):
     start = TEvent.objects.get(pk=task_id)
-    if shared.celery_40_bug_hack(start):
-        return 0
-    start.task_id = perform_analysis.request.id
-    start.started = True
-    start.ts = datetime.now()
-    start.operation = perform_analysis.name
-    start.save()
+    if start.started:
+        return 0  # to handle celery bug with ACK in SOLO mode
+    else:
+        start.started = True
+        start.save()
     video_id = start.video_id
     args = start.arguments
     analyzer_name = args['analyzer']
@@ -326,13 +323,11 @@ def perform_analysis(task_id):
 @app.task(track_started=True, name="perform_export")
 def perform_export(task_id):
     start = TEvent.objects.get(pk=task_id)
-    if shared.celery_40_bug_hack(start):
-        return 0
-    start.task_id = perform_export.request.id
-    start.started = True
-    start.ts = datetime.now()
-    start.operation = perform_export.name
-    start.save()
+    if start.started:
+        return 0  # to handle celery bug with ACK in SOLO mode
+    else:
+        start.started = True
+        start.save()
     video_id = start.video_id
     dv = Video.objects.get(pk=video_id)
     destination = start.arguments['destination']
@@ -360,13 +355,11 @@ def perform_export(task_id):
 @app.task(track_started=True, name="perform_detector_import")
 def perform_detector_import(task_id):
     start = TEvent.objects.get(pk=task_id)
-    if shared.celery_40_bug_hack(start):
-        return 0
-    start.started = True
-    start.ts = datetime.now()
-    start.task_id = perform_detector_import.request.id
-    start.operation = perform_detector_import.name
-    start.save()
+    if start.started:
+        return 0  # to handle celery bug with ACK in SOLO mode
+    else:
+        start.started = True
+        start.save()
     args = start.arguments
     dd = Detector.objects.get(pk=start.arguments['detector_pk'])
     dd.create_directory(create_subdirs=False)
@@ -393,13 +386,11 @@ def perform_detector_import(task_id):
 @app.task(track_started=True, name="perform_import")
 def perform_import(event_id):
     start = TEvent.objects.get(pk=event_id)
-    if shared.celery_40_bug_hack(start):
-        return 0
-    start.started = True
-    start.ts = datetime.now()
-    start.task_id = perform_import.request.id
-    start.operation = perform_import.name
-    start.save()
+    if start.started:
+        return 0  # to handle celery bug with ACK in SOLO mode
+    else:
+        start.started = True
+        start.save()
     source = start.arguments['source']
     dv = start.video
     if source == 'URL':
@@ -425,13 +416,11 @@ def perform_import(event_id):
 @app.task(track_started=True, name="perform_clustering")
 def perform_clustering(cluster_task_id, test=False):
     start = TEvent.objects.get(pk=cluster_task_id)
-    if shared.celery_40_bug_hack(start):
-        return 0
-    start.task_id = perform_clustering.request.id
-    start.started = True
-    start.ts = datetime.now()
-    start.operation = perform_clustering.name
-    start.save()
+    if start.started:
+        return 0  # to handle celery bug with ACK in SOLO mode
+    else:
+        start.started = True
+        start.save()
     clusters_dir = "{}/clusters/".format(settings.MEDIA_ROOT)
     if not os.path.isdir(clusters_dir):
         os.mkdir(clusters_dir)
@@ -465,6 +454,7 @@ def perform_clustering(cluster_task_id, test=False):
     dc.save()
     mark_as_completed(start)
 
+
 @app.task(track_started=True, name="perform_sync")
 def perform_sync(task_id):
     """
@@ -475,13 +465,11 @@ def perform_sync(task_id):
     :return:
     """
     start = TEvent.objects.get(pk=task_id)
-    if shared.celery_40_bug_hack(start):
-        return 0
-    start.task_id = perform_sync.request.id
-    start.started = True
-    start.ts = datetime.now()
-    start.operation = perform_sync.name
-    start.save()
+    if start.started:
+        return 0  # to handle celery bug with ACK in SOLO mode
+    else:
+        start.started = True
+        start.save()
     video_id = start.video_id
     args = start.arguments
     if settings.MEDIA_BUCKET.strip():
@@ -509,13 +497,11 @@ def perform_sync(task_id):
 @app.task(track_started=True, name="perform_deletion")
 def perform_deletion(task_id):
     start = TEvent.objects.get(pk=task_id)
-    if shared.celery_40_bug_hack(start):
-        return 0
-    start.task_id = perform_deletion.request.id
-    start.started = True
-    start.ts = datetime.now()
-    start.operation = perform_deletion.name
-    start.save()
+    if start.started:
+        return 0  # to handle celery bug with ACK in SOLO mode
+    else:
+        start.started = True
+        start.save()
     args = start.arguments
     video_pk = int(args['video_pk'])
     deleter_pk = args.get('deleter_pk',None)
@@ -564,13 +550,11 @@ def perform_detector_training(task_id):
     :return:
     """
     start = TEvent.objects.get(pk=task_id)
-    if shared.celery_40_bug_hack(start):
-        return 0
-    start.task_id = perform_detector_training.request.id
-    start.started = True
-    start.ts = datetime.now()
-    start.operation = perform_detector_training.name
-    start.save()
+    if start.started:
+        return 0  # to handle celery bug with ACK in SOLO mode
+    else:
+        start.started = True
+        start.save()
     train_detector = subprocess.Popen(['fab', 'train_yolo:{}'.format(start.pk)],cwd=os.path.join(os.path.abspath(__file__).split('tasks.py')[0], '../'))
     train_detector.wait()
     if train_detector.returncode != 0:
@@ -590,13 +574,11 @@ def perform_segmentation(task_id):
     :return:
     """
     start = TEvent.objects.get(pk=task_id)
-    if shared.celery_40_bug_hack(start):
-        return 0
-    start.task_id = perform_segmentation.request.id
-    start.started = True
-    start.ts = datetime.now()
-    start.operation = perform_segmentation.name
-    start.save()
+    if start.started:
+        return 0  # to handle celery bug with ACK in SOLO mode
+    else:
+        start.started = True
+        start.save()
     video_id = start.video_id
     args = start.arguments
     segmentor_name = args['segmentor']

@@ -386,18 +386,6 @@ def perform_s3_export(dv,s3key,s3bucket,s3region,export_event_pk=None,create_buc
     return upload.returncode
 
 
-def celery_40_bug_hack(start):
-    """
-    Celery 4.0.2 retries tasks due to ACK issues when running in solo mode,
-    Since Tensorflow ncessiates use of solo mode, we can manually check if the task is has already run and quickly finis it
-    Since the code never uses Celery results except for querying and retries are handled at application level this solves the
-    issue
-    :param start:
-    :return:
-    """
-    return start.started
-
-
 def import_s3(start,dv):
     s3key = start.arguments['key']
     s3bucket = start.arguments['bucket']

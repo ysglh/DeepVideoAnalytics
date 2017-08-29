@@ -111,6 +111,7 @@
     "name": "inception",
     "url": "https://www.dropbox.com/s/fc7li2vwn8lvsyu/network.pb",
     "filename": "network.pb",
+    "shasum": "48b026cf77dfbd5d9841cca3ee550ef0ee5a0751",
     "mode": "T"
   },
   {
@@ -118,6 +119,7 @@
     "name": "facenet",
     "url": "https://www.dropbox.com/s/jytpgw8et09ede9/facenet.pb",
     "filename": "facenet.pb",
+    "shasum": "9f99caccbc75dcee8cb0a55a0551d7c5cb8a6836",
     "mode": "T"
   },
   {
@@ -125,6 +127,7 @@
     "name": "vgg",
     "url": "https://www.dropbox.com/s/3yzonc9nzo9xanv/vgg.pb",
     "filename": "vgg.pb",
+    "shasum": "52723231e796dd06fafd190957c8a3b5a69e009c",
     "mode": "T"
   },
   {

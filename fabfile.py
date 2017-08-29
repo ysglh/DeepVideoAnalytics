@@ -471,7 +471,7 @@ def init_models():
             if m['url']:
                 download_model(settings.MEDIA_ROOT, "detectors", dm.pk, m['filename'], m['url'])
         if m['model_type'] == "indexer":
-            dm, _ = Indexer.objects.get_or_create(name=m['name'], mode=m['mode'])
+            dm, _ = Indexer.objects.get_or_create(name=m['name'], mode=m['mode'], shasum=m['shasum'])
             if m['url']:
                 download_model(settings.MEDIA_ROOT, "indexers", dm.pk, m['filename'], m['url'])
         if m['model_type'] == "analyzer":

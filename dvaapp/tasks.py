@@ -45,10 +45,7 @@ def perform_indexing(task_id):
     target = json_args.get('target','frames')
     index_name = json_args['index']
     start.save()
-    if index_name not in perform_indexing.visual_indexer:
-        di = Indexer.objects.get(name=index_name)
-        perform_indexing.load_indexer(di)
-    visual_index = perform_indexing.visual_indexer[index_name]
+    visual_index, di = perform_indexing.get_index_by_name(index_name)
     sync = True
     if target == 'query':
         iq = IndexerQuery.objects.get(id=json_args['iq_id'])
@@ -66,7 +63,7 @@ def perform_indexing(task_id):
         sync = False
     else:
         queryset, target = shared.build_queryset(args=start.arguments,video_id=start.video_id)
-        perform_indexing.index_queryset(index_name,visual_index,start,target,queryset)
+        perform_indexing.index_queryset(di,visual_index,start,target,queryset)
     next_ids = process_next(task_id,sync=sync)
     mark_as_completed(start)
     return next_ids

@@ -10,30 +10,36 @@ except ImportError:
     np = None
     logging.warning("Could not import indexer / clustering assuming running in front-end mode / Heroku")
 
-from ..models import IndexEntries
+from ..models import IndexEntries, Indexer
 
 
 class IndexerTask(celery.Task):
     _visual_indexer = {}
+    _name_to_index = {}
     _session = None
 
-    @property
-    def visual_indexer(self):
-        return IndexerTask._visual_indexer
+    def get_index_by_name(self,name):
+        if name not in IndexerTask._name_to_pk:
+            di = Indexer.objects.get(name=name)
+            IndexerTask._name_to_index[name] = di
+        else:
+            di = IndexerTask._name_to_index[name]
+        return self.get_index(di),di
 
-    def load_indexer(self,di):
-        if di.name not in IndexerTask._visual_indexer:
+    def get_index(self,di):
+        if di.pk not in IndexerTask._visual_indexer:
             iroot = "{}/indexers/".format(settings.MEDIA_ROOT)
             if di.name == 'inception':
-                IndexerTask._visual_indexer[di.name] = indexer.InceptionIndexer(iroot+"{}/network.pb".format(di.pk))
+                IndexerTask._visual_indexer[di.pk] = indexer.InceptionIndexer(iroot+"{}/network.pb".format(di.pk))
             elif di.name == 'facenet':
-                IndexerTask._visual_indexer[di.name] = indexer.FacenetIndexer(iroot+"{}/facenet.pb".format(di.pk))
+                IndexerTask._visual_indexer[di.pk] = indexer.FacenetIndexer(iroot+"{}/facenet.pb".format(di.pk))
             elif di.name == 'vgg':
-                IndexerTask._visual_indexer[di.name] = indexer.VGGIndexer(iroot+"{}/vgg.pb".format(di.pk))
+                IndexerTask._visual_indexer[di.pk] = indexer.VGGIndexer(iroot+"{}/vgg.pb".format(di.pk))
             else:
                 raise ValueError,"unregistered indexer with id {}".format(di.pk)
+        return Indexer._visual_indexer[di.pk]
 
-    def index_queryset(self,index_name,visual_index,event,target,queryset):
+    def index_queryset(self,di,visual_index,event,target,queryset):
         visual_index.load()
         entries, paths, images = [], [], {}
         for i, df in enumerate(queryset):
@@ -77,7 +83,9 @@ class IndexerTask(celery.Task):
             i.contains_detections = target == "regions"
             i.contains_frames = target == "frames"
             i.detection_name = '{}_subset_by_{}'.format(target,event.pk)
-            i.algorithm = index_name
+            i.algorithm = di.name
+            i.indexer = di
+            i.indexer_shasum = di.shasum
             i.entries_file_name = entries_fname.split('/')[-1]
             i.features_file_name = feat_fname.split('/')[-1]
             i.source_id = event.pk

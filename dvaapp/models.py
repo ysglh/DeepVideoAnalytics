@@ -139,10 +139,17 @@ class Indexer(models.Model):
     mode = models.CharField(max_length=1,choices=MODES,db_index=True,default=TENSORFLOW)
     name = models.CharField(max_length=100)
     algorithm = models.CharField(max_length=100,default="")
+    shasum = models.CharField(max_length=40,null=True)
     model_filename = models.CharField(max_length=200,default="")
     input_layer_name = models.CharField(max_length=300,default="")
     embedding_layer_name = models.CharField(max_length=300,default="")
     embedding_layer_size = models.CharField(max_length=300,default="")
+    created = models.DateTimeField('date created', auto_now_add=True)
+
+
+class Retriever(models.Model):
+    exact = models.BooleanField(default=True)
+    indexer = models.ForeignKey(Indexer)
     created = models.DateTimeField('date created', auto_now_add=True)
 
 
@@ -399,6 +406,7 @@ class IndexEntries(models.Model):
     entries_file_name = models.CharField(max_length=100)
     algorithm = models.CharField(max_length=100)
     indexer = models.ForeignKey(Indexer, null=True)
+    indexer_shasum = models.CharField(max_length=40)
     detection_name = models.CharField(max_length=100)
     count = models.IntegerField()
     approximate = models.BooleanField(default=False)

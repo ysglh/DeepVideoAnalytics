@@ -334,6 +334,9 @@ class VideoImporter(object):
         self.segment_to_pk = {}
         self.label_to_pk = {}
         self.tube_to_pk = {}
+        self.name_to_shasum = {'inception':'48b026cf77dfbd5d9841cca3ee550ef0ee5a0751v',
+                               'facenet':'9f99caccbc75dcee8cb0a55a0551d7c5cb8a6836',
+                               'vgg':'52723231e796dd06fafd190957c8a3b5a69e009c'}
 
     def import_video(self):
         self.video.name = self.json['name']
@@ -503,6 +506,8 @@ class VideoImporter(object):
             di = IndexEntries()
             di.video = self.video
             di.algorithm = i['algorithm']
+            # defaults only for backward compatibility
+            di.indexer_shasum =i.get('indexer_shasum',self.name_to_shasum[i['algorithm']])
             di.count = i['count']
             di.contains_detections = i['contains_detections']
             di.contains_frames = i['contains_frames']

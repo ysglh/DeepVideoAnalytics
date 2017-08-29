@@ -11,7 +11,7 @@ except ImportError:
     np = None
     logging.warning("Could not import indexer / clustering assuming running in front-end mode / Heroku")
 
-from ..models import Video,DVAPQL,IndexerQuery,QueryResults,TEvent,Region,Analyzer,Indexer,Detector
+from ..models import Video,DVAPQL,IndexerQuery,QueryResults,TEvent,Region,Analyzer,Indexer,Detector,Retriever
 from collections import defaultdict
 from celery.result import AsyncResult
 from . import queuing
@@ -30,16 +30,25 @@ SYNC_TASKS = {
 
 ANALYER_NAME_TO_PK = {}
 INDEXER_NAME_TO_PK = {}
+RETRIEVER_NAME_TO_PK = {}
 DETECTOR_NAME_TO_PK = {}
 
 
 def get_queue_name(operation,args):
     if operation in queuing.TASK_NAMES_TO_QUEUE:
         return queuing.TASK_NAMES_TO_QUEUE[operation]
-    elif 'index' in args and operation == 'perform_retrieval':
-        if args['index'] not in INDEXER_NAME_TO_PK:
-            INDEXER_NAME_TO_PK[args['index']] = Indexer.objects.get(name=args['index']).pk
-        return 'q_retriever_{}'.format(INDEXER_NAME_TO_PK[args['index']])
+    elif 'detector_pk' in args:
+        return "q_detector_{}".format(args['detector_pk'])
+    elif 'indexer_pk' in args:
+        return "q_indexer_{}".format(args['indexer_pk'])
+    elif 'retriever_pk' in args:
+        return "retrieve_{}".format(args['retriever_pk'])
+    elif 'analyzer_pk' in args:
+        return "q_analyzer_{}".format(args['analyzer_pk'])
+    elif 'retriever' in args:
+        if args['retriever'] not in RETRIEVER_NAME_TO_PK:
+            RETRIEVER_NAME_TO_PK[args['retriever']] = Retriever.objects.get(name=args['retriever']).pk
+        return 'q_retriever_{}'.format(RETRIEVER_NAME_TO_PK[args['retriever']])
     elif 'index' in args:
         if args['index'] not in INDEXER_NAME_TO_PK:
             INDEXER_NAME_TO_PK[args['index']] = Indexer.objects.get(name=args['index']).pk
@@ -49,12 +58,9 @@ def get_queue_name(operation,args):
             ANALYER_NAME_TO_PK[args['analyzer']] = Analyzer.objects.get(name=args['analyzer']).pk
         return 'q_analyzer_{}'.format(ANALYER_NAME_TO_PK[args['analyzer']])
     elif 'detector' in args:
-        if 'detector_pk' in args:
-            return "q_detector_{}".format(args['detector_pk'])
-        else:
-            if args['detector'] not in DETECTOR_NAME_TO_PK:
-                DETECTOR_NAME_TO_PK[args['detector']] = Detector.objects.get(name=args['detector']).pk
-            return 'q_detector_{}'.format(DETECTOR_NAME_TO_PK[args['detector']])
+        if args['detector'] not in DETECTOR_NAME_TO_PK:
+            DETECTOR_NAME_TO_PK[args['detector']] = Detector.objects.get(name=args['detector']).pk
+        return 'q_detector_{}'.format(DETECTOR_NAME_TO_PK[args['detector']])
     else:
         raise NotImplementedError,"{}, {}".format(operation,args)
 
@@ -270,8 +276,8 @@ class DVAPQLProcess(object):
                     'index':iq.algorithm,
                     'target':'query',
                     'next_tasks':[
-                        { 'operation': 'perform_retrieval',
-                          'arguments': {'iq_id': iq.pk,'index':iq.algorithm}
+                         {'operation': 'perform_retrieval',
+                          'arguments': {'iq_id': iq.pk, 'retriever': iq.algorithm}
                          }
                     ]
                 }

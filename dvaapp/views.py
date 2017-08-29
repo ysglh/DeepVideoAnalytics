@@ -8,7 +8,8 @@ from django.views.generic import ListView, DetailView
 from .forms import UploadFileForm, YTVideoForm, AnnotationForm
 from .models import Video, Frame, DVAPQL, QueryResults, TEvent, IndexEntries, Region, VDNServer, \
     ClusterCodes, Clusters,  Tube, Detector,  Segment, FrameLabel, SegmentLabel, \
-    VideoLabel, RegionLabel, TubeLabel, Label, ManagementAction, StoredDVAPQL, Analyzer, Indexer
+    VideoLabel, RegionLabel, TubeLabel, Label, ManagementAction, StoredDVAPQL, Analyzer,\
+    Indexer, Retriever
 from dva.celery import app
 from dvaapp.operations import queuing
 import serializers
@@ -74,6 +75,12 @@ class IndexerViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
     queryset = Indexer.objects.all()
     serializer_class = serializers.IndexerSerializer
+
+
+class RetrieverViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
+    queryset = Retriever.objects.all()
+    serializer_class = serializers.RetrieverSerializer
 
 
 class DetectorViewSet(viewsets.ReadOnlyModelViewSet):

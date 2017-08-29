@@ -326,7 +326,7 @@ def launch_workers_and_scheduler_from_environment(block_on_manager=False):
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
-    from dvaapp.models import Detector, Indexer, Analyzer
+    from dvaapp.models import Detector, Indexer, Analyzer, Retriever
     from dvaapp.operations import queuing
     for k in os.environ:
         if k.startswith('LAUNCH_BY_NAME_'):
@@ -334,7 +334,7 @@ def launch_workers_and_scheduler_from_environment(block_on_manager=False):
             if qtype == 'indexer':
                 queue_name = 'q_indexer_{}'.format(Indexer.objects.get(name=model_name).pk)
             elif qtype == 'retriever':
-                queue_name = 'q_retriever_{}'.format(Indexer.objects.get(name=model_name).pk)
+                queue_name = 'q_retriever_{}'.format(Retriever.objects.get(name=model_name).pk)
             elif qtype == 'detector':
                 queue_name = 'q_detector_{}'.format(Detector.objects.get(name=model_name).pk)
             elif qtype == 'analyzer':
@@ -473,8 +473,9 @@ def init_models():
         if m['model_type'] == "indexer":
             dm, created = Indexer.objects.get_or_create(name=m['name'], mode=m['mode'], shasum=m['shasum'])
             if created:
-                _ = Retriever.objects.get_or_create(name="exact {}".format(m['name']), indexer=dm,
-                                                    source_filter={'indexer_shasum':dm.shasum}, exact=True)
+                _ = Retriever.objects.get_or_create(name=m['name'], indexer=dm,
+                                                    source_filter={'indexer_shasum':dm.shasum},
+                                                    exact=True)
             if m['url']:
                 download_model(settings.MEDIA_ROOT, "indexers", dm.pk, m['filename'], m['url'])
         if m['model_type'] == "analyzer":

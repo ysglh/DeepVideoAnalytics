@@ -474,7 +474,7 @@ def init_models():
             dm, created = Indexer.objects.get_or_create(name=m['name'], mode=m['mode'], shasum=m['shasum'])
             if created:
                 _ = Retriever.objects.get_or_create(name=m['name'], indexer=dm,
-                                                    source_filter={'indexer_shasum':dm.shasum},
+                                                    source_filters={'indexer_shasum':dm.shasum},
                                                     exact=True)
             if m['url']:
                 download_model(settings.MEDIA_ROOT, "indexers", dm.pk, m['filename'], m['url'])

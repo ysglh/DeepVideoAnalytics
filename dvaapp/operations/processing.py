@@ -1,5 +1,5 @@
 import base64, copy
-from datetime import datetime
+from django.utils import timezone
 import json,logging
 import boto3
 from django.conf import settings
@@ -156,7 +156,7 @@ def process_next(task_id,inject_filters=None,custom_next_tasks=None,sync=True,la
 
 def mark_as_completed(start):
     start.completed = True
-    start.duration = (datetime.now() - start.start_ts).total_seconds()
+    start.duration = (timezone.now() - start.start_ts).total_seconds()
     start.save()
 
 

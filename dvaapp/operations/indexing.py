@@ -37,7 +37,7 @@ class IndexerTask(celery.Task):
                 IndexerTask._visual_indexer[di.pk] = indexer.VGGIndexer(iroot+"{}/vgg.pb".format(di.pk))
             else:
                 raise ValueError,"unregistered indexer with id {}".format(di.pk)
-        return Indexer._visual_indexer[di.pk]
+        return IndexerTask._visual_indexer[di.pk]
 
     def index_queryset(self,di,visual_index,event,target,queryset):
         visual_index.load()

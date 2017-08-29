@@ -23,6 +23,7 @@
                 <thead>
                 <tr>
                     <th>Index name</th>
+                    <th>weights file checksum</th>
                     <th>Indexer queue</th>
                     <th>Retriever queue</th>
                 </tr>
@@ -31,6 +32,7 @@
                 {% for i in visual_index_list %}
                     <tr>
                         <td>{{ i.name }} </td>
+                        <td>{{ i.shasum }}</td>
                         <td>q_indexer_{{ i.pk }}</td>
                         <td>q_retriever_{{ i.pk }}</td>
                     </tr>

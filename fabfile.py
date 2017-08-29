@@ -456,7 +456,7 @@ def init_models():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from django.conf import settings
-    from dvaapp.models import Detector, Analyzer, Indexer
+    from dvaapp.models import Detector, Analyzer, Indexer, Retriever
     with open("configs/models.json") as modelfile:
         models = json.load(modelfile)
     for m in models:
@@ -471,7 +471,10 @@ def init_models():
             if m['url']:
                 download_model(settings.MEDIA_ROOT, "detectors", dm.pk, m['filename'], m['url'])
         if m['model_type'] == "indexer":
-            dm, _ = Indexer.objects.get_or_create(name=m['name'], mode=m['mode'], shasum=m['shasum'])
+            dm, created = Indexer.objects.get_or_create(name=m['name'], mode=m['mode'], shasum=m['shasum'])
+            if created:
+                _ = Retriever.objects.get_or_create(name="exact {}".format(m['name']), indexer=dm,
+                                                    source_filter={'indexer_shasum':dm.shasum}, exact=True)
             if m['url']:
                 download_model(settings.MEDIA_ROOT, "indexers", dm.pk, m['filename'], m['url'])
         if m['model_type'] == "analyzer":

@@ -46,7 +46,7 @@ class RetrieverTask(celery.Task):
 
     def update_index(self,dr):
         index_entries = IndexEntries.objects.filter(**dr.source_filters)
-        visual_index = self.visual_retriever[dr.pk]
+        visual_index = RetrieverTask._visual_retriever[dr.pk]
         for index_entry in index_entries:
             if index_entry.pk not in visual_index.loaded_entries and index_entry.count > 0:
                 fname = "{}/{}/indexes/{}".format(settings.MEDIA_ROOT, index_entry.video_id,

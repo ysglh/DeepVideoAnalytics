@@ -116,7 +116,7 @@ def perform_retrieval(task_id):
         start.save()
     args = start.arguments
     iq = IndexerQuery.objects.get(pk=args['iq_id'])
-    perform_retrieval.retrieve(iq,iq.algorithm)
+    perform_retrieval.retrieve(iq)
     mark_as_completed(start)
     return 0
 

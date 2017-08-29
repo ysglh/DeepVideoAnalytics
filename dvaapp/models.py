@@ -239,11 +239,12 @@ class IndexerQuery(models.Model):
     count = models.IntegerField(default=20)
     algorithm = models.CharField(max_length=500,default="")
     indexer = models.ForeignKey(Indexer,null=True)
+    retriever =  models.ForeignKey(Retriever,null=True)
     excluded_index_entries_pk = ArrayField(models.IntegerField(), default=[])
     vector = models.BinaryField(null=True)
     results = models.BooleanField(default=False)
     metadata = models.TextField(default="")
-    source_filter_json = JSONField(blank=True,null=True)
+    source_filters = JSONField(blank=True,null=True)
     approximate = models.BooleanField(default=False)
     user = models.ForeignKey(User, null=True)
 

@@ -227,6 +227,20 @@ class DVAPQLProcess(object):
                 iq = IndexerQuery()
                 iq.parent_query = self.process
                 iq.algorithm = k['algorithm']
+                if 'indexer_pk' in k:
+                    iq.indexer_id = k['indexer_pk']
+                elif 'index' in k:
+                    iq.indexer = Indexer.objects.get(name=k['index'])
+                elif 'algorithm' in k:
+                    iq.indexer = Indexer.objects.get(name=k['algorithm'])
+                else:
+                    raise ValueError,"indexer not specified"
+                if 'retriever_pk' in k:
+                    iq.retriever_id = k['retriever_pk']
+                elif 'algorithm' in k:
+                    iq.retriever = Retriever.objects.get(name=k['algorithm'])
+                else:
+                    raise ValueError,"indexer not specified"
                 iq.count = k['count']
                 iq.excluded_index_entries_pk = k['excluded_index_entries_pk'] if 'excluded_index_entries_pk' in k else []
                 iq.approximate = k['approximate']
@@ -277,7 +291,7 @@ class DVAPQLProcess(object):
                     'target':'query',
                     'next_tasks':[
                          {'operation': 'perform_retrieval',
-                          'arguments': {'iq_id': iq.pk, 'retriever': iq.algorithm}
+                          'arguments': {'iq_id': iq.pk, 'retriever_pk': iq.retriever_id}
                          }
                     ]
                 }

@@ -14,17 +14,13 @@ import io
 
 class RetrieverTask(celery.Task):
     _clusterer = None
-    _visual_retriever = None
+    _visual_retriever = {}
     _index_count = 0
 
-    @property
-    def visual_retriever(self):
-        if RetrieverTask._visual_retriever is None:
-            RetrieverTask._visual_retriever = {'inception': retriever.BaseRetriever(name="inception"),
-                                           'vgg': retriever.BaseRetriever(name="vgg"),
-                                           'facenet': retriever.BaseRetriever(name="facenet")
-                                            }
-        return RetrieverTask._visual_retriever
+    def get_retriever(self,dr):
+        if dr.pk is RetrieverTask._visual_retriever:
+            RetrieverTask._visual_retriever[dr.pk] = retriever.BaseRetriever(name=dr.name)
+        return RetrieverTask._visual_retriever[dr.pk]
 
     @property
     def clusterer(self):
@@ -34,7 +30,7 @@ class RetrieverTask(celery.Task):
                                       'vgg':None}
         return RetrieverTask._clusterer
 
-    def refresh_index(self, index_name):
+    def refresh_index(self, dr):
         """
         :param index_name:
         :return:
@@ -46,13 +42,13 @@ class RetrieverTask(celery.Task):
         if last_count == 0 or last_count != current_count:
             # update the count
             RetrieverTask._index_count = current_count
-            self.update_index(index_name)
+            self.update_index(dr)
 
-    def update_index(self,index_name):
-        index_entries = IndexEntries.objects.all()
-        visual_index = self.visual_retriever[index_name]
+    def update_index(self,dr):
+        index_entries = IndexEntries.objects.filter(**dr.source_filters)
+        visual_index = self.visual_retriever[dr.pk]
         for index_entry in index_entries:
-            if index_entry.pk not in visual_index.loaded_entries and index_entry.algorithm == index_name and index_entry.count > 0:
+            if index_entry.pk not in visual_index.loaded_entries and index_entry.count > 0:
                 fname = "{}/{}/indexes/{}".format(settings.MEDIA_ROOT, index_entry.video_id,
                                                   index_entry.features_file_name)
                 vectors = indexer.np.load(fname)
@@ -85,8 +81,9 @@ class RetrieverTask(celery.Task):
         else:
             logging.warning("No clusterer found switching to exact search for {}".format(algorithm))
 
-    def retrieve(self,iq,index_name):
-        index_retriever = self.visual_retriever[index_name]
+    def retrieve(self,iq):
+        index_retriever = self.get_retriever(iq.retriever)
+        index_name = iq.retriever.name
         exact = True
         results = []
         # TODO: figure out a better way to store numpy arrays.
@@ -98,7 +95,7 @@ class RetrieverTask(celery.Task):
                 results = self.query_approximate(iq.count, vector, index_name)
                 exact = False
         if exact:
-            self.refresh_index(index_name)
+            self.refresh_index(iq.retriever)
             results = index_retriever.nearest(vector=vector,n=iq.count)
         # TODO: optimize this using batching
         for r in results:

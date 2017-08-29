@@ -19,7 +19,7 @@ class IndexerTask(celery.Task):
     _session = None
 
     def get_index_by_name(self,name):
-        if name not in IndexerTask._name_to_pk:
+        if name not in IndexerTask._name_to_index:
             di = Indexer.objects.get(name=name)
             IndexerTask._name_to_index[name] = di
         else:

@@ -148,6 +148,7 @@ class Indexer(models.Model):
 
 
 class Retriever(models.Model):
+    name = models.CharField(max_length=200,default="")
     exact = models.BooleanField(default=True)
     indexer = models.ForeignKey(Indexer,null=True)
     source_filter = JSONField()

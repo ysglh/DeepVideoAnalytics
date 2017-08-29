@@ -33,7 +33,7 @@
                 {% for r in retrievers %}
                     <tr>
                         <td>{{ r.name }} </td>
-                        <td>{{ r.source_json }}</td>
+                        <td>{{ r.source_filters}}</td>
                         <td>{{ r.exact }}</td>
                         <td>q_retriever_{{ r.pk }}</td>
                         <td>{{ r.created }}</td>

@@ -18,7 +18,7 @@ class RetrieverTask(celery.Task):
     _index_count = 0
 
     def get_retriever(self,dr):
-        if dr.pk is RetrieverTask._visual_retriever:
+        if dr.pk not in RetrieverTask._visual_retriever:
             RetrieverTask._visual_retriever[dr.pk] = retriever.BaseRetriever(name=dr.name)
         return RetrieverTask._visual_retriever[dr.pk]
 

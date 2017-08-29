@@ -906,6 +906,7 @@ def clustering(request):
     context['clusters'] = Clusters.objects.all()
     context['algorithms'] = {k.algorithm for k in IndexEntries.objects.all()}
     context['index_entries'] = IndexEntries.objects.all()
+    context['retrievers'] = Retriever.objects.all()
     if request.method == 'POST':
         algorithm = request.POST.get('algorithm')
         v = request.POST.get('v')

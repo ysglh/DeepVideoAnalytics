@@ -79,18 +79,6 @@
             </select>
             </div>
         </div>
-        <div class="m-t row">
-            <div class="col-xs-4 text-right">
-                <h5 style="font-weight:bold">Exclude index entries: </h5>
-            </div>
-            <div class="col-xs-8">
-            <select class="js-example-basic-multiple" multiple="multiple" id="excluded_index_entries" style="width:100%">
-            {% for v in index_entries %}
-                <option value="{{ v.pk }}">{{ v.detection_name }} in {{ v.video.name }} by {{ v.algorithm }}</option>
-            {% endfor %}
-            </select>
-            </div>
-        </div>
         <div>
             <label for="result_count">Result count</label>
             <input style="display:inline-block; margin-right:10px;width:50px;" type="number" name="result_count"  id="result_count" value="20" class="checkbox text-right index_name">
@@ -349,8 +337,6 @@
         {% endif %}
     var indexer_selector = $("#indexer_list");
     indexer_selector.select2({theme: "bootstrap"});
-    var excluded_index_entries = $("#excluded_index_entries");
-    excluded_index_entries.select2({theme: "bootstrap"});
     var video_name = $("#video_name");
     video_name.select2({theme: "bootstrap"});
     </script>

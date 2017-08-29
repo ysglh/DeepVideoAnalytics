@@ -6,12 +6,47 @@
 <div class="row">
     <div class="box box-info">
         <div class="box-header">
-            <h2>Visualize & perform clustering for approximate search</h2>
+            <h2>Create retriever & perform clustering for approximate search</h2>
         </div>
     </div>
 </div>
 </section>
 <section class="content">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="col-lg-6">
+            <div class="box box-primary">
+            <div class="box-header with-border">
+                <h4>Retrievers</h4>
+            </div>
+            <div class="box-body">
+                <table class="table dataTables-dict">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Source_filter</th>
+                    <th>Exact</th>
+                    <th>Retriever queue</th>
+                    <th>Created</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for r in retrievers %}
+                    <tr>
+                        <td>{{ r.name }} </td>
+                        <td>{{ r.source_json }}</td>
+                        <td>{{ r.exact }}</td>
+                        <td>q_retriever_{{ i.pk }}</td>
+                        <td>{{ r.created }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+                </table>
+            </div>
+        </div>
+
+        </div>
+    </div>
     <div class="row">
         <div class="col-lg-12">
             <div class="box box-primary">

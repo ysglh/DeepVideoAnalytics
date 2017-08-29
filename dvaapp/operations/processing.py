@@ -242,7 +242,6 @@ class DVAPQLProcess(object):
                 else:
                     raise ValueError,"indexer not specified"
                 iq.count = k['count']
-                iq.excluded_index_entries_pk = k['excluded_index_entries_pk'] if 'excluded_index_entries_pk' in k else []
                 iq.approximate = k['approximate']
                 iq.save()
         elif j['process_type'] == DVAPQL.PROCESS:

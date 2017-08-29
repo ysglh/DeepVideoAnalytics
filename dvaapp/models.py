@@ -151,7 +151,7 @@ class Retriever(models.Model):
     name = models.CharField(max_length=200,default="")
     exact = models.BooleanField(default=True)
     indexer = models.ForeignKey(Indexer,null=True)
-    source_filter = JSONField()
+    source_filters = JSONField()
     created = models.DateTimeField('date created', auto_now_add=True)
 
 
@@ -240,11 +240,9 @@ class IndexerQuery(models.Model):
     algorithm = models.CharField(max_length=500,default="")
     indexer = models.ForeignKey(Indexer,null=True)
     retriever =  models.ForeignKey(Retriever,null=True)
-    excluded_index_entries_pk = ArrayField(models.IntegerField(), default=[])
     vector = models.BinaryField(null=True)
     results = models.BooleanField(default=False)
     metadata = models.TextField(default="")
-    source_filters = JSONField(blank=True,null=True)
     approximate = models.BooleanField(default=False)
     user = models.ForeignKey(User, null=True)
 

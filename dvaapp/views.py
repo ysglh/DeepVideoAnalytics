@@ -1007,7 +1007,7 @@ def import_detector(request):
         url = request.POST.get('detector_url')
         server = VDNServer.objects.get(pk=request.POST.get('server_pk'))
         user = request.user if request.user.is_authenticated else None
-        cached_response = server.last_response_datasets[int(request.POST.get('dindex'))]
+        cached_response = server.last_response_detectors[int(request.POST.get('dindex'))]
         import_vdn_detector_url(server, url, user, cached_response)
     else:
         raise NotImplementedError

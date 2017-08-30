@@ -13,7 +13,7 @@ from .operations.segmentation import SegmentorTask
 from .operations.analysis import AnalyzerTask
 from .operations.decoding import VideoDecoder
 from .operations.processing import process_next, mark_as_completed
-from dvalib import clustering
+from dvalib import retriever
 from django.utils import timezone
 from celery.signals import task_prerun
 from . import shared
@@ -427,7 +427,7 @@ def perform_clustering(cluster_task_id, test=False):
         k = IndexEntries.objects.get(pk=ipk)
         fnames.append("{}/{}/indexes/{}".format(settings.MEDIA_ROOT, k.video.pk, k.features_file_name))
     cluster_proto_filename = "{}{}.proto".format(clusters_dir, dc.pk)
-    c = clustering.Clustering(fnames, dc.components, cluster_proto_filename, m=dc.m, v=dc.v, sub=dc.sub, test_mode=test)
+    c = retriever.LOPQRetriever(fnames, dc.components, cluster_proto_filename, m=dc.m, v=dc.v, sub=dc.sub, test_mode=test)
     c.cluster()
     cluster_codes = []
     for e in c.entries:

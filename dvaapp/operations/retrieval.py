@@ -2,7 +2,7 @@ import logging, json
 from django.conf import settings
 import celery
 try:
-    from dvalib import indexer, clustering, retriever
+    from dvalib import indexer, retriever
     import numpy as np
 except ImportError:
     np = None
@@ -75,7 +75,10 @@ class RetrieverTask(celery.Task):
         dc = Clusters.objects.all().filter(completed=True, indexer_algorithm=algorithm).last()
         if dc:
             model_file_name = "{}/clusters/{}.proto".format(settings.MEDIA_ROOT, dc.pk)
-            RetrieverTask._clusterer[algorithm] = clustering.Clustering(fnames=[], m=None, v=None, sub=None,n_components=None,model_proto_filename=model_file_name, dc=dc)
+            RetrieverTask._clusterer[algorithm] = retriever.LOPQRetriever(fnames=[], m=None, v=None, sub=None,
+                                                                          n_components=None,
+                                                                          model_proto_filename=model_file_name,
+                                                                          dc=dc)
             logging.warning("loading clusterer {}".format(model_file_name))
             RetrieverTask._clusterer[algorithm].load()
         else:

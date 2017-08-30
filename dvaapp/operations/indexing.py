@@ -4,7 +4,7 @@ from PIL import Image
 from django.conf import settings
 
 try:
-    from dvalib import indexer, clustering, retriever
+    from dvalib import indexer, retriever
     import numpy as np
 except ImportError:
     np = None

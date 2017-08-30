@@ -331,17 +331,28 @@ def launch_workers_and_scheduler_from_environment(block_on_manager=False):
     for k in os.environ:
         if k.startswith('LAUNCH_BY_NAME_'):
             qtype, model_name = k.split('_')[-2:]
+            env_vars = ""
             if qtype == 'indexer':
-                queue_name = 'q_indexer_{}'.format(Indexer.objects.get(name=model_name).pk)
+                dm = Indexer.objects.get(name=model_name)
+                queue_name = 'q_indexer_{}'.format(dm.pk)
+                env_vars = "PYTORCH_MODE=1 " if dm.mode == dm.PYTORCH else env_vars
+                env_vars = "CAFFE_MODE=1 " if dm.mode == dm.CAFFE else env_vars
             elif qtype == 'retriever':
-                queue_name = 'q_retriever_{}'.format(Retriever.objects.get(name=model_name).pk)
+                dm = Retriever.objects.get(name=model_name)
+                queue_name = 'q_retriever_{}'.format(dm.pk)
             elif qtype == 'detector':
-                queue_name = 'q_detector_{}'.format(Detector.objects.get(name=model_name).pk)
+                dm = Detector.objects.get(name=model_name)
+                queue_name = 'q_detector_{}'.format(dm.pk)
+                env_vars = "PYTORCH_MODE=1 " if dm.mode == dm.PYTORCH else env_vars
+                env_vars = "CAFFE_MODE=1 " if dm.mode == dm.CAFFE else env_vars
             elif qtype == 'analyzer':
-                queue_name = 'q_analyzer_{}'.format(Analyzer.objects.get(name=model_name).pk)
+                dm = Analyzer.objects.get(name=model_name)
+                queue_name = 'q_analyzer_{}'.format(dm.pk)
+                env_vars = "PYTORCH_MODE=1 " if dm.mode == dm.PYTORCH else env_vars
+                env_vars = "CAFFE_MODE=1 " if dm.mode == dm.CAFFE else env_vars
             else:
                 raise ValueError, k
-            command = 'fab startq:{} &'.format(queue_name)
+            command = '{}fab startq:{} &'.format(env_vars,queue_name)
             logging.info("'{}' for {}".format(command, k))
             local(command)
         elif k.startswith('LAUNCH_Q_') and k != 'LAUNCH_Q_{}'.format(queuing.Q_MANAGER):

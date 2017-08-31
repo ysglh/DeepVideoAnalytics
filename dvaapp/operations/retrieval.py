@@ -70,28 +70,8 @@ class RetrieverTask(celery.Task):
                                                                                      index_entry.pk].end,
                                                                                  ))
 
-    # def load_clusterer(self, algorithm):
-    #     dc = Clusters.objects.all().filter(completed=True, indexer_algorithm=algorithm).last()
-    #     if dc:
-    #         model_file_name = "{}/clusters/{}.proto".format(settings.MEDIA_ROOT, dc.pk)
-    #         RetrieverTask._clusterer[algorithm] = retriever.LOPQRetriever(fnames=[], m=None, v=None, sub=None,
-    #                                                                       n_components=None,
-    #                                                                       model_proto_filename=model_file_name,
-    #                                                                       dc=dc)
-    #         logging.warning("loading clusterer {}".format(model_file_name))
-    #         RetrieverTask._clusterer[algorithm].load()
-    #     else:
-    #         logging.warning("No clusterer found switching to exact search for {}".format(algorithm))
-    # if iq.approximate:
-    #     if self.clusterer[index_name] is None:
-    #         self.load_clusterer(index_name)
-    #     if self.clusterer[index_name]:
-    #         results = self.query_approximate(iq.count, vector, index_name)
-    #         exact = False
-
     def retrieve(self,iq):
         index_retriever = self.get_retriever(iq.retriever)
-        index_name = iq.retriever.name
         exact = True
         results = []
         # TODO: figure out a better way to store numpy arrays.
@@ -120,30 +100,3 @@ class RetrieverTask(celery.Task):
         iq.parent_query.results_available = True
         iq.parent_query.save()
         return 0
-
-    def query_approximate(self, n, vector, index_name):
-        clusterer = self.clusterer[index_name]
-        results = []
-        coarse, fine, results_indexes = clusterer.apply(vector, n)
-        for i, k in enumerate(results_indexes[0]):
-            e = ClusterCodes.objects.get(searcher_index=k.id, clusters=clusterer.dc)
-            if e.detection_id:
-                results.append({
-                    'rank': i + 1,
-                    'dist': i,
-                    'detection_primary_key': e.detection_id,
-                    'frame_index': e.frame.frame_index,
-                    'frame_primary_key': e.frame_id,
-                    'video_primary_key': e.video_id,
-                    'type': 'detection',
-                })
-            else:
-                results.append({
-                    'rank': i + 1,
-                    'dist': i,
-                    'frame_index': e.frame.frame_index,
-                    'frame_primary_key': e.frame_id,
-                    'video_primary_key': e.video_id,
-                    'type': 'frame',
-                })
-        return results

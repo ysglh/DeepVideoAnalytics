@@ -57,7 +57,7 @@ class BaseRetriever(object):
         return results # Next also return computed query_vector
 
 
-class LOPQRetriever(object):
+class LOPQRetriever(BaseRetriever):
 
     def __init__(self,name,args):
         data = []
@@ -171,3 +171,29 @@ class LOPQRetriever(object):
         else:
             results = None
         return codes.coarse,codes.fine,results
+
+    def nearest(self, vector=None, n=12):
+        results = []
+        coarse, fine, results_indexes = self.apply(vector, n)
+        # for i, k in enumerate(results_indexes[0]):
+            # e = ClusterCodes.objects.get(searcher_index=k.id, self.dr.pk)
+            # if e.detection_id:
+            #     results.append({
+            #         'rank': i + 1,
+            #         'dist': i,
+            #         'detection_primary_key': e.detection_id,
+            #         'frame_index': e.frame.frame_index,
+            #         'frame_primary_key': e.frame_id,
+            #         'video_primary_key': e.video_id,
+            #         'type': 'detection',
+            #     })
+            # else:
+            #     results.append({
+            #         'rank': i + 1,
+            #         'dist': i,
+            #         'frame_index': e.frame.frame_index,
+            #         'frame_primary_key': e.frame_id,
+            #         'video_primary_key': e.video_id,
+            #         'type': 'frame',
+            #     })
+        return results

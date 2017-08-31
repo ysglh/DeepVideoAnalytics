@@ -155,7 +155,7 @@ class Retriever(models.Model):
     )
     algorithm = models.CharField(max_length=1,choices=MODES,db_index=True,default=EXACT)
     name = models.CharField(max_length=200,default="")
-    exact = models.BooleanField(default=True)
+    arguments = JSONField(blank=True,null=True)
     source_filters = JSONField()
     created = models.DateTimeField('date created', auto_now_add=True)
 

@@ -896,7 +896,7 @@ def textsearch(request):
 
 
 @user_passes_test(user_check)
-def clustering(request):
+def retrievers(request):
     context = {}
     context['algorithms'] = {k.algorithm for k in IndexEntries.objects.all()}
     context['index_entries'] = IndexEntries.objects.all()
@@ -924,7 +924,7 @@ def clustering(request):
         #                }]
         # }, user=request.user)
         # p.launch()
-    return render(request, 'clustering.html', context)
+    return render(request, 'retrievers.html', context)
 
 
 @user_passes_test(user_check)

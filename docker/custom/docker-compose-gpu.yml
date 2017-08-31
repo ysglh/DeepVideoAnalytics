@@ -35,6 +35,7 @@
        - LAUNCH_BY_NAME_retriever_inception=1
        - LAUNCH_BY_NAME_retriever_facenet=1
        - LAUNCH_BY_NAME_detector_coco=1
+       - LAUNCH_BY_NAME_analyzer_crnn=1
        - LAUNCH_BY_NAME_detector_face=1
        - LAUNCH_Q_qclusterer=1
        - LAUNCH_Q_qextract=1
@@ -66,28 +67,6 @@
        - LAUNCH_BY_NAME_detector_textbox=1
        - AUTH_DISABLED=1
        - CAFFE_MODE=1
-     command: bash -c "sleep 60 && git pull && fab start_container:worker"
-     depends_on:
-       - db
-       - rabbit
-     volumes:
-       - dvadata:/root/DVA/dva/media
-   dva-crnn:
-     image: akshayubhat/dva-auto:gpu
-     container_name: dva-crnn
-     environment:
-       - DOCKER_MODE=true
-       - RABBIT_HOST=rabbit
-       - RABBIT_USER=dvauser
-       - RABBIT_PASS=localpass
-       - GPU_AVAILABLE=1
-       - DB_HOST=db
-       - DB_NAME=postgres
-       - DB_USER=pgdbuser
-       - DB_PASS=pgdbpass
-       - LAUNCH_BY_NAME_analyzer_crnn=1
-       - AUTH_DISABLED=1
-       - PYTORCH_MODE=1
      command: bash -c "sleep 60 && git pull && fab start_container:worker"
      depends_on:
        - db

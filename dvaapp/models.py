@@ -132,11 +132,7 @@ class Indexer(models.Model):
 
 class Retriever(models.Model):
     """
-    # excluded_index_entries_pk = ArrayField(models.IntegerField(), default=[])
-    # included_index_entries_pk = ArrayField(models.IntegerField(), default=[])
     # train_fraction = models.FloatField(default=0.8) # by default use 80% of data for training
-    # algorithm = models.CharField(max_length=50,default='LOPQ')    # LOPQ
-    # indexer_algorithm = models.CharField(max_length=50)
     # cluster_count = models.IntegerField(default=0)
     # pca_file_name = models.CharField(max_length=200,default="")
     # model_file_name = models.CharField(max_length=200, default="")
@@ -158,6 +154,16 @@ class Retriever(models.Model):
     arguments = JSONField(blank=True,null=True)
     source_filters = JSONField()
     created = models.DateTimeField('date created', auto_now_add=True)
+    last_built = models.DateTimeField(null=True)
+
+    def create_directory(self):
+        os.mkdir('{}/{}'.format(settings.MEDIA_ROOT, self.pk))
+
+    def path(self):
+        return '{}/{}'.format(settings.MEDIA_ROOT, self.pk)
+
+    def proto_filename(self):
+        return "{}{}.proto".format(self.path(), self.pk)
 
 
 class Analyzer(models.Model):
@@ -237,6 +243,8 @@ class Detector(models.Model):
                 }
         return args
 
+    def get_class_dist(self):
+        return json.loads(self.class_distribution) if self.class_distribution.strip() else {}
 
 class IndexerQuery(models.Model):
     parent_query = models.ForeignKey(DVAPQL)

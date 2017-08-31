@@ -49,6 +49,7 @@ urlpatterns = [
     url(r'^detectors/(?P<pk>\d+)/$', views.DetectionDetail.as_view(), name='detections_detail'),
     url(r'^textsearch', views.textsearch, name='textsearch'),
     url(r'^retrievers/$', views.retrievers, name='retrievers'),
+    url(r'^create_retriever/$', views.create_retriever, name='create_retriever'),
     url(r'^external', views.external, name='external'),
     url(r'^youtube$', views.yt, name='youtube'),
     url(r'^process/$', views.ProcessList.as_view(), name='process_list'),

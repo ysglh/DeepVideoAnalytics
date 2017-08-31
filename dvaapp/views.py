@@ -898,33 +898,39 @@ def textsearch(request):
 @user_passes_test(user_check)
 def retrievers(request):
     context = {}
-    context['algorithms'] = {k.algorithm for k in IndexEntries.objects.all()}
+    context['algorithms'] = {k.name for k in IndexEntries.objects.all()}
     context['index_entries'] = IndexEntries.objects.all()
     context['retrievers'] = Retriever.objects.all()
-    # if request.method == 'POST':
-        # algorithm = request.POST.get('algorithm')
-        # v = request.POST.get('v')
-        # m = request.POST.get('m')
-        # components = request.POST.get('components')
-        # sub = request.POST.get('sub')
-        # excluded = request.POST.get('excluded_index_entries')
-        # c = Clusters()
-        # c.indexer_algorithm = algorithm
-        # c.included_index_entries_pk = [k.pk for k in IndexEntries.objects.all() if k.algorithm == c.indexer_algorithm]
-        # c.components = components
-        # c.sub = sub
-        # c.m = m
-        # c.v = v
-        # c.save()
-        # p = DVAPQLProcess()
-        # p.create_from_json(j={
-        #     "process_type": DVAPQL.PROCESS,
-        #     "tasks": [{'operation': "perform_clustering",
-        #                'arguments': {'clusters_id':c.pk},
-        #                }]
-        # }, user=request.user)
-        # p.launch()
     return render(request, 'retrievers.html', context)
+
+
+@user_passes_test(user_check)
+def create_retriever(request):
+    if request.method == 'POST':
+        v = request.POST.get('v')
+        m = request.POST.get('m')
+        components = request.POST.get('components')
+        sub = request.POST.get('sub')
+        c = Retriever()
+        args = {}
+        args['components']= components
+        args['sub']= sub
+        args['m']= m
+        args['v']= v
+        c.arguments = c
+        if request.POST.get('source_filter',None):
+            c.source_filters = json.loads(request.POST.get('source_filter','{}'))
+        else:
+            c.source_filters = {'indexer_shasum':Indexer.objects.get(name=request.POST.get('algorithm')).shasum}
+        p = DVAPQLProcess()
+        p.create_from_json(j={
+            "process_type": DVAPQL.PROCESS,
+            "tasks": [{'operation': "perform_retriever_creation",
+                       'arguments': {'retriever_id':c.pk},
+                       }]
+        }, user=request.user)
+        p.launch()
+    return redirect('retrievers')
 
 
 @user_passes_test(user_check)
@@ -1140,18 +1146,7 @@ def models(request):
         "detectors": Detector.objects.all()
     }
     detector_stats = []
-    for d in Detector.objects.all():
-        class_dist = json.loads(d.class_distribution) if d.class_distribution.strip() else {}
-        detector_stats.append(
-            {
-                'name':d.name,
-                'classes': class_dist,
-                'frames_count':d.frames_count,
-                'boxes_count':d.boxes_count,
-                'pk':d.pk
-            }
-        )
-    context["detector_stats"] = detector_stats
+    context["detectors"] = Detector.objects.all()
     return render(request, 'models.html', context)
 
 

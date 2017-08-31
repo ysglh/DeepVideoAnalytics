@@ -25,7 +25,7 @@ class DetectorTask(celery.Task):
                 DetectorTask._detectors[cd.pk] = detector.YOLODetector(cd.get_yolo_args())
             elif cd.name == 'face':
                 DetectorTask._detectors[cd.pk] = detector.FaceDetector()
-            elif cd.nam == 'textbox':
+            elif cd.name == 'textbox':
                 DetectorTask._detectors[cd.pk] = detector.TextBoxDetector()
             else:
                 raise ValueError,"{}".format(cd.pk)

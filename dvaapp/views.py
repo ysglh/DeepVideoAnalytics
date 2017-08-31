@@ -898,7 +898,7 @@ def textsearch(request):
 @user_passes_test(user_check)
 def retrievers(request):
     context = {}
-    context['algorithms'] = {k.name for k in IndexEntries.objects.all()}
+    context['algorithms'] = {k.name for k in Indexer.objects.all()}
     context['index_entries'] = IndexEntries.objects.all()
     context['retrievers'] = Retriever.objects.all()
     return render(request, 'retrievers.html', context)

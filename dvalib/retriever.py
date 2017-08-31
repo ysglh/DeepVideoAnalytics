@@ -59,15 +59,13 @@ class BaseRetriever(object):
 
 class LOPQRetriever(object):
 
-    def __init__(self,fnames,n_components,model_proto_filename,m,v,sub,test_mode=False,dc=None):
-        """
-        Simplify this mess haivng a seperate create vs load/init
-        """
+    def __init__(self,name,args):
         data = []
-        self.dc = dc
-        self.fnames = fnames
+        self.name = name
+        self.dc = args['dc']
+        self.fnames = args['fnames']
         self.entries = []
-        for fname in fnames:
+        for fname in args['fnames']:
             nmat = np.load(fname)
             if nmat.ndim > 2:
                 nmat = nmat.squeeze()
@@ -80,22 +78,22 @@ class LOPQRetriever(object):
             else:
                 self.data = data[0]
             logging.info(self.data.shape)
-        self.test_mode = test_mode
-        self.n_components = n_components
-        self.m = m
-        self.v = v
-        self.sub = sub
+        self.test_mode = args['test_mode']
+        self.n_components = args['n_components']
+        self.m = args['m']
+        self.v = args['v']
+        self.sub = args['sub']
         self.model = None
         self.searcher = None
         self.pca_reduction = None
         self.P = None
         self.mu = None
-        self.model_proto_filename = model_proto_filename
-        self.P_filename = model_proto_filename.replace('.proto','.P.npy')
-        self.mu_filename = model_proto_filename.replace('.proto','.mu.npy')
-        self.pca_filename = model_proto_filename.replace('.proto', '.pca.pkl')
-        self.model_lmdb_filename = model_proto_filename.replace('.proto', '_lmdb')
-        self.permuted_inds_filename = model_proto_filename.replace('.proto', '.permuted_inds.pkl')
+        self.model_proto_filename = args['model_proto_filename']
+        self.P_filename = args['model_proto_filename'].replace('.proto','.P.npy')
+        self.mu_filename = args['model_proto_filename'].replace('.proto','.mu.npy')
+        self.pca_filename = args['model_proto_filename'].replace('.proto', '.pca.pkl')
+        self.model_lmdb_filename = args['model_proto_filename'].replace('.proto', '_lmdb')
+        self.permuted_inds_filename = args['model_proto_filename'].replace('.proto', '.permuted_inds.pkl')
         self.permuted_inds = None
 
     def pca(self):

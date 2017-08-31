@@ -144,7 +144,7 @@ def ci():
     from django.core.files.uploadedfile import SimpleUploadedFile
     from dvaapp.views import handle_uploaded_file, pull_vdn_list \
         , import_vdn_dataset_url
-    from dvaapp.models import Video, Clusters, IndexEntries, TEvent, VDNServer, DVAPQL
+    from dvaapp.models import Video, IndexEntries, TEvent, VDNServer, DVAPQL, Retriever
     from django.conf import settings
     from dvaapp.operations.processing import DVAPQLProcess
     from dvaapp.tasks import perform_dataset_extraction, perform_indexing, perform_export, perform_import, \
@@ -198,44 +198,45 @@ def ci():
                                content_type="application/zip")
         vimported = handle_uploaded_file(f, fname)
         perform_import(TEvent.objects.create(video=vimported, arguments={"source": "LOCAL"}).pk)
-    dc = Clusters()
-    dc.indexer_algorithm = 'inception'
-    dc.included_index_entries_pk = [k.pk for k in IndexEntries.objects.all().filter(algorithm=dc.indexer_algorithm)]
-    dc.components = 32
-    dc.save()
-    clustering_task = TEvent()
-    clustering_task.arguments = {'clusters_id': dc.pk}
-    clustering_task.operation = 'perform_clustering'
-    clustering_task.save()
-    perform_clustering(clustering_task.pk)
-    query_dict = {
-        'process_type': DVAPQL.QUERY,
-        'image_data_b64': base64.encodestring(file('tests/query.png').read()),
-        'indexer_queries': [
-            {
-                'algorithm': 'inception',
-                'count': 10,
-                'approximate': False
-            }
-        ]
-    }
-    qp = DVAPQLProcess()
-    qp.create_from_json(query_dict)
-    # execute_index_subquery(qp.indexer_queries[0].pk)
-    query_dict = {
-        'process_type': DVAPQL.QUERY,
-        'image_data_b64': base64.encodestring(file('tests/query.png').read()),
-        'indexer_queries': [
-            {
-                'algorithm': 'inception',
-                'count': 10,
-                'approximate': True
-            }
-        ]
-    }
-    qp = DVAPQLProcess()
-    qp.create_from_json(query_dict)
-    # execute_index_subquery(qp.indexer_queries[0].pk)
+    # dc = Retriever()
+    # args = {}
+    #
+    # dc.included_index_entries_pk = [k.pk for k in IndexEntries.objects.all().filter(algorithm=dc.indexer_algorithm)]
+    # dc.components = 32
+    # dc.save()
+    # clustering_task = TEvent()
+    # clustering_task.arguments = {'clusters_id': dc.pk}
+    # clustering_task.operation = 'perform_clustering'
+    # clustering_task.save()
+    # perform_clustering(clustering_task.pk)
+    # query_dict = {
+    #     'process_type': DVAPQL.QUERY,
+    #     'image_data_b64': base64.encodestring(file('tests/query.png').read()),
+    #     'indexer_queries': [
+    #         {
+    #             'algorithm': 'inception',
+    #             'count': 10,
+    #             'approximate': False
+    #         }
+    #     ]
+    # }
+    # qp = DVAPQLProcess()
+    # qp.create_from_json(query_dict)
+    # # execute_index_subquery(qp.indexer_queries[0].pk)
+    # query_dict = {
+    #     'process_type': DVAPQL.QUERY,
+    #     'image_data_b64': base64.encodestring(file('tests/query.png').read()),
+    #     'indexer_queries': [
+    #         {
+    #             'algorithm': 'inception',
+    #             'count': 10,
+    #             'approximate': True
+    #         }
+    #     ]
+    # }
+    # qp = DVAPQLProcess()
+    # qp.create_from_json(query_dict)
+    # # execute_index_subquery(qp.indexer_queries[0].pk)
     server, datasets, detectors = pull_vdn_list(1)
     for k in datasets:
         if k['name'] == 'MSCOCO_Sample_500':
@@ -484,9 +485,7 @@ def init_models():
         if m['model_type'] == "indexer":
             dm, created = Indexer.objects.get_or_create(name=m['name'], mode=m['mode'], shasum=m['shasum'])
             if created:
-                _ = Retriever.objects.get_or_create(name=m['name'], indexer=dm,
-                                                    source_filters={'indexer_shasum':dm.shasum},
-                                                    exact=True)
+                _ = Retriever.objects.get_or_create(name=m['name'],source_filters={'indexer_shasum':dm.shasum})
             if m['url']:
                 download_model(settings.MEDIA_ROOT, "indexers", dm.pk, m['filename'], m['url'])
         if m['model_type'] == "analyzer":

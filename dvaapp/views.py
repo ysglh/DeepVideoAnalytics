@@ -7,7 +7,7 @@ import json
 from django.views.generic import ListView, DetailView
 from .forms import UploadFileForm, YTVideoForm, AnnotationForm
 from .models import Video, Frame, DVAPQL, QueryResults, TEvent, IndexEntries, Region, VDNServer, \
-    ClusterCodes, Clusters,  Tube, Detector,  Segment, FrameLabel, SegmentLabel, \
+    ClusterCodes, Tube, Detector,  Segment, FrameLabel, SegmentLabel, \
     VideoLabel, RegionLabel, TubeLabel, Label, ManagementAction, StoredDVAPQL, Analyzer,\
     Indexer, Retriever, IndexerQuery
 from dva.celery import app
@@ -214,12 +214,6 @@ class TubeViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Creat
     serializer_class = serializers.TubeSerializer
 
 
-class ClustersViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
-    queryset = Clusters.objects.all()
-    serializer_class = serializers.ClustersSerializer
-
-
 class ClusterCodesViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
     queryset = ClusterCodes.objects.all()
@@ -359,27 +353,27 @@ class VideoDetail(UserPassesTestMixin, DetailView):
         return user_check(self.request.user)
 
 
-class ClustersDetails(UserPassesTestMixin, DetailView):
-    model = Clusters
-
-    def get_context_data(self, **kwargs):
-        context = super(ClustersDetails, self).get_context_data(**kwargs)
-        context['coarse'] = []
-        context['index_entries'] = [IndexEntries.objects.get(pk=k) for k in self.object.included_index_entries_pk]
-        for k in ClusterCodes.objects.filter(clusters_id=self.object.pk).values('coarse_text').annotate(
-                count=Count('coarse_text')):
-            context['coarse'].append({'coarse_text': k['coarse_text'].replace(' ', '_'),
-                                      'count': k['count'],
-                                      'first': ClusterCodes.objects.all().filter(clusters_id=self.object.pk,
-                                                                                 coarse_text=k['coarse_text']).first(),
-                                      'last': ClusterCodes.objects.all().filter(clusters_id=self.object.pk,
-                                                                                coarse_text=k['coarse_text']).last()
-                                      })
-
-        return context
-
-    def test_func(self):
-        return user_check(self.request.user)
+# class RetrieverDetails(UserPassesTestMixin, DetailView):
+#     model = Clusters
+#
+#     def get_context_data(self, **kwargs):
+#         context = super(ClustersDetails, self).get_context_data(**kwargs)
+#         context['coarse'] = []
+#         context['index_entries'] = [IndexEntries.objects.get(pk=k) for k in self.object.included_index_entries_pk]
+#         for k in ClusterCodes.objects.filter(clusters_id=self.object.pk).values('coarse_text').annotate(
+#                 count=Count('coarse_text')):
+#             context['coarse'].append({'coarse_text': k['coarse_text'].replace(' ', '_'),
+#                                       'count': k['count'],
+#                                       'first': ClusterCodes.objects.all().filter(clusters_id=self.object.pk,
+#                                                                                  coarse_text=k['coarse_text']).first(),
+#                                       'last': ClusterCodes.objects.all().filter(clusters_id=self.object.pk,
+#                                                                                 coarse_text=k['coarse_text']).last()
+#                                       })
+#
+#         return context
+#
+#     def test_func(self):
+#         return user_check(self.request.user)
 
 
 class DetectionDetail(UserPassesTestMixin, DetailView):
@@ -904,33 +898,32 @@ def textsearch(request):
 @user_passes_test(user_check)
 def clustering(request):
     context = {}
-    context['clusters'] = Clusters.objects.all()
     context['algorithms'] = {k.algorithm for k in IndexEntries.objects.all()}
     context['index_entries'] = IndexEntries.objects.all()
     context['retrievers'] = Retriever.objects.all()
-    if request.method == 'POST':
-        algorithm = request.POST.get('algorithm')
-        v = request.POST.get('v')
-        m = request.POST.get('m')
-        components = request.POST.get('components')
-        sub = request.POST.get('sub')
-        excluded = request.POST.get('excluded_index_entries')
-        c = Clusters()
-        c.indexer_algorithm = algorithm
-        c.included_index_entries_pk = [k.pk for k in IndexEntries.objects.all() if k.algorithm == c.indexer_algorithm]
-        c.components = components
-        c.sub = sub
-        c.m = m
-        c.v = v
-        c.save()
-        p = DVAPQLProcess()
-        p.create_from_json(j={
-            "process_type": DVAPQL.PROCESS,
-            "tasks": [{'operation': "perform_clustering",
-                       'arguments': {'clusters_id':c.pk},
-                       }]
-        }, user=request.user)
-        p.launch()
+    # if request.method == 'POST':
+        # algorithm = request.POST.get('algorithm')
+        # v = request.POST.get('v')
+        # m = request.POST.get('m')
+        # components = request.POST.get('components')
+        # sub = request.POST.get('sub')
+        # excluded = request.POST.get('excluded_index_entries')
+        # c = Clusters()
+        # c.indexer_algorithm = algorithm
+        # c.included_index_entries_pk = [k.pk for k in IndexEntries.objects.all() if k.algorithm == c.indexer_algorithm]
+        # c.components = components
+        # c.sub = sub
+        # c.m = m
+        # c.v = v
+        # c.save()
+        # p = DVAPQLProcess()
+        # p.create_from_json(j={
+        #     "process_type": DVAPQL.PROCESS,
+        #     "tasks": [{'operation': "perform_clustering",
+        #                'arguments': {'clusters_id':c.pk},
+        #                }]
+        # }, user=request.user)
+        # p.launch()
     return render(request, 'clustering.html', context)
 
 

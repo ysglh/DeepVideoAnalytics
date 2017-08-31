@@ -27,7 +27,6 @@ router.register(r'queryresults', views.QueryResultsViewSet)
 router.register(r'indexentries', views.IndexEntriesViewSet)
 router.register(r'events', views.TEventViewSet)
 router.register(r'vdnservers', views.VDNServerViewSet)
-router.register(r'clusters', views.ClustersViewSet)
 router.register(r'clustercodes', views.ClusterCodesViewSet)
 
 
@@ -70,7 +69,7 @@ urlpatterns = [
     url(r'^queries/$', views.VisualSearchList.as_view()),
     url(r'^Search$', views.search),
     url(r'^videos/(?P<pk>\d+)/$', views.VideoDetail.as_view(), name='video_detail'),
-    url(r'^clustering/(?P<pk>\d+)/$', views.ClustersDetails.as_view(), name='clusters_detail'),
+    # url(r'^clustering/(?P<pk>\d+)/$', views.ClustersDetails.as_view(), name='clusters_detail'),
     url(r'^frames/$', views.FrameList.as_view()),
     url(r'^frames/(?P<pk>\d+)/$', views.FrameDetail.as_view(), name='frame_detail'),
     url(r'^segments/(?P<pk>\d+)/$', views.SegmentDetail.as_view(), name='segment_detail'),

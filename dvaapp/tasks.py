@@ -5,7 +5,7 @@ from PIL import Image
 from django.conf import settings
 from dva.celery import app
 from .models import Video, Frame, TEvent,  IndexEntries, ClusterCodes, Region, Tube, \
-    Clusters, Detector, Segment, IndexerQuery, DeletedVideo, ManagementAction, Indexer, Analyzer
+    Retriever, Detector, Segment, IndexerQuery, DeletedVideo, ManagementAction, Indexer, Analyzer
 from .operations.indexing import IndexerTask
 from .operations.retrieval import RetrieverTask
 from .operations.detection import DetectorTask
@@ -410,7 +410,8 @@ def perform_import(event_id):
     process_next(start.pk)
     mark_as_completed(start)
 
-@app.task(track_started=True, name="perform_clustering")
+
+@app.task(track_started=True, name="perform_retriever_creation")
 def perform_clustering(cluster_task_id, test=False):
     start = TEvent.objects.get(pk=cluster_task_id)
     if start.started:
@@ -418,37 +419,37 @@ def perform_clustering(cluster_task_id, test=False):
     else:
         start.started = True
         start.save()
-    clusters_dir = "{}/clusters/".format(settings.MEDIA_ROOT)
-    if not os.path.isdir(clusters_dir):
-        os.mkdir(clusters_dir)
-    dc = Clusters.objects.get(pk=start.arguments['clusters_id'])
-    fnames = []
-    for ipk in dc.included_index_entries_pk:
-        k = IndexEntries.objects.get(pk=ipk)
-        fnames.append("{}/{}/indexes/{}".format(settings.MEDIA_ROOT, k.video.pk, k.features_file_name))
-    cluster_proto_filename = "{}{}.proto".format(clusters_dir, dc.pk)
-    c = retriever.LOPQRetriever(fnames, dc.components, cluster_proto_filename, m=dc.m, v=dc.v, sub=dc.sub, test_mode=test)
-    c.cluster()
-    cluster_codes = []
-    for e in c.entries:
-        cc = ClusterCodes()
-        cc.video_id = e['video_primary_key']
-        if 'detection_primary_key' in e:
-            cc.detection_id = e['detection_primary_key']
-            cc.frame_id = Region.objects.get(pk=cc.detection_id).frame_id
-        else:
-            cc.frame_id = e['frame_primary_key']
-        cc.clusters = dc
-        cc.coarse = e['coarse']
-        cc.fine = e['fine']
-        cc.coarse_text = " ".join(map(str, e['coarse']))
-        cc.fine_text = " ".join(map(str, e['fine']))
-        cc.searcher_index = e['index']
-        cluster_codes.append(cc)
-    ClusterCodes.objects.bulk_create(cluster_codes)
-    c.save()
-    dc.completed = True
-    dc.save()
+    # clusters_dir = "{}/clusters/".format(settings.MEDIA_ROOT)
+    # if not os.path.isdir(clusters_dir):
+    #     os.mkdir(clusters_dir)
+    # dc = Retriever.objects.get(pk=start.arguments['clusters_id'])
+    # fnames = []
+    # for ipk in dc.included_index_entries_pk:
+    #     k = IndexEntries.objects.get(pk=ipk)
+    #     fnames.append("{}/{}/indexes/{}".format(settings.MEDIA_ROOT, k.video.pk, k.features_file_name))
+    # cluster_proto_filename = "{}{}.proto".format(clusters_dir, dc.pk)
+    # c = retriever.LOPQRetriever(fnames, dc.components, cluster_proto_filename, m=dc.m, v=dc.v, sub=dc.sub, test_mode=test)
+    # c.cluster()
+    # cluster_codes = []
+    # for e in c.entries:
+    #     cc = ClusterCodes()
+    #     cc.video_id = e['video_primary_key']
+    #     if 'detection_primary_key' in e:
+    #         cc.detection_id = e['detection_primary_key']
+    #         cc.frame_id = Region.objects.get(pk=cc.detection_id).frame_id
+    #     else:
+    #         cc.frame_id = e['frame_primary_key']
+    #     cc.clusters = dc
+    #     cc.coarse = e['coarse']
+    #     cc.fine = e['fine']
+    #     cc.coarse_text = " ".join(map(str, e['coarse']))
+    #     cc.fine_text = " ".join(map(str, e['fine']))
+    #     cc.searcher_index = e['index']
+    #     cluster_codes.append(cc)
+    # ClusterCodes.objects.bulk_create(cluster_codes)
+    # c.save()
+    # dc.completed = True
+    # dc.save()
     mark_as_completed(start)
 
 
@@ -522,7 +523,7 @@ def perform_deletion(task_id):
         start.error_message = "Error while executing : {}".format(command)
         start.save()
         return
-    if settings.MEDIA_BUCKET.strip():
+    if settings.MEDIA_BUCKET:
         dest = 's3://{}/{}/'.format(settings.MEDIA_BUCKET, int(video_pk))
         args = ['aws', 's3', 'rm','--quiet','--recursive', dest]
         command = " ".join(args)

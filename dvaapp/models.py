@@ -87,23 +87,6 @@ class IngestEntry(models.Model):
         unique_together = (("video", "ingest_filename","ingest_index"),)
 
 
-class Clusters(models.Model):
-    excluded_index_entries_pk = ArrayField(models.IntegerField(), default=[])
-    included_index_entries_pk = ArrayField(models.IntegerField(), default=[])
-    train_fraction = models.FloatField(default=0.8) # by default use 80% of data for training
-    algorithm = models.CharField(max_length=50,default='LOPQ')    # LOPQ
-    indexer_algorithm = models.CharField(max_length=50)
-    cluster_count = models.IntegerField(default=0)
-    pca_file_name = models.CharField(max_length=200,default="")
-    model_file_name = models.CharField(max_length=200, default="")
-    components = models.IntegerField(default=64) # computer 64 principal components
-    started = models.DateTimeField('date created', auto_now_add=True)
-    completed = models.BooleanField(default=False)
-    m = models.IntegerField(default=16)
-    v = models.IntegerField(default=16)
-    sub = models.IntegerField(default=256)
-
-
 class TEvent(models.Model):
     started = models.BooleanField(default=False)
     completed = models.BooleanField(default=False)
@@ -148,9 +131,31 @@ class Indexer(models.Model):
 
 
 class Retriever(models.Model):
+    """
+    # excluded_index_entries_pk = ArrayField(models.IntegerField(), default=[])
+    # included_index_entries_pk = ArrayField(models.IntegerField(), default=[])
+    # train_fraction = models.FloatField(default=0.8) # by default use 80% of data for training
+    # algorithm = models.CharField(max_length=50,default='LOPQ')    # LOPQ
+    # indexer_algorithm = models.CharField(max_length=50)
+    # cluster_count = models.IntegerField(default=0)
+    # pca_file_name = models.CharField(max_length=200,default="")
+    # model_file_name = models.CharField(max_length=200, default="")
+    # components = models.IntegerField(default=64) # computer 64 principal components
+    # started = models.DateTimeField('date created', auto_now_add=True)
+    # completed = models.BooleanField(default=False)
+    # m = models.IntegerField(default=16)
+    # v = models.IntegerField(default=16)
+    # sub = models.IntegerField(default=256)
+    """
+    EXACT = 'E'
+    LOPQ = 'L'
+    MODES = (
+        (LOPQ, 'LOPQ'),
+        (EXACT, 'Exact'),
+    )
+    algorithm = models.CharField(max_length=1,choices=MODES,db_index=True,default=EXACT)
     name = models.CharField(max_length=200,default="")
     exact = models.BooleanField(default=True)
-    indexer = models.ForeignKey(Indexer,null=True)
     source_filters = JSONField()
     created = models.DateTimeField('date created', auto_now_add=True)
 
@@ -386,7 +391,7 @@ class QueryResults(models.Model):
 
 
 class ClusterCodes(models.Model):
-    clusters = models.ForeignKey(Clusters)
+    clusters = models.ForeignKey(Retriever)
     video = models.ForeignKey(Video)
     frame = models.ForeignKey(Frame)
     detection = models.ForeignKey(Region,null=True)

@@ -245,6 +245,7 @@ class Detector(models.Model):
     def get_class_dist(self):
         return json.loads(self.class_distribution) if self.class_distribution.strip() else {}
 
+
 class IndexerQuery(models.Model):
     parent_query = models.ForeignKey(DVAPQL)
     created = models.DateTimeField('date created', auto_now_add=True)

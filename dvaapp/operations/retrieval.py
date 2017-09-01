@@ -8,26 +8,28 @@ except ImportError:
     np = None
     logging.warning("Could not import indexer / clustering assuming running in front-end mode / Heroku")
 
-from ..models import IndexEntries,QueryResults,Region,ClusterCodes
+
+from ..models import IndexEntries,QueryResults,Region,Retriever
 import io
 
 
 class RetrieverTask(celery.Task):
     _visual_retriever = {}
+    _retriever_object = {}
     _index_count = 0
 
-    def get_retriever(self,dr):
-        if dr.pk not in RetrieverTask._visual_retriever:
-            RetrieverTask._visual_retriever[dr.pk] = retriever.BaseRetriever(name=dr.name)
-        return RetrieverTask._visual_retriever[dr.pk]
-
-    @property
-    def clusterer(self):
-        if RetrieverTask._clusterer is None:
-            RetrieverTask._clusterer = {'inception': None,
-                                      'facenet': None,
-                                      'vgg':None}
-        return RetrieverTask._clusterer
+    def get_retriever(self,retriever_pk):
+        if retriever_pk not in RetrieverTask._visual_retriever:
+            dr = Retriever.objects.get(pk=retriever_pk)
+            RetrieverTask._retriever_object[retriever_pk] = dr
+            if dr.algorithm == Retriever.EXACT:
+                RetrieverTask._visual_retriever[retriever_pk] = retriever.BaseRetriever(name=dr.name)
+            elif dr.algorithm == Retriever.LOPQ:
+                RetrieverTask._visual_retriever[retriever_pk] = retriever.LOPQRetriever(name=dr.name,args=dr.arguments)
+                RetrieverTask._visual_retriever[retriever_pk].load()
+            else:
+                raise ValueError,"{} not valid retriever algorithm".format(dr.algorithm)
+        return RetrieverTask._visual_retriever[retriever_pk], RetrieverTask._retriever_object[retriever_pk]
 
     def refresh_index(self, dr):
         """
@@ -71,14 +73,12 @@ class RetrieverTask(celery.Task):
                                                                                  ))
 
     def retrieve(self,iq):
-        index_retriever = self.get_retriever(iq.retriever)
-        exact = True
-        results = []
+        index_retriever,dr = self.get_retriever(iq.retriever_id)
         # TODO: figure out a better way to store numpy arrays.
         vector = np.load(io.BytesIO(iq.vector))
-        if exact:
+        if dr.algorithm == Retriever.EXACT:
             self.refresh_index(iq.retriever)
-            results = index_retriever.nearest(vector=vector,n=iq.count)
+        results = index_retriever.nearest(vector=vector,n=iq.count)
         # TODO: optimize this using batching
         for r in results:
             qr = QueryResults()

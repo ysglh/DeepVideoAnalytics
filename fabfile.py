@@ -209,7 +209,7 @@ def ci():
     dc.arguments = args
     dc.save()
     clustering_task = TEvent()
-    clustering_task.arguments = {'retriever_id': dc.pk}
+    clustering_task.arguments = {'retriever_pk': dc.pk}
     clustering_task.operation = 'perform_retriever_creation'
     clustering_task.save()
     perform_retriever_creation(clustering_task.pk)

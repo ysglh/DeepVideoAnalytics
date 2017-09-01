@@ -908,14 +908,14 @@ def retrievers(request):
 def create_retriever(request):
     if request.method == 'POST':
         c = None
-        if request.POST.get('retriever_type') == 'L':
+        if request.POST.get('retriever_type') == Retriever.LOPQ:
             v = request.POST.get('v')
             m = request.POST.get('m')
             components = request.POST.get('components')
             sub = request.POST.get('sub')
             c = Retriever()
             c.name = request.POST.get('name')
-            c.algorithm = Retriever.EXACT
+            c.algorithm = Retriever.LOPQ
             args = {}
             args['components']= components
             args['sub']= sub
@@ -927,7 +927,7 @@ def create_retriever(request):
             else:
                 c.source_filters = {'indexer_shasum':Indexer.objects.get(name=request.POST.get('algorithm')).shasum}
             c.save()
-        elif request.POST.get('retriever_type') == 'E':
+        elif request.POST.get('retriever_type') == Retriever.EXACT:
             c = Retriever()
             c.name = request.POST.get('name')
             c.source_filters = json.loads(request.POST.get('source_filter', '{}'))

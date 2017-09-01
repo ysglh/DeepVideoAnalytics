@@ -60,7 +60,7 @@
                                 <label for="name">name</label>
                                 <input name="name" class="form-control" placeholder="name" required="required" type="text" >
                                 <label for="retriever_type">Retriever type</label>
-                                <select class="js-example-basic" id="retriever" name="retriever_type"  style="width:100%">
+                                <select class="js-example-basic" id="retriever_type" name="retriever_type"  style="width:100%">
                                     <option value="L">LOPQ</option>
                                     <option value="E">Exact</option>
                                 </select>
@@ -108,7 +108,7 @@
     $(document).ready(function() {
             var indexer_selector = $("#selected");
             indexer_selector.select2({theme: "bootstrap"});
-            var retriever_type = $("#retriever");
+            var retriever_type = $("#retriever_type");
             retriever_type.select2({theme: "bootstrap"});
             var excluded_index_entries = $("#excluded_index_entries");
             excluded_index_entries.select2({theme: "bootstrap"});

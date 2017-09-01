@@ -33,6 +33,13 @@ class DVAPQL(models.Model):
     results_metadata = models.TextField(default="")
     results_available = models.BooleanField(default=False)
 
+    def path(self,media_root=None):
+        if media_root:
+            return "{}/queries/{}_{}.png".format(media_root, self.algorithm, self.parent_query.pk)
+        else:
+            return "{}/queries/{}_{}.png".format(settings.MEDIA_ROOT, self.algorithm, self.parent_query.pk)
+
+
 
 class Video(models.Model):
     name = models.CharField(max_length=500,default="")
@@ -246,24 +253,10 @@ class Detector(models.Model):
         return json.loads(self.class_distribution) if self.class_distribution.strip() else {}
 
 
-class IndexerQuery(models.Model):
-    parent_query = models.ForeignKey(DVAPQL)
+class QueryIndexVector(models.Model):
+    event = models.OneToOneField(TEvent)
+    vector = models.BinaryField()
     created = models.DateTimeField('date created', auto_now_add=True)
-    count = models.IntegerField(default=20)
-    algorithm = models.CharField(max_length=500,default="")
-    indexer = models.ForeignKey(Indexer,null=True)
-    retriever =  models.ForeignKey(Retriever,null=True)
-    vector = models.BinaryField(null=True)
-    results = models.BooleanField(default=False)
-    metadata = models.TextField(default="")
-    approximate = models.BooleanField(default=False)
-    user = models.ForeignKey(User, null=True)
-
-    def path(self,media_root=None):
-        if media_root:
-            return "{}/queries/{}_{}.png".format(media_root, self.algorithm, self.parent_query.pk)
-        else:
-            return "{}/queries/{}_{}.png".format(settings.MEDIA_ROOT, self.algorithm, self.parent_query.pk)
 
 
 class Frame(models.Model):
@@ -389,7 +382,7 @@ class Region(models.Model):
 
 class QueryResults(models.Model):
     query = models.ForeignKey(DVAPQL)
-    indexerquery = models.ForeignKey(IndexerQuery)
+    retrieval_event = models.ForeignKey(TEvent,null=True)
     video = models.ForeignKey(Video)
     frame = models.ForeignKey(Frame)
     detection = models.ForeignKey(Region,null=True)

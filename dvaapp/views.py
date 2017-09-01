@@ -9,7 +9,7 @@ from .forms import UploadFileForm, YTVideoForm, AnnotationForm
 from .models import Video, Frame, DVAPQL, QueryResults, TEvent, IndexEntries, Region, VDNServer, \
     ClusterCodes, Tube, Detector,  Segment, FrameLabel, SegmentLabel, \
     VideoLabel, RegionLabel, TubeLabel, Label, ManagementAction, StoredDVAPQL, Analyzer,\
-    Indexer, Retriever, IndexerQuery
+    Indexer, Retriever
 from dva.celery import app
 from dvaapp.operations import queuing
 import serializers
@@ -468,7 +468,7 @@ class VisualSearchDetail(UserPassesTestMixin, DetailView):
         script = context['object'].script
         script[u'image_data_b64'] = "<excluded>"
         context['plan'] = script
-        context['iqs'] = IndexerQuery.objects.filter(parent_query=context['object'])
+        context['iqs'] = []
         context['url'] = '{}queries/{}.png'.format(settings.MEDIA_URL, self.object.pk, self.object.pk)
         return context
 

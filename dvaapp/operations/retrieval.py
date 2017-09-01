@@ -72,18 +72,17 @@ class RetrieverTask(celery.Task):
                                                                                      index_entry.pk].end,
                                                                                  ))
 
-    def retrieve(self,iq):
-        index_retriever,dr = self.get_retriever(iq.retriever_id)
+    def retrieve(self,event,retriever_pk,vector,count):
+        index_retriever,dr = self.get_retriever(retriever_pk)
         # TODO: figure out a better way to store numpy arrays.
-        vector = np.load(io.BytesIO(iq.vector))
         if dr.algorithm == Retriever.EXACT:
-            self.refresh_index(iq.retriever)
-        results = index_retriever.nearest(vector=vector,n=iq.count)
+            self.refresh_index(dr)
+        results = index_retriever.nearest(vector=vector,n=count)
         # TODO: optimize this using batching
         for r in results:
             qr = QueryResults()
-            qr.query = iq.parent_query
-            qr.indexerquery = iq
+            qr.query = event.parent_process
+            qr.retrieval_event_id = event.pk
             if 'detection_primary_key' in r:
                 dd = Region.objects.get(pk=r['detection_primary_key'])
                 qr.detection = dd
@@ -91,12 +90,10 @@ class RetrieverTask(celery.Task):
             else:
                 qr.frame_id = r['frame_primary_key']
             qr.video_id = r['video_primary_key']
-            qr.algorithm = iq.algorithm
+            qr.algorithm = dr.algorithm
             qr.rank = r['rank']
             qr.distance = r['dist']
             qr.save()
-        iq.results = True
-        iq.save()
-        iq.parent_query.results_available = True
-        iq.parent_query.save()
+        event.parent_query.results_available = True
+        event.parent_query.save()
         return 0

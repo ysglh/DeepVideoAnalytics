@@ -5,7 +5,7 @@ from PIL import Image
 from django.conf import settings
 from dva.celery import app
 from .models import Video, Frame, TEvent,  IndexEntries, ClusterCodes, Region, Tube, \
-    Retriever, Detector, Segment, IndexerQuery, DeletedVideo, ManagementAction, Indexer, Analyzer
+    Retriever, Detector, Segment, QueryIndexVector, DeletedVideo, ManagementAction, Indexer, Analyzer
 from .operations.indexing import IndexerTask
 from .operations.retrieval import RetrieverTask
 from .operations.detection import DetectorTask
@@ -48,18 +48,15 @@ def perform_indexing(task_id):
     visual_index, di = perform_indexing.get_index_by_name(index_name)
     sync = True
     if target == 'query':
-        iq = IndexerQuery.objects.get(id=json_args['iq_id'])
-        local_path = iq.path()
+        parent_process = start.parent_process
+        local_path = parent_process.path()
         with open(local_path, 'w') as fh:
-            fh.write(str(iq.parent_query.image_data))
+            fh.write(str(parent_process.image_data))
         vector = visual_index.apply(local_path)
         # TODO: figure out a better way to store numpy arrays.
         s = io.BytesIO()
         np.save(s,vector)
-        iq.vector = s.getvalue()
-        iq.save()
-        iq.parent_query.results_available = True
-        iq.parent_query.save()
+        _ = QueryIndexVector.objects.create(vector=s.getvalue(),event=start)
         sync = False
     else:
         queryset, target = shared.build_queryset(args=start.arguments,video_id=start.video_id)
@@ -115,8 +112,8 @@ def perform_retrieval(task_id):
         start.started = True
         start.save()
     args = start.arguments
-    iq = IndexerQuery.objects.get(pk=args['iq_id'])
-    perform_retrieval.retrieve(iq)
+    vector = np.load(io.BytesIO(QueryIndexVector.objects.get(event=start.parent_id).vector))
+    perform_retrieval.retrieve(start,args.get('retriever_pk',20),vector,args.get('count',20))
     mark_as_completed(start)
     return 0
 

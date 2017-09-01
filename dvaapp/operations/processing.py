@@ -11,7 +11,7 @@ except ImportError:
     np = None
     logging.warning("Could not import indexer / clustering assuming running in front-end mode / Heroku")
 
-from ..models import Video,DVAPQL,IndexerQuery,QueryResults,TEvent,Region,Analyzer,Indexer,Detector,Retriever
+from ..models import Video,DVAPQL,QueryResults,TEvent,Region,Analyzer,Indexer,Detector,Retriever
 from collections import defaultdict
 from celery.result import AsyncResult
 from . import queuing

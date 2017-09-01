@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import Video, Frame, TEvent, IndexEntries, QueryResults, DVAPQL, VDNServer,\
-    ClusterCodes, Region, Tube, Detector, Segment, IndexerQuery, DeletedVideo, \
+    ClusterCodes, Region, Tube, Detector, Segment, DeletedVideo, \
     VideoLabel, FrameLabel, RegionLabel, TubeLabel, SegmentLabel, Label, ManagementAction, \
     StoredDVAPQL, Analyzer, Indexer, Retriever
 
@@ -32,11 +32,6 @@ class RegionLabelAdmin(admin.ModelAdmin):
 
 @admin.register(TubeLabel)
 class TubeLabelAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(IndexerQuery)
-class IndexerQueryAdmin(admin.ModelAdmin):
     pass
 
 

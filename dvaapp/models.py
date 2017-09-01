@@ -49,7 +49,6 @@ class Video(models.Model):
     segments = models.IntegerField(default=0)
     url = models.TextField(default="")
     youtube_video = models.BooleanField(default=False)
-    query = models.BooleanField(default=False)
     parent_process = models.ForeignKey(DVAPQL,null=True)
 
     def __unicode__(self):
@@ -157,13 +156,13 @@ class Retriever(models.Model):
     last_built = models.DateTimeField(null=True)
 
     def create_directory(self):
-        os.mkdir('{}/{}'.format(settings.MEDIA_ROOT, self.pk))
+        os.mkdir('{}/retrievers/{}'.format(settings.MEDIA_ROOT, self.pk))
 
     def path(self):
-        return '{}/{}'.format(settings.MEDIA_ROOT, self.pk)
+        return '{}/retrievers/{}/'.format(settings.MEDIA_ROOT, self.pk)
 
     def proto_filename(self):
-        return "{}{}.proto".format(self.path(), self.pk)
+        return "{}/{}.proto".format(self.path(), self.pk)
 
 
 class Analyzer(models.Model):
@@ -434,6 +433,12 @@ class IndexEntries(models.Model):
 
     def __unicode__(self):
         return "{} in {} index by {}".format(self.detection_name, self.algorithm, self.video.name)
+
+    def npy_path(self, media_root=None):
+        if media_root:
+            return "{}/{}/indexes/{}".format(media_root, self.video_id, self.features_file_name)
+        else:
+            return "{}/{}/indexes/{}".format(settings.MEDIA_ROOT, self.video_id, self.features_file_name)
 
 
 class Tube(models.Model):

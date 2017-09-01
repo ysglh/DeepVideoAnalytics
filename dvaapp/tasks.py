@@ -421,9 +421,8 @@ def perform_retriever_creation(cluster_task_id, test=False):
         start.save()
     dc = Retriever.objects.get(pk=start.arguments['retriever_pk'])
     dc.create_directory()
-    fnames = []
-    for i in IndexEntries.objects.filter(**dc.source_filters):
-        fnames.append("{}/{}/indexes/{}".format(settings.MEDIA_ROOT, i.video.pk, i.features_file_name))
+    dc.arguments['fnames'] = [ i.npy_path() for i in IndexEntries.objects.filter(**dc.source_filters) ]
+    dc.arguments['proto_filename'] = dc.proto_filename()
     c = retriever.LOPQRetriever(name=dc.name,args=dc.arguments)
     c.cluster()
     cluster_codes = []

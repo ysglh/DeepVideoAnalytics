@@ -144,7 +144,7 @@ def ci():
     from django.core.files.uploadedfile import SimpleUploadedFile
     from dvaapp.views import handle_uploaded_file, pull_vdn_list \
         , import_vdn_dataset_url
-    from dvaapp.models import Video, IndexEntries, TEvent, VDNServer, DVAPQL, Retriever
+    from dvaapp.models import Video, TEvent, VDNServer, DVAPQL, Retriever, Indexer
     from django.conf import settings
     from dvaapp.operations.processing import DVAPQLProcess
     from dvaapp.tasks import perform_dataset_extraction, perform_indexing, perform_export, perform_import, \
@@ -198,17 +198,21 @@ def ci():
                                content_type="application/zip")
         vimported = handle_uploaded_file(f, fname)
         perform_import(TEvent.objects.create(video=vimported, arguments={"source": "LOCAL"}).pk)
-    # dc = Retriever()
-    # args = {}
-    #
-    # dc.included_index_entries_pk = [k.pk for k in IndexEntries.objects.all().filter(algorithm=dc.indexer_algorithm)]
-    # dc.components = 32
-    # dc.save()
-    # clustering_task = TEvent()
-    # clustering_task.arguments = {'clusters_id': dc.pk}
-    # clustering_task.operation = 'perform_clustering'
-    # clustering_task.save()
-    # perform_clustering(clustering_task.pk)
+    dc = Retriever()
+    args = {}
+    args['components'] = 32
+    args['m'] = 8
+    args['v'] = 8
+    args['sub'] = 64
+    dc.algorithm = Retriever.LOPQ
+    dc.source_filters = {'indexer_shasum':Indexer.objects.get(name="inception").shasum}
+    dc.arguments = args
+    dc.save()
+    clustering_task = TEvent()
+    clustering_task.arguments = {'retriever_id': dc.pk}
+    clustering_task.operation = 'perform_retriever_creation'
+    clustering_task.save()
+    perform_retriever_creation(clustering_task.pk)
     # query_dict = {
     #     'process_type': DVAPQL.QUERY,
     #     'image_data_b64': base64.encodestring(file('tests/query.png').read()),
@@ -504,7 +508,7 @@ def init_fs():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from django.conf import settings
-    for create_dirname in ['queries', 'exports', 'external']:
+    for create_dirname in ['queries', 'exports', 'external','retrievers']:
         if not os.path.isdir("{}/{}".format(settings.MEDIA_ROOT, create_dirname)):
             try:
                 os.mkdir("{}/{}".format(settings.MEDIA_ROOT, create_dirname))
@@ -756,6 +760,23 @@ def qt():
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
         v = handle_uploaded_file(f, name)
+    # from dvaapp.models import Retriever,Indexer,TEvent
+    # from dvaapp.tasks import perform_retriever_creation
+    # dc = Retriever()
+    # args = {}
+    # args['components'] = 32
+    # args['m'] = 8
+    # args['v'] = 8
+    # args['sub'] = 128
+    # dc.algorithm = Retriever.LOPQ
+    # dc.source_filters = {'indexer_shasum': Indexer.objects.get(name="inception").shasum}
+    # dc.arguments = args
+    # dc.save()
+    # clustering_task = TEvent()
+    # clustering_task.arguments = {'retriever_pk': dc.pk}
+    # clustering_task.operation = 'perform_retriever_creation'
+    # clustering_task.save()
+    # perform_retriever_creation(clustering_task.pk)
 
 
 @task

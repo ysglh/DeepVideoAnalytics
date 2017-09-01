@@ -7,7 +7,6 @@ import json
 import random
 import logging
 try:
-    from sklearn.cross_validation import train_test_split
     from sklearn.decomposition import PCA
     from lopq import LOPQModel, LOPQSearcher
     from lopq.search import LOPQSearcherLMDB
@@ -62,10 +61,9 @@ class LOPQRetriever(BaseRetriever):
     def __init__(self,name,args):
         data = []
         self.name = name
-        self.dc = args['dc']
-        self.fnames = args['fnames']
+        self.fnames = args.get('fnames',[])
         self.entries = []
-        for fname in args['fnames']:
+        for fname in self.fnames:
             nmat = np.load(fname)
             if nmat.ndim > 2:
                 nmat = nmat.squeeze()
@@ -78,8 +76,8 @@ class LOPQRetriever(BaseRetriever):
             else:
                 self.data = data[0]
             logging.info(self.data.shape)
-        self.test_mode = args['test_mode']
-        self.n_components = int(args['n_components'])
+        self.test_mode = args.get('test_mode',False)
+        self.n_components = int(args['components'])
         self.m = int(args['m'])
         self.v = int(args['v'])
         self.sub = int(args['sub'])
@@ -88,12 +86,12 @@ class LOPQRetriever(BaseRetriever):
         self.pca_reduction = None
         self.P = None
         self.mu = None
-        self.model_proto_filename = args['model_proto_filename']
-        self.P_filename = args['model_proto_filename'].replace('.proto','.P.npy')
-        self.mu_filename = args['model_proto_filename'].replace('.proto','.mu.npy')
-        self.pca_filename = args['model_proto_filename'].replace('.proto', '.pca.pkl')
-        self.model_lmdb_filename = args['model_proto_filename'].replace('.proto', '_lmdb')
-        self.permuted_inds_filename = args['model_proto_filename'].replace('.proto', '.permuted_inds.pkl')
+        self.model_proto_filename = args['proto_filename']
+        self.P_filename = args['proto_filename'].replace('.proto','.P.npy')
+        self.mu_filename = args['proto_filename'].replace('.proto','.mu.npy')
+        self.pca_filename = args['proto_filename'].replace('.proto', '.pca.pkl')
+        self.model_lmdb_filename = args['proto_filename'].replace('.proto', '_lmdb')
+        self.permuted_inds_filename = args['proto_filename'].replace('.proto', '.permuted_inds.pkl')
         self.permuted_inds = None
 
     def pca(self):
@@ -120,22 +118,22 @@ class LOPQRetriever(BaseRetriever):
         self.P, self.mu = self.pca()
         self.data = self.data - self.mu
         self.data = np.dot(self.data,self.P)
-        train, test = train_test_split(self.data, test_size=0.2)
+        # train, test = train_test_split(self.data, test_size=0.2)
         self.model = LOPQModel(V=self.v, M=self.m, subquantizer_clusters=self.sub)
-        self.model.fit(train, n_init=1)
+        self.model.fit(self.data, n_init=1) # replace self.data by train
         for i,e in enumerate(self.entries): # avoid doing this twice again in searcher
             r = self.model.predict(self.data[i])
             e['coarse'] = r.coarse
             e['fine'] = r.fine
             e['index'] = i
         self.searcher = LOPQSearcherLMDB(self.model,self.model_lmdb_filename)
-        if self.test_mode:
-            self.searcher.add_data(train)
-            nns = compute_all_neighbors(test, train)
-            recall, _ = get_recall(self.searcher, test, nns)
-            print 'Recall (V=%d, M=%d, subquants=%d): %s' % (self.model.V, self.model.M, self.model.subquantizer_clusters, str(recall))
-        else:
-            self.searcher.add_data(self.data)
+        # if self.test_mode:
+        #     self.searcher.add_data(train)
+        #     nns = compute_all_neighbors(test, train)
+        #     recall, _ = get_recall(self.searcher, test, nns)
+        #     print 'Recall (V=%d, M=%d, subquants=%d): %s' % (self.model.V, self.model.M, self.model.subquantizer_clusters, str(recall))
+        # else:
+        self.searcher.add_data(self.data)
 
     def find(self):
         i,selected = random.choice([k for k in enumerate(self.entries)])
@@ -144,16 +142,17 @@ class LOPQRetriever(BaseRetriever):
             print k
 
     def save(self):
-        self.model.export_proto(self.model_proto_filename)
-        with open(self.pca_filename,'w') as out:
-            pickle.dump(self.pca_reduction,out)
-        with open(self.P_filename, 'w') as out:
-            np.save(out,self.P)
-        with open(self.mu_filename, 'w') as out:
-            np.save(out,self.mu)
-        with open(self.permuted_inds_filename, 'w') as out:
-            pickle.dump(self.permuted_inds,out)
-        self.searcher.env.close()
+        with open(self.model_proto_filename,'w') as f:
+            self.model.export_proto(f)
+            with open(self.pca_filename,'w') as out:
+                pickle.dump(self.pca_reduction,out)
+            with open(self.P_filename, 'w') as out:
+                np.save(out,self.P)
+            with open(self.mu_filename, 'w') as out:
+                np.save(out,self.mu)
+            with open(self.permuted_inds_filename, 'w') as out:
+                pickle.dump(self.permuted_inds,out)
+            self.searcher.env.close()
 
     def load(self):
         self.model = LOPQModel.load_proto(self.model_proto_filename)

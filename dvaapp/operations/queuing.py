@@ -14,7 +14,7 @@ TASK_NAMES_TO_QUEUE = {
     "perform_sync":Q_EXTRACTOR,
     "perform_detector_import":Q_EXTRACTOR,
     "perform_import":Q_EXTRACTOR,
-    "perform_clustering": Q_CLUSTER,
+    "perform_retriever_creation": Q_CLUSTER,
     "perform_detector_training": Q_TRAINER,
 }
 
@@ -31,7 +31,7 @@ TASK_NAMES_TO_TYPE = {
     "perform_dataset_extraction":VIDEO_TASK,
     "perform_detector_import":IMPORT_TASK,
     "perform_deletion": VIDEO_TASK,
-    "perform_clustering": CLUSTER_TASK,
+    "perform_retriever_creation": CLUSTER_TASK,
     "perform_detector_training": TRAIN_TASK,
 }
 

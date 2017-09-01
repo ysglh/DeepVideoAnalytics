@@ -79,10 +79,10 @@ class LOPQRetriever(BaseRetriever):
                 self.data = data[0]
             logging.info(self.data.shape)
         self.test_mode = args['test_mode']
-        self.n_components = args['n_components']
-        self.m = args['m']
-        self.v = args['v']
-        self.sub = args['sub']
+        self.n_components = int(args['n_components'])
+        self.m = int(args['m'])
+        self.v = int(args['v'])
+        self.sub = int(args['sub'])
         self.model = None
         self.searcher = None
         self.pca_reduction = None

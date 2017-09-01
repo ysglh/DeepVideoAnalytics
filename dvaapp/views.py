@@ -865,7 +865,7 @@ def training(request):
                 "process_type":DVAPQL.PROCESS,
                 "tasks":[{'operation':"perform_detector_training",
                           'arguments':args,}]
-            },user=request.user)
+            },user=request.user if request.user.is_authenticated else None)
             p.launch()
             detector.save()
     return render(request, 'training.html', context)
@@ -907,29 +907,43 @@ def retrievers(request):
 @user_passes_test(user_check)
 def create_retriever(request):
     if request.method == 'POST':
-        v = request.POST.get('v')
-        m = request.POST.get('m')
-        components = request.POST.get('components')
-        sub = request.POST.get('sub')
-        c = Retriever()
-        args = {}
-        args['components']= components
-        args['sub']= sub
-        args['m']= m
-        args['v']= v
-        c.arguments = c
-        if request.POST.get('source_filter',None):
-            c.source_filters = json.loads(request.POST.get('source_filter','{}'))
+        c = None
+        if request.POST.get('retriever_type') == 'L':
+            v = request.POST.get('v')
+            m = request.POST.get('m')
+            components = request.POST.get('components')
+            sub = request.POST.get('sub')
+            c = Retriever()
+            c.name = request.POST.get('name')
+            c.algorithm = Retriever.EXACT
+            args = {}
+            args['components']= components
+            args['sub']= sub
+            args['m']= m
+            args['v']= v
+            c.arguments = args
+            if request.POST.get('source_filters',None):
+                c.source_filters = json.loads(request.POST.get('source_filter','{}'))
+            else:
+                c.source_filters = {'indexer_shasum':Indexer.objects.get(name=request.POST.get('algorithm')).shasum}
+            c.save()
+        elif request.POST.get('retriever_type') == 'E':
+            c = Retriever()
+            c.name = request.POST.get('name')
+            c.source_filters = json.loads(request.POST.get('source_filter', '{}'))
+            c.algorithm = Retriever.EXACT
+            c.save()
         else:
-            c.source_filters = {'indexer_shasum':Indexer.objects.get(name=request.POST.get('algorithm')).shasum}
-        p = DVAPQLProcess()
-        p.create_from_json(j={
-            "process_type": DVAPQL.PROCESS,
-            "tasks": [{'operation': "perform_retriever_creation",
-                       'arguments': {'retriever_id':c.pk},
-                       }]
-        }, user=request.user)
-        p.launch()
+            raise ValueError
+        if c:
+            p = DVAPQLProcess()
+            p.create_from_json(j={
+                "process_type": DVAPQL.PROCESS,
+                "tasks": [{'operation': "perform_retriever_creation",
+                           'arguments': {'retriever_pk':c.pk},
+                           }]
+            }, user=request.user if request.user.is_authenticated else None)
+            p.launch()
     return redirect('retrievers')
 
 
@@ -939,7 +953,7 @@ def submit_process(request):
         process_pk = request.POST.get('process_pk',None)
         if process_pk is None:
             p = DVAPQLProcess()
-            p.create_from_json(j=json.loads(request.POST.get('script')), user=request.user)
+            p.create_from_json(j=json.loads(request.POST.get('script')), user=request.user if request.user.is_authenticated else None)
             p.launch()
         else:
             p = DVAPQLProcess(process=DVAPQL.objects.get(pk=process_pk))
@@ -951,7 +965,7 @@ def submit_process(request):
 def validate_process(request):
     if request.method == 'POST':
         p = DVAPQLProcess()
-        p.create_from_json(j=json.loads(request.POST.get('script')), user=request.user)
+        p.create_from_json(j=json.loads(request.POST.get('script')), user=request.user if request.user.is_authenticated else None)
         p.validate()
     return redirect("process_detail",pk=p.process.pk)
 
@@ -971,7 +985,7 @@ def delete_object(request):
 def security(request):
     context = {}
     context['username'] = request.user.username
-    token, created = Token.objects.get_or_create(user=request.user)
+    token, created = Token.objects.get_or_create(user=request.user if request.user.is_authenticated else None)
     context['token'] = token
     return render(request, 'security.html', context=context)
 
@@ -981,7 +995,7 @@ def expire_token(request):
     # TODO Check if this is correct
     if request.method == 'POST':
         if request.POST.get('expire',False):
-            token, created = Token.objects.get_or_create(user=request.user)
+            token, created = Token.objects.get_or_create(user=request.user if request.user.is_authenticated else None)
             if not created:
                 token.delete()
     return redirect("security")
@@ -1195,7 +1209,7 @@ def detect_objects(request):
             "tasks":[{'operation':"perform_detection",
                       'arguments':{'detector_pk': int(detector_pk),'detector':"custom"},
                       'video_id':video_pk}]
-        },user=request.user)
+        },user=request.user if request.user.is_authenticated else None)
         p.launch()
         return redirect('process_detail',pk=p.process.pk)
     else:
@@ -1222,7 +1236,7 @@ def train_detector(request):
             "process_type":DVAPQL.PROCESS,
             "tasks":[{'operation':"perform_detector_training",
                       'arguments':args,}]
-        },user=request.user)
+        },user=request.user if request.user.is_authenticated else None)
         p.launch()
         detector.save()
         return redirect('process_detail', pk=p.process.pk)

@@ -410,6 +410,7 @@ def perform_import(event_id):
     process_next(start.pk)
     mark_as_completed(start)
 
+
 @app.task(track_started=True, name="perform_retriever_creation")
 def perform_retriever_creation(cluster_task_id, test=False):
     start = TEvent.objects.get(pk=cluster_task_id)

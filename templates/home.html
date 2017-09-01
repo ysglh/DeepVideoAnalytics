@@ -253,6 +253,7 @@
         <div class="col-md-6 ">
 <pre class="m-t"  style="padding:0"><code class="bash">git clone https://github.com/AKSHAYUBHAT/DeepVideoAnalytics
 cd DeepVideoAnalytics/docker && docker-compose up
+# Above command will automatically pull container images from docker-hub
 </code></pre>
         </div>
     </div>
@@ -264,8 +265,9 @@ cd DeepVideoAnalytics/docker && docker-compose up
         <div class="col-md-6 ">
 <pre class="m-t"  style="padding:0"><code class="bash">pip install --upgrade nvidia-docker-compose
 git clone https://github.com/AKSHAYUBHAT/DeepVideoAnalytics
-cd DeepVideoAnalytics/docker && ./rebuild_gpu.sh
+cd DeepVideoAnalytics/docker
 nvidia-docker-compose -f custom/docker-compose-gpu.yml up
+# Above command will automatically pull container images from docker-hub
 </code></pre>
         </div>
     </div>

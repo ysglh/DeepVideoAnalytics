@@ -697,3 +697,10 @@ def perform_stream_capture(task_id):
     :return:
     """
     raise NotImplementedError
+
+
+def perform_monitoring():
+    """
+    :return:
+    """
+    pass

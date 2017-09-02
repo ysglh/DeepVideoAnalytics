@@ -292,8 +292,16 @@ class DVAPQLProcess(object):
 
     def collect(self):
         self.context = defaultdict(list)
+        rids_to_names = {}
         for r in QueryResults.objects.all().filter(query=self.process):
-            self.context[r.retrieval_event_id].append((r.rank,
+            if r.retrieval_event_id not in rids_to_names:
+                retriever = Retriever.objects.get(pk=r.retrieval_event.arguments['retriever_pk'])
+                indexer = Indexer.objects.get(name=r.retrieval_event.parent.arguments['index'])
+                rids_to_names[r.retrieval_event_id] = "Indexer {} -> {} {} retriever".format(indexer.name,
+                                                                                   retriever.get_algorithm_display(),
+                                                                                   retriever.name)
+            name = rids_to_names[r.retrieval_event_id]
+            self.context[name].append((r.rank,
                                          {'url': '{}{}/regions/{}.jpg'.format(settings.MEDIA_URL, r.video_id,
                                                                                  r.detection_id) if r.detection_id else '{}{}/frames/{}.jpg'.format(
                                              settings.MEDIA_URL, r.video_id, r.frame.frame_index),

@@ -197,7 +197,7 @@ class DVAPQLProcess(object):
         selected_indexers = json.loads(request.POST.get('selected_indexers'))
         approximate = True if request.POST.get('approximate') == 'true' else False
         query_json['image_data_b64'] = request.POST.get('image_url')[22:]
-        query_json['indexer_queries'] = []
+        query_json['tasks'] = []
         for k in selected_indexers:
             query_json['tasks'].append(
                 {
@@ -207,7 +207,7 @@ class DVAPQLProcess(object):
                         'target': 'query',
                         'next_tasks': [
                             {'operation': 'perform_retrieval',
-                             'arguments': {'count': count,
+                             'arguments': {'count': int(count),
                                            'retriever_pk': Retriever.objects.get(name=k).pk}
                              }
                         ]

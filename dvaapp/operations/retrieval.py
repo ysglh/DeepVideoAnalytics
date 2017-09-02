@@ -94,6 +94,6 @@ class RetrieverTask(celery.Task):
             qr.rank = r['rank']
             qr.distance = r['dist']
             qr.save()
-        event.parent_query.results_available = True
-        event.parent_query.save()
+        event.parent_process.results_available = True
+        event.parent_process.save()
         return 0

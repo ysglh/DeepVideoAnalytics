@@ -49,7 +49,7 @@ def perform_indexing(task_id):
     sync = True
     if target == 'query':
         parent_process = start.parent_process
-        local_path = parent_process.path()
+        local_path = "{}/queries/{}_{}.png".format(settings.MEDIA_ROOT, start.pk, start.parent_process_id)
         with open(local_path, 'w') as fh:
             fh.write(str(parent_process.image_data))
         vector = visual_index.apply(local_path)

@@ -33,12 +33,6 @@ class DVAPQL(models.Model):
     results_metadata = models.TextField(default="")
     results_available = models.BooleanField(default=False)
 
-    def path(self,media_root=None):
-        if media_root:
-            return "{}/queries/{}_{}.png".format(media_root, self.algorithm, self.parent_query.pk)
-        else:
-            return "{}/queries/{}_{}.png".format(settings.MEDIA_ROOT, self.algorithm, self.parent_query.pk)
-
 
 
 class Video(models.Model):

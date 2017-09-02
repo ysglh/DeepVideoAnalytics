@@ -25,6 +25,7 @@ class RetrieverTask(celery.Task):
             if dr.algorithm == Retriever.EXACT:
                 RetrieverTask._visual_retriever[retriever_pk] = retriever.BaseRetriever(name=dr.name)
             elif dr.algorithm == Retriever.LOPQ:
+                dr.arguments['proto_filename'] = dr.proto_filename()
                 RetrieverTask._visual_retriever[retriever_pk] = retriever.LOPQRetriever(name=dr.name,args=dr.arguments)
                 RetrieverTask._visual_retriever[retriever_pk].load()
             else:

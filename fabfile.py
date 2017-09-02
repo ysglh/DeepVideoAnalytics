@@ -1,5 +1,11 @@
-import os, logging, time, boto3, glob, subprocess, calendar, sys
-from fabric.api import task, local, run, put, get, lcd, cd, sudo, env, puts
+import os
+import logging
+import time
+import glob
+import subprocess
+import calendar
+import sys
+from fabric.api import task, local, lcd
 import json
 import shutil
 
@@ -73,7 +79,8 @@ def start_container(container_type):
         launch_workers_and_scheduler_from_environment()
         launch_server_from_environment()
     else:
-        raise ValueError,"invalid container_type = {}".format(container_type)
+        raise ValueError, "invalid container_type = {}".format(container_type)
+
 
 @task
 def clean():
@@ -205,7 +212,7 @@ def ci():
     args['v'] = 8
     args['sub'] = 64
     dc.algorithm = Retriever.LOPQ
-    dc.source_filters = {'indexer_shasum':Indexer.objects.get(name="inception").shasum}
+    dc.source_filters = {'indexer_shasum': Indexer.objects.get(name="inception").shasum}
     dc.arguments = args
     dc.save()
     clustering_task = TEvent()
@@ -243,7 +250,47 @@ def ci():
         if k['name'] == 'MSCOCO_Sample_500':
             print 'FOUND MSCOCO SAMPLE'
             import_vdn_dataset_url(VDNServer.objects.get(pk=1), k['url'], None, k)
-    test_backup()
+
+
+@task
+def ci_search():
+    """
+    Perform Continuous Integration testing using Travis
+
+    """
+    import django
+    sys.path.append(os.path.dirname(__file__))
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
+    django.setup()
+    import base64
+    from dvaapp.models import DVAPQL, Retriever, QueryResults
+    from dvaapp.operations.processing import DVAPQLProcess
+    launch_workers_and_scheduler_from_environment()
+    query_dict = {
+        'process_type': DVAPQL.QUERY,
+        'image_data_b64': base64.encodestring(file('tests/query.png').read()),
+        'tasks': [
+            {
+                'operation': 'perform_indexing',
+                'arguments': {
+                    'index': 'inception',
+                    'target': 'query',
+                    'next_tasks': [
+                        {'operation': 'perform_retrieval',
+                         'arguments': {'count': 15, 'retriever_pk': Retriever.objects.get(name='inception').pk}
+                         }
+                    ]
+                }
+
+            }
+
+        ]
+    }
+    qp = DVAPQLProcess()
+    qp.create_from_json(query_dict)
+    qp.launch()
+    qp.wait()
+    assert QueryResults.objects.count() == 15
 
 
 @task
@@ -277,17 +324,6 @@ def quick():
     superu()
     test()
     launch()
-
-
-@task
-def test_backup():
-    """
-    Test backup
-
-    """
-    local('fab backup')
-    clean()
-    local('fab restore:backups/*.zip')
 
 
 @task
@@ -354,7 +390,7 @@ def launch_workers_and_scheduler_from_environment(block_on_manager=False):
                 env_vars = "CAFFE_MODE=1 " if dm.mode == dm.CAFFE else env_vars
             else:
                 raise ValueError, k
-            command = '{}fab startq:{} &'.format(env_vars,queue_name)
+            command = '{}fab startq:{} &'.format(env_vars, queue_name)
             logging.info("'{}' for {}".format(command, k))
             local(command)
         elif k.startswith('LAUNCH_Q_') and k != 'LAUNCH_Q_{}'.format(queuing.Q_MANAGER):
@@ -486,7 +522,7 @@ def init_models():
         if m['model_type'] == "indexer":
             dm, created = Indexer.objects.get_or_create(name=m['name'], mode=m['mode'], shasum=m['shasum'])
             if created:
-                _ = Retriever.objects.get_or_create(name=m['name'],source_filters={'indexer_shasum':dm.shasum})
+                _ = Retriever.objects.get_or_create(name=m['name'], source_filters={'indexer_shasum': dm.shasum})
             if m['url']:
                 download_model(settings.MEDIA_ROOT, "indexers", dm.pk, m['filename'], m['url'])
         if m['model_type'] == "analyzer":
@@ -505,7 +541,7 @@ def init_fs():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from django.conf import settings
-    for create_dirname in ['queries', 'exports', 'external','retrievers']:
+    for create_dirname in ['queries', 'exports', 'external', 'retrievers']:
         if not os.path.isdir("{}/{}".format(settings.MEDIA_ROOT, create_dirname)):
             try:
                 os.mkdir("{}/{}".format(settings.MEDIA_ROOT, create_dirname))
@@ -752,28 +788,28 @@ def qt():
     for fname in glob.glob('tests/ci/*.mp4'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/mp4")
-        v = handle_uploaded_file(f, name)
+        _ = handle_uploaded_file(f, name)
     for fname in glob.glob('tests/example*.zip'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
-        v = handle_uploaded_file(f, name)
-    # from dvaapp.models import Retriever,Indexer,TEvent
-    # from dvaapp.tasks import perform_retriever_creation
-    # dc = Retriever()
-    # args = {}
-    # args['components'] = 32
-    # args['m'] = 8
-    # args['v'] = 8
-    # args['sub'] = 128
-    # dc.algorithm = Retriever.LOPQ
-    # dc.source_filters = {'indexer_shasum': Indexer.objects.get(name="inception").shasum}
-    # dc.arguments = args
-    # dc.save()
-    # clustering_task = TEvent()
-    # clustering_task.arguments = {'retriever_pk': dc.pk}
-    # clustering_task.operation = 'perform_retriever_creation'
-    # clustering_task.save()
-    # perform_retriever_creation(clustering_task.pk)
+        _ = handle_uploaded_file(f, name)
+
+
+@task
+def qt_lopq():
+    from dvaapp.models import Retriever, Indexer,TEvent
+    from dvaapp.tasks import perform_retriever_creation
+    dc = Retriever()
+    args = {'components': 32, 'm': 8, 'v': 8, 'sub': 128}
+    dc.algorithm = Retriever.LOPQ
+    dc.source_filters = {'indexer_shasum': Indexer.objects.get(name="inception").shasum}
+    dc.arguments = args
+    dc.save()
+    clustering_task = TEvent()
+    clustering_task.arguments = {'retriever_pk': dc.pk}
+    clustering_task.operation = 'perform_retriever_creation'
+    clustering_task.save()
+    perform_retriever_creation(clustering_task.pk)
 
 
 @task

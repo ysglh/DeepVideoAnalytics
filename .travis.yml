@@ -62,6 +62,7 @@ script:
   - fab init_models
   - fab ci
   - fab ci_face
+  - fab ci_search
   - wget --quiet localhost:8000
   - wget --quiet localhost:8000/videos/
   - wget --quiet localhost:8000/videos/1/

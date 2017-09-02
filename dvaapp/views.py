@@ -560,6 +560,10 @@ def home(request):
         return render(request, 'home.html', {})
 
 
+def paper(request):
+    return render(request, 'paper.html', {})
+
+
 @user_passes_test(user_check)
 def index(request, query_pk=None, frame_pk=None, detection_pk=None):
     if request.method == 'POST':

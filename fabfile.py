@@ -213,34 +213,31 @@ def ci():
     clustering_task.operation = 'perform_retriever_creation'
     clustering_task.save()
     perform_retriever_creation(clustering_task.pk)
-    # query_dict = {
-    #     'process_type': DVAPQL.QUERY,
-    #     'image_data_b64': base64.encodestring(file('tests/query.png').read()),
-    #     'indexer_queries': [
-    #         {
-    #             'algorithm': 'inception',
-    #             'count': 10,
-    #             'approximate': False
-    #         }
-    #     ]
-    # }
-    # qp = DVAPQLProcess()
-    # qp.create_from_json(query_dict)
-    # # execute_index_subquery(qp.indexer_queries[0].pk)
-    # query_dict = {
-    #     'process_type': DVAPQL.QUERY,
-    #     'image_data_b64': base64.encodestring(file('tests/query.png').read()),
-    #     'indexer_queries': [
-    #         {
-    #             'algorithm': 'inception',
-    #             'count': 10,
-    #             'approximate': True
-    #         }
-    #     ]
-    # }
-    # qp = DVAPQLProcess()
-    # qp.create_from_json(query_dict)
-    # # execute_index_subquery(qp.indexer_queries[0].pk)
+    query_dict = {
+        'process_type': DVAPQL.QUERY,
+        'image_data_b64': base64.encodestring(file('tests/query.png').read()),
+        'tasks': [
+            {
+                'operation': 'perform_indexing',
+                'arguments': {
+                    'index': 'inception',
+                    'target': 'query',
+                    'next_tasks': [
+                        {'operation': 'perform_retrieval',
+                         'arguments': {'count': 20, 'retriever_pk': Retriever.objects.get(name='inception').pk}
+                         }
+                    ]
+                }
+
+            }
+
+        ]
+    }
+    launch_workers_and_scheduler_from_environment()
+    qp = DVAPQLProcess()
+    qp.create_from_json(query_dict)
+    qp.launch()
+    qp.wait()
     server, datasets, detectors = pull_vdn_list(1)
     for k in datasets:
         if k['name'] == 'MSCOCO_Sample_500':

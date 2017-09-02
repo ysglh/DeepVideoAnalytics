@@ -199,11 +199,22 @@ class DVAPQLProcess(object):
         query_json['image_data_b64'] = request.POST.get('image_url')[22:]
         query_json['indexer_queries'] = []
         for k in selected_indexers:
-            query_json['indexer_queries'].append({
-                'algorithm':k,
-                'count':count,
-                'approximate':approximate
-            })
+            query_json['tasks'].append(
+                {
+                    'operation': 'perform_indexing',
+                    'arguments': {
+                        'index': k,
+                        'target': 'query',
+                        'next_tasks': [
+                            {'operation': 'perform_retrieval',
+                             'arguments': {'count': count,
+                                           'retriever_pk': Retriever.objects.get(name=k).pk}
+                             }
+                        ]
+                    }
+
+                }
+            )
         user = request.user if request.user.is_authenticated else None
         self.create_from_json(query_json,user)
         return self.process
@@ -221,27 +232,6 @@ class DVAPQLProcess(object):
             self.process.script = j
             self.process.save()
             self.store()
-            for k in j['indexer_queries']:
-                iq = IndexerQuery()
-                iq.parent_query = self.process
-                iq.algorithm = k['algorithm']
-                if 'indexer_pk' in k:
-                    iq.indexer_id = k['indexer_pk']
-                elif 'index' in k:
-                    iq.indexer = Indexer.objects.get(name=k['index'])
-                elif 'algorithm' in k:
-                    iq.indexer = Indexer.objects.get(name=k['algorithm'])
-                else:
-                    raise ValueError,"indexer not specified"
-                if 'retriever_pk' in k:
-                    iq.retriever_id = k['retriever_pk']
-                elif 'algorithm' in k:
-                    iq.retriever = Retriever.objects.get(name=k['algorithm'])
-                else:
-                    raise ValueError,"indexer not specified"
-                iq.count = k['count']
-                iq.approximate = k['approximate']
-                iq.save()
         elif j['process_type'] == DVAPQL.PROCESS:
             self.process.process_type = DVAPQL.PROCESS
             self.process.script = j
@@ -280,27 +270,17 @@ class DVAPQLProcess(object):
                     dt.save()
                     app.send_task(name=dt.operation,args=[dt.pk, ],queue=dt.queue)
         elif self.process.script['process_type'] == DVAPQL.QUERY:
-            for iq in IndexerQuery.objects.filter(parent_query=self.process):
-                operation = 'perform_indexing'
-                jargs = {
-                    'iq_id':iq.pk,
-                    'index':iq.algorithm,
-                    'target':'query',
-                    'next_tasks':[
-                         {'operation': 'perform_retrieval',
-                          'arguments': {'iq_id': iq.pk, 'retriever_pk': iq.retriever_id}
-                         }
-                    ]
-                }
-                queue_name = get_queue_name(operation, jargs)
-                next_task = TEvent.objects.create(parent_process=self.process, operation=operation, arguments=jargs,queue=queue_name)
-                self.task_results[iq.algorithm] = app.send_task(operation, args=[next_task.pk, ], queue=queue_name, priority=5)
-                self.context[iq.algorithm] = []
+            for t in self.process.script['tasks']:
+                operation = t['operation']
+                arguments = t.get('arguments',{})
+                queue_name = get_queue_name(operation,arguments)
+                next_task = TEvent.objects.create(parent_process=self.process, operation=operation,arguments=arguments,queue=queue_name)
+                self.task_results[next_task.pk] = app.send_task(name=operation,args=[next_task.pk, ],queue=queue_name,priority=5)
         else:
             raise NotImplementedError
 
     def wait(self,timeout=60):
-        for visual_index_name, result in self.task_results.iteritems():
+        for _, result in self.task_results.iteritems():
             try:
                 next_task_ids = result.get(timeout=timeout)
                 if next_task_ids:
@@ -313,7 +293,7 @@ class DVAPQLProcess(object):
     def collect(self):
         self.context = defaultdict(list)
         for r in QueryResults.objects.all().filter(query=self.process):
-            self.context[r.algorithm].append((r.rank,
+            self.context[r.retrieval_event_id].append((r.rank,
                                          {'url': '{}{}/regions/{}.jpg'.format(settings.MEDIA_URL, r.video_id,
                                                                                  r.detection_id) if r.detection_id else '{}{}/frames/{}.jpg'.format(
                                              settings.MEDIA_URL, r.video_id, r.frame.frame_index),

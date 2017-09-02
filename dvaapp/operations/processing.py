@@ -199,6 +199,10 @@ class DVAPQLProcess(object):
         query_json['image_data_b64'] = request.POST.get('image_url')[22:]
         query_json['tasks'] = []
         for k in selected_indexers:
+            if approximate:
+                retriever_pk =  Retriever.objects.get(name=k,algorithm=Retriever.LOPQ).pk
+            else:
+                retriever_pk = Retriever.objects.get(name=k,algorithm=Retriever.EXACT).pk
             query_json['tasks'].append(
                 {
                     'operation': 'perform_indexing',
@@ -207,8 +211,7 @@ class DVAPQLProcess(object):
                         'target': 'query',
                         'next_tasks': [
                             {'operation': 'perform_retrieval',
-                             'arguments': {'count': int(count),
-                                           'retriever_pk': Retriever.objects.get(name=k).pk}
+                             'arguments': {'count': int(count), 'retriever_pk':retriever_pk}
                              }
                         ]
                     }

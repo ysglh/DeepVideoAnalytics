@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import Video, Frame, TEvent, IndexEntries, QueryResults, DVAPQL, VDNServer,\
-    ClusterCodes, Region, Tube, Detector, Segment, DeletedVideo, \
+    LOPQCodes, Region, Tube, Detector, Segment, DeletedVideo, \
     VideoLabel, FrameLabel, RegionLabel, TubeLabel, SegmentLabel, Label, ManagementAction, \
     StoredDVAPQL, Analyzer, Indexer, Retriever
 
@@ -84,8 +84,8 @@ class TEventAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(ClusterCodes)
-class ClusterCodesAdmin(admin.ModelAdmin):
+@admin.register(LOPQCodes)
+class LOPQCodesAdmin(admin.ModelAdmin):
     pass
 
 

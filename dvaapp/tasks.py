@@ -4,7 +4,7 @@ from collections import defaultdict
 from PIL import Image
 from django.conf import settings
 from dva.celery import app
-from .models import Video, Frame, TEvent,  IndexEntries, ClusterCodes, Region, Tube, \
+from .models import Video, Frame, TEvent,  IndexEntries, LOPQCodes, Region, Tube, \
     Retriever, Detector, Segment, QueryIndexVector, DeletedVideo, ManagementAction, Indexer, Analyzer
 from .operations.indexing import IndexerTask
 from .operations.retrieval import RetrieverTask
@@ -424,7 +424,8 @@ def perform_retriever_creation(cluster_task_id, test=False):
     c.cluster()
     cluster_codes = []
     for e in c.entries:
-        cc = ClusterCodes()
+        cc = LOPQCodes()
+        cc.retriever_id = dc.pk
         cc.video_id = e['video_primary_key']
         if 'detection_primary_key' in e:
             cc.detection_id = e['detection_primary_key']
@@ -438,7 +439,7 @@ def perform_retriever_creation(cluster_task_id, test=False):
         cc.fine_text = " ".join(map(str, e['fine']))
         cc.searcher_index = e['index']
         cluster_codes.append(cc)
-    ClusterCodes.objects.bulk_create(cluster_codes)
+    LOPQCodes.objects.bulk_create(cluster_codes)
     c.save()
     dc.completed = True
     dc.save()

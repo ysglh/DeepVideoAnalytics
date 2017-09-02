@@ -27,7 +27,7 @@ router.register(r'queryresults', views.QueryResultsViewSet)
 router.register(r'indexentries', views.IndexEntriesViewSet)
 router.register(r'events', views.TEventViewSet)
 router.register(r'vdnservers', views.VDNServerViewSet)
-router.register(r'clustercodes', views.ClusterCodesViewSet)
+router.register(r'lopqcodes', views.LOPQCodesViewSet)
 
 
 urlpatterns = [

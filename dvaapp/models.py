@@ -385,8 +385,8 @@ class QueryResults(models.Model):
     distance = models.FloatField(default=0.0)
 
 
-class ClusterCodes(models.Model):
-    clusters = models.ForeignKey(Retriever)
+class LOPQCodes(models.Model):
+    retriever = models.ForeignKey(Retriever)
     video = models.ForeignKey(Video)
     frame = models.ForeignKey(Frame)
     detection = models.ForeignKey(Region,null=True)
@@ -397,8 +397,8 @@ class ClusterCodes(models.Model):
     searcher_index = models.IntegerField()
 
     class Meta:
-        unique_together = ('searcher_index', 'clusters')
-        index_together = [["clusters", "searcher_index"],] # Very important manually verify in Postgres
+        unique_together = ('searcher_index', 'retriever')
+        index_together = [["retriever", "searcher_index"],] # Very important manually verify in Postgres
 
 
 class IndexEntries(models.Model):

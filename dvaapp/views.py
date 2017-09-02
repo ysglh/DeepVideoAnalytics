@@ -7,7 +7,7 @@ import json
 from django.views.generic import ListView, DetailView
 from .forms import UploadFileForm, YTVideoForm, AnnotationForm
 from .models import Video, Frame, DVAPQL, QueryResults, TEvent, IndexEntries, Region, VDNServer, \
-    ClusterCodes, Tube, Detector,  Segment, FrameLabel, SegmentLabel, \
+    LOPQCodes, Tube, Detector,  Segment, FrameLabel, SegmentLabel, \
     VideoLabel, RegionLabel, TubeLabel, Label, ManagementAction, StoredDVAPQL, Analyzer,\
     Indexer, Retriever
 from dva.celery import app
@@ -214,10 +214,10 @@ class TubeViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Creat
     serializer_class = serializers.TubeSerializer
 
 
-class ClusterCodesViewSet(viewsets.ModelViewSet):
+class LOPQCodesViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
-    queryset = ClusterCodes.objects.all()
-    serializer_class = serializers.ClusterCodesSerializer
+    queryset = LOPQCodes.objects.all()
+    serializer_class = serializers.LOPQCodesSerializer
 
 
 class VideoList(UserPassesTestMixin, ListView):
@@ -783,7 +783,7 @@ def coarse_code_detail(request, pk, coarse_code):
     coarse_code = coarse_code.replace('_', ' ')
     context = {
         'code': coarse_code,
-        'objects': ClusterCodes.objects.all().filter(coarse_text=coarse_code, clusters_id=pk)
+        'objects': LOPQCodes.objects.all().filter(coarse_text=coarse_code, clusters_id=pk)
     }
     return render(request, 'coarse_code_details.html', context)
 

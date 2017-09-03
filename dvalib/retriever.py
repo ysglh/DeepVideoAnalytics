@@ -67,9 +67,12 @@ class LOPQRetriever(BaseRetriever):
             nmat = np.load(fname)
             if nmat.ndim > 2:
                 nmat = nmat.squeeze()
+                logging.info("Squeezed  {} ".format(nmat.shape))
             elif nmat.ndim == 1:
                 nmat = np.expand_dims(nmat, axis=0)
-            logging.info(nmat.shape)
+                logging.info("expanded  {} ".format(nmat.shape))
+            else:
+                logging.info("Same  {} ".format(nmat.shape))
             data.append(nmat)
             for e in json.load(file(fname.replace('npy','json'))):
                 self.entries.append(e)

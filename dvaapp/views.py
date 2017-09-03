@@ -9,7 +9,7 @@ from .forms import UploadFileForm, YTVideoForm, AnnotationForm
 from .models import Video, Frame, DVAPQL, QueryResults, TEvent, IndexEntries, Region, VDNServer, \
     LOPQCodes, Tube, Detector,  Segment, FrameLabel, SegmentLabel, \
     VideoLabel, RegionLabel, TubeLabel, Label, ManagementAction, StoredDVAPQL, Analyzer,\
-    Indexer, Retriever
+    Indexer, Retriever, SystemState
 from dva.celery import app
 from dvaapp.operations import queuing
 import serializers
@@ -57,6 +57,12 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
     queryset = User.objects.all()
     serializer_class = serializers.UserSerializer
+
+
+class SystemStateViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
+    queryset = SystemState.objects.all()
+    serializer_class = serializers.SystemStateSerializer
 
 
 class VideoViewSet(viewsets.ReadOnlyModelViewSet):
@@ -802,11 +808,12 @@ def status(request):
 
 
 @user_passes_test(user_check)
-def workers(request):
+def management(request):
     timeout = 1.0
     context = {
         'timeout':timeout,
-        'actions':ManagementAction.objects.all()
+        'actions':ManagementAction.objects.all(),
+        'state':SystemState.objects.all()
     }
     if request.method == 'POST':
         op = request.POST.get("op","")
@@ -823,7 +830,7 @@ def workers(request):
         elif op == "launch":
             t = app.send_task('manage_host', args=[op,host_name,queue_name],exchange='qmanager')
             t.wait(timeout=timeout)
-    return render(request, 'workers.html', context)
+    return render(request, 'management.html', context)
 
 
 @user_passes_test(user_check)

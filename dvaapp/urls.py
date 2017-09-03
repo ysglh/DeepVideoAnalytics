@@ -28,6 +28,7 @@ router.register(r'indexentries', views.IndexEntriesViewSet)
 router.register(r'events', views.TEventViewSet)
 router.register(r'vdnservers', views.VDNServerViewSet)
 router.register(r'lopqcodes', views.LOPQCodesViewSet)
+router.register(r'system_state', views.SystemStateViewSet)
 
 
 urlpatterns = [
@@ -44,7 +45,7 @@ urlpatterns = [
     url(r'^models', views.models, name='models'),
     url(r'^index_video', views.index_video, name='index_video'),
     url(r'^detect_objects', views.detect_objects, name='detect_objects'),
-    url(r'^workers/$', views.workers, name='workers'),
+    url(r'^management/$', views.management, name='management'),
     url(r'^training/$', views.training, name='training'),
     url(r'^train_detector/$', views.train_detector, name='train_detector'),
     url(r'^detectors/(?P<pk>\d+)/$', views.DetectionDetail.as_view(), name='detections_detail'),

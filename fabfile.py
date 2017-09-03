@@ -109,7 +109,7 @@ def clean():
     if sys.platform == 'darwin':
         local("rm logs/*.log")
         try:
-            local("ps auxww | grep 'celery -A dva worker' | awk '{print $2}' | xargs kill -9")
+            local("ps auxww | grep 'celery -A dva' | awk '{print $2}' | xargs kill -9")
         except:
             pass
     init_fs()
@@ -132,7 +132,7 @@ def restart_queues():
 @task
 def kill():
     try:
-        local("ps auxww | grep 'celery -A dva worker * ' | awk '{print $2}' | xargs kill -9")
+        local("ps auxww | grep 'celery -A dva * ' | awk '{print $2}' | xargs kill -9")
     except:
         pass
 
@@ -348,7 +348,7 @@ def launch():
     envars = ['LAUNCH_BY_NAME_indexer_inception', 'LAUNCH_BY_NAME_indexer_facenet',
               'LAUNCH_BY_NAME_retriever_inception', 'LAUNCH_BY_NAME_retriever_facenet',
               'LAUNCH_BY_NAME_detector_coco', 'LAUNCH_BY_NAME_detector_face',
-              'LAUNCH_Q_qclusterer', 'LAUNCH_Q_qextract']
+              'LAUNCH_Q_qclusterer', 'LAUNCH_Q_qextract','LAUNCH_SCHEDULER']
     for k in envars:
         os.environ[k] = "1"
     launch_workers_and_scheduler_from_environment(False)
@@ -457,6 +457,10 @@ def init_server():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from dvaapp.models import Video, VDNServer, StoredDVAPQL
+    from django_celery_beat.models import PeriodicTask,IntervalSchedule
+    every_3_minutes,created = IntervalSchedule.objects.get_or_create(every=3,period=IntervalSchedule.MINUTES)
+    _ = PeriodicTask.objects.get_or_create(name="monitoring",task="monitor_system",
+                                           interval=every_3_minutes,queue='qextract')
     if StoredDVAPQL.objects.count() == 0:
         for fname in glob.glob('configs/templates/*.json'):
             StoredDVAPQL.objects.create(name=fname,

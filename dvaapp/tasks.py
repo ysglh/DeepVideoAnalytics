@@ -5,7 +5,7 @@ from PIL import Image
 from django.conf import settings
 from dva.celery import app
 from .models import Video, Frame, TEvent,  IndexEntries, LOPQCodes, Region, Tube, \
-    Retriever, Detector, Segment, QueryIndexVector, DeletedVideo, ManagementAction, Indexer, Analyzer
+    Retriever, Detector, Segment, QueryIndexVector, DeletedVideo, ManagementAction, Analyzer, SystemState, DVAPQL
 from .operations.indexing import IndexerTask
 from .operations.retrieval import RetrieverTask
 from .operations.detection import DetectorTask
@@ -699,8 +699,15 @@ def perform_stream_capture(task_id):
     raise NotImplementedError
 
 
-def perform_monitoring():
+@app.task(track_started=True,name="monitor_system")
+def monitor_system():
     """
     :return:
     """
-    pass
+    s = SystemState()
+    s.processes = DVAPQL.objects.count()
+    s.completed_processes = DVAPQL.objects.filter(tevent__completed=False).count()
+    s.tasks = TEvent.objects.count()
+    s.pending_tasks = TEvent.objects.filter(started=False).count()
+    s.completed_tasks = TEvent.objects.filter(started=True,completed=True).count()
+    s.save()

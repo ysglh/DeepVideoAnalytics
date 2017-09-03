@@ -2,7 +2,7 @@ from rest_framework import serializers, viewsets
 from django.contrib.auth.models import User
 from models import Video, Frame, Region, DVAPQL, QueryResults, TEvent, IndexEntries, \
     VDNServer, Tube, LOPQCodes, Segment, Label, VideoLabel, FrameLabel, RegionLabel, \
-    SegmentLabel, TubeLabel, Analyzer, Indexer, Detector, Retriever
+    SegmentLabel, TubeLabel, Analyzer, Indexer, Detector, Retriever, SystemState
 import os, json, logging, glob
 from collections import defaultdict
 from django.conf import settings
@@ -181,6 +181,12 @@ class LOPQCodesSerializer(serializers.HyperlinkedModelSerializer):
 class DVAPQLSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = DVAPQL
+        fields = '__all__'
+
+
+class SystemStateSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = SystemState
         fields = '__all__'
 
 

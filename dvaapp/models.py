@@ -572,3 +572,13 @@ class StoredDVAPQL(models.Model):
     script = JSONField(blank=True, null=True)
 
 
+class SystemState(models.Model):
+    created = models.DateTimeField('date created', auto_now_add=True)
+    tasks = models.IntegerField(default=0)
+    pending_tasks = models.IntegerField(default=0)
+    completed_tasks = models.IntegerField(default=0)
+    processes = models.IntegerField(default=0)
+    pending_processes = models.IntegerField(default=0)
+    completed_processes = models.IntegerField(default=0)
+
+

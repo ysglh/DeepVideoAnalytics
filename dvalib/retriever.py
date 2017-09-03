@@ -67,7 +67,7 @@ class LOPQRetriever(BaseRetriever):
             nmat = np.load(fname)
             if nmat.ndim > 2:
                 logging.info("squeezing  shape {} with dimensions {}".format(nmat.shape,nmat.ndim))
-                nmat = nmat.squeeze()
+                nmat = nmat.squeeze(axis=1)
             elif nmat.ndim == 1:
                 logging.info("expanding  shape {} with dimensions {}".format(nmat.shape, nmat.ndim))
                 nmat = np.expand_dims(nmat, axis=0)

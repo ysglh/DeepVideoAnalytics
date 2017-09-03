@@ -66,13 +66,13 @@ class LOPQRetriever(BaseRetriever):
         for fname in self.fnames:
             nmat = np.load(fname)
             if nmat.ndim > 2:
+                logging.info("squeezing  shape {} with dimensions {}".format(nmat.shape,nmat.ndim))
                 nmat = nmat.squeeze()
-                logging.info("Squeezed  {} ".format(nmat.shape))
             elif nmat.ndim == 1:
+                logging.info("expanding  shape {} with dimensions {}".format(nmat.shape, nmat.ndim))
                 nmat = np.expand_dims(nmat, axis=0)
-                logging.info("expanded  {} ".format(nmat.shape))
             else:
-                logging.info("Same  {} ".format(nmat.shape))
+                logging.info("keeping same  shape {} with dimensions {}".format(nmat.shape, nmat.ndim))
             data.append(nmat)
             for e in json.load(file(fname.replace('npy','json'))):
                 self.entries.append(e)

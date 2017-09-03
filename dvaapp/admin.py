@@ -2,11 +2,16 @@ from django.contrib import admin
 from .models import Video, Frame, TEvent, IndexEntries, QueryResults, DVAPQL, VDNServer,\
     LOPQCodes, Region, Tube, Detector, Segment, DeletedVideo, \
     VideoLabel, FrameLabel, RegionLabel, TubeLabel, SegmentLabel, Label, ManagementAction, \
-    StoredDVAPQL, Analyzer, Indexer, Retriever, SystemState
+    StoredDVAPQL, Analyzer, Indexer, Retriever, SystemState, Worker
 
 
 @admin.register(SystemState)
 class SystemStateAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Worker)
+class WorkerAdmin(admin.ModelAdmin):
     pass
 
 

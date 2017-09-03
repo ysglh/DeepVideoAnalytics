@@ -32,7 +32,7 @@ class DVAPQL(models.Model):
     script = JSONField(blank=True, null=True)
     results_metadata = models.TextField(default="")
     results_available = models.BooleanField(default=False)
-
+    completed = models.BooleanField(default=False)
 
 
 class Video(models.Model):
@@ -556,6 +556,13 @@ class ManagementAction(models.Model):
     created = models.DateTimeField('date created', auto_now_add=True)
 
 
+class Worker(models.Model):
+    queue_name = models.CharField(max_length=500, default="")
+    host = models.CharField(max_length=500, default="")
+    pid = models.IntegerField()
+    created = models.DateTimeField('date created', auto_now_add=True)
+
+
 class StoredDVAPQL(models.Model):
     """
     Stored processes
@@ -580,5 +587,5 @@ class SystemState(models.Model):
     processes = models.IntegerField(default=0)
     pending_processes = models.IntegerField(default=0)
     completed_processes = models.IntegerField(default=0)
-
-
+    queues = JSONField(blank=True,null=True)
+    hosts = JSONField(blank=True,null=True)

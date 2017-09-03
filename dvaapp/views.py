@@ -813,7 +813,7 @@ def management(request):
     context = {
         'timeout':timeout,
         'actions':ManagementAction.objects.all(),
-        'state':SystemState.objects.all()
+        'state':SystemState.objects.all().order_by('-created')[:100]
     }
     if request.method == 'POST':
         op = request.POST.get("op","")

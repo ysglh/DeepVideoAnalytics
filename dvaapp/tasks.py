@@ -5,7 +5,9 @@ from PIL import Image
 from django.conf import settings
 from dva.celery import app
 from .models import Video, Frame, TEvent,  IndexEntries, LOPQCodes, Region, Tube, \
-    Retriever, Detector, Segment, QueryIndexVector, DeletedVideo, ManagementAction, Analyzer, SystemState, DVAPQL
+    Retriever, Detector, Segment, QueryIndexVector, DeletedVideo, ManagementAction, Analyzer, SystemState, DVAPQL, \
+    Worker
+
 from .operations.indexing import IndexerTask
 from .operations.retrieval import RetrieverTask
 from .operations.detection import DetectorTask
@@ -15,13 +17,22 @@ from .operations.decoding import VideoDecoder
 from .operations.processing import process_next, mark_as_completed
 from dvalib import retriever
 from django.utils import timezone
-from celery.signals import task_prerun
+from celery.signals import task_prerun,celeryd_init
 from . import shared
 try:
     import numpy as np
 except ImportError:
     pass
 from . import serializers
+
+
+@celeryd_init.connect
+def configure_workers(sender, conf,**kwargs):
+    w = Worker()
+    w.pid = os.getpid()
+    w.host = sender
+    w.queue_name = sender.split('@')[1].split('.')[0]
+    w.save()
 
 
 @task_prerun.connect
@@ -702,11 +713,16 @@ def perform_stream_capture(task_id):
 @app.task(track_started=True,name="monitor_system")
 def monitor_system():
     """
+    This task used by scheduler to monitor state of the system.
     :return:
     """
+    for p in DVAPQL.objects.filter(completed=False):
+        if TEvent.objects.filter(parent_process=p,completed=False).count() == 0:
+            p.completed = True
+            p.save()
     s = SystemState()
     s.processes = DVAPQL.objects.count()
-    s.completed_processes = DVAPQL.objects.filter(tevent__completed=False).count()
+    s.completed_processes = DVAPQL.objects.filter(completed=True).count()
     s.tasks = TEvent.objects.count()
     s.pending_tasks = TEvent.objects.filter(started=False).count()
     s.completed_tasks = TEvent.objects.filter(started=True,completed=True).count()

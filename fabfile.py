@@ -458,9 +458,10 @@ def init_server():
     django.setup()
     from dvaapp.models import Video, VDNServer, StoredDVAPQL
     from django_celery_beat.models import PeriodicTask,IntervalSchedule
-    every_3_minutes,created = IntervalSchedule.objects.get_or_create(every=3,period=IntervalSchedule.MINUTES)
+    di,created = IntervalSchedule.objects.get_or_create(every=os.environ.get('REFRESH_MINUTES',3),
+                                                        period=IntervalSchedule.MINUTES)
     _ = PeriodicTask.objects.get_or_create(name="monitoring",task="monitor_system",
-                                           interval=every_3_minutes,queue='qextract')
+                                           interval=di,queue='qextract')
     if StoredDVAPQL.objects.count() == 0:
         for fname in glob.glob('configs/templates/*.json'):
             StoredDVAPQL.objects.create(name=fname,

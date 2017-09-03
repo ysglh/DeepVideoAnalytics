@@ -584,7 +584,12 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
     else:
         form = UploadFileForm()
     context = {'form': form}
-    context['indexes'] = {k.name:{'pk':k.pk,'name':k.name,'algorithm':k.name} for k in Indexer.objects.all()}
+    context['indexer_retrievers'] = []
+    for i in Indexer.objects.all():
+        for r in Retriever.objects.all():
+            if r.source_filters['indexer_shasum'] == i.shasum:
+                context['indexer_retrievers'].append(('{} > {} retriever with id:{}'.format(i.name,r.get_algorithm_display(),r.pk),
+                                                      '{}_{}'.format(i.pk,r.pk)))
     if query_pk:
         previous_query = DVAPQL.objects.get(pk=query_pk)
         context['initial_url'] = '{}queries/{}.png'.format(settings.MEDIA_URL, query_pk)

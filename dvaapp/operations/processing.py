@@ -195,25 +195,25 @@ class DVAPQLProcess(object):
         query_json = {'process_type':DVAPQL.QUERY}
         count = request.POST.get('count')
         selected_indexers = json.loads(request.POST.get('selected_indexers'))
-        approximate = True if request.POST.get('approximate') == 'true' else False
         query_json['image_data_b64'] = request.POST.get('image_url')[22:]
         query_json['tasks'] = []
+        indexer_tasks = defaultdict(list)
         for k in selected_indexers:
-            if approximate:
-                retriever_pk =  Retriever.objects.get(name=k,algorithm=Retriever.LOPQ).pk
-            else:
-                retriever_pk = Retriever.objects.get(name=k,algorithm=Retriever.EXACT).pk
+            indexer_pk,  retriever_pk =  k.split('_')
+            indexer_tasks[int(indexer_pk)].append(int(retriever_pk))
+
+        for i in indexer_tasks:
+            di = Indexer.objects.get(pk=i)
+            rtasks = []
+            for r in indexer_tasks[i]:
+                rtasks.append({'operation': 'perform_retrieval', 'arguments': {'count': int(count), 'retriever_pk':r}})
             query_json['tasks'].append(
                 {
                     'operation': 'perform_indexing',
                     'arguments': {
-                        'index': k,
+                        'index': di.name,
                         'target': 'query',
-                        'next_tasks': [
-                            {'operation': 'perform_retrieval',
-                             'arguments': {'count': int(count), 'retriever_pk':retriever_pk}
-                             }
-                        ]
+                        'next_tasks': rtasks
                     }
 
                 }

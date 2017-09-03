@@ -13,39 +13,6 @@
 </section>
 <section class="content">
     <div class="row">
-        <div class="col-lg-12">
-            <div class="box box-primary">
-                <div class="box-header"><h2>System state</h2></div>
-                <div class="box-body">
-                <table class="table dataTables-dict">
-                <thead>
-                <tr>
-                    <th>Processes</th>
-                    <th>Tasks</th>
-                    <th>Pending tasks</th>
-                    <th>Completed tasks</th>
-                    <th>Timestamp</th>
-                    <th>Since</th>
-                </tr>
-                </thead>
-                <tbody>
-                    {% for k in state %}
-                        <tr>
-                            <td>{{ k.processes }} </td>
-                            <td>{{ k.tasks }}</td>
-                            <td>{{ k.pending_tasks }}</td>
-                            <td>{{ k.completed_tasks }}</td>
-                            <td>{{ k.created }}</td>
-                            <td>{{ k.created|timesince }}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-                </table>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="row">
         <div class="col-lg-3 col-md-6" >
             <form method="post" action="{% url "management" %}">{% csrf_token %}
             <div class="box box-primary">
@@ -137,6 +104,39 @@
         </div>
     </div>
     {% endif %}
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="box box-primary">
+                <div class="box-header"><h2>System state</h2></div>
+                <div class="box-body">
+                <table class="table dataTables">
+                <thead>
+                <tr>
+                    <th>Processes</th>
+                    <th>Tasks</th>
+                    <th>Pending tasks</th>
+                    <th>Completed tasks</th>
+                    <th>Timestamp</th>
+                    <th>Since</th>
+                </tr>
+                </thead>
+                <tbody>
+                    {% for k in state %}
+                        <tr>
+                            <td>{{ k.processes }} </td>
+                            <td>{{ k.tasks }}</td>
+                            <td>{{ k.pending_tasks }}</td>
+                            <td>{{ k.completed_tasks }}</td>
+                            <td>{{ k.created }}</td>
+                            <td>{{ k.created|timesince }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+                </table>
+                </div>
+            </div>
+        </div>
+    </div>
 </section>
 {% endblock %}
 {% block page_js%}

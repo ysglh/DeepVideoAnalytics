@@ -85,3 +85,6 @@ notes/*.mov
 /dvalib/crfasrnn/crfrnn_keras_model.h5
 /dvalib/crfasrnn/cpp/high_dim_filter.so
 /celerybeat.pid
+/aws/config.py
+/aws/host
+/aws/connect.sh

@@ -336,11 +336,11 @@ class VideoDetail(UserPassesTestMixin, DetailView):
             context['limit'] = limit
             context['frame_list'] = Frame.objects.all().filter(video=self.object, frame_index__gte=offset,
                                                                frame_index__lte=limit).order_by('frame_index')
-            context['detection_list'] = Region.objects.all().filter(video=self.object, parent_frame_index__gte=offset,
-                                                                    parent_frame_index__lte=limit,
+            context['detection_list'] = Region.objects.all().filter(video=self.object, frame_index__gte=offset,
+                                                                    frame_index__lte=limit,
                                                                     region_type=Region.DETECTION)
-            context['annotation_list'] = Region.objects.all().filter(video=self.object, parent_frame_index__gte=offset,
-                                                                     parent_frame_index__lte=limit,
+            context['annotation_list'] = Region.objects.all().filter(video=self.object, frame_index__gte=offset,
+                                                                     frame_index__lte=limit,
                                                                      region_type=Region.ANNOTATION)
             context['frame_index_offsets'] = [(k * delta, (k * delta) + delta) for k in
                                               range(int(math.ceil(max_frame_index / float(delta))))]
@@ -440,7 +440,7 @@ class SegmentDetail(UserPassesTestMixin, DetailView):
         context = super(SegmentDetail, self).get_context_data(**kwargs)
         context['video'] = self.object.video
         context['frame_list'] = Frame.objects.all().filter(video=self.object.video,segment_index=self.object.segment_index).order_by('frame_index')
-        context['region_list'] = Region.objects.all().filter(video=self.object.video,parent_segment_index=self.object.segment_index).order_by('parent_frame_index')
+        context['region_list'] = Region.objects.all().filter(video=self.object.video,segment_index=self.object.segment_index).order_by('frame_index')
         context['url'] = '{}{}/segments/{}.mp4'.format(settings.MEDIA_URL, self.object.video.pk, self.object.segment_index)
         context['previous_segment_index'] = self.object.segment_index - 1 if self.object.segment_index else None
         context['next_segment_index'] = self.object.segment_index + 1 if (self.object.segment_index+1) < self.object.video.segments else None

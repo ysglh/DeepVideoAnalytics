@@ -161,8 +161,8 @@ class RegionSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Region
-        fields = ('url','media_url','region_type','video','user','frame','event','parent_frame_index',
-                  'parent_segment_index','text','metadata','full_frame','x','y','h','w',
+        fields = ('url','media_url','region_type','video','user','frame','event','frame_index',
+                  'segment_index','text','metadata','full_frame','x','y','h','w',
                   'polygon_points','created','object_name','confidence','materialized','png')
 
 
@@ -601,8 +601,14 @@ class VideoImporter(object):
         da.full_frame = a['full_frame']
         if a.get('event', None):
             da.event_id = self.event_to_pk[a['event']]
-        da.parent_frame_index = a['parent_frame_index']
-        da.parent_segment_index = a.get('parent_segment_index', -1)
+        if 'parent_frame_index' in a:
+            da.frame_index = a['parent_frame_index']
+        else:
+            da.frame_index = a['frame_index']
+        if 'parent_segment_index' in a:
+            da.segment_index = a.get('parent_segment_index', -1)
+        else:
+            da.segment_index = a.get('segment_index', -1)
         return da
 
     def create_frame(self, f):

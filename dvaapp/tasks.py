@@ -249,8 +249,8 @@ def perform_detection(task_id):
             dd.region_type = Region.DETECTION
             dd.video_id = dv.pk
             dd.frame_id = df.pk
-            dd.parent_frame_index = df.frame_index
-            dd.parent_segment_index = df.segment_index
+            dd.frame_index = df.frame_index
+            dd.segment_index = df.segment_index
             if detector_name == 'coco':
                 dd.object_name = 'SSD_{}'.format(d['object_name'])
                 dd.confidence = 100.0 * d['score']
@@ -311,12 +311,12 @@ def perform_analysis(task_id):
             a.w = f.w
             a.h = f.h
             a.frame_id = f.frame.id
-            a.parent_frame_index = f.parent_frame_index
-            a.parent_segment_index = f.parent_segment_index
+            a.frame_index = f.frame_index
+            a.segment_index = f.segment_index
         elif target == 'frames':
             a.full_frame = True
-            a.parent_frame_index = f.frame_index
-            a.parent_segment_index = f.segment_index
+            a.frame_index = f.frame_index
+            a.segment_index = f.segment_index
             a.frame_id = f.id
         regions_batch.append(a)
     Region.objects.bulk_create(regions_batch,1000)

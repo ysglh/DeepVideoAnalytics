@@ -332,8 +332,8 @@ class Region(models.Model):
     user = models.ForeignKey(User,null=True)
     frame = models.ForeignKey(Frame,null=True)
     event = models.ForeignKey(TEvent, null=True)  # TEvent that created this region
-    parent_frame_index = models.IntegerField(default=-1)
-    parent_segment_index = models.IntegerField(default=-1,null=True)
+    frame_index = models.IntegerField(default=-1)
+    segment_index = models.IntegerField(default=-1,null=True)
     text = models.TextField(default="")
     metadata = JSONField(blank=True,null=True)
     full_frame = models.BooleanField(default=False)
@@ -349,16 +349,16 @@ class Region(models.Model):
     png = models.BooleanField(default=False)
 
     def clean(self):
-        if self.parent_frame_index == -1 or self.parent_frame_index is None:
-            self.parent_frame_index = self.frame.frame_index
-        if self.parent_segment_index == -1 or self.parent_segment_index is None:
-            self.parent_segment_index = self.frame.segment_index
+        if self.frame_index == -1 or self.frame_index is None:
+            self.frame_index = self.frame.frame_index
+        if self.segment_index == -1 or self.segment_index is None:
+            self.segment_index = self.frame.segment_index
 
     def save(self, *args, **kwargs):
-        if self.parent_frame_index == -1 or self.parent_frame_index is None:
-            self.parent_frame_index = self.frame.frame_index
-        if self.parent_segment_index == -1 or self.parent_segment_index is None:
-            self.parent_segment_index = self.frame.segment_index
+        if self.frame_index == -1 or self.frame_index is None:
+            self.frame_index = self.frame.frame_index
+        if self.segment_index == -1 or self.segment_index is None:
+            self.segment_index = self.frame.segment_index
         super(Region, self).save(*args, **kwargs)
 
     def path(self,media_root=None):
@@ -369,9 +369,9 @@ class Region(models.Model):
 
     def frame_path(self,media_root=None):
         if media_root:
-            return "{}/{}/frames/{}.jpg".format(media_root, self.video_id, self.parent_frame_index)
+            return "{}/{}/frames/{}.jpg".format(media_root, self.video_id, self.frame_index)
         else:
-            return "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT, self.video_id, self.parent_frame_index)
+            return "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT, self.video_id, self.frame_index)
 
 
 class QueryResults(models.Model):

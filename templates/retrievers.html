@@ -28,6 +28,7 @@
                     <th>Arguments</th>
                     <th>Retriever queue</th>
                     <th>Created</th>
+                    <th>Last built</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -39,6 +40,7 @@
                         <td>{{ r.arguments }}</td>
                         <td>q_retriever_{{ r.pk }}</td>
                         <td>{{ r.created }}</td>
+                        <td>{{ r.last_built }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -52,7 +54,7 @@
             <form action="/create_retriever/" method="post">
             <div class="box box-primary">
                 <div class="box-header with-border">
-                    <h4>Create new approximate retriever using LOPQ</h4>
+                    <h4>Create new retriever Exact or approximate retrievers using LOPQ</h4>
                 </div>
                 <div class="box-body">
                         <div class="row">
@@ -74,7 +76,8 @@
                                 </select>
                                 <h4 class="text-center">OR</h4>
                                 <label for="source_filters">Specify source filter as JSON (IndexEntries.objects.filters(**kwargs))</label>
-                                <textarea name="source_filters" class="form-control" placeholder="{ }"></textarea>
+                                <textarea name="source_filters" id="script" style="display:none" ></textarea>
+                                <div id="editor" style="width:95%;margin:auto;height:200px" ></div>
                             </div>
                             <div class="col-lg-1 col-md-2 col-sm-3">
                                 <label for="components">PCA components</label>
@@ -112,8 +115,20 @@
             retriever_type.select2({theme: "bootstrap"});
             var excluded_index_entries = $("#excluded_index_entries");
             excluded_index_entries.select2({theme: "bootstrap"});
+            InitializeTables();
+            var scripttext = document.getElementById("script");
+            scripttext.textContent = "";
+            var editor = ace.edit("editor",{
+                wrapBehavioursEnabled:true,
+                autoScrollEditorIntoView:true});
+            editor.setTheme("ace/theme/chrome");
+            editor.getSession().setMode("ace/mode/json");
+            var textarea = $('textarea[name="source_filters"]').hide();
+            editor.getSession().setValue(textarea.val());
+            editor.getSession().on('change', function(){
+              textarea.val(editor.getSession().getValue());
+            });
 
-        InitializeTables();
     })
 </script>
 {% endblock %}

@@ -252,6 +252,9 @@ class DVAPQLProcess(object):
         if self.process.script['process_type'] == DVAPQL.PROCESS:
             for c in self.process.script.get('create',[]):
                 m = apps.get_model(app_label='dvaapp',model_name=c['MODEL'])
+                for k,v in c['spec'].iteritems():
+                    if v == '__timezone.now__':
+                        c['spec'][k] = timezone.now()
                 instance = m.objects.create(**c['spec'])
                 for t in copy.deepcopy(c.get('tasks',[])):
                     self.launch_task(t,instance.pk)

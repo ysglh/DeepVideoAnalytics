@@ -588,7 +588,7 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
     context['indexer_retrievers'] = []
     for i in Indexer.objects.all():
         for r in Retriever.objects.all():
-            if r.source_filters['indexer_shasum'] == i.shasum and r.last_built:
+            if 'indexer_shasum' in r.source_filters and r.source_filters['indexer_shasum'] == i.shasum and r.last_built:
                 context['indexer_retrievers'].append(('{} > {} retriever {} (pk:{})'.format(i.name,
                                                       r.get_algorithm_display(),r.name,r.pk),
                                                       '{}_{}'.format(i.pk,r.pk)))
@@ -912,8 +912,8 @@ def create_retriever(request):
             next_tasks = [{'operation': "perform_retriever_creation",'arguments': {'retriever_pk':'__pk__'},},]
         elif request.POST.get('retriever_type') == Retriever.EXACT:
             spec['name'] = request.POST.get('name')
-            spec['last_build'] = timezone.now()
-            spec['source_filters'] = json.loads(request.POST.get('source_filter', '{}'))
+            spec['last_built'] = '__timezone.now__'
+            spec['source_filters'] = json.loads(request.POST.get('source_filters', '{}'))
             spec['algorithm'] = Retriever.EXACT
             next_tasks = []
         else:

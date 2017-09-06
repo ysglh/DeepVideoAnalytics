@@ -909,26 +909,20 @@ def create_retriever(request):
                 spec['source_filters'] = json.loads(request.POST.get('source_filter','{}'))
             else:
                 spec['source_filters'] = {'indexer_shasum':Indexer.objects.get(name=request.POST.get('algorithm')).shasum}
+            next_tasks = [{'operation': "perform_retriever_creation",'arguments': {'retriever_pk':'__pk__'},},]
         elif request.POST.get('retriever_type') == Retriever.EXACT:
             spec['name'] = request.POST.get('name')
             spec['last_build'] = timezone.now()
             spec['source_filters'] = json.loads(request.POST.get('source_filter', '{}'))
             spec['algorithm'] = Retriever.EXACT
+            next_tasks = []
         else:
             raise ValueError
         if spec:
             p = DVAPQLProcess()
-            p.create_from_json(j={
-                "process_type": DVAPQL.PROCESS,
-                "create":[
-                    {'MODEL':'Retriever',
-                     'spec':spec,
-                     'tasks':{'operation': "perform_retriever_creation",
-                           'arguments': {'retriever_pk':'__pk__'},
-                           }
-                     }
-                ],
-            }, user=request.user if request.user.is_authenticated else None)
+            p.create_from_json(j={"process_type": DVAPQL.PROCESS,
+                                  "create":[{'MODEL':'Retriever','spec':spec,'tasks': next_tasks}],
+                                  }, user=request.user if request.user.is_authenticated else None)
             p.launch()
     return redirect('retrievers')
 

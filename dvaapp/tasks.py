@@ -451,6 +451,7 @@ def perform_retriever_creation(cluster_task_id, test=False):
         cc.searcher_index = e['index']
         cluster_codes.append(cc)
     LOPQCodes.objects.bulk_create(cluster_codes)
+    dc.last_built = timezone.now()
     c.save()
     dc.completed = True
     dc.save()

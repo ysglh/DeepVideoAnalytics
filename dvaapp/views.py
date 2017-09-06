@@ -587,8 +587,9 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
     context['indexer_retrievers'] = []
     for i in Indexer.objects.all():
         for r in Retriever.objects.all():
-            if r.source_filters['indexer_shasum'] == i.shasum:
-                context['indexer_retrievers'].append(('{} > {} retriever with id:{}'.format(i.name,r.get_algorithm_display(),r.pk),
+            if r.source_filters['indexer_shasum'] == i.shasum and r.last_built:
+                context['indexer_retrievers'].append(('{} > {} retriever named{} id:{}'.format(i.name,
+                                                      r.get_algorithm_display(),r.name,r.pk),
                                                       '{}_{}'.format(i.pk,r.pk)))
     if query_pk:
         previous_query = DVAPQL.objects.get(pk=query_pk)
@@ -923,41 +924,42 @@ def retrievers(request):
 @user_passes_test(user_check)
 def create_retriever(request):
     if request.method == 'POST':
-        c = None
+        spec = {}
         if request.POST.get('retriever_type') == Retriever.LOPQ:
             v = request.POST.get('v')
             m = request.POST.get('m')
             components = request.POST.get('components')
             sub = request.POST.get('sub')
-            c = Retriever()
-            c.name = request.POST.get('name')
-            c.algorithm = Retriever.LOPQ
+            spec['name'] = request.POST.get('name')
+            spec['algorithm'] = Retriever.LOPQ
             args = {}
             args['components']= components
             args['sub']= sub
             args['m']= m
             args['v']= v
-            c.arguments = args
+            spec['arguments'] = args
             if request.POST.get('source_filters',None):
-                c.source_filters = json.loads(request.POST.get('source_filter','{}'))
+                spec['source_filters'] = json.loads(request.POST.get('source_filter','{}'))
             else:
-                c.source_filters = {'indexer_shasum':Indexer.objects.get(name=request.POST.get('algorithm')).shasum}
-            c.save()
+                spec['source_filters'] = {'indexer_shasum':Indexer.objects.get(name=request.POST.get('algorithm')).shasum}
         elif request.POST.get('retriever_type') == Retriever.EXACT:
-            c = Retriever()
-            c.name = request.POST.get('name')
-            c.source_filters = json.loads(request.POST.get('source_filter', '{}'))
-            c.algorithm = Retriever.EXACT
-            c.save()
+            spec['name'] = request.POST.get('name')
+            spec['source_filters'] = json.loads(request.POST.get('source_filter', '{}'))
+            spec['algorithm'] = Retriever.EXACT
         else:
             raise ValueError
-        if c:
+        if spec:
             p = DVAPQLProcess()
             p.create_from_json(j={
                 "process_type": DVAPQL.PROCESS,
-                "tasks": [{'operation': "perform_retriever_creation",
-                           'arguments': {'retriever_pk':c.pk},
-                           }]
+                "create":[
+                    {'MODEL':'Retriever',
+                     'spec':spec,
+                     'tasks':{'operation': "perform_retriever_creation",
+                           'arguments': {'retriever_pk':'__pk__'},
+                           }
+                     }
+                ],
             }, user=request.user if request.user.is_authenticated else None)
             p.launch()
     return redirect('retrievers')

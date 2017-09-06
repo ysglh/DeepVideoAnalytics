@@ -510,6 +510,7 @@ def init_models():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from django.conf import settings
+    from django.utils import timezone
     from dvaapp.models import Detector, Analyzer, Indexer, Retriever
     with open("configs/models.json") as modelfile:
         models = json.load(modelfile)
@@ -527,7 +528,10 @@ def init_models():
         if m['model_type'] == "indexer":
             dm, created = Indexer.objects.get_or_create(name=m['name'], mode=m['mode'], shasum=m['shasum'])
             if created:
-                _ = Retriever.objects.get_or_create(name=m['name'], source_filters={'indexer_shasum': dm.shasum})
+                dr, dcreated = Retriever.objects.get_or_create(name=m['name'], source_filters={'indexer_shasum': dm.shasum})
+                if dcreated:
+                    dr.last_built = timezone.now()
+                    dr.save()
             if m['url']:
                 download_model(settings.MEDIA_ROOT, "indexers", dm.pk, m['filename'], m['url'])
         if m['model_type'] == "analyzer":

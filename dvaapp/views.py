@@ -625,12 +625,20 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
 def assign_video_labels(request):
     if request.method == 'POST':
         video = Video.objects.get(pk=request.POST.get('video_pk'))
+        spec = []
         for k in request.POST.get('labels').split(','):
             if k.strip():
-                dl = VideoLabel()
-                dl.video = video
-                dl.label = Label.objects.get_or_create(name=k,set="UI")[0]
-                dl.save()
+                spec.append({
+                    'MODEL':'VideoLabel',
+                    'video_id':video.pk,
+                    'label_id':Label.objects.get_or_create(name=k,set="UI")[0].id
+                })
+        p = DVAPQLProcess()
+        p.create_from_json({
+            'process_type':DVAPQL.PROCESS,
+            'create':spec,
+        },user=request.user if request.user.is_authenticated else None)
+        p.launch()
         return redirect('video_detail', pk=video.pk)
     else:
         raise NotImplementedError
@@ -1245,20 +1253,26 @@ def train_detector(request):
         args['labels'] = [k.strip() for k in request.POST.get('labels').split(',') if k.strip()]
         args['object_names'] = [k.strip() for k in request.POST.get('object_names').split(',') if k.strip()]
         args['excluded_videos'] = request.POST.getlist('excluded_videos')
-        detector = Detector()
-        detector.name = args['name']
-        detector.algorithm = "yolo"
-        detector.arguments = json.dumps(args)
-        detector.save()
-        args['detector_pk'] = detector.pk
+        args['detector_pk'] = '__pk__'
         p = DVAPQLProcess()
         p.create_from_json(j={
             "process_type":DVAPQL.PROCESS,
-            "tasks":[{'operation':"perform_detector_training",
-                      'arguments':args,}]
+            "create":[
+                {
+                    'MODEL':'Detector',
+                    'spec':{
+                        'name':args['name'],
+                        'arguments':json.dumps(args),
+                        'algorithm':'yolo'
+                    },
+                    "tasks":[
+                        {'operation':"perform_detector_training",
+                         'arguments':args,
+                         }]
+                }
+            ]
         },user=request.user if request.user.is_authenticated else None)
         p.launch()
-        detector.save()
         return redirect('process_detail', pk=p.process.pk)
     # elif request.POST.get('action') == 'estimate':
     #     args = request.POST.get('args')

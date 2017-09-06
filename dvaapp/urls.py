@@ -78,7 +78,6 @@ urlpatterns = [
     url(r'^segments/(?P<pk>\d+)/$', views.SegmentDetail.as_view(), name='segment_detail'),
     url(r'^queries/(?P<pk>\d+)/$', views.VisualSearchDetail.as_view(), name='query_detail'),
     url(r'^retry/$', views.retry_task, name='restart_task'),
-    url(r'^failed/$', views.mark_task_failed, name='mark_task_failed'),
     url(r'^coarse_code/(?P<pk>\d+)/(?P<coarse_code>\w+)$', views.coarse_code_detail, name='coarse_code_detail'),
     url(r'^segments/by_index/(?P<video_pk>\d+)/(?P<segment_index>\w+)$', views.segment_by_index, name='segment_by_index'),
     url(r'^requery/(?P<query_pk>\d+)/$', views.index, name='requery'),

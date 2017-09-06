@@ -280,6 +280,8 @@ class DVAPQLProcess(object):
 
     def launch_task(self,t,created_pk=None):
         if created_pk:
+            if t.get('video_id','') == '__pk__':
+                t['video_id'] = created_pk
             for k, v in t.get('arguments',{}).iteritems():
                 if v == '__pk__':
                     t['arguments'][k] = created_pk

@@ -630,8 +630,7 @@ def assign_video_labels(request):
             if k.strip():
                 spec.append({
                     'MODEL':'VideoLabel',
-                    'video_id':video.pk,
-                    'label_id':Label.objects.get_or_create(name=k,set="UI")[0].id
+                    'spec':{'video_id':video.pk,'label_id':Label.objects.get_or_create(name=k,set="UI")[0].id}
                 })
         p = DVAPQLProcess()
         p.create_from_json({
@@ -853,47 +852,6 @@ def training(request):
     context = {}
     context["videos"] = Video.objects.all().filter()
     context["detectors"] = Detector.objects.all()
-    if request.method == 'POST':
-        if request.POST.get('action') == 'estimate':
-            args = request.POST.get('args')
-            args = json.loads(args) if args.strip() else {}
-            args['name'] = request.POST.get('name')
-            args['labels'] = [k.strip() for k in request.POST.get('labels').split(',') if k.strip()]
-            args['object_names'] = [k.strip() for k in request.POST.get('object_names').split(',') if k.strip()]
-            args['excluded_videos'] = request.POST.getlist('excluded_videos')
-            labels = set(args['labels']) if 'labels' in args else set()
-            object_names = set(args['object_names']) if 'object_names' in args else set()
-            class_distribution, class_names, rboxes, rboxes_set, frames, i_class_names = create_detector_dataset(object_names, labels)
-            context["estimate"] = {
-                'args':args,
-                'class_distribution':class_distribution,
-                'class_names':class_names,
-                'rboxes':rboxes,
-                'rboxes_set':rboxes_set,
-                'frames':frames,
-                'i_class_names':i_class_names
-            }
-        else:
-            args = request.POST.get('args')
-            args = json.loads(args) if args.strip() else {}
-            args['name'] = request.POST.get('name')
-            args['labels'] = [k.strip() for k in request.POST.get('labels').split(',') if k.strip()]
-            args['object_names'] = [k.strip() for k in request.POST.get('object_names').split(',') if k.strip()]
-            args['excluded_videos'] = request.POST.getlist('excluded_videos')
-            detector = Detector()
-            detector.name = args['name']
-            detector.algorithm = "yolo"
-            detector.arguments = json.dumps(args)
-            detector.save()
-            args['detector_pk'] = detector.pk
-            p = DVAPQLProcess()
-            p.create_from_json(j={
-                "process_type":DVAPQL.PROCESS,
-                "tasks":[{'operation':"perform_detector_training",
-                          'arguments':args,}]
-            },user=request.user if request.user.is_authenticated else None)
-            p.launch()
-            detector.save()
     return render(request, 'training.html', context)
 
 
@@ -1063,25 +1021,16 @@ def import_s3(request):
         bucket = request.POST.get('bucket')
         rate = request.POST.get('rate',defaults.DEFAULT_RATE)
         rescale = request.POST.get('rescale',defaults.DEFAULT_RESCALE)
-        process_spec = {
-            'process_type': DVAPQL.PROCESS,
-        }
         user = request.user if request.user.is_authenticated else None
-        tasks = []
+        create = []
         for key in keys.strip().split('\n'):
+            tasks =[]
             key = key.strip()
             if key:
-                video = Video()
-                if user:
-                    video.uploader = user
-                video.name = "pending S3 import {} s3://{}/{}".format(region, bucket, key)
-                video.save()
                 extract_task = {'arguments': {'rate': rate, 'rescale': rescale,
                                               'next_tasks': defaults.DEFAULT_PROCESSING_PLAN_DATASET},
-                                 'video_id': video.pk,
                                  'operation': 'perform_dataset_extraction'}
-                segment_decode_task = {'video_id': video.pk,
-                                        'operation': 'perform_video_segmentation',
+                segment_decode_task = {'operation': 'perform_video_segmentation',
                                         'arguments': {
                                             'next_tasks': [
                                                 {'operation': 'perform_video_decode',
@@ -1099,9 +1048,21 @@ def import_s3(request):
                     next_tasks = [extract_task,]
                 else:
                     next_tasks = [segment_decode_task,]
-                tasks.append({'video_id':video.pk,'operation':'perform_import',
-                              'arguments':{'key':key,'bucket':bucket,'region':region, 'source':'S3', 'next_tasks':next_tasks}})
-        process_spec['tasks'] = tasks
+                tasks.append({'video_id':'__pk__',
+                              'operation':'perform_import',
+                              'arguments':{'key':key,
+                                           'bucket':bucket,
+                                           'region':region,
+                                           'source':'S3',
+                                           'next_tasks':next_tasks}
+                              })
+                create.append({'MODEL': 'Video',
+                               'spec': {'uploader_id': user,
+                                        'name': "pending S3 import {} s3://{}/{}".format(region, bucket, key)},
+                               'tasks': tasks
+                               })
+        process_spec = {'process_type': DVAPQL.PROCESS,
+                        'create':create}
         p = DVAPQLProcess()
         p.create_from_json(process_spec,user)
         p.launch()
@@ -1143,16 +1104,6 @@ def retry_task(request):
     p.create_from_json(spec)
     p.launch()
     return redirect('/processes/')
-
-
-@user_passes_test(user_check)
-def mark_task_failed(request):
-    pk = request.POST.get('pk')
-    event = TEvent.objects.get(pk=int(pk))
-    event.errored = True
-    event.error_message = "Manually marked as failed"
-    event.save()
-    return redirect('/tasks/')
 
 
 @user_passes_test(user_check)

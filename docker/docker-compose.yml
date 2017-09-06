@@ -17,7 +17,6 @@
      volumes:
        - dvarabbit:/var/lib/rabbitmq
    dva:
-     build: .
      image: akshayubhat/dva-auto:latest
      container_name: dva-server
      environment:

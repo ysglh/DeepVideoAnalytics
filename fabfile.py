@@ -806,19 +806,33 @@ def qt():
 
 @task
 def qt_lopq():
-    from dvaapp.models import Retriever, Indexer,TEvent
-    from dvaapp.tasks import perform_retriever_creation
-    dc = Retriever()
-    args = {'components': 32, 'm': 8, 'v': 8, 'sub': 128}
-    dc.algorithm = Retriever.LOPQ
-    dc.source_filters = {'indexer_shasum': Indexer.objects.get(name="inception").shasum}
-    dc.arguments = args
-    dc.save()
-    clustering_task = TEvent()
-    clustering_task.arguments = {'retriever_pk': dc.pk}
-    clustering_task.operation = 'perform_retriever_creation'
-    clustering_task.save()
-    perform_retriever_creation(clustering_task.pk)
+    import django
+    sys.path.append(os.path.dirname(__file__))
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
+    django.setup()
+    from dvaapp.models import Retriever, Indexer,TEvent,DVAPQL
+    from dvaapp.operations import processing
+    spec = {
+        'process_type':DVAPQL.PROCESS,
+        'create':[{
+            'MODEL':'Retriever',
+            'spec':{
+                'algorithm':Retriever.LOPQ,
+                'arguments':{'components': 32, 'm': 8, 'v': 8, 'sub': 128},
+                'source_filters':{'indexer_shasum': Indexer.objects.get(name="inception").shasum}
+            },
+            'tasks':[
+                {
+                    'operation':'perform_retriever_creation',
+                    'arguments':{'retriever_pk': '__pk__'}
+                }
+            ]
+        },]
+    }
+    p = processing.DVAPQLProcess()
+    p.create_from_json(j=spec,user=None)
+    p.launch()
+    p.wait()
 
 
 @task

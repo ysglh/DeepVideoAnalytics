@@ -10,7 +10,7 @@ try:
 except ImportError:
     np = None
     logging.warning("Could not import indexer / clustering assuming running in front-end mode / Heroku")
-
+from django.apps import apps
 from ..models import Video,DVAPQL,QueryResults,TEvent,Region,Analyzer,Indexer,Detector,Retriever
 from collections import defaultdict
 from celery.result import AsyncResult
@@ -250,28 +250,13 @@ class DVAPQLProcess(object):
 
     def launch(self):
         if self.process.script['process_type'] == DVAPQL.PROCESS:
-            for t in self.process.script['tasks']:
-                if 'video_id' in t:
-                    v = Video.objects.get(pk=t['video_id'])
-                    map_filters = get_map_filters(t,v)
-                else:
-                    map_filters = [{}]
-                for f in map_filters:
-                    args = copy.deepcopy(t.get('arguments',{})) # make copy so that spec isnt mutated.
-                    if f:
-                        if 'filters' not in args:
-                            args['filters'] = f
-                        else:
-                            args['filters'].update(f)
-                    dt = TEvent()
-                    dt.parent_process = self.process
-                    if 'video_id' in t:
-                        dt.video_id = t['video_id']
-                    dt.operation = t['operation']
-                    dt.arguments = args
-                    dt.queue = get_queue_name(t['operation'],t.get('arguments',{}))
-                    dt.save()
-                    app.send_task(name=dt.operation,args=[dt.pk, ],queue=dt.queue)
+            for c in self.process.script.get('create',[]):
+                m = apps.get_model(app_label='dvaapp',model_name=c['MODEL'])
+                instance = m.objects.create(**c['spec'])
+                for t in copy.deepcopy(c.get('tasks',[])):
+                    self.launch_task(t,instance.pk)
+            for t in self.process.script.get('tasks',[]):
+                self.launch_task(t)
         elif self.process.script['process_type'] == DVAPQL.QUERY:
             for t in self.process.script['tasks']:
                 operation = t['operation']
@@ -292,6 +277,33 @@ class DVAPQLProcess(object):
                         _ = next_result.get(timeout=timeout)
             except Exception, e:
                 raise ValueError(e)
+
+    def launch_task(self,t,created_pk=None):
+        if created_pk:
+            for k, v in t.get('arguments',{}).iteritems():
+                if v == '__pk__':
+                    t['arguments'][k] = created_pk
+        if 'video_id' in t:
+            v = Video.objects.get(pk=t['video_id'])
+            map_filters = get_map_filters(t, v)
+        else:
+            map_filters = [{}]
+        for f in map_filters:
+            args = copy.deepcopy(t.get('arguments', {}))  # make copy so that spec isnt mutated.
+            if f:
+                if 'filters' not in args:
+                    args['filters'] = f
+                else:
+                    args['filters'].update(f)
+            dt = TEvent()
+            dt.parent_process = self.process
+            if 'video_id' in t:
+                dt.video_id = t['video_id']
+            dt.operation = t['operation']
+            dt.arguments = args
+            dt.queue = get_queue_name(t['operation'], t.get('arguments', {}))
+            dt.save()
+            self.task_results[dt.pk] = app.send_task(name=dt.operation, args=[dt.pk, ], queue=dt.queue)
 
     def collect(self):
         self.context = defaultdict(list)

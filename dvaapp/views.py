@@ -5,6 +5,7 @@ import requests
 import glob
 import json
 from django.views.generic import ListView, DetailView
+from django.utils import timezone
 from .forms import UploadFileForm, YTVideoForm, AnnotationForm
 from .models import Video, Frame, DVAPQL, QueryResults, TEvent, IndexEntries, Region, VDNServer, \
     LOPQCodes, Tube, Detector,  Segment, FrameLabel, SegmentLabel, \
@@ -588,7 +589,7 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
     for i in Indexer.objects.all():
         for r in Retriever.objects.all():
             if r.source_filters['indexer_shasum'] == i.shasum and r.last_built:
-                context['indexer_retrievers'].append(('{} > {} retriever named{} id:{}'.format(i.name,
+                context['indexer_retrievers'].append(('{} > {} retriever {} (pk:{})'.format(i.name,
                                                       r.get_algorithm_display(),r.name,r.pk),
                                                       '{}_{}'.format(i.pk,r.pk)))
     if query_pk:
@@ -944,6 +945,7 @@ def create_retriever(request):
                 spec['source_filters'] = {'indexer_shasum':Indexer.objects.get(name=request.POST.get('algorithm')).shasum}
         elif request.POST.get('retriever_type') == Retriever.EXACT:
             spec['name'] = request.POST.get('name')
+            spec['last_build'] = timezone.now()
             spec['source_filters'] = json.loads(request.POST.get('source_filter', '{}'))
             spec['algorithm'] = Retriever.EXACT
         else:

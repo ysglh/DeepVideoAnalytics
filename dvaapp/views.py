@@ -1015,7 +1015,7 @@ def import_s3(request):
         bucket = request.POST.get('bucket')
         rate = request.POST.get('rate',defaults.DEFAULT_RATE)
         rescale = request.POST.get('rescale',defaults.DEFAULT_RESCALE)
-        user = request.user.pk if request.user.is_authenticated else None
+        user = request.user if request.user.is_authenticated else None
         create = []
         for key in keys.strip().split('\n'):
             tasks =[]
@@ -1051,7 +1051,7 @@ def import_s3(request):
                                            'next_tasks':next_tasks}
                               })
                 create.append({'MODEL': 'Video',
-                               'spec': {'uploader_id': user,
+                               'spec': {'uploader_id': user.pk if user else None,
                                         'name': "pending S3 import {} s3://{}/{}".format(region, bucket, key)},
                                'tasks': tasks
                                })

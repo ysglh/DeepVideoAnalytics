@@ -1015,7 +1015,7 @@ def import_s3(request):
         bucket = request.POST.get('bucket')
         rate = request.POST.get('rate',defaults.DEFAULT_RATE)
         rescale = request.POST.get('rescale',defaults.DEFAULT_RESCALE)
-        user = request.user if request.user.is_authenticated else None
+        user = request.user.pk if request.user.is_authenticated else None
         create = []
         for key in keys.strip().split('\n'):
             tasks =[]

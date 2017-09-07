@@ -195,7 +195,7 @@ def launch_extractor_cpu():
 
 
 @task
-def deploy(compose_file="custom/docker-compose-worker-aws.yml", dns=EFS_DNS):
+def deploy(compose_file="custom/docker-compose-worker-gpu.yml", dns=EFS_DNS):
     """
     deploys code on hostname
     :return:
@@ -239,7 +239,7 @@ def deploy_container(compose_file="custom/docker-compose-gpu.yml"):
 
 
 @task
-def deploy_cpu(compose_file="custom/docker-compose-worker.yml", dns=EFS_DNS):
+def deploy_cpu(compose_file="custom/docker-compose-worker-cpu.yml", dns=EFS_DNS):
     """
     deploys code on hostname
     :return:

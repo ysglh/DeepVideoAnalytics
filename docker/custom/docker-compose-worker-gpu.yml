@@ -19,6 +19,7 @@
        - LAUNCH_BY_NAME_detector_face=1
        - LAUNCH_Q_qclusterer=1
        - LAUNCH_Q_qextract=1
+       - LAUNCH_SCHEDULER=1
        - CELERY_MUTE=1
        - MEDIA_BUCKET=${MEDIA_BUCKET}
        - GPU_AVAILABLE=1

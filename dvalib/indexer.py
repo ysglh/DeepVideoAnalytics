@@ -7,7 +7,11 @@ from collections import namedtuple
 if os.environ.get('PYTORCH_MODE',False):
     pass
 elif os.environ.get('CAFFE_MODE',False):
-    pass
+    sys.path.append('/opt/ctpn/CTPN/tools/')
+    sys.path.append('/opt/ctpn/CTPN/src/')
+    import cv2, caffe
+    tf = None
+    logging.info("Using Caffe only mode")
 else:
     try:
         from tensorflow.python.platform import gfile
@@ -362,7 +366,6 @@ class CustomTFIndexer(BaseCustomIndexer):
         else:
             self.gpu_fraction = float(os.environ.get('GPU_MEMORY', 0.15))
 
-
     def load(self):
         if self.session is None:
             logging.warning("Loading the network {} , first apply / query will be slower".format(self.name))
@@ -388,3 +391,16 @@ class CustomTFIndexer(BaseCustomIndexer):
         self.session.run(self.iterator.initializer, feed_dict={self.filenames_placeholder: [image_path, ]})
         f, features = self.session.run([self.fname, self.emb])
         return np.atleast_2d(np.squeeze(features))
+
+
+class CaffeIndexer(BaseCustomIndexer):
+
+    def __init__(self,name,network_path,input_op,embedding_op,gpu_fraction=None):
+        super(CaffeIndexer, self).__init__()
+        pass
+
+    def load(self):
+        pass
+
+    def apply(self,path):
+        pass

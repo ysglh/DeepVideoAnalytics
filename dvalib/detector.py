@@ -237,10 +237,16 @@ class TextBoxDetector():
         logging.info('Creating networks and loading parameters')
         NET_DEF_FILE = "/opt/ctpn/CTPN/models/deploy.prototxt"
         MODEL_FILE = "/opt/ctpn/CTPN/models/ctpn_trained_model.caffemodel"
-        caffe.set_mode_gpu()
-        caffe.set_device(cfg.TEST_GPU_ID)
+        if os.environ.get('GPU_AVAILABLE',False):
+            caffe.set_mode_gpu()
+            caffe.set_device(cfg.TEST_GPU_ID)
+            logging.info("GPU mode")
+        else:
+            caffe.set_mode_cpu()
+            logging.info("CPU mode")
         text_proposals_detector = TextProposalDetector(CaffeModel(NET_DEF_FILE, MODEL_FILE))
         self.session = TextDetector(text_proposals_detector)
+        logging.info('model loaded!')
 
     def detect(self,image_path):
         if self.session is None:

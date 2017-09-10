@@ -7,8 +7,6 @@ from collections import namedtuple
 if os.environ.get('PYTORCH_MODE',False):
     pass
 elif os.environ.get('CAFFE_MODE',False):
-    sys.path.append('/opt/ctpn/CTPN/tools/')
-    sys.path.append('/opt/ctpn/CTPN/src/')
     import cv2, caffe
     tf = None
     logging.info("Using Caffe only mode")

@@ -51,6 +51,26 @@
        - rabbit
      volumes:
        - dvadata:/root/DVA/dva/media
+   dva-caffe:
+     image: akshayubhat/dva-auto:caffe-cpu
+     container_name: dva-caffe
+     environment:
+       - DOCKER_MODE=true
+       - RABBIT_HOST=rabbit
+       - RABBIT_USER=dvauser
+       - RABBIT_PASS=localpass
+       - DB_HOST=db
+       - DB_NAME=postgres
+       - DB_USER=pgdbuser
+       - DB_PASS=pgdbpass
+       - LAUNCH_BY_NAME_detector_textbox=1
+       - CAFFE_MODE=1
+     command: bash -c "sleep 60 && git pull && fab start_container:worker"
+     depends_on:
+       - db
+       - rabbit
+     volumes:
+       - dvadata:/root/DVA/dva/media
  volumes:
   dvapgdata:
   dvadata:

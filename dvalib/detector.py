@@ -9,6 +9,7 @@ except:
 if os.environ.get('PYTORCH_MODE',False):
     pass
 elif os.environ.get('CAFFE_MODE',False):
+    import sys
     sys.path.append('/opt/ctpn/CTPN/tools/')
     sys.path.append('/opt/ctpn/CTPN/src/')
     from cfg import Config as cfg

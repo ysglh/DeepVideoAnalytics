@@ -10,10 +10,19 @@ out-of-box performance without any having to perform any fine-tuning. Finally th
 Deep Video Analytics and can be used in conjunction with other detection/indexing models, and eventually in future can be fine-tuned
 (similar to YOLO detectors).
 
-To run following two notebooks, start docker container (nvidia-docker/GPU preferred) using following script.
-[https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/docker/ctpn/run_ocr_container.sh](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/docker/ctpn/run_ocr_container.sh)
+To run following two notebooks, start docker container (containers will be automatically downloaded from docker-hub) 
+using following command and open the url show in terminal.
 
-Its possible to run this code on CPU but it will be very slow and equires setting cpu_mode in detect_text.ipynb. However
+````bash
+# If you have an NVidia GPU with NVidia-docker and Docker
+nvidia-docker run -p 8888:8888 -it akshayubhat/dva-auto:caffe
+
+# If you do not have a GPU run following docker command
+docker run -p 8888:8888 -it akshayubhat/dva-auto:caffe-cpu
+````
+
+
+Its possible to run this code on CPU but it will be very slow and requires setting cpu_mode in detect_text.ipynb. However
 since the code runs using Docker there are no dependencies to install!
 
 Once you have started the container, go to the Jupyter notebook url displayed in the console and navigate to "notebooks/OCR".
@@ -35,7 +44,7 @@ You can find the notebook here
 ![recognition](recognition.png "recognition")
 
 In this notebook the stored [boxes](/notebooks/OCR/boxes/) are then processed using CRNN [3,4] to extract text. 
-Note that you cannot import caffe and pytorch into same notebook/process since it cases library/static linking issues.
+Note that you cannot import caffe and pytorch into same notebook/process since it causes library/static linking issues.
 
 You can find the notebook here
 [https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/notebooks/OCR/recognize_text.ipynb](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/notebooks/OCR/recognize_text.ipynb)
@@ -44,10 +53,7 @@ You can find the notebook here
 ## Integration with Deep Video Analytics
 
 Both CTPN & CRNN have been integrated into [Deep Video Analytics](https://www.deepvideoanalytics.com) and now its possible to run OCR directly on videos/images
-without having to write any code. CTPN and CRNN run as tasks on a celery queues "qcrnn" & "qocr". Workers consuming "qocr" need to run on
-akshayubhat/dva-auto:caffe (Dockerfile.caffe) container image. This [docker-compose](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/docker/custom/docker-compose-gpu.yml) file describes the setup. The extracted bounding boxes and text are 
-represented as Regions. Further extracted text can be conveniently queried using Postgres full-text search through the User Interface.
-
+without having to write any code. Extracted text can be conveniently queried using Postgres full-text search through the User Interface.
 
 
 ### References:

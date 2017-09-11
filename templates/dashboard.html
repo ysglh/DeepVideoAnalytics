@@ -69,7 +69,7 @@
         </div>
         <div class="m-t row">
             <div class="col-xs-12" style="margin-bottom:15px">
-                <h4 style="font-weight:bold" class="pull-left">Select index > retriever pairs:</h4>
+                <h5 style="font-weight:bold" class="pull-left">Select index > retriever sequence for retrieval</h5>
                 <div class="pull-right">
                     <a class="btn btn-primary" href="/retrievers/"><i class="fa fa-edit"></i> Create new retriever</a>
                 </div>
@@ -87,6 +87,22 @@
             <input style="display:inline-block; margin-right:10px;width:50px;" type="number" name="result_count"  id="result_count" value="20" class="checkbox text-right index_name">
             <label for="entire_image">Send entire image (ignore zoom/pan)</label>
             <input style="display:inline-block; margin-right:5px" type="checkbox" ng-model="send_entire_image" class="checkbox">
+        </div>
+            <div class="m-t row">
+            <div class="col-xs-6" style="margin-bottom:15px;text-align:right">
+                <h5 style="font-weight:bold" >Detect objects (optional)</h5>
+            </div>
+            <div class="col-xs-6">
+            <select class="js-example-basic-multiple" multiple="multiple" id="detector_list" style="width:100%">
+            {% for d in detectors %}
+                {% if forloop.first %}
+                    <option value="{{ d.pk }}" selected="selected">{{ d.name }}</option>
+                {% else %}
+                    <option value="{{ d.pk }}">{{ d.name }}</option>
+                {% endif %}
+            {% endfor %}
+            </select>
+            </div>
         </div>
         <div style="width:70%;margin: 5px auto;text-align: center">
             <button href="" class="btn btn-primary btn-block" id="search_quick" ng-click="search(false)"><i class="fa fa-search"></i>&nbsp;&nbsp; Search by image</button>
@@ -330,7 +346,6 @@
         var annotation_mode = false;
         var status = "Please add image to search or upload.";
         var payload = "{{ payload }}";
-
         var csrf_token = "{% csrf_token %}";
         {% if initial_url %}
             var initial_url="{{ initial_url }}";
@@ -339,6 +354,8 @@
         {% endif %}
     var indexer_selector = $("#indexer_list");
     indexer_selector.select2({theme: "bootstrap"});
+    var detector_selector = $("#detector_list");
+    detector_selector.select2({theme: "bootstrap"});
     var video_name = $("#video_name");
     video_name.select2({theme: "bootstrap"});
     </script>

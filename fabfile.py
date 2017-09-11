@@ -297,7 +297,7 @@ def ci_search():
     qp = DVAPQLProcess()
     qp.create_from_json(query_dict)
     qp.launch()
-    qp.wait()
+    qp.wait(timeout=360)
     print QueryResults.objects.count()
 
 

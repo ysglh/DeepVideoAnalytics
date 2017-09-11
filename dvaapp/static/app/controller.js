@@ -466,6 +466,7 @@ $scope.search = function (approximate) {
     $scope.$$phase || $scope.$digest();
     $scope.refreshData();
     var selected_indexers = JSON.stringify($("#indexer_list").val());
+    var selected_detectors = JSON.stringify($("#detector_list").val());
     var excluded_index_entries = JSON.stringify($("#excluded_index_entries").val());
     $.ajax({
         type: "POST",
@@ -477,6 +478,7 @@ $scope.search = function (approximate) {
             'count': $('#result_count').val(),
             'approximate':approximate,
             'selected_indexers':selected_indexers,
+            'selected_detectors':selected_detectors,
             'excluded_index_entries':excluded_index_entries,
             'csrfmiddlewaretoken':$(csrf_token).val()
         },

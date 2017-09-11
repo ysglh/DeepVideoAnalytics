@@ -195,6 +195,7 @@ class DVAPQLProcess(object):
         query_json = {'process_type':DVAPQL.QUERY}
         count = request.POST.get('count')
         selected_indexers = json.loads(request.POST.get('selected_indexers'))
+        selected_detectors = json.loads(request.POST.get('selected_detectors'))
         query_json['image_data_b64'] = request.POST.get('image_url')[22:]
         query_json['tasks'] = []
         indexer_tasks = defaultdict(list)
@@ -218,6 +219,9 @@ class DVAPQLProcess(object):
 
                 }
             )
+        for d in selected_detectors:
+            query_json['tasks'].append({'operation': 'perform_detection',
+                                        'arguments': {'detector_pk': d,'target': 'query',}})
         user = request.user if request.user.is_authenticated else None
         self.create_from_json(query_json,user)
         return self.process

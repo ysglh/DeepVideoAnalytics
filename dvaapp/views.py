@@ -591,6 +591,7 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
     else:
         form = UploadFileForm()
     context = {'form': form}
+    context['detectors'] = Detector.objects.all()
     context['indexer_retrievers'] = []
     for i in Indexer.objects.all():
         for r in Retriever.objects.all():

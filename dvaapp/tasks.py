@@ -223,6 +223,7 @@ def perform_detection(task_id):
     detector_name = args['detector']
     detections = []
     dv = None
+    dd_list = []
     query_flow = (video_id is None) and (args['target'] == 'query')
     if 'detector_pk' in args:
         detector_pk = int(args['detector_pk'])
@@ -243,7 +244,6 @@ def perform_detection(task_id):
             logging.info("Running {} Using filters {}".format(detector_name,kwargs))
         else:
             frames = Frame.objects.all().filter(video=dv)
-        dd_list = []
         for df in frames:
             local_path = df.path()
             detections = detector.detect(local_path)

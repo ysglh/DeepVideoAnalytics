@@ -10,7 +10,7 @@ from .forms import UploadFileForm, YTVideoForm, AnnotationForm
 from .models import Video, Frame, DVAPQL, QueryResults, TEvent, IndexEntries, Region, VDNServer, \
     LOPQCodes, Tube, Detector,  Segment, FrameLabel, SegmentLabel, \
     VideoLabel, RegionLabel, TubeLabel, Label, ManagementAction, StoredDVAPQL, Analyzer,\
-    Indexer, Retriever, SystemState
+    Indexer, Retriever, SystemState, QueryRegion
 from dva.celery import app
 from dvaapp.operations import queuing
 import serializers
@@ -144,6 +144,12 @@ class SegmentViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Segment.objects.all()
     serializer_class = serializers.SegmentSerializer
     filter_fields = ('segment_index','video')
+
+
+class QueryRegionViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
+    queryset = QueryRegion.objects.all()
+    serializer_class = serializers.QueryRegionSerializer
 
 
 class RegionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin, mixins.DestroyModelMixin,

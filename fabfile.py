@@ -282,6 +282,14 @@ def ci_search():
                     ]
                 }
 
+            },
+            {
+                'operation': 'perform_detection',
+                'arguments': {
+                    'detector': 'coco',
+                    'target': 'query',
+                }
+
             }
 
         ]

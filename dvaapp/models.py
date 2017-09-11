@@ -374,6 +374,39 @@ class Region(models.Model):
             return "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT, self.video_id, self.frame_index)
 
 
+class QueryRegion(models.Model):
+    """
+    Any 2D region over a query image.
+    """
+    ANNOTATION = 'A'
+    DETECTION = 'D'
+    SEGMENTATION = 'S'
+    TRANSFORM = 'T'
+    POLYGON = 'P'
+    REGION_TYPES = (
+        (ANNOTATION, 'Annotation'),
+        (DETECTION, 'Detection'),
+        (POLYGON, 'Polygon'),
+        (SEGMENTATION, 'Segmentation'),
+        (TRANSFORM, 'Transform'),
+    )
+    region_type = models.CharField(max_length=1,choices=REGION_TYPES,db_index=True)
+    query = models.ForeignKey(DVAPQL)
+    event = models.ForeignKey(TEvent, null=True)  # TEvent that created this region
+    text = models.TextField(default="")
+    metadata = JSONField(blank=True,null=True)
+    full_frame = models.BooleanField(default=False)
+    x = models.IntegerField(default=0)
+    y = models.IntegerField(default=0)
+    h = models.IntegerField(default=0)
+    w = models.IntegerField(default=0)
+    polygon_points = JSONField(blank=True,null=True)
+    created = models.DateTimeField('date created', auto_now_add=True)
+    object_name = models.CharField(max_length=100)
+    confidence = models.FloatField(default=0.0)
+    png = models.BooleanField(default=False)
+
+
 class QueryResults(models.Model):
     query = models.ForeignKey(DVAPQL)
     retrieval_event = models.ForeignKey(TEvent,null=True)

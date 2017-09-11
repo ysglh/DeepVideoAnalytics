@@ -6,7 +6,7 @@ from django.conf import settings
 from dva.celery import app
 from .models import Video, Frame, TEvent,  IndexEntries, LOPQCodes, Region, Tube, \
     Retriever, Detector, Segment, QueryIndexVector, DeletedVideo, ManagementAction, Analyzer, SystemState, DVAPQL, \
-    Worker
+    Worker, QueryRegion
 
 from .operations.indexing import IndexerTask
 from .operations.retrieval import RetrieverTask
@@ -221,6 +221,9 @@ def perform_detection(task_id):
     video_id = start.video_id
     args = start.arguments
     detector_name = args['detector']
+    detections = []
+    dv = None
+    query_flow = (video_id is None) and (args['target'] == 'query')
     if 'detector_pk' in args:
         detector_pk = int(args['detector_pk'])
         cd = Detector.objects.get(pk=detector_pk)
@@ -231,48 +234,62 @@ def perform_detection(task_id):
     if detector.session is None:
         logging.info("loading detection model")
         detector.load()
-    dv = Video.objects.get(id=video_id)
-    if 'filters' in args:
-        kwargs = args['filters']
-        kwargs['video_id'] = video_id
-        frames = Frame.objects.all().filter(**kwargs)
-        logging.info("Running {} Using filters {}".format(detector_name,kwargs))
-    else:
-        frames = Frame.objects.all().filter(video=dv)
-    dd_list = []
-    path_list = []
-    for df in frames:
-        local_path = df.path()
+    if video_id:
+        dv = Video.objects.get(id=video_id)
+        if 'filters' in args:
+            kwargs = args['filters']
+            kwargs['video_id'] = video_id
+            frames = Frame.objects.all().filter(**kwargs)
+            logging.info("Running {} Using filters {}".format(detector_name,kwargs))
+        else:
+            frames = Frame.objects.all().filter(video=dv)
+        dd_list = []
+        for df in frames:
+            local_path = df.path()
+            detections = detector.detect(local_path)
+    elif query_flow:
+        parent_process = start.parent_process
+        local_path = "{}/queries/{}_{}.png".format(settings.MEDIA_ROOT, start.pk, start.parent_process_id)
+        with open(local_path, 'w') as fh:
+            fh.write(str(parent_process.image_data))
         detections = detector.detect(local_path)
-        for d in detections:
-            dd = Region()
-            dd.region_type = Region.DETECTION
+    else:
+        raise ValueError,"Video_id is null, nor the target is a query"
+    for d in detections:
+        dd = QueryRegion() if query_flow else Region()
+        dd.region_type = Region.DETECTION
+        if query_flow:
+            dd.query_id = start.parent_process_id
+        else:
             dd.video_id = dv.pk
             dd.frame_id = df.pk
             dd.frame_index = df.frame_index
             dd.segment_index = df.segment_index
-            if detector_name == 'coco':
-                dd.object_name = 'SSD_{}'.format(d['object_name'])
-                dd.confidence = 100.0 * d['score']
-            elif detector_name == 'textbox':
-                dd.object_name = 'TEXTBOX'
-                dd.confidence = 100.0 * d['score']
-            elif detector_name == 'face':
-                dd.object_name = 'MTCNN_face'
-                dd.confidence = 100.0
-            elif detector_name == 'custom':
-                dd.object_name = '{}_{}'.format(detector_pk,d['object_name'])
-                dd.confidence = 100.0 * d['score']
-            else:
-                raise NotImplementedError
-            dd.x = d['x']
-            dd.y = d['y']
-            dd.w = d['w']
-            dd.h = d['h']
-            dd.event_id = task_id
-            dd_list.append(dd)
-            path_list.append(local_path)
-    _ = Region.objects.bulk_create(dd_list,1000)
+        if detector_name == 'coco':
+            dd.object_name = 'SSD_{}'.format(d['object_name'])
+            dd.confidence = 100.0 * d['score']
+        elif detector_name == 'textbox':
+            dd.object_name = 'TEXTBOX'
+            dd.confidence = 100.0 * d['score']
+        elif detector_name == 'face':
+            dd.object_name = 'MTCNN_face'
+            dd.confidence = 100.0
+        elif detector_name == 'custom':
+            dd.object_name = '{}_{}'.format(detector_pk, d['object_name'])
+            dd.confidence = 100.0 * d['score']
+        else:
+            raise NotImplementedError
+        dd.x = d['x']
+        dd.y = d['y']
+        dd.w = d['w']
+        dd.h = d['h']
+        dd.event_id = task_id
+        dd_list.append(dd)
+    if query_flow:
+        _ = QueryRegion.objects.bulk_create(dd_list, 1000)
+    else:
+        _ = Region.objects.bulk_create(dd_list, 1000)
+
     process_next(task_id)
     mark_as_completed(start)
     return 0

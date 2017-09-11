@@ -477,11 +477,12 @@ class VisualSearchDetail(UserPassesTestMixin, DetailView):
         context = super(VisualSearchDetail, self).get_context_data(**kwargs)
         qp = DVAPQLProcess(process=context['object'],media_dir=settings.MEDIA_ROOT)
         qp.collect()
-        context['results'] = qp.context.items()
+        context['results'] = qp.context['results'].items()
+        context['regions'] = qp.context['regions']
         script = context['object'].script
         script[u'image_data_b64'] = "<excluded>"
         context['plan'] = script
-        context['iqs'] = []
+        context['tasks'] = TEvent.objects.filter(parent_process=context['object'])
         context['url'] = '{}queries/{}.png'.format(settings.MEDIA_URL, self.object.pk, self.object.pk)
         return context
 
@@ -561,7 +562,8 @@ def search(request):
         qp.collect()
         return JsonResponse(data={'task_id': "",
                                   'primary_key': qp.process.pk,
-                                  'results': qp.context,
+                                  'results': qp.context['results'],
+                                  'regions': qp.context['regions'],
                                   'url': '{}queries/{}.png'.format(settings.MEDIA_URL, qp.process.pk)
                                   })
 

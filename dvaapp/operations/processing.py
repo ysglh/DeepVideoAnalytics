@@ -11,7 +11,7 @@ except ImportError:
     np = None
     logging.warning("Could not import indexer / clustering assuming running in front-end mode / Heroku")
 from django.apps import apps
-from ..models import Video,DVAPQL,QueryResults,TEvent,Region,Analyzer,Indexer,Detector,Retriever
+from ..models import Video,DVAPQL,QueryResults,TEvent,Region,Analyzer,Indexer,Detector,Retriever,QueryRegion
 from collections import defaultdict
 from celery.result import AsyncResult
 from . import queuing
@@ -315,8 +315,21 @@ class DVAPQLProcess(object):
             self.task_results[dt.pk] = app.send_task(name=dt.operation, args=[dt.pk, ], queue=dt.queue)
 
     def collect(self):
-        self.context = defaultdict(list)
+        self.context = {'results':defaultdict(list),
+                        'regions':[]}
         rids_to_names = {}
+        for rd in QueryRegion.objects.all().filter(query=self.process):
+            self.context['regions'].append({
+                'object_name':rd.object_name,
+                'x':rd.x,
+                'y':rd.y,
+                'w':rd.w,
+                'confidence':rd.confidence,
+                'text':rd.text,
+                'metadata':rd.metadata,
+                'region_type':rd.region_type,
+                'h':rd.h,
+            })
         for r in QueryResults.objects.all().filter(query=self.process):
             if r.retrieval_event_id not in rids_to_names:
                 retriever = Retriever.objects.get(pk=r.retrieval_event.arguments['retriever_pk'])
@@ -325,7 +338,7 @@ class DVAPQLProcess(object):
                                                                                    retriever.get_algorithm_display(),
                                                                                    retriever.name)
             name = rids_to_names[r.retrieval_event_id]
-            self.context[name].append((r.rank,
+            self.context['results'][name].append((r.rank,
                                          {'url': '{}{}/regions/{}.jpg'.format(settings.MEDIA_URL, r.video_id,
                                                                                  r.detection_id) if r.detection_id else '{}{}/frames/{}.jpg'.format(
                                              settings.MEDIA_URL, r.video_id, r.frame.frame_index),
@@ -336,10 +349,10 @@ class DVAPQLProcess(object):
                                           'distance': r.distance,
                                           'video_id': r.video_id,
                                           'video_name': r.video.name}))
-        for k, v in self.context.iteritems():
+        for k, v in self.context['results'].iteritems():
             if v:
-                self.context[k].sort()
-                self.context[k] = zip(*v)[1]
+                self.context['results'][k].sort()
+                self.context['results'][k] = zip(*v)[1]
 
     def to_json(self):
         json_query = {}

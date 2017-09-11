@@ -393,6 +393,7 @@ function chunk(arr, size) {
 
 $scope.clear_results = function () {
     $scope.results = [];
+    $scope.regions = [];
     $scope.$apply();
     $scope.$$phase || $scope.$digest();
 };
@@ -411,7 +412,7 @@ $scope.toggle_visibility = function(box_index){
 };
 
 $scope.results_available = function(){
-    return (_.size($scope.results) > 0);
+    return (_.size($scope.results) > 0 || _.size($scope.regions) > 0);
 };
 
 $scope.toggle_all = function(){
@@ -462,6 +463,7 @@ $scope.search = function (approximate) {
     }
     $scope.alert_status = true;
     $scope.results = {};
+    $scope.regions = {};
     $scope.$apply();
     $scope.$$phase || $scope.$digest();
     $scope.refreshData();
@@ -484,6 +486,8 @@ $scope.search = function (approximate) {
             $scope.alert_status = false;
             console.log(response);
             $scope.results = response.results;
+            $scope.query_url = response.url;
+            $scope.regions = response.regions;
             $scope.$$phase || $scope.$digest();
         }
     });
@@ -603,6 +607,7 @@ cveditor.controller('CanvasControls', function($scope) {
     $scope.status = status;
     $scope.current_mode = null;
     $scope.results = {};
+    $scope.regions = {};
     $scope.boxes = [];
     $scope.existing_boxes = [];
     $scope.high_level_alert = "Add frame level annotation";

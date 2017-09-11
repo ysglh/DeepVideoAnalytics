@@ -220,7 +220,6 @@ def perform_detection(task_id):
         start.save()
     video_id = start.video_id
     args = start.arguments
-    detector_name = args['detector']
     detections = []
     dv = None
     dd_list = []
@@ -228,7 +227,9 @@ def perform_detection(task_id):
     if 'detector_pk' in args:
         detector_pk = int(args['detector_pk'])
         cd = Detector.objects.get(pk=detector_pk)
+        detector_name = cd.name
     else:
+        detector_name = args['detector']
         cd = Detector.objects.get(name=detector_name)
     perform_detection.load_detector(cd)
     detector = perform_detection.get_static_detectors[cd.pk]
@@ -374,6 +375,7 @@ def perform_export(task_id):
         raise exc_info[0], exc_info[1], exc_info[2]
     mark_as_completed(start)
 
+
 @app.task(track_started=True, name="perform_detector_import")
 def perform_detector_import(task_id):
     start = TEvent.objects.get(pk=task_id)
@@ -404,6 +406,7 @@ def perform_detector_import(task_id):
     os.remove(source_zip)
     process_next(task_id)
     mark_as_completed(start)
+
 
 @app.task(track_started=True, name="perform_import")
 def perform_import(event_id):

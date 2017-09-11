@@ -221,7 +221,7 @@ class DVAPQLProcess(object):
             )
         for d in selected_detectors:
             query_json['tasks'].append({'operation': 'perform_detection',
-                                        'arguments': {'detector_pk': d,'target': 'query',}})
+                                        'arguments': {'detector_pk': int(d),'target': 'query',}})
         user = request.user if request.user.is_authenticated else None
         self.create_from_json(query_json,user)
         return self.process

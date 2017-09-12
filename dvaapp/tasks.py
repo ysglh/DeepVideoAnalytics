@@ -261,7 +261,7 @@ def perform_detection(task_id):
             dd.frame_index = df.frame_index
             dd.segment_index = df.segment_index
         if detector_name == 'coco':
-            dd.object_name = 'SSD_{}'.format(d['object_name'])
+            dd.object_name = '{}'.format(d['object_name'])
             dd.confidence = 100.0 * d['score']
         elif detector_name == 'textbox':
             dd.object_name = 'TEXTBOX'

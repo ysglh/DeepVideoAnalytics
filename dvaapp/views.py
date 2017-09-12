@@ -22,7 +22,7 @@ import math
 from django.db.models import Max
 from shared import handle_uploaded_file, create_annotation, handle_video_url, pull_vdn_list, \
     import_vdn_dataset_url, create_detector_dataset, import_vdn_detector_url, refresh_task_status, \
-    delete_video_object
+    delete_video_object, create_query_from_request
 from operations.processing import DVAPQLProcess
 from django.contrib.auth.decorators import user_passes_test,login_required
 from django.utils.decorators import method_decorator
@@ -559,7 +559,7 @@ class StoredProcessDetail(UserPassesTestMixin, DetailView):
 def search(request):
     if request.method == 'POST':
         qp = DVAPQLProcess()
-        qp.create_from_request(request)
+        create_query_from_request(qp,request)
         qp.launch()
         qp.wait()
         qp.collect()

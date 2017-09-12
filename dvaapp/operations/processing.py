@@ -186,60 +186,6 @@ class DVAPQLProcess(object):
             with open(query_path, 'w') as fh:
                 fh.write(self.process.image_data)
 
-    def create_from_request(self, request):
-        """
-        Create JSON object representing the query from request recieved from Dashboard.
-        :param request:
-        :return:
-        """
-        query_json = {'process_type':DVAPQL.QUERY}
-        count = request.POST.get('count')
-        selected_indexers = json.loads(request.POST.get('selected_indexers'))
-        selected_detectors = json.loads(request.POST.get('selected_detectors'))
-        query_json['image_data_b64'] = request.POST.get('image_url')[22:]
-        query_json['tasks'] = []
-        indexer_tasks = defaultdict(list)
-        for k in selected_indexers:
-            indexer_pk,  retriever_pk =  k.split('_')
-            indexer_tasks[int(indexer_pk)].append(int(retriever_pk))
-
-        for i in indexer_tasks:
-            di = Indexer.objects.get(pk=i)
-            rtasks = []
-            for r in indexer_tasks[i]:
-                rtasks.append({'operation': 'perform_retrieval', 'arguments': {'count': int(count), 'retriever_pk':r}})
-            query_json['tasks'].append(
-                {
-                    'operation': 'perform_indexing',
-                    'arguments': {
-                        'index': di.name,
-                        'target': 'query',
-                        'next_tasks': rtasks
-                    }
-
-                }
-            )
-        for d in selected_detectors:
-            dd = Detector.objects.get(pk=int(d))
-            if dd.name == 'textbox':
-                query_json['tasks'].append({'operation': 'perform_detection',
-                                            'arguments': {'detector_pk': int(d),
-                                                          'target': 'query',
-                                                          'next_tasks': [{
-                                                              'operation':'perform_analysis',
-                                                              'arguments': {'target': 'query_regions',
-                                                                            'filters': {'event_id':'__parent__'}
-                                                                            }
-                                                            }]
-                                                          }
-                                            })
-            else:
-                query_json['tasks'].append({'operation': 'perform_detection',
-                                            'arguments': {'detector_pk': int(d),'target': 'query',}})
-        user = request.user if request.user.is_authenticated else None
-        self.create_from_json(query_json,user)
-        return self.process
-
     def create_from_json(self, j, user=None):
         if self.process is None:
             self.process = DVAPQL()

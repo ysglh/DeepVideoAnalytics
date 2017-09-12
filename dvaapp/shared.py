@@ -1,6 +1,6 @@
 import os, json, requests, copy, time, subprocess, logging, shutil, zipfile, boto3, random, calendar, shlex
 from models import Video, TEvent,  Region, VDNServer, Detector, DeletedVideo, Label,\
-    RegionLabel, QueryRegion
+    RegionLabel, QueryRegion, Analyzer, Indexer
 from django.conf import settings
 from PIL import Image
 from django_celery_results.models import TaskResult
@@ -608,3 +608,59 @@ def download_and_get_query_region_path(start,regions):
         img2.save()
         rpaths.append(region_path)
     return rpaths
+
+
+def create_query_from_request(p, request):
+    """
+    Create JSON object representing the query from request received from Dashboard.
+    :param request:
+    :return:
+    """
+    query_json = {'process_type': DVAPQL.QUERY}
+    count = request.POST.get('count')
+    selected_indexers = json.loads(request.POST.get('selected_indexers'))
+    selected_detectors = json.loads(request.POST.get('selected_detectors'))
+    query_json['image_data_b64'] = request.POST.get('image_url')[22:]
+    query_json['tasks'] = []
+    indexer_tasks = defaultdict(list)
+    for k in selected_indexers:
+        indexer_pk, retriever_pk = k.split('_')
+        indexer_tasks[int(indexer_pk)].append(int(retriever_pk))
+
+    for i in indexer_tasks:
+        di = Indexer.objects.get(pk=i)
+        rtasks = []
+        for r in indexer_tasks[i]:
+            rtasks.append({'operation': 'perform_retrieval', 'arguments': {'count': int(count), 'retriever_pk': r}})
+        query_json['tasks'].append(
+            {
+                'operation': 'perform_indexing',
+                'arguments': {
+                    'index': di.name,
+                    'target': 'query',
+                    'next_tasks': rtasks
+                }
+
+            }
+        )
+    for d in selected_detectors:
+        dd = Detector.objects.get(pk=int(d))
+        if dd.name == 'textbox':
+            query_json['tasks'].append({'operation': 'perform_detection',
+                                        'arguments': {'detector_pk': int(d),
+                                                      'target': 'query',
+                                                      'next_tasks': [{
+                                                          'operation': 'perform_analysis',
+                                                          'arguments': {'target': 'query_regions',
+                                                                        'analyzer': 'crnn',
+                                                                        'filters': {'event_id': '__parent__'}
+                                                                        }
+                                                      }]
+                                                      }
+                                        })
+        else:
+            query_json['tasks'].append({'operation': 'perform_detection',
+                                        'arguments': {'detector_pk': int(d), 'target': 'query', }})
+    user = request.user if request.user.is_authenticated else None
+    p.create_from_json(query_json, user)
+    return p.process

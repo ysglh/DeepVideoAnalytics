@@ -290,7 +290,7 @@ class DVAPQLProcess(object):
                 'confidence':rd.confidence,
                 'text':rd.text,
                 'metadata':rd.metadata,
-                'region_type':rd.region_type,
+                'region_type':rd.get_region_type_display(),
                 'h':rd.h,
             })
         for r in QueryResults.objects.all().filter(query=self.process):

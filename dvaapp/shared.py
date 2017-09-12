@@ -618,15 +618,15 @@ def create_query_from_request(p, request):
     """
     query_json = {'process_type': DVAPQL.QUERY}
     count = request.POST.get('count')
-    selected_indexers = json.loads(request.POST.get('selected_indexers'))
-    selected_detectors = json.loads(request.POST.get('selected_detectors'))
+    selected_indexers = json.loads(request.POST.get('selected_indexers',"[]"))
+    selected_detectors = json.loads(request.POST.get('selected_detectors',"[]"))
     query_json['image_data_b64'] = request.POST.get('image_url')[22:]
     query_json['tasks'] = []
     indexer_tasks = defaultdict(list)
-    for k in selected_indexers:
-        indexer_pk, retriever_pk = k.split('_')
-        indexer_tasks[int(indexer_pk)].append(int(retriever_pk))
-
+    if selected_indexers:
+        for k in selected_indexers:
+            indexer_pk, retriever_pk = k.split('_')
+            indexer_tasks[int(indexer_pk)].append(int(retriever_pk))
     for i in indexer_tasks:
         di = Indexer.objects.get(pk=i)
         rtasks = []
@@ -643,24 +643,25 @@ def create_query_from_request(p, request):
 
             }
         )
-    for d in selected_detectors:
-        dd = Detector.objects.get(pk=int(d))
-        if dd.name == 'textbox':
-            query_json['tasks'].append({'operation': 'perform_detection',
-                                        'arguments': {'detector_pk': int(d),
-                                                      'target': 'query',
-                                                      'next_tasks': [{
-                                                          'operation': 'perform_analysis',
-                                                          'arguments': {'target': 'query_regions',
-                                                                        'analyzer': 'crnn',
-                                                                        'filters': {'event_id': '__parent_event__'}
-                                                                        }
-                                                      }]
-                                                      }
-                                        })
-        else:
-            query_json['tasks'].append({'operation': 'perform_detection',
-                                        'arguments': {'detector_pk': int(d), 'target': 'query', }})
+    if selected_detectors:
+        for d in selected_detectors:
+            dd = Detector.objects.get(pk=int(d))
+            if dd.name == 'textbox':
+                query_json['tasks'].append({'operation': 'perform_detection',
+                                            'arguments': {'detector_pk': int(d),
+                                                          'target': 'query',
+                                                          'next_tasks': [{
+                                                              'operation': 'perform_analysis',
+                                                              'arguments': {'target': 'query_regions',
+                                                                            'analyzer': 'crnn',
+                                                                            'filters': {'event_id': '__parent_event__'}
+                                                                            }
+                                                          }]
+                                                          }
+                                            })
+            else:
+                query_json['tasks'].append({'operation': 'perform_detection',
+                                            'arguments': {'detector_pk': int(d), 'target': 'query', }})
     user = request.user if request.user.is_authenticated else None
     p.create_from_json(query_json, user)
     return p.process

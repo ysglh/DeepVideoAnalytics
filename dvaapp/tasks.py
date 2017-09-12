@@ -284,10 +284,12 @@ def perform_detection(task_id):
         _ = QueryRegion.objects.bulk_create(dd_list, 1000)
     else:
         _ = Region.objects.bulk_create(dd_list, 1000)
-
-    process_next(task_id)
+    launched = process_next(task_id)
     mark_as_completed(start)
-    return 0
+    if query_flow:
+        return launched
+    else:
+        return 0
 
 
 @app.task(track_started=True, name="perform_analysis",base=AnalyzerTask)

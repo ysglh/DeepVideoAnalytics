@@ -605,7 +605,7 @@ def download_and_get_query_region_path(start,regions):
     for r in regions:
         region_path = "{}/queries/region_{}_{}.png".format(settings.MEDIA_ROOT, r.pk, start.parent_process_id)
         img2 = imdata.crop((r.x, r.y, r.x + r.w, r.y + r.h))
-        img2.save()
+        img2.save(region_path)
         rpaths.append(region_path)
     return rpaths
 

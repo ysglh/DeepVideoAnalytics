@@ -653,7 +653,7 @@ def create_query_from_request(p, request):
                                                           'operation': 'perform_analysis',
                                                           'arguments': {'target': 'query_regions',
                                                                         'analyzer': 'crnn',
-                                                                        'filters': {'event_id': '__parent__'}
+                                                                        'filters': {'event_id': '__parent_event__'}
                                                                         }
                                                       }]
                                                       }

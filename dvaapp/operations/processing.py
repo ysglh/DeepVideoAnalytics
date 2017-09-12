@@ -225,12 +225,12 @@ class DVAPQLProcess(object):
                 query_json['tasks'].append({'operation': 'perform_detection',
                                             'arguments': {'detector_pk': int(d),
                                                           'target': 'query',
-                                                          'next_tasks': {
+                                                          'next_tasks': [{
                                                               'operation':'perform_analysis',
                                                               'arguments': {'target': 'query_regions',
-                                                                            'filters': {'event_id':'_parent__'}
+                                                                            'filters': {'event_id':'__parent__'}
                                                                             }
-                                                            }
+                                                            }]
                                                           }
                                             })
             else:

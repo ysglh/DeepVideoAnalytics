@@ -196,6 +196,7 @@ class DVAPQLProcess(object):
                 image_data = base64.decodestring(j['image_data_b64'])
                 j['image_data_b64'] = None
                 self.process.image_data = image_data
+            self.process.process_type = DVAPQL.QUERY
             self.process.script = j
             self.process.save()
             self.store()

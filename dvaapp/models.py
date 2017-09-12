@@ -622,3 +622,10 @@ class SystemState(models.Model):
     completed_processes = models.IntegerField(default=0)
     queues = JSONField(blank=True,null=True)
     hosts = JSONField(blank=True,null=True)
+
+
+class QueryRegionIndexVector(models.Model):
+    event = models.OneToOneField(TEvent)
+    query_region = models.ForeignKey(QueryRegion)
+    vector = models.BinaryField()
+    created = models.DateTimeField('date created', auto_now_add=True)

@@ -59,10 +59,7 @@ def perform_indexing(task_id):
     visual_index, di = perform_indexing.get_index_by_name(index_name)
     sync = True
     if target == 'query':
-        parent_process = start.parent_process
-        local_path = "{}/queries/{}_{}.png".format(settings.MEDIA_ROOT, start.pk, start.parent_process_id)
-        with open(local_path, 'w') as fh:
-            fh.write(str(parent_process.image_data))
+        local_path = shared.download_and_get_query_path(start)
         vector = visual_index.apply(local_path)
         # TODO: figure out a better way to store numpy arrays.
         s = io.BytesIO()
@@ -249,10 +246,7 @@ def perform_detection(task_id):
             local_path = df.path()
             detections = detector.detect(local_path)
     elif query_flow:
-        parent_process = start.parent_process
-        local_path = "{}/queries/{}_{}.png".format(settings.MEDIA_ROOT, start.pk, start.parent_process_id)
-        with open(local_path, 'w') as fh:
-            fh.write(str(parent_process.image_data))
+        local_path = shared.download_and_get_query_path(start)
         detections = detector.detect(local_path)
     else:
         raise ValueError,"Video_id is null, nor the target is a query"
@@ -313,8 +307,17 @@ def perform_analysis(task_id):
     analyzer = perform_analysis.get_static_analyzers[analyzer_name]
     regions_batch = []
     queryset, target = shared.build_queryset(args,video_id)
-    for f in queryset:
-        path = f.path()
+    if target == 'query':
+        path = shared.download_and_get_query_path(start)
+    if target == 'query_regions':
+        paths = shared.download_and_get_query_region_path(start,queryset)
+    for i,f in enumerate(queryset):
+        if target == 'query_regions':
+            path = paths[i]
+        elif target == 'query':
+            path = path
+        else:
+            path = f.path()
         object_name, text, metadata = analyzer.apply(path)
         a = Region()
         a.region_type = Region.ANNOTATION

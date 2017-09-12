@@ -1,7 +1,8 @@
 import os, json, requests, copy, time, subprocess, logging, shutil, zipfile, boto3, random, calendar, shlex
 from models import Video, TEvent,  Region, VDNServer, Detector, DeletedVideo, Label,\
-    RegionLabel
+    RegionLabel, QueryRegion
 from django.conf import settings
+from PIL import Image
 from django_celery_results.models import TaskResult
 from collections import defaultdict
 from operations import processing
@@ -556,6 +557,8 @@ def build_queryset(args,video_id=None):
         queryset = Frame.objects.all().filter(**kwargs)
     elif target == 'regions':
         queryset = Region.objects.all().filter(**kwargs)
+    elif target == 'query_regions':
+        queryset = QueryRegion.objects.all().filter(**kwargs)
     else:
         queryset = None
         raise ValueError
@@ -583,3 +586,25 @@ def import_external(args):
         raise NotImplementedError
     else:
         raise ValueError,"dataset:{} not configured".format(dataset)
+
+
+def download_and_get_query_path(start):
+    local_path = "{}/queries/{}_{}.png".format(settings.MEDIA_ROOT, start.pk, start.parent_process_id)
+    with open(local_path, 'w') as fh:
+        fh.write(str(start.parent_process.image_data))
+    return local_path
+
+
+def download_and_get_query_region_path(start,regions):
+    query_local_path = "{}/queries/{}_{}.png".format(settings.MEDIA_ROOT, start.pk, start.parent_process_id)
+    if not os.path.isfile(query_local_path):
+        with open(query_local_path, 'w') as fh:
+            fh.write(str(start.parent_process.image_data))
+    imdata = Image.open(query_local_path)
+    rpaths = []
+    for r in regions:
+        region_path = "{}/queries/region_{}_{}.png".format(settings.MEDIA_ROOT, r.pk, start.parent_process_id)
+        img2 = imdata.crop((r.x, r.y, r.x + r.w, r.y + r.h))
+        img2.save()
+        rpaths.append(region_path)
+    return rpaths

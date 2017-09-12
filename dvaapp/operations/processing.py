@@ -220,8 +220,22 @@ class DVAPQLProcess(object):
                 }
             )
         for d in selected_detectors:
-            query_json['tasks'].append({'operation': 'perform_detection',
-                                        'arguments': {'detector_pk': int(d),'target': 'query',}})
+            dd = Detector.objects.get(pk=int(d))
+            if dd.name == 'textbox':
+                query_json['tasks'].append({'operation': 'perform_detection',
+                                            'arguments': {'detector_pk': int(d),
+                                                          'target': 'query',
+                                                          'next_tasks': {
+                                                              'operation':'perform_analysis',
+                                                              'arguments': {'target': 'query_regions',
+                                                                            'filters': {'event_id':'_parent__'}
+                                                                            }
+                                                            }
+                                                          }
+                                            })
+            else:
+                query_json['tasks'].append({'operation': 'perform_detection',
+                                            'arguments': {'detector_pk': int(d),'target': 'query',}})
         user = request.user if request.user.is_authenticated else None
         self.create_from_json(query_json,user)
         return self.process

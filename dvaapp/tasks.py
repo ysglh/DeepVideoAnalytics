@@ -307,40 +307,57 @@ def perform_analysis(task_id):
     analyzer = perform_analysis.get_static_analyzers[analyzer_name]
     regions_batch = []
     queryset, target = shared.build_queryset(args,video_id)
+    query_path = None
+    query_regions_paths = None
     if target == 'query':
-        path = shared.download_and_get_query_path(start)
+        query_path = shared.download_and_get_query_path(start)
     if target == 'query_regions':
-        paths = shared.download_and_get_query_region_path(start,queryset)
+        query_regions_paths = shared.download_and_get_query_region_path(start,queryset)
     for i,f in enumerate(queryset):
-        if target == 'query_regions':
-            path = paths[i]
-        elif target == 'query':
-            path = path
+        if query_regions_paths:
+            path = query_regions_paths[i]
+            a = QueryRegion()
+            a.query_id = start.parent_process_id
+            a.x = f.x
+            a.y = f.y
+            a.w = f.w
+            a.h = f.h
+        elif query_path:
+            path = query_path
+            a = QueryRegion()
+            a.query_id = start.parent_process_id
+            a.x = f.x
+            a.y = f.y
+            a.w = f.w
+            a.h = f.h
         else:
+            a = Region()
+            a.video_id = f.video_id
+            if target == 'regions':
+                a.x = f.x
+                a.y = f.y
+                a.w = f.w
+                a.h = f.h
+                a.frame_id = f.frame.id
+                a.frame_index = f.frame_index
+                a.segment_index = f.segment_index
+            elif target == 'frames':
+                a.full_frame = True
+                a.frame_index = f.frame_index
+                a.segment_index = f.segment_index
+                a.frame_id = f.id
             path = f.path()
         object_name, text, metadata = analyzer.apply(path)
-        a = Region()
         a.region_type = Region.ANNOTATION
         a.object_name = object_name
         a.text = text
         a.metadata = metadata
         a.event_id = task_id
-        a.video_id = f.video_id
-        if target == 'regions':
-            a.x = f.x
-            a.y = f.y
-            a.w = f.w
-            a.h = f.h
-            a.frame_id = f.frame.id
-            a.frame_index = f.frame_index
-            a.segment_index = f.segment_index
-        elif target == 'frames':
-            a.full_frame = True
-            a.frame_index = f.frame_index
-            a.segment_index = f.segment_index
-            a.frame_id = f.id
         regions_batch.append(a)
-    Region.objects.bulk_create(regions_batch,1000)
+    if query_regions_paths or query_path:
+        QueryRegion.objects.bulk_create(regions_batch, 1000)
+    else:
+        Region.objects.bulk_create(regions_batch,1000)
     process_next(task_id)
     mark_as_completed(start)
     return 0

@@ -321,6 +321,8 @@ class DVAPQLProcess(object):
         for rd in QueryRegion.objects.all().filter(query=self.process):
             self.context['regions'].append({
                 'object_name':rd.object_name,
+                'event_id':rd.event_id,
+                'pk':rd.pk,
                 'x':rd.x,
                 'y':rd.y,
                 'w':rd.w,

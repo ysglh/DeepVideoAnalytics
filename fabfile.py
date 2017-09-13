@@ -489,10 +489,11 @@ def init_server():
         test()
 
 
-def download_model(root_dir, model_type_dir_name, model_dir_name, filename, url):
+def download_model(root_dir, model_type_dir_name, model_dir_name, model_json):
     """
     Download model to filesystem
     """
+    filename, url = model_json['filename'], model_json['url']
     model_type_dir = "{}/{}/".format(root_dir, model_type_dir_name)
     if not os.path.isdir(model_type_dir):
         os.mkdir(model_type_dir)
@@ -504,6 +505,15 @@ def download_model(root_dir, model_type_dir_name, model_dir_name, filename, url)
                 local("cd {} && cp /users/aub3/Dropbox/DeepVideoAnalytics/shared/{} .".format(model_dir_name, filename))
             else:
                 local("cd {} && wget --quiet {}".format(model_dir_name, url))
+            if 'additional_files' in model_json:
+                for m in model_json["additional_files"]:
+                    url = m['url']
+                    filename = m['filename']
+                    if sys.platform == 'darwin':
+                        local("cd {} && cp /users/aub3/Dropbox/DeepVideoAnalytics/shared/{} .".format(model_dir_name,
+                                                                                                      filename))
+                    else:
+                        local("cd {} && wget --quiet {}".format(model_dir_name, url))
 
 
 @task
@@ -532,7 +542,7 @@ def init_models():
                                                    class_index_to_string=m.get("class_index_to_string", {})
                                                    )
             if m['url']:
-                download_model(settings.MEDIA_ROOT, "detectors", dm.pk, m['filename'], m['url'])
+                download_model(settings.MEDIA_ROOT, "detectors", dm.pk, m)
         if m['model_type'] == "indexer":
             dm, created = Indexer.objects.get_or_create(name=m['name'], mode=m['mode'], shasum=m['shasum'])
             if created:
@@ -541,11 +551,11 @@ def init_models():
                     dr.last_built = timezone.now()
                     dr.save()
             if m['url']:
-                download_model(settings.MEDIA_ROOT, "indexers", dm.pk, m['filename'], m['url'])
+                download_model(settings.MEDIA_ROOT, "indexers", dm.pk, m)
         if m['model_type'] == "analyzer":
             dm, _ = Analyzer.objects.get_or_create(name=m['name'], mode=m['mode'])
             if m['url']:
-                download_model(settings.MEDIA_ROOT, "analyzers", dm.pk, m['filename'], m['url'])
+                download_model(settings.MEDIA_ROOT, "analyzers", dm.pk, m)
 
 
 @task

@@ -26,6 +26,6 @@ class DetectorTask(celery.Task):
             elif cd.name == 'face':
                 DetectorTask._detectors[cd.pk] = detector.FaceDetector()
             elif cd.name == 'textbox':
-                DetectorTask._detectors[cd.pk] = detector.TextBoxDetector()
+                DetectorTask._detectors[cd.pk] = detector.TextBoxDetector(model_path=cd.get_model_path())
             else:
                 raise ValueError,"{}".format(cd.pk)

@@ -93,8 +93,12 @@
   {
     "model_type": "detector",
     "name": "textbox",
-    "url": null,
-    "filename": null,
+    "url": "https://www.dropbox.com/s/yyj53aet2emhvs7/ctpn_trained_model.caffemodel",
+    "filename": "ctpn_trained_model.caffemodel",
+    "additional_files":[
+      {"url": "https://www.dropbox.com/s/1fcgzui32wrtlvd/ctpn_trained_model.prototxt",
+      "filename": "ctpn_trained_model.prototxt"}
+    ],
     "algorithm": "CTPN",
     "mode": "C"
   },

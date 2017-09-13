@@ -230,13 +230,14 @@ class FaceDetector():
 
 class TextBoxDetector():
 
-    def __init__(self):
+    def __init__(self,model_path):
         self.session = None
+        self.model_path = model_path
+        self.network_def = model_path.replace('.caffemodel','.prototxt')
+
 
     def load(self):
         logging.info('Creating networks and loading parameters')
-        NET_DEF_FILE = "/opt/ctpn/CTPN/models/deploy.prototxt"
-        MODEL_FILE = "/opt/ctpn/CTPN/models/ctpn_trained_model.caffemodel"
         if os.environ.get('GPU_AVAILABLE',False):
             caffe.set_mode_gpu()
             caffe.set_device(cfg.TEST_GPU_ID)
@@ -244,7 +245,7 @@ class TextBoxDetector():
         else:
             caffe.set_mode_cpu()
             logging.info("CPU mode")
-        text_proposals_detector = TextProposalDetector(CaffeModel(NET_DEF_FILE, MODEL_FILE))
+        text_proposals_detector = TextProposalDetector(CaffeModel(self.network_def, self.model_path))
         self.session = TextDetector(text_proposals_detector)
         logging.info('model loaded!')
 

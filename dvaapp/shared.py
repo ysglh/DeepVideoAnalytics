@@ -637,7 +637,7 @@ def create_query_from_request(p, request):
     query_json['image_data_b64'] = request.POST.get('image_url')[22:]
     query_json['tasks'] = []
     indexer_tasks = defaultdict(list)
-    if generate_tags:
+    if generate_tags and generate_tags != 'false':
         query_json['tasks'].append({'operation': 'perform_analysis',
                                     'arguments': {'analyzer': 'tagger','target': 'query',}
                                     })

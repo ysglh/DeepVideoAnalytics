@@ -451,12 +451,7 @@ $scope.search = function (approximate) {
     $scope.clear_results();
     $scope.setFreeDrawingMode(false,$scope.current_mode);
     $scope.check_movement();
-    if (approximate){
-        $scope.status = "Starting Approximate Search";
-    }
-    else{
-        $scope.status = "Starting Exact Search can take up to a minute";
-    }
+    $scope.status = "Search started. Wait or view results later on past queries page.";
     if(canvas.isDrawingMode){
         canvas.isDrawingMode = false;
         canvas.deactivateAll().renderAll();

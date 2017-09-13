@@ -423,3 +423,77 @@ def create_query_from_request(p, request):
     user = request.user if request.user.is_authenticated else None
     p.create_from_json(query_json, user)
     return p.process
+
+
+# if request.method == 'POST':
+#     form = UploadFileForm(request.POST, request.FILES)
+#     name = form.cleaned_data['name']
+#     rate = form.cleaned_data['nth'],
+#     rescale = form.cleaned_data['rescale'] if 'rescale' in form.cleaned_data else 0
+#     user = request.user if request.user.is_authenticated else None
+#     if form.is_valid():
+#         f = request.FILES['file']
+#         uuid_fname = uuid.uuid1().__str__().replace('-', '_') + f.name.split('.')[-1]
+#         with open('{}/inget/{}.{}'.format(settings.MEDIA_ROOT, uuid_fname),
+#                   'wb+') as destination:
+#             for chunk in f.chunks():
+#                 destination.write(chunk)
+#         handle_uploaded_file(request.FILES['file'], )
+#         return redirect('video_list')
+#     else:
+#         raise ValueError
+# else:
+#     form = UploadFileForm()
+#
+#
+#
+# def handle_uploaded_file(filename, name, extract=True, user=None, rate=None, rescale=None):
+#     create = []
+#     process_spec = {'process_type': DVAPQL.PROCESS,'create':create}
+#     if rate is None:
+#         rate = defaults.DEFAULT_RATE
+#     if rescale is None:
+#         rescale = defaults.DEFAULT_RESCALE
+#     filename = filename.lower()
+#     if filename.endswith('.dva_export.zip'):
+#         create.append({'MODEL': 'Video', 'spec': {'uploader_id': user.pk if user else None,'name': name},
+#                        'tasks': [{'arguments': {'source':'INGEST','filename':filename},
+#                                   'video_id': '__pk__',
+#                                   'operation': 'perform_import',}
+#                            ,]
+#                        })
+#     elif filename.endswith('.mp4') or filename.endswith('.zip'):
+#         if extract:
+#             if filename.endswith('.zip'):
+#                 tasks=[{ 'arguments':{'rescale': rescale,
+#                                       'next_tasks':defaults.DEFAULT_PROCESSING_PLAN_DATASET},
+#                                       'operation': 'perform_dataset_extraction',
+#                          }]
+#             else:
+#                 tasks = [{'arguments':{'next_tasks':[
+#                                              {'operation':'perform_video_decode',
+#                                                'arguments':{
+#                                                    'segments_batch_size': defaults.DEFAULT_SEGMENTS_BATCH_SIZE,
+#                                                    'rate': rate,
+#                                                    'rescale': rescale,
+#                                                    'next_tasks':defaults.DEFAULT_PROCESSING_PLAN_VIDEO
+#                                                }
+#                                               }
+#                                             ]},
+#                             'operation': 'perform_video_segmentation',
+#                         }
+#                     ]
+#             create.append({'MODEL': 'Video', 'spec': {'uploader_id': user.pk if user else None,'name': name,
+#                                                       'dataset':True if filename.endswith('zip') else False},
+#                            'tasks': [{'arguments': {'source':'INGEST','filename':filename},
+#                                       'video_id': '__pk__',
+#                                       'operation': 'perform_import',}
+#                                ,]
+#                            })
+#     else:
+#         raise ValueError, "Extension {} not allowed".format(filename.split('.')[-1])
+#     p = DVAPQL()
+#     p.create_from_json(j=process_spec, user=user)
+#     p.launch()
+#
+#     return video

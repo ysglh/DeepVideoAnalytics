@@ -618,11 +618,17 @@ def create_query_from_request(p, request):
     """
     query_json = {'process_type': DVAPQL.QUERY}
     count = request.POST.get('count')
+    generate_tags = request.POST.get('generate_tags')
     selected_indexers = json.loads(request.POST.get('selected_indexers',"[]"))
     selected_detectors = json.loads(request.POST.get('selected_detectors',"[]"))
     query_json['image_data_b64'] = request.POST.get('image_url')[22:]
     query_json['tasks'] = []
     indexer_tasks = defaultdict(list)
+    if generate_tags:
+        query_json['tasks'].append({'operation': 'perform_analysis',
+                                    'arguments': {'analyzer': 'tagger','target': 'query',}
+                                    })
+
     if selected_indexers:
         for k in selected_indexers:
             indexer_pk, retriever_pk = k.split('_')

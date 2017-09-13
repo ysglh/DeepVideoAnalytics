@@ -479,6 +479,7 @@ $scope.search = function (approximate) {
             'count': $('#result_count').val(),
             'selected_indexers':selected_indexers,
             'selected_detectors':selected_detectors,
+            'generate_tags':$scope.generate_tags,
             'csrfmiddlewaretoken':$(csrf_token).val()
         },
         success: function (response) {
@@ -612,6 +613,7 @@ cveditor.controller('CanvasControls', function($scope) {
     $scope.existing_boxes = [];
     $scope.high_level_alert = "Add frame level annotation";
     $scope.send_entire_image = false;
+    $scope.generate_tags = false;
     $scope.visible_all = true;
     $scope.selected_detection = -1;
     if(annotation_mode)

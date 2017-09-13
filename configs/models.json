@@ -132,5 +132,17 @@
     "url": "https://www.dropbox.com/s/l0vo83hmvv2aipn/crnn.pth",
     "filename": "crnn.pth",
     "mode": "P"
+  },
+  {
+    "model_type": "analyzer",
+    "name": "tagger",
+    "url": "https://www.dropbox.com/s/umo0xtljm9an90x/open_images.ckpt",
+    "filename": "open_images.ckpt",
+    "additional_files":[
+      {"url": "https://www.dropbox.com/s/f93axdtlb3ltj40/open_images.ckpt.meta", "filename": "open_images.ckpt.meta"},
+      {"url": "https://www.dropbox.com/s/2sd5nzpyhsj10w5/open_images_labelmap.txt", "filename": "open_images_labelmap.txt"},
+      {"url": "https://www.dropbox.com/s/yboqv4leem6oy01/open_images_dict.csv", "filename": "open_images_dict.csv"}
+    ],
+    "mode": "T"
   }
 ]

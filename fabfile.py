@@ -355,7 +355,7 @@ def launch():
     """
     envars = ['LAUNCH_BY_NAME_indexer_inception', 'LAUNCH_BY_NAME_indexer_facenet',
               'LAUNCH_BY_NAME_retriever_inception', 'LAUNCH_BY_NAME_retriever_facenet',
-              'LAUNCH_BY_NAME_detector_coco', 'LAUNCH_BY_NAME_detector_face',
+              'LAUNCH_BY_NAME_detector_coco', 'LAUNCH_BY_NAME_detector_face', 'LAUNCH_BY_NAME_analyzer_tagger'
               'LAUNCH_Q_qclusterer', 'LAUNCH_Q_qextract','LAUNCH_SCHEDULER']
     for k in envars:
         os.environ[k] = "1"

@@ -46,7 +46,7 @@ def inception_preprocess(image, central_fraction=0.875):
 
 class OpenImagesAnnotator(BaseAnnotator):
 
-    def __init__(self,gpu_fraction=None):
+    def __init__(self,model_path,gpu_fraction=None):
         super(OpenImagesAnnotator, self).__init__()
         self.name = "inception"
         self.object_name = "tag"
@@ -58,6 +58,10 @@ class OpenImagesAnnotator(BaseAnnotator):
         self.predictions = None
         self.num_classes = 6012
         self.top_n = 25
+        self.network_path = model_path
+        self.labelmap_path = model_path.reaplce('open_images.ckpt','open_images_labelmap.txt')
+        self.dict_path = model_path.reaplce('open_images.ckpt','open_images_dict.csv')
+        self.labelmap = [line.rstrip() for line in file(self.labelmap_path).readlines()]
         if gpu_fraction:
             self.gpu_fraction = gpu_fraction
         else:
@@ -65,9 +69,6 @@ class OpenImagesAnnotator(BaseAnnotator):
 
     def load(self):
         if self.session is None:
-            self.labelmap_path = os.path.abspath(__file__).split('annotator.py')[0] + 'data/labelmap.txt'
-            self.dict_path = os.path.abspath(__file__).split('annotator.py')[0] + 'data/dict.csv'
-            self.labelmap = [line.rstrip() for line in file(self.labelmap_path).readlines()]
             if len(self.labelmap) != self.num_classes:
                 logging.error("{} lines while the number of classes is {}".format(len(self.labelmap), self.num_classes))
             self.label_dict = {}
@@ -77,7 +78,6 @@ class OpenImagesAnnotator(BaseAnnotator):
             logging.warning("Loading the network {} , first apply / query will be slower".format(self.name))
             config = tf.ConfigProto()
             config.gpu_options.per_process_gpu_memory_fraction = self.gpu_fraction
-            network_path = os.path.abspath(__file__).split('annotator.py')[0]+'data/2016_08/model.ckpt'
             g = tf.Graph()
             with g.as_default():
                 self.input_image = tf.placeholder(tf.string)
@@ -87,7 +87,7 @@ class OpenImagesAnnotator(BaseAnnotator):
                 self.predictions = end_points['multi_predictions'] = tf.nn.sigmoid(logits, name='multi_predictions')
                 saver = tf_saver.Saver()
                 self.session = tf.InteractiveSession(config=config)
-                saver.restore(self.session, network_path)
+                saver.restore(self.session, self.network_path)
 
     def apply(self,image_path):
         if self.session is None:

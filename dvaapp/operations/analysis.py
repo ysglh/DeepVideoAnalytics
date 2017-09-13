@@ -20,5 +20,7 @@ class AnalyzerTask(celery.Task):
             aroot = "{}/analyzers/".format(settings.MEDIA_ROOT)
             if da.name == 'crnn':
                 AnalyzerTask._analyzers[da.name] = analyzer.CRNNAnnotator(aroot+"{}/crnn.pth".format(da.pk))
+            elif da.name == 'tagger':
+                AnalyzerTask._analyzers[da.name] = analyzer.OpenImagesAnnotator(aroot+"{}/open_images.ckpt".format(da.pk))
             else:
                 raise ValueError,"analyzer by id {} not found".format(da.pk)

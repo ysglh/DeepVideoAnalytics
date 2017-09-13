@@ -97,7 +97,7 @@ class OpenImagesAnnotator(BaseAnnotator):
         results = {self.label_dict.get(self.labelmap[idx], 'unknown'):predictions_eval[idx]
                    for idx in predictions_eval.argsort()[-self.top_n:][::-1]}
         text = " ".join([t for t,v in results.iteritems() if v > 0.1])
-        metadata = {t:100.0*v for t,v in results.iteritems() if v > 0.1}
+        metadata = {t:round(100.0*v,2) for t,v in results.iteritems() if v > 0.1}
         return self.object_name,text,metadata
 
 

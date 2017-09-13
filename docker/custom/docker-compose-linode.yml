@@ -38,6 +38,7 @@
        - LAUNCH_BY_NAME_retriever_facenet=1
        - LAUNCH_BY_NAME_detector_coco=1
        - LAUNCH_BY_NAME_analyzer_crnn=1
+       - LAUNCH_BY_NAME_analyzer_tagger=1
        - LAUNCH_BY_NAME_detector_face=1
        - LAUNCH_Q_qclusterer=1
        - LAUNCH_Q_qextract=1

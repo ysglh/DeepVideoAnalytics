@@ -568,7 +568,7 @@ def init_fs():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from django.conf import settings
-    for create_dirname in ['queries', 'exports', 'external', 'retrievers']:
+    for create_dirname in ['queries', 'exports', 'external', 'retrievers', 'ingest']:
         if not os.path.isdir("{}/{}".format(settings.MEDIA_ROOT, create_dirname)):
             try:
                 os.mkdir("{}/{}".format(settings.MEDIA_ROOT, create_dirname))
@@ -715,7 +715,7 @@ def train_yolo(start_pk):
     setup_django()
     from django.conf import settings
     from dvaapp.models import Region, Frame, Detector, TEvent
-    from dvaapp.shared import create_detector_dataset
+    from dvaapp.view_shared import create_detector_dataset
     from dvalib.yolo import trainer
     start = TEvent.objects.get(pk=start_pk)
     args = start.arguments

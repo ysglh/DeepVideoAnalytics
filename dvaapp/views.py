@@ -20,7 +20,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticate
 from django.db.models import Count
 import math
 from django.db.models import Max
-from shared import handle_uploaded_file, create_annotation, handle_video_url, pull_vdn_list, \
+from view_shared import handle_uploaded_file, create_annotation, handle_video_url, pull_vdn_list, \
     import_vdn_dataset_url, create_detector_dataset, import_vdn_detector_url, refresh_task_status, \
     delete_video_object, create_query_from_request
 from operations.processing import DVAPQLProcess

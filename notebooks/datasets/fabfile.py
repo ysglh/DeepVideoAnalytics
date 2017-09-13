@@ -39,7 +39,7 @@ def create_yolo_test_data():
     import os
     from PIL import Image
     setup_django()
-    from dvaapp.shared import handle_uploaded_file
+    from dvaapp.view_shared import handle_uploaded_file
     from django.core.files.uploadedfile import SimpleUploadedFile
     from dvaapp.models import Region,TEvent,Frame,Label,RegionLabel
     from dvaapp.tasks import perform_dataset_extraction,perform_export
@@ -104,7 +104,7 @@ def process_visual_genome():
     setup_django()
     import os, shutil, gzip, json
     from django.core.files.uploadedfile import SimpleUploadedFile
-    from dvaapp.shared import handle_uploaded_file
+    from dvaapp.view_shared import handle_uploaded_file
     from dvaapp import models
     from dvaapp.models import TEvent
     from dvaapp.tasks import perform_dataset_extraction, export_video

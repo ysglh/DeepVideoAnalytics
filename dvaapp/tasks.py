@@ -18,7 +18,7 @@ from .operations.processing import process_next, mark_as_completed
 from dvalib import retriever
 from django.utils import timezone
 from celery.signals import task_prerun,celeryd_init
-from . import shared
+from . import task_shared
 try:
     import numpy as np
 except ImportError:
@@ -59,7 +59,7 @@ def perform_indexing(task_id):
     visual_index, di = perform_indexing.get_index_by_name(index_name)
     sync = True
     if target == 'query':
-        local_path = shared.download_and_get_query_path(start)
+        local_path = task_shared.download_and_get_query_path(start)
         vector = visual_index.apply(local_path)
         # TODO: figure out a better way to store numpy arrays.
         s = io.BytesIO()
@@ -68,8 +68,8 @@ def perform_indexing(task_id):
         _ = QueryIndexVector.objects.create(vector=s.getvalue(),event=start)
         sync = False
     if target == 'query_regions':
-        queryset, target = shared.build_queryset(args=start.arguments,)
-        region_paths = shared.download_and_get_query_region_path(start,queryset)
+        queryset, target = task_shared.build_queryset(args=start.arguments, )
+        region_paths = task_shared.download_and_get_query_region_path(start, queryset)
         for i,dr in enumerate(queryset):
             local_path = region_paths[i]
             vector = visual_index.apply(local_path)
@@ -79,7 +79,7 @@ def perform_indexing(task_id):
             _ = QueryRegionIndexVector.objects.create(vector=s.getvalue(),event=start,query_region=dr)
         sync = False
     else:
-        queryset, target = shared.build_queryset(args=start.arguments,video_id=start.video_id)
+        queryset, target = task_shared.build_queryset(args=start.arguments, video_id=start.video_id)
         perform_indexing.index_queryset(di,visual_index,start,target,queryset)
     next_ids = process_next(task_id,sync=sync)
     mark_as_completed(start)
@@ -137,7 +137,7 @@ def perform_retrieval(task_id):
         vector = np.load(io.BytesIO(QueryIndexVector.objects.get(event=start.parent_id).vector))
         perform_retrieval.retrieve(start,args.get('retriever_pk',20),vector,args.get('count',20))
     elif target == 'query_region_index_vectors':
-        queryset, target = shared.build_queryset(args=args)
+        queryset, target = task_shared.build_queryset(args=args)
         for dr in queryset:
             vector = np.load(io.BytesIO(dr.vector))
             perform_retrieval.retrieve(start, args.get('retriever_pk', 20), vector, args.get('count', 20),
@@ -269,7 +269,7 @@ def perform_detection(task_id):
             local_path = df.path()
             frame_detections_list.append((df,detector.detect(local_path)))
     elif query_flow:
-        local_path = shared.download_and_get_query_path(start)
+        local_path = task_shared.download_and_get_query_path(start)
         frame_detections_list.append((None,detector.detect(local_path)))
     else:
         raise ValueError,"Video_id is null, nor the target is a query"
@@ -332,13 +332,13 @@ def perform_analysis(task_id):
         perform_analysis.load_analyzer(da)
     analyzer = perform_analysis.get_static_analyzers[analyzer_name]
     regions_batch = []
-    queryset, target = shared.build_queryset(args,video_id,start.parent_process_id)
+    queryset, target = task_shared.build_queryset(args, video_id, start.parent_process_id)
     query_path = None
     query_regions_paths = None
     if target == 'query':
-        query_path = shared.download_and_get_query_path(start)
+        query_path = task_shared.download_and_get_query_path(start)
     if target == 'query_regions':
-        query_regions_paths = shared.download_and_get_query_region_path(start,queryset)
+        query_regions_paths = task_shared.download_and_get_query_region_path(start, queryset)
     for i,f in enumerate(queryset):
         if query_regions_paths:
             path = query_regions_paths[i]
@@ -350,7 +350,7 @@ def perform_analysis(task_id):
             a.h = f.h
         elif query_path:
             path = query_path
-            w, h = shared.get_query_dimensions(start)
+            w, h = task_shared.get_query_dimensions(start)
             a = QueryRegion()
             a.query_id = start.parent_process_id
             a.x = 0
@@ -404,14 +404,14 @@ def perform_export(task_id):
     destination = start.arguments['destination']
     try:
         if destination == "FILE":
-                file_name = shared.export_file(dv,export_event_pk=start.pk)
+                file_name = task_shared.export_file(dv, export_event_pk=start.pk)
                 start.arguments['file_name'] = file_name
         elif destination == "S3":
             s3bucket = start.arguments['bucket']
             s3region = start.arguments['region']
             create_bucket = start.arguments.get('create_bucket',False)
             s3key = start.arguments['key']
-            returncode = shared.perform_s3_export(dv,s3key,s3bucket,s3region, export_event_pk=start.pk,create_bucket=create_bucket)
+            returncode = task_shared.perform_s3_export(dv, s3key, s3bucket, s3region, export_event_pk=start.pk, create_bucket=create_bucket)
             if returncode != 0:
                 raise ValueError,"return code != 0"
     except:
@@ -468,19 +468,19 @@ def perform_import(event_id):
     dv = start.video
     if source == 'URL':
         if start.video is None:
-            start.video = shared.handle_video_url(start.arguments['name'],start.arguments['url'])
+            start.video = task_shared.handle_video_url(start.arguments['name'], start.arguments['url'])
             start.save()
-        shared.retrieve_video_via_url(start.video,settings.MEDIA_ROOT)
+        task_shared.retrieve_video_via_url(start.video, settings.MEDIA_ROOT)
     elif source == 'S3':
-        shared.import_s3(start,dv)
+        task_shared.import_s3(start, dv)
     elif source == 'VDN_URL':
-        shared.import_vdn_url(dv,start.arguments['url'])
+        task_shared.import_vdn_url(dv, start.arguments['url'])
     elif source == 'VDN_S3':
-        shared.import_vdn_s3(dv,start.arguments['key'],start.arguments['bucket'])
+        task_shared.import_vdn_s3(dv, start.arguments['key'], start.arguments['bucket'])
     elif source == 'LOCAL':
-        shared.import_local(dv)
+        task_shared.import_local(dv)
     elif source == 'MASSIVE':
-        shared.import_external(start.arguments)
+        task_shared.import_external(start.arguments)
     else:
         raise NotImplementedError
     process_next(start.pk)

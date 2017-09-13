@@ -5,7 +5,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
 django.setup()
 import os, shutil, gzip, json
 from django.core.files.uploadedfile import SimpleUploadedFile
-from dvaapp.shared import handle_uploaded_file
+from dvaapp.view_shared import handle_uploaded_file
 from dvaapp import models
 from dvaapp.models import TEvent
 from dvaapp.tasks import perform_dataset_extraction,perform_export

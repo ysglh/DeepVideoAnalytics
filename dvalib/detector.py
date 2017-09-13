@@ -245,7 +245,7 @@ class TextBoxDetector():
         else:
             caffe.set_mode_cpu()
             logging.info("CPU mode")
-        text_proposals_detector = TextProposalDetector(CaffeModel(self.network_def, self.model_path))
+        text_proposals_detector = TextProposalDetector(CaffeModel(str(self.network_def), str(self.model_path)))
         self.session = TextDetector(text_proposals_detector)
         logging.info('model loaded!')
 

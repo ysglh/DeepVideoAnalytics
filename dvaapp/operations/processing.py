@@ -324,8 +324,8 @@ def get_result_json(r):
 
 def get_query_region_json(rd):
     return dict(object_name=rd.object_name, event_id=rd.event_id, pk=rd.pk, x=rd.x, y=rd.y, w=rd.w,
-                confidence=rd.confidence, text=rd.text, metadata=rd.metadata, region_type=rd.get_region_type_display(),
-                h=rd.h,results=defaultdict(list))
+                confidence=round(rd.confidence,2), text=rd.text, metadata=rd.metadata,
+                region_type=rd.get_region_type_display(), h=rd.h, results=defaultdict(list))
 
 
 def get_retrieval_event_name(r,rids_to_names):

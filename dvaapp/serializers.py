@@ -2,7 +2,8 @@ from rest_framework import serializers, viewsets
 from django.contrib.auth.models import User
 from models import Video, Frame, Region, DVAPQL, QueryResults, TEvent, IndexEntries, \
     VDNServer, Tube, LOPQCodes, Segment, Label, VideoLabel, FrameLabel, RegionLabel, \
-    SegmentLabel, TubeLabel, Analyzer, Indexer, Detector, Retriever, SystemState, QueryRegion
+    SegmentLabel, TubeLabel, Analyzer, Indexer, Detector, Retriever, SystemState, QueryRegion,\
+    QueryRegionResults
 import os, json, logging, glob
 from collections import defaultdict
 from django.conf import settings
@@ -184,12 +185,6 @@ class LOPQCodesSerializer(serializers.HyperlinkedModelSerializer):
         fields = '__all__'
 
 
-class DVAPQLSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = DVAPQL
-        fields = '__all__'
-
-
 class SystemStateSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = SystemState
@@ -205,6 +200,24 @@ class VDNServerSerializer(serializers.HyperlinkedModelSerializer):
 class QueryResultsSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = QueryResults
+        fields = '__all__'
+
+
+class QueryRegionResultsSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = QueryRegionResults
+        fields = '__all__'
+
+
+class QueryResultsExportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QueryResults
+        fields = '__all__'
+
+
+class QueryRegionResultsExportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QueryRegionResults
         fields = '__all__'
 
 
@@ -257,6 +270,25 @@ class SegmentExportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Segment
         fields = '__all__'
+
+
+class QueryRegionExportSerializer(serializers.ModelSerializer):
+    query_region_results = QueryRegionResultsExportSerializer(source='queryregionresults_set', read_only=True, many=True)
+
+    class Meta:
+        model = QueryRegion
+        fields = ('id','region_type','query','event','text','metadata','full_frame','x','y','h','w','polygon_points',
+                  'created','object_name','confidence','png','query_region_results')
+
+
+class DVAPQLSerializer(serializers.HyperlinkedModelSerializer):
+    query_regions = QueryRegionExportSerializer(source='queryregion_set', read_only=True, many=True)
+    query_results = QueryResultsExportSerializer(source='queryresults_set', read_only=True, many=True)
+
+    class Meta:
+        model = DVAPQL
+        fields =('process_type', 'created', 'user', 'image_data', 'script',
+                 'results_metadata', 'results_available', 'completed','query_regions','query_results')
 
 
 class VideoExportSerializer(serializers.ModelSerializer):

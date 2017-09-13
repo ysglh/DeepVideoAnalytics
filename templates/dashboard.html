@@ -307,6 +307,13 @@
     </div>
 </div>
 <div class="row m-t">
+    <div class="col-lg-12" ng-show="results_available()" >
+    <div class="box">
+    <div class="box-header box-primary text-center">
+        <h3>Retrieval results for query image</h3>
+    </div>
+    </div>
+    </div>
     <div class="col-lg-6" ng-repeat="(name, entries) in results">
     <div class="box">
     <div class="box-header">
@@ -334,24 +341,49 @@
     </div>
     <div class="col-lg-12" ng-show="results_available()" >
     <div class="box">
-    <div class="box-header box-primary">
-        <h4>Detected objects & annotations</h4>
+    <div class="box-header box-primary text-center">
+        <h3>Detections, annotations and retrieval results with regions as query</h3>
     </div>
     </div>
         <div class="row">
-        <div class="col-lg-4" ng-repeat="item in regions">
-            <div class="clearfix" ng-if="$index % 3 == 0"></div>
+        <div class="col-lg-12" ng-repeat="item in regions">
             <div class="box box-primary">
-                <div class="box-header with-border">
-                    <h5 class="pull-left">Object name: {[ item.object_name ]}</h5>
-                    <h5 class="pull-right">Confidence: {[ item.confidence ]}</h5>
+                <div class="box-header with-border text-center">
+                    <h4 style="display:inline-block" class="pull-left">{[ item.region_type ]}</h4>
+                    <h4 style="display:inline-block" >Object name: {[ item.object_name ]}</h4>
+                    <h4 style="display:inline-block" class="pull-right">Confidence: {[ item.confidence ]}</h4>
                 </div>
                 <div class="box-body">
-                <div style="width: {[ item.w ]}px; height: {[ item.h ]}px; position: relative;overflow:hidden;margin: auto;">
-                  <img src="{[ query_url ]}" id="image" style="position: absolute; top: -{[ item.y ]}px; left: -{[ item.x ]}px" />
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div style="width: {[ item.w ]}px; height: {[ item.h ]}px; position: relative;overflow:hidden;margin: auto;">
+                          <img src="{[ query_url ]}" id="image" style="position: absolute; top: -{[ item.y ]}px; left: -{[ item.x ]}px" />
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div style="margin:5px"><textarea class="uneditable-textarea" disabled="disabled" style="height:100px;width:100%" placeholder="text metadata if present">{[ item.text ]}</textarea></div>
+                        <div style="margin:5px"><textarea class="uneditable-textarea" disabled="disabled" style="height:100px;width:100%" placeholder="JSON metadata if present">{[ item.metadata ]}</textarea></div>
+                    </div>
                 </div>
-                <div style="margin:5px"><textarea class="uneditable-textarea" disabled="disabled" style="height:100px;width:100%" placeholder="text metadata if present">{[ item.text ]}</textarea></div>
-                <div style="margin:5px"><textarea class="uneditable-textarea" disabled="disabled" style="height:100px;width:100%" placeholder="JSON metadata if present">{[ item.metadata ]}</textarea></div>
+                    <div class="row">
+                    <div class="col-lg-12" ng-repeat="(rname, rentries) in item.results">
+                        <h4>Results (using above bounding box region as query): {[ rname ]} </h4>
+                        <div class="row">
+                        <div ng-repeat="ritem in rentries" class="col-lg-3 col-sm-3 col-xs-6" >
+                            <div class="clearfix" ng-if="$index % 4 == 0"></div>
+                            <div class="box">
+                                <div class="box-header with-border">
+                                    <p class=""> {[ ritem.rank ]} : {[ ritem.result_type ]} in <a href="/videos/{[ ritem.video_id ]}"> Video/Dataset {[ ritem.video_id]}</a> at {[ ritem.frame_index ]}</p>
+                                </div>
+                                <div class="box-body" style="height:220px">
+                                    <a href="/frames/{[ ritem.frame_id ]}"><img class="img-responsive img-bordered-sm" style="max-height:200px;margin-left:auto;margin-right:auto"  ng-src="{[ ritem.url ]}">
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                    </div>
                 </div>
             </div>
         </div>

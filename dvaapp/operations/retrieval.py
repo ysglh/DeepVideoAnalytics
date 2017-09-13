@@ -9,7 +9,7 @@ except ImportError:
     logging.warning("Could not import indexer / clustering assuming running in front-end mode / Heroku")
 
 
-from ..models import IndexEntries,QueryResults,Region,Retriever,LOPQCodes
+from ..models import IndexEntries,QueryResults,Region,Retriever,LOPQCodes, QueryRegionResults
 import io
 
 
@@ -73,7 +73,7 @@ class RetrieverTask(celery.Task):
                                                                                      index_entry.pk].end,
                                                                                  ))
 
-    def retrieve(self,event,retriever_pk,vector,count):
+    def retrieve(self,event,retriever_pk,vector,count,region=None):
         index_retriever,dr = self.get_retriever(retriever_pk)
         # TODO: figure out a better way to store numpy arrays.
         if dr.algorithm == Retriever.EXACT:
@@ -81,7 +81,9 @@ class RetrieverTask(celery.Task):
         results = index_retriever.nearest(vector=vector,n=count,retriever_pk=retriever_pk,entry_getter=entry_getter)
         # TODO: optimize this using batching
         for r in results:
-            qr = QueryResults()
+            qr = QueryRegionResults() if region else QueryResults()
+            if region:
+                qr.query_region = region
             qr.query = event.parent_process
             qr.retrieval_event_id = event.pk
             if 'detection_primary_key' in r:

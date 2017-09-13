@@ -132,8 +132,18 @@ def perform_retrieval(task_id):
         start.started = True
         start.save()
     args = start.arguments
-    vector = np.load(io.BytesIO(QueryIndexVector.objects.get(event=start.parent_id).vector))
-    perform_retrieval.retrieve(start,args.get('retriever_pk',20),vector,args.get('count',20))
+    target = args.get('target','query') # by default target is query
+    if target == 'query':
+        vector = np.load(io.BytesIO(QueryIndexVector.objects.get(event=start.parent_id).vector))
+        perform_retrieval.retrieve(start,args.get('retriever_pk',20),vector,args.get('count',20))
+    elif target == 'query_region_vectors':
+        queryset, target = shared.build_queryset(args=args)
+        for dr in queryset:
+            vector = np.load(io.BytesIO(dr.vector))
+            perform_retrieval.retrieve(start, args.get('retriever_pk', 20), vector, args.get('count', 20),
+                                       region=dr.query_region)
+    else:
+        raise NotImplementedError,target
     mark_as_completed(start)
     return 0
 

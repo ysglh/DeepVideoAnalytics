@@ -2,7 +2,8 @@ from django.contrib import admin
 from .models import Video, Frame, TEvent, IndexEntries, QueryResults, DVAPQL, VDNServer,\
     LOPQCodes, Region, Tube, Detector, Segment, DeletedVideo, \
     VideoLabel, FrameLabel, RegionLabel, TubeLabel, SegmentLabel, Label, ManagementAction, \
-    StoredDVAPQL, Analyzer, Indexer, Retriever, SystemState, Worker, QueryRegion
+    StoredDVAPQL, Analyzer, Indexer, Retriever, SystemState, Worker, QueryRegion, QueryRegionIndexVector, \
+    QueryRegionResults
 
 
 @admin.register(SystemState)
@@ -136,4 +137,14 @@ class StoredDVAPQLAdmin(admin.ModelAdmin):
 
 @admin.register(QueryRegion)
 class QueryRegionAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(QueryRegionIndexVector)
+class QueryRegionIndexVectorAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(QueryRegionResults)
+class QueryRegionResultsAdmin(admin.ModelAdmin):
     pass

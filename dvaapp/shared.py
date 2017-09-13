@@ -1,6 +1,6 @@
 import os, json, requests, copy, time, subprocess, logging, shutil, zipfile, boto3, random, calendar, shlex
 from models import Video, TEvent,  Region, VDNServer, Detector, DeletedVideo, Label,\
-    RegionLabel, QueryRegion, Analyzer, Indexer, Retriever
+    RegionLabel, QueryRegion, Analyzer, Indexer, Retriever, QueryRegionIndexVector
 from django.conf import settings
 from PIL import Image
 from django_celery_results.models import TaskResult
@@ -562,6 +562,8 @@ def build_queryset(args,video_id=None,query_id=None):
         queryset = DVAPQL.objects.all().filter(**kwargs)
     elif target == 'query_regions':
         queryset = QueryRegion.objects.all().filter(**kwargs)
+    elif target == 'query_region_index_vectors':
+        queryset = QueryRegionIndexVector.objects.all().filter(**kwargs)
     else:
         queryset = None
         raise ValueError
@@ -679,7 +681,7 @@ def create_query_from_request(p, request):
                                                           }
                                             })
             elif dd.name == 'face':
-                dr = Retriever.objects.get(name='fancenet',algorithm=Retriever.EXACT)
+                dr = Retriever.objects.get(name='facenet',algorithm=Retriever.EXACT)
                 query_json['tasks'].append({'operation': 'perform_detection',
                                             'arguments': {'detector_pk': int(d),
                                                           'target': 'query',
@@ -692,7 +694,7 @@ def create_query_from_request(p, request):
                                                                                 'operation':'perform_retrieval',
                                                                                 'arguments':{'retriever_pk':dr.pk,
                                                                                              'filters':{'event_id': '__parent_event__'},
-                                                                                             'target':'query_regions',
+                                                                                             'target':'query_region_index_vectors',
                                                                                              'count':10}
                                                                             }]}
                                                           }]

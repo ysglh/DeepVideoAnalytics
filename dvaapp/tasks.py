@@ -6,7 +6,7 @@ from django.conf import settings
 from dva.celery import app
 from .models import Video, Frame, TEvent,  IndexEntries, LOPQCodes, Region, Tube, \
     Retriever, Detector, Segment, QueryIndexVector, DeletedVideo, ManagementAction, Analyzer, SystemState, DVAPQL, \
-    Worker, QueryRegion
+    Worker, QueryRegion, QueryRegionIndexVector
 
 from .operations.indexing import IndexerTask
 from .operations.retrieval import RetrieverTask
@@ -64,7 +64,19 @@ def perform_indexing(task_id):
         # TODO: figure out a better way to store numpy arrays.
         s = io.BytesIO()
         np.save(s,vector)
+        # can be replaced by Redis instead of using DB
         _ = QueryIndexVector.objects.create(vector=s.getvalue(),event=start)
+        sync = False
+    if target == 'query_regions':
+        queryset, target = shared.build_queryset(args=start.arguments,)
+        region_paths = shared.download_and_get_query_region_path(start,queryset)
+        for i,dr in enumerate(queryset):
+            local_path = region_paths[i]
+            vector = visual_index.apply(local_path)
+            s = io.BytesIO()
+            np.save(s,vector)
+            # can be replaced by Redis instead of using DB
+            _ = QueryRegionIndexVector.objects.create(vector=s.getvalue(),event=start,query_region=dr)
         sync = False
     else:
         queryset, target = shared.build_queryset(args=start.arguments,video_id=start.video_id)

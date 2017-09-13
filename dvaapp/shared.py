@@ -1,6 +1,6 @@
 import os, json, requests, copy, time, subprocess, logging, shutil, zipfile, boto3, random, calendar, shlex
 from models import Video, TEvent,  Region, VDNServer, Detector, DeletedVideo, Label,\
-    RegionLabel, QueryRegion, Analyzer, Indexer
+    RegionLabel, QueryRegion, Analyzer, Indexer, Retriever
 from django.conf import settings
 from PIL import Image
 from django_celery_results.models import TaskResult
@@ -675,6 +675,26 @@ def create_query_from_request(p, request):
                                                                             'analyzer': 'crnn',
                                                                             'filters': {'event_id': '__parent_event__'}
                                                                             }
+                                                          }]
+                                                          }
+                                            })
+            elif dd.name == 'face':
+                dr = Retriever.objects.get(name='fancenet',algorithm=Retriever.EXACT)
+                query_json['tasks'].append({'operation': 'perform_detection',
+                                            'arguments': {'detector_pk': int(d),
+                                                          'target': 'query',
+                                                          'next_tasks': [{
+                                                              'operation': 'perform_indexing',
+                                                              'arguments': {'target': 'query_regions',
+                                                                            'index': 'facenet',
+                                                                            'filters': {'event_id': '__parent_event__'},
+                                                                            'next_tasks':[{
+                                                                                'operation':'perform_retrieval',
+                                                                                'arguments':{'retriever_pk':dr.pk,
+                                                                                             'filters':{'event_id': '__parent_event__'},
+                                                                                             'target':'query_regions',
+                                                                                             'count':10}
+                                                                            }]}
                                                           }]
                                                           }
                                             })

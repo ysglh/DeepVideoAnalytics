@@ -84,18 +84,17 @@
         </div>
             <label for="result_count">Results</label>
             <input style="display:inline-block; margin-right:10px;width:50px;" type="number" name="result_count"  id="result_count" value="20" class="checkbox text-right index_name">
-            <label for="entire_image">Send entire image (ignore zoom/pan)</label>
+            <label for="generate_tags" >Apply Open Images tagger</label>
+            <input type="checkbox" ng-model="generate_tags" class="checkbox" style="display: inline-block;margin-right:5px">
+            <label for="entire_image">Send entire image</label>
             <input style="display:inline-block; margin-right:5px" type="checkbox" ng-model="send_entire_image" class="checkbox">
             <div class="row">
-            <div class="col-xs-12">
-                <h5 style="font-weight:bold" >Generate tags using Open Images tagger
-                    <input type="checkbox" ng-model="generate_tags" class="checkbox" style="display: inline-block">
-                </h5>
-            </div>
-            </div>
-            <div class="row">
             <div class="col-xs-12" style="text-align:center">
-                <h5 style="font-weight:bold" >Select object detectors, select textbox to perform OCR (CTPN -> CRNN)</h5>
+                <h5 style="font-weight:bold" >Select object detectors</h5>
+                <p>Select textbox to perform OCR (CTPN -> CRNN).
+                   Select face detector to perform (face detection -> facenet -> exact retrieval,
+                    in addition to sequence selected above)
+                </p>
             </div>
             <div class="col-xs-12" style="margin-bottom:5px">
             <select class="js-example-basic-multiple" multiple="multiple" id="detector_list" style="width:100%">

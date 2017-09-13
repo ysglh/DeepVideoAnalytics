@@ -217,7 +217,7 @@ def perform_detection(task_id):
         start.save()
     video_id = start.video_id
     args = start.arguments
-    detections = []
+    frame_detections_list = []
     dv = None
     dd_list = []
     query_flow = (video_id is None) and (args['target'] == 'query')
@@ -228,6 +228,7 @@ def perform_detection(task_id):
     else:
         detector_name = args['detector']
         cd = Detector.objects.get(name=detector_name)
+        detector_pk = cd.pk
     perform_detection.load_detector(cd)
     detector = perform_detection.get_static_detectors[cd.pk]
     if detector.session is None:
@@ -244,42 +245,43 @@ def perform_detection(task_id):
             frames = Frame.objects.all().filter(video=dv)
         for df in frames:
             local_path = df.path()
-            detections = detector.detect(local_path)
+            frame_detections_list.append((df,detector.detect(local_path)))
     elif query_flow:
         local_path = shared.download_and_get_query_path(start)
-        detections = detector.detect(local_path)
+        frame_detections_list.append((None,detector.detect(local_path)))
     else:
         raise ValueError,"Video_id is null, nor the target is a query"
-    for d in detections:
-        dd = QueryRegion() if query_flow else Region()
-        dd.region_type = Region.DETECTION
-        if query_flow:
-            dd.query_id = start.parent_process_id
-        else:
-            dd.video_id = dv.pk
-            dd.frame_id = df.pk
-            dd.frame_index = df.frame_index
-            dd.segment_index = df.segment_index
-        if detector_name == 'coco':
-            dd.object_name = '{}'.format(d['object_name'])
-            dd.confidence = 100.0 * d['score']
-        elif detector_name == 'textbox':
-            dd.object_name = 'TEXTBOX'
-            dd.confidence = 100.0 * d['score']
-        elif detector_name == 'face':
-            dd.object_name = 'MTCNN_face'
-            dd.confidence = 100.0
-        elif detector_name == 'custom':
-            dd.object_name = '{}_{}'.format(detector_pk, d['object_name'])
-            dd.confidence = 100.0 * d['score']
-        else:
-            raise NotImplementedError
-        dd.x = d['x']
-        dd.y = d['y']
-        dd.w = d['w']
-        dd.h = d['h']
-        dd.event_id = task_id
-        dd_list.append(dd)
+    for df,detections in frame_detections_list:
+        for d in detections:
+            dd = QueryRegion() if query_flow else Region()
+            dd.region_type = Region.DETECTION
+            if query_flow:
+                dd.query_id = start.parent_process_id
+            else:
+                dd.video_id = dv.pk
+                dd.frame_id = df.pk
+                dd.frame_index = df.frame_index
+                dd.segment_index = df.segment_index
+            if detector_name == 'coco':
+                dd.object_name = '{}'.format(d['object_name'])
+                dd.confidence = 100.0 * d['score']
+            elif detector_name == 'textbox':
+                dd.object_name = 'TEXTBOX'
+                dd.confidence = 100.0 * d['score']
+            elif detector_name == 'face':
+                dd.object_name = 'MTCNN_face'
+                dd.confidence = 100.0
+            elif detector_name == 'custom':
+                dd.object_name = '{}_{}'.format(detector_pk, d['object_name'])
+                dd.confidence = 100.0 * d['score']
+            else:
+                raise NotImplementedError
+            dd.x = d['x']
+            dd.y = d['y']
+            dd.w = d['w']
+            dd.h = d['h']
+            dd.event_id = task_id
+            dd_list.append(dd)
     if query_flow:
         _ = QueryRegion.objects.bulk_create(dd_list, 1000)
     else:

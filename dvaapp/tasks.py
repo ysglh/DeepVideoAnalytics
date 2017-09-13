@@ -136,7 +136,7 @@ def perform_retrieval(task_id):
     if target == 'query':
         vector = np.load(io.BytesIO(QueryIndexVector.objects.get(event=start.parent_id).vector))
         perform_retrieval.retrieve(start,args.get('retriever_pk',20),vector,args.get('count',20))
-    elif target == 'query_region_vectors':
+    elif target == 'query_region_index_vectors':
         queryset, target = shared.build_queryset(args=args)
         for dr in queryset:
             vector = np.load(io.BytesIO(dr.vector))

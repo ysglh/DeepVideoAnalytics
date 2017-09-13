@@ -277,6 +277,7 @@ class DVAPQLProcess(object):
 
     def collect(self):
         self.context = {'results':defaultdict(list),
+                        'region_retriever_results':defaultdict(list),
                         'regions':[]}
         rids_to_names = {}
         for rd in QueryRegion.objects.all().filter(query=self.process):

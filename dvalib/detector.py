@@ -232,8 +232,8 @@ class TextBoxDetector():
 
     def __init__(self,model_path):
         self.session = None
-        self.model_path = model_path
-        self.network_def = model_path.replace('.caffemodel','.prototxt')
+        self.model_path = str(model_path.encode('utf-8'))
+        self.network_def = str(model_path.replace('.caffemodel','.prototxt').encode('utf-8'))
 
 
     def load(self):
@@ -245,7 +245,7 @@ class TextBoxDetector():
         else:
             caffe.set_mode_cpu()
             logging.info("CPU mode")
-        text_proposals_detector = TextProposalDetector(CaffeModel(str(self.network_def), str(self.model_path)))
+        text_proposals_detector = TextProposalDetector(CaffeModel(self.network_def,self.model_path))
         self.session = TextDetector(text_proposals_detector)
         logging.info('model loaded!')
 

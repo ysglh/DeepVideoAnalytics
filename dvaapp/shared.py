@@ -548,7 +548,7 @@ def export_file(video_obj,export_event_pk=None):
     return file_name
 
 
-def build_queryset(args,video_id=None):
+def build_queryset(args,video_id=None,query_id=None):
     target = args['target']
     kwargs = args.get('filters',{})
     if video_id:
@@ -557,6 +557,9 @@ def build_queryset(args,video_id=None):
         queryset = Frame.objects.all().filter(**kwargs)
     elif target == 'regions':
         queryset = Region.objects.all().filter(**kwargs)
+    elif target == 'query':
+        kwargs['pk'] = query_id
+        queryset = DVAPQL.objects.all().filter(**kwargs)
     elif target == 'query_regions':
         queryset = QueryRegion.objects.all().filter(**kwargs)
     else:
@@ -608,6 +611,16 @@ def download_and_get_query_region_path(start,regions):
         img2.save(region_path)
         rpaths.append(region_path)
     return rpaths
+
+
+def get_query_dimensions(start):
+    query_local_path = "{}/queries/{}_{}.png".format(settings.MEDIA_ROOT, start.pk, start.parent_process_id)
+    if not os.path.isfile(query_local_path):
+        with open(query_local_path, 'w') as fh:
+            fh.write(str(start.parent_process.image_data))
+    imdata = Image.open(query_local_path)
+    width, height = imdata.size
+    return width, height
 
 
 def create_query_from_request(p, request):

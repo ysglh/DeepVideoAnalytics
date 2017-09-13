@@ -59,8 +59,8 @@ class OpenImagesAnnotator(BaseAnnotator):
         self.num_classes = 6012
         self.top_n = 25
         self.network_path = model_path
-        self.labelmap_path = model_path.reaplce('open_images.ckpt','open_images_labelmap.txt')
-        self.dict_path = model_path.reaplce('open_images.ckpt','open_images_dict.csv')
+        self.labelmap_path = model_path.replace('open_images.ckpt','open_images_labelmap.txt')
+        self.dict_path = model_path.replace('open_images.ckpt','open_images_dict.csv')
         self.labelmap = [line.rstrip() for line in file(self.labelmap_path).readlines()]
         if gpu_fraction:
             self.gpu_fraction = gpu_fraction

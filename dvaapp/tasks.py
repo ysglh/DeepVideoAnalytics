@@ -308,7 +308,7 @@ def perform_analysis(task_id):
         perform_analysis.load_analyzer(da)
     analyzer = perform_analysis.get_static_analyzers[analyzer_name]
     regions_batch = []
-    queryset, target = shared.build_queryset(args,video_id)
+    queryset, target = shared.build_queryset(args,video_id,start.parent_process_id)
     query_path = None
     query_regions_paths = None
     if target == 'query':
@@ -326,12 +326,14 @@ def perform_analysis(task_id):
             a.h = f.h
         elif query_path:
             path = query_path
+            w, h = shared.get_query_dimensions(start)
             a = QueryRegion()
             a.query_id = start.parent_process_id
-            a.x = f.x
-            a.y = f.y
-            a.w = f.w
-            a.h = f.h
+            a.x = 0
+            a.y = 0
+            a.w = w
+            a.h = h
+            a.full_frame = True
         else:
             a = Region()
             a.video_id = f.video_id

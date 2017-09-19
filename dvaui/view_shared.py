@@ -1,10 +1,10 @@
 import os, json, requests, shutil, zipfile
-from models import Video, TEvent,  VDNServer, Detector, Label, RegionLabel, Indexer, Retriever, DVAPQL, Region, Frame
+from dvaapp.models import Video, TEvent,  VDNServer, Detector, Label, RegionLabel, Indexer, Retriever, DVAPQL, Region, Frame
 from django.conf import settings
 from django_celery_results.models import TaskResult
 from collections import defaultdict
-from operations import processing
-from . import serializers
+from dvaapp.operations import processing
+from dvaapp import serializers
 import defaults
 
 

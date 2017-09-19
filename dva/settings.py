@@ -79,6 +79,7 @@ INSTALLED_APPS = [
                      'django.contrib.messages',
                      'django.contrib.staticfiles',
                      'dvaapp',
+                     'dvaui',
                      'django.contrib.humanize',
                      'django.contrib.postgres',
                      'django_celery_results',

@@ -241,6 +241,7 @@ class DetectionDetail(UserPassesTestMixin, DetailView):
 
 class FrameDetail(UserPassesTestMixin, DetailView):
     model = Frame
+    template_name = 'dvaui/frame_detail.html'
 
     def get_context_data(self, **kwargs):
         context = super(FrameDetail, self).get_context_data(**kwargs)
@@ -262,6 +263,7 @@ class FrameDetail(UserPassesTestMixin, DetailView):
 
 class SegmentDetail(UserPassesTestMixin, DetailView):
     model = Segment
+    template_name = 'dvaui/segment_detail.html'
 
     def get_context_data(self, **kwargs):
         context = super(SegmentDetail, self).get_context_data(**kwargs)

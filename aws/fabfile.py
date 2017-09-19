@@ -51,7 +51,7 @@ def launch(container=False):
                    Monitoring={'Enabled': True, },
                    IamInstanceProfile=IAM_ROLE)
     output = ec2.request_spot_instances(DryRun=False,
-                                        SpotPrice="0.4",
+                                        SpotPrice="0.9",
                                         InstanceCount=1,
                                         LaunchSpecification=ec2spec)
     spot_request_id = output[u'SpotInstanceRequests'][0][u'SpotInstanceRequestId']
@@ -210,6 +210,8 @@ def deploy(compose_file="custom/docker-compose-worker-gpu.yml", dns=EFS_DNS):
             time.sleep(120)
             pass
     mount_efs(dns)
+    run('docker rmi akshayubhat/dva-auto:gpu')
+    run('docker rmi akshayubhat/dva-auto:caffe')
     with cd('DeepVideoAnalytics'):
         run('git pull')
         with cd("docker"):

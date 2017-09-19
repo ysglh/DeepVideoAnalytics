@@ -84,9 +84,10 @@ def sync_static(bucket_name='dvastatic'):
     Sync static folder with AWS S3 bucket
     :param bucket_name:
     """
-    with lcd('../dva'):
+    with lcd('../'):
         local("python manage.py collectstatic")
-        local('aws s3 sync staticfiles/ s3://{}/'.format(bucket_name))
+        with lcd('dva'):
+            local('aws s3 sync staticfiles/ s3://{}/'.format(bucket_name))
 
 
 @task

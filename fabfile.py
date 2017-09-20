@@ -383,6 +383,7 @@ def launch_workers_and_scheduler_from_environment(block_on_manager=False):
                 queue_name = 'q_indexer_{}'.format(dm.pk)
                 env_vars = "PYTORCH_MODE=1 " if dm.mode == dm.PYTORCH else env_vars
                 env_vars = "CAFFE_MODE=1 " if dm.mode == dm.CAFFE else env_vars
+                env_vars = "MXNET_MODE=1 " if dm.mode == dm.MXNET else env_vars
             elif qtype == 'retriever':
                 dm = Retriever.objects.get(name=model_name)
                 queue_name = 'q_retriever_{}'.format(dm.pk)
@@ -391,11 +392,13 @@ def launch_workers_and_scheduler_from_environment(block_on_manager=False):
                 queue_name = 'q_detector_{}'.format(dm.pk)
                 env_vars = "PYTORCH_MODE=1 " if dm.mode == dm.PYTORCH else env_vars
                 env_vars = "CAFFE_MODE=1 " if dm.mode == dm.CAFFE else env_vars
+                env_vars = "MXNET_MODE=1 " if dm.mode == dm.MXNET else env_vars
             elif qtype == 'analyzer':
                 dm = Analyzer.objects.get(name=model_name)
                 queue_name = 'q_analyzer_{}'.format(dm.pk)
                 env_vars = "PYTORCH_MODE=1 " if dm.mode == dm.PYTORCH else env_vars
                 env_vars = "CAFFE_MODE=1 " if dm.mode == dm.CAFFE else env_vars
+                env_vars = "MXNET_MODE=1 " if dm.mode == dm.MXNET else env_vars
             else:
                 raise ValueError, k
             command = '{}fab startq:{} &'.format(env_vars, queue_name)

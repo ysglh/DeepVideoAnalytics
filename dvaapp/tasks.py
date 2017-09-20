@@ -6,7 +6,7 @@ from django.conf import settings
 from dva.celery import app
 from .models import Video, Frame, TEvent,  IndexEntries, LOPQCodes, Region, Tube, \
     Retriever, Detector, Segment, QueryIndexVector, DeletedVideo, ManagementAction, Analyzer, SystemState, DVAPQL, \
-    Worker, QueryRegion, QueryRegionIndexVector
+    Worker, QueryRegion, QueryRegionIndexVector, Indexer
 
 from .operations.indexing import IndexerTask
 from .operations.retrieval import RetrieverTask
@@ -452,6 +452,31 @@ def perform_detector_import(task_id):
     serializers.import_detector(dd)
     dd.save()
     os.remove(source_zip)
+    process_next(task_id)
+    mark_as_completed(start)
+
+
+@app.task(track_started=True, name="perform_model_import")
+def perform_model_import(task_id):
+    start = TEvent.objects.get(pk=task_id)
+    if start.started:
+        return 0  # to handle celery bug with ACK in SOLO mode
+    else:
+        start.started = True
+        start.save()
+    args = start.arguments
+    if args['model_type'] == 'analyzer':
+        dm = Analyzer.objects.get(pk=args['pk'])
+        dirname = 'analyzers'
+    elif args['model_type'] == 'indexer':
+        dm = Indexer.objects.get(pk=args['pk'])
+        dirname = 'indexers'
+    elif args['model_type'] == 'detector':
+        dm = Detector.objects.get(pk=args['pk'])
+        dirname = 'detectors'
+    else:
+        raise NotImplementedError,args
+    task_shared.download_model(settings.MEDIA_ROOT,dirname, dm)
     process_next(task_id)
     mark_as_completed(start)
 

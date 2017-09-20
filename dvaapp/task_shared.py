@@ -1,4 +1,4 @@
-import os, json, requests, copy, time, subprocess, logging, shutil, zipfile, boto3, random, calendar, shlex
+import os, json, requests, copy, time, subprocess, logging, shutil, zipfile, boto3, random, calendar, shlex, sys
 from models import Video, QueryRegion, QueryRegionIndexVector
 from django.conf import settings
 from PIL import Image
@@ -336,3 +336,30 @@ def get_query_dimensions(start):
     return width, height
 
 
+def download_model(root_dir, model_type_dir_name, dm):
+    """
+    Download model to filesystem
+    """
+    model_type_dir = "{}/{}/".format(root_dir, model_type_dir_name)
+    if not os.path.isdir(model_type_dir):
+        os.mkdir(model_type_dir)
+    model_dir = "{}/{}/{}".format(root_dir, model_type_dir_name, dm.pk)
+    if not os.path.isdir(model_dir):
+        os.mkdir(model_dir)
+        if sys.platform == 'darwin':
+            p = subprocess.Popen(['cp','/users/aub3/Dropbox/DeepVideoAnalytics/shared/{}'.format(dm.model_filename),'.'],cwd=model_dir)
+            p.wait()
+        else:
+            p = subprocess.Popen(['wget','--quiet',dm.url],cwd=model_dir)
+            p.wait()
+        if dm.additional_files:
+            for m in dm.additional_files:
+                url = m['url']
+                filename = m['filename']
+                if sys.platform == 'darwin':
+                    p = subprocess.Popen(
+                        ['cp', '/users/aub3/Dropbox/DeepVideoAnalytics/shared/{}'.format(filename), '.'],cwd=model_dir)
+                    p.wait()
+                else:
+                    p = subprocess.Popen(['wget', '--quiet', url], cwd=model_dir)
+                    p.wait()

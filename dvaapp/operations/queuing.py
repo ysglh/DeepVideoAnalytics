@@ -5,6 +5,7 @@ Q_TRAINER = 'qtrainer'
 Q_VGG = 'qvgg'
 
 TASK_NAMES_TO_QUEUE = {
+    "perform_model_import":Q_EXTRACTOR,
     "perform_video_segmentation":Q_EXTRACTOR,
     "perform_video_decode":Q_EXTRACTOR,
     "perform_dataset_extraction":Q_EXTRACTOR,

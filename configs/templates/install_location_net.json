@@ -19,7 +19,13 @@
           }
         ]
       },
-      "tasks": []
+      "tasks": [{
+        "operation":"perform_model_import",
+        "arguments":{
+          "pk":"__pk__",
+          "model_type":"analyzer"
+        }
+      }]
     }
   ]
 }

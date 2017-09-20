@@ -1,0 +1,25 @@
+{
+  "process_type": "V",
+  "create": [
+    {
+      "MODEL": "Analyzer",
+      "spec": {
+        "name": "location_net",
+        "url": "https://s3.amazonaws.com/mmcommons-tutorial/models/RN101-5k500-0012.params",
+        "model_filename": "RN101-5k500-0012.params",
+        "mode": "M",
+        "additional_files": [
+          {
+            "url": "https://s3.amazonaws.com/mmcommons-tutorial/models/RN101-5k500-symbol.json",
+            "filename": "RN101-5k500-symbol.json"
+          },
+          {
+            "url": "https://raw.githubusercontent.com/multimedia-berkeley/tutorials/master/grids.txt",
+            "filename": "grids.txt"
+          }
+        ]
+      },
+      "tasks": []
+    }
+  ]
+}

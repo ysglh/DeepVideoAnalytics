@@ -113,11 +113,13 @@ class Indexer(models.Model):
     CAFFE = 'C'
     PYTORCH = 'P'
     OPENCV = 'O'
+    MXNET = 'M'
     MODES = (
         (TENSORFLOW, 'Tensorflow'),
         (CAFFE, 'Caffe'),
         (PYTORCH, 'Pytorch'),
         (OPENCV, 'OpenCV'),
+        (MXNET, 'MXNet'),
     )
     mode = models.CharField(max_length=1,choices=MODES,db_index=True,default=TENSORFLOW)
     name = models.CharField(max_length=100)
@@ -173,16 +175,20 @@ class Analyzer(models.Model):
     CAFFE = 'C'
     PYTORCH = 'P'
     OPENCV = 'O'
+    MXNET = 'M'
     MODES = (
         (TENSORFLOW, 'Tensorflow'),
         (CAFFE, 'Caffe'),
         (PYTORCH, 'Pytorch'),
         (OPENCV, 'OpenCV'),
+        (MXNET, 'MXNet'),
     )
     mode = models.CharField(max_length=1,choices=MODES,db_index=True,default=TENSORFLOW)
     name = models.CharField(max_length=100)
     algorithm = models.CharField(max_length=100,default="")
+    url = models.CharField(max_length=200,default="")
     model_filename = models.CharField(max_length=200,default="")
+    additional_files = JSONField(null=True,blank=True)
     produces_labels = models.BooleanField(default=False)
     produces_json = models.BooleanField(default=False)
     produces_text = models.BooleanField(default=False)
@@ -196,11 +202,13 @@ class Detector(models.Model):
     OPENCV = 'O'
     YOLO = 'Y'
     TFD = 'T'
+    MXNET = 'M'
     MODES = (
         (TENSORFLOW, 'Tensorflow'),
         (CAFFE, 'Caffe'),
         (PYTORCH, 'Pytorch'),
         (OPENCV, 'OpenCV'),
+        (MXNET, 'MXNet'),
     )
     DETECTOR_TYPES = (
         (TFD, 'Tensorflow'),

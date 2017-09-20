@@ -962,6 +962,7 @@ def models(request):
     context = {
         'visual_index_list': Indexer.objects.all(),
         'index_entries': IndexEntries.objects.all(),
+        'analyzers': Analyzer.objects.all(),
         "videos": Video.objects.all().filter(),
         "region_types": Region.REGION_TYPES,
         "detectors": Detector.objects.all()

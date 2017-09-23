@@ -92,7 +92,7 @@ def clean():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from django.conf import settings
-    from dvaapp.operations import queuing
+    from dvaapp import queuing
     if sys.platform == 'darwin':
         for qname in set(queuing.TASK_NAMES_TO_QUEUE.values()):
             try:
@@ -153,7 +153,7 @@ def ci():
         , import_vdn_dataset_url
     from dvaapp.models import Video, TEvent, VDNServer, DVAPQL, Retriever, Indexer
     from django.conf import settings
-    from dvaapp.operations.processing import DVAPQLProcess
+    from dvaapp.processing import DVAPQLProcess
     from dvaapp.tasks import perform_dataset_extraction, perform_indexing, perform_export, perform_import, \
         perform_retriever_creation, perform_detection, \
         perform_video_segmentation, perform_transformation
@@ -263,7 +263,7 @@ def ci_search():
     django.setup()
     import base64
     from dvaapp.models import DVAPQL, Retriever, QueryResults
-    from dvaapp.operations.processing import DVAPQLProcess
+    from dvaapp.processing import DVAPQLProcess
     launch_workers_and_scheduler_from_environment()
     query_dict = {
         'process_type': DVAPQL.QUERY,
@@ -373,7 +373,7 @@ def launch_workers_and_scheduler_from_environment(block_on_manager=False):
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from dvaapp.models import Detector, Indexer, Analyzer, Retriever
-    from dvaapp.operations import queuing
+    from dvaapp import queuing
     for k in os.environ:
         if k.startswith('LAUNCH_BY_NAME_'):
             qtype, model_name = k.split('_')[-2:]
@@ -591,7 +591,7 @@ def startq(queue_name, conc=3):
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
-    from dvaapp.operations import queuing
+    from dvaapp import queuing
     mute = '--without-gossip --without-mingle --without-heartbeat' if 'CELERY_MUTE' in os.environ else ''
     if queue_name == queuing.Q_MANAGER:
         command = 'celery -A dva worker -l info {} -c 1 -Q qmanager -n manager.%h -f logs/qmanager.log'.format(mute)
@@ -832,7 +832,7 @@ def qt_lopq():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from dvaapp.models import Retriever, Indexer,TEvent,DVAPQL
-    from dvaapp.operations import processing
+    from dvaapp import processing
     spec = {
         'process_type':DVAPQL.PROCESS,
         'create':[{
@@ -866,7 +866,7 @@ def submit(path):
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
-    from dvaapp.operations.processing import DVAPQLProcess
+    from dvaapp.processing import DVAPQLProcess
     with open(path) as f:
         j = json.load(f)
     p = DVAPQLProcess()

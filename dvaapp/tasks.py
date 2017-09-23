@@ -14,7 +14,7 @@ from .operations.detection import DetectorTask
 from .operations.segmentation import SegmentorTask
 from .operations.analysis import AnalyzerTask
 from .operations.decoding import VideoDecoder
-from .operations.processing import process_next, mark_as_completed
+from .processing import process_next, mark_as_completed
 from dvalib import retriever
 from django.utils import timezone
 from celery.signals import task_prerun,celeryd_init

@@ -8,7 +8,7 @@ import serializers
 from rest_framework import viewsets, mixins
 from django.contrib.auth.models import User
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
-from operations.processing import DVAPQLProcess
+from .processing import DVAPQLProcess
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 import logging

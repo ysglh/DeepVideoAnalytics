@@ -11,11 +11,11 @@ except ImportError:
     np = None
     logging.warning("Could not import indexer / clustering assuming running in front-end mode / Heroku")
 from django.apps import apps
-from ..models import Video,DVAPQL,QueryResults,TEvent,Region,Analyzer,Indexer,Detector,\
+from models import Video,DVAPQL,QueryResults,TEvent,Region,Analyzer,Indexer,Detector,\
     Retriever,QueryRegion,QueryRegionResults
 from collections import defaultdict
 from celery.result import AsyncResult
-from . import queuing
+import queuing
 
 SYNC_TASKS = {
     "perform_dataset_extraction":[{'operation':'perform_sync','arguments':{'dirname':'frames'}},],

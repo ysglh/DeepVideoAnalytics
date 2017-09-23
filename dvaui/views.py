@@ -12,7 +12,6 @@ from dvaapp.models import Video, Frame, DVAPQL, QueryResults, TEvent, IndexEntri
     VideoLabel, RegionLabel, TubeLabel, Label, ManagementAction, StoredDVAPQL, Analyzer,\
     Indexer, Retriever, SystemState, QueryRegion, QueryRegionResults
 from dva.celery import app
-from dvaapp.operations import queuing
 from rest_framework import viewsets, mixins
 from django.contrib.auth.models import User
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
@@ -22,7 +21,7 @@ from django.db.models import Max
 from view_shared import handle_uploaded_file, create_annotation, handle_video_url, pull_vdn_list, \
     import_vdn_dataset_url, create_detector_dataset, import_vdn_detector_url, refresh_task_status, \
     delete_video_object, create_query_from_request
-from dvaapp.operations.processing import DVAPQLProcess
+from dvaapp.processing import DVAPQLProcess
 from django.contrib.auth.decorators import user_passes_test,login_required
 from django.utils.decorators import method_decorator
 from django.contrib.auth.mixins import UserPassesTestMixin

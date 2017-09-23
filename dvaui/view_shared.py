@@ -3,7 +3,7 @@ from dvaapp.models import Video, TEvent,  VDNServer, Detector, Label, RegionLabe
 from django.conf import settings
 from django_celery_results.models import TaskResult
 from collections import defaultdict
-from dvaapp.operations import processing
+from dvaapp import processing
 from dvaapp import serializers
 import defaults
 

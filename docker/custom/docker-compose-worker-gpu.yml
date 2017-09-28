@@ -26,7 +26,7 @@
        - MEDIA_BUCKET=${MEDIA_BUCKET}
        - GPU_AVAILABLE=1
        - DVA_PRIVATE_ENABLE=1
-     command: bash -c "youtube-dl -U && git pull && fab pull_private && fab start_container:server"
+     command: bash -c "sleep 90 && youtube-dl -U && git pull && fab pull_private && fab start_container:server"
      ports:
        - "127.0.0.1:8500:80"
      volumes:
@@ -45,7 +45,7 @@
        - DVA_PRIVATE_ENABLE=1
        - LAUNCH_BY_NAME_detector_textbox=1
        - CAFFE_MODE=1
-     command: bash -c "sleep 60 && git pull && fab pull_private && fab start_container:worker"
+     command: bash -c "sleep 90 && git pull && fab pull_private && fab start_container:worker"
      volumes:
        - dvadata:/root/DVA/dva/media
  volumes:

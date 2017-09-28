@@ -36,8 +36,6 @@ cd /efs && mkdir media
 service docker restart
 docker volume create --opt type=none --opt device=/efs/media --opt o=bind dvadata
 cd /home/ubuntu/DeepVideoAnalytics && git pull
-docker rmi akshayubhat/dva-auto:gpu
-docker rmi akshayubhat/dva-auto:caffe
 sudo pip install --upgrade nvidia-docker-compose""".format(EFS_DNS,SECRET_KEY,DATABASE_URL,BROKER_URL,MEDIA_BUCKET)
 
 def get_status(ec2, spot_request_id):
@@ -54,7 +52,7 @@ def get_status(ec2, spot_request_id):
 
 
 @task
-def launch(container=False):
+def launch():
     """
     A helper script to launch a spot P2 instance running Deep Video Analytics
     To use this please change the keyname, security group and IAM roles at the top
@@ -64,7 +62,7 @@ def launch(container=False):
     ec2r = boto3.resource('ec2')
     user_data = """{}
 cd /home/ubuntu/DeepVideoAnalytics/docker && nvidia-docker-compose -f {} up -d > launch.log 2>error.log &
-""".format(USER_DATA,"custom/docker-compose-gpu.yml" if container else "custom/docker-compose-worker-gpu.yml")
+""".format(USER_DATA,"custom/docker-compose-worker-gpu.yml")
     ec2spec = dict(ImageId=AMI,
                    KeyName=KeyName,
                    SecurityGroups=[{'GroupId': SecurityGroupId},],

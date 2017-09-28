@@ -22,8 +22,7 @@ except:
 
 env.key_filename = KEY_FILE
 
-USER_DATA = """
-#cloud-boothook
+USER_DATA = """#cloud-boothook
 #!/bin/sh
 set -x
 sudo mkdir /efs
@@ -39,8 +38,7 @@ docker volume create --opt type=none --opt device=/efs/media --opt o=bind dvadat
 cd /home/ubuntu/DeepVideoAnalytics && git pull
 docker rmi akshayubhat/dva-auto:gpu
 docker rmi akshayubhat/dva-auto:caffe
-sudo pip install --upgrade nvidia-docker-compose
-""".format(EFS_DNS,SECRET_KEY,DATABASE_URL,BROKER_URL,MEDIA_BUCKET)
+sudo pip install --upgrade nvidia-docker-compose""".format(EFS_DNS,SECRET_KEY,DATABASE_URL,BROKER_URL,MEDIA_BUCKET)
 
 def get_status(ec2, spot_request_id):
     """

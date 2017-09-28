@@ -27,10 +27,10 @@ USER_DATA = """
 set -x
 sudo mkdir /efs
 sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 {}:/ /efs
-export SECRET_KEY="{}"
-export DATABASE_URL="{}"
-export BROKER_URL="{}"
-export MEDIA_BUCKET="{}"
+export SECRET_KEY=$'{}'
+export DATABASE_URL=$'{}'
+export BROKER_URL=$'{}'
+export MEDIA_BUCKET=$'{}'
 sudo chown ubuntu:ubuntu /efs/
 cd /efs && mkdir media
 service docker restart
@@ -69,6 +69,7 @@ def launch(container=False):
                    SecurityGroupIds=[SecurityGroupId, ],
                    InstanceType="p2.xlarge",
                    Monitoring={'Enabled': True, },
+                   UserData=USER_DATA,
                    IamInstanceProfile=IAM_ROLE)
     output = ec2.request_spot_instances(DryRun=False,
                                         SpotPrice="0.9",

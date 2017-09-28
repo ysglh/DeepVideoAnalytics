@@ -38,7 +38,8 @@ docker volume create --opt type=none --opt device=/efs/media --opt o=bind dvadat
 cd /home/ubuntu/DeepVideoAnalytics && git pull
 docker rmi akshayubhat/dva-auto:gpu
 docker rmi akshayubhat/dva-auto:caffe
-cd /home/ubuntu/DeepVideoAnalytics/docker && nvidia-docker-compose -f custom/docker-compose-worker-gpu.yml up -d
+sudo pip install --upgrade nvidia-docker-compose
+cd /home/ubuntu/DeepVideoAnalytics/docker && nvidia-docker-compose -f custom/docker-compose-worker-gpu.yml up -d > launch.log 2>error.log &
 """.format(EFS_DNS,SECRET_KEY,DATABASE_URL,BROKER_URL,MEDIA_BUCKET)
 
 def get_status(ec2, spot_request_id):

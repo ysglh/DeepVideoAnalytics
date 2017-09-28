@@ -64,10 +64,9 @@ def launch(container=False):
     """
     ec2 = boto3.client('ec2')
     ec2r = boto3.resource('ec2')
-    compose_file = """
-    cd /home/ubuntu/DeepVideoAnalytics/docker && nvidia-docker-compose -f {} up -d > launch.log 2>error.log &
-    """.format("custom/docker-compose-gpu.yml" if container else "custom/docker-compose-worker-gpu.yml")
-    user_data = USER_DATA + compose_file
+    user_data = """{}
+cd /home/ubuntu/DeepVideoAnalytics/docker && nvidia-docker-compose -f {} up -d > launch.log 2>error.log &
+""".format(USER_DATA,"custom/docker-compose-gpu.yml" if container else "custom/docker-compose-worker-gpu.yml")
     ec2spec = dict(ImageId=AMI,
                    KeyName=KeyName,
                    SecurityGroups=[{'GroupId': SecurityGroupId},],
@@ -88,11 +87,11 @@ def launch(container=False):
     logging.info("instance requested")
     time.sleep(30)
     waiter = ec2.get_waiter('spot_instance_request_fulfilled')
-    waiter.wait(SpotInstanceRequestIds=[spot_request_id, ])
-    instance_id = get_status(ec2, spot_request_id)
+    waiter.wait(SpotFleetRequestId=fleet_request_id)
+    instance_id = get_status(ec2, fleet_request_id)
     while instance_id is None:
         time.sleep(30)
-        instance_id = get_status(ec2, spot_request_id)
+        instance_id = get_status(ec2, fleet_request_id)
     instance = ec2r.Instance(instance_id)
     with open("host", 'w') as out:
         out.write(instance.public_ip_address)

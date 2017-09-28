@@ -88,3 +88,5 @@ notes/*.mov
 /aws/config.py
 /aws/host
 /aws/connect.sh
+/aws/instance_data.sh
+/aws/userdata.sh

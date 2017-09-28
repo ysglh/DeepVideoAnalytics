@@ -5,7 +5,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(name)-12s %(leveln
                     datefmt='%m-%d %H:%M', filename='../logs/aws.log', filemode='a')
 
 try:
-    from config import KEY_FILE,AMI,IAM_ROLE,SecurityGroupId,EFS_DNS,KeyName
+    from config import KEY_FILE,AMI,IAM_ROLE,SecurityGroupId,EFS_DNS,KeyName,SECRET_KEY,DATABASE_URL,BROKER_URL,MEDIA_BUCKET
 except ImportError:
     raise ImportError,"Please create config.py with KEY_FILE,AMI,IAM_ROLE,SecurityGroupId,EFS_DNS,KeyName"
 
@@ -21,6 +21,25 @@ except:
 
 env.key_filename = KEY_FILE
 
+USER_DATA = """
+#cloud-boothook
+#!/bin/sh
+set -x
+sudo mkdir /efs
+sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 {}:/ /efs
+export SECRET_KEY="{}"
+export DATABASE_URL="{}"
+export BROKER_URL="{}"
+export MEDIA_BUCKET="{}"
+sudo chown ubuntu:ubuntu /efs/
+cd /efs && mkdir media
+service docker restart
+docker volume create --opt type=none --opt device=/efs/media --opt o=bind dvadata
+cd /home/ubuntu/DeepVideoAnalytics && git pull
+docker rmi akshayubhat/dva-auto:gpu
+docker rmi akshayubhat/dva-auto:caffe
+cd /home/ubuntu/DeepVideoAnalytics/docker && nvidia-docker-compose -f custom/docker-compose-worker-gpu.yml up -d
+""".format(EFS_DNS,SECRET_KEY,DATABASE_URL,BROKER_URL,MEDIA_BUCKET)
 
 def get_status(ec2, spot_request_id):
     """

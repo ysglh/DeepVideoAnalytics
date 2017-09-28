@@ -1,11 +1,12 @@
-import os, logging, time, boto3, glob, subprocess, calendar, sys, uuid, json
+import os, logging, time, boto3, glob, subprocess, calendar, sys, uuid, json, base64
 from fabric.api import task, local, run, put, get, lcd, cd, sudo, env, puts
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                     datefmt='%m-%d %H:%M', filename='../logs/aws.log', filemode='a')
 
 try:
-    from config import KEY_FILE,AMI,IAM_ROLE,SecurityGroupId,EFS_DNS,KeyName,SECRET_KEY,DATABASE_URL,BROKER_URL,MEDIA_BUCKET
+    from config import KEY_FILE,AMI,IAM_ROLE,SecurityGroupId,EFS_DNS,KeyName,\
+        SECRET_KEY,DATABASE_URL,BROKER_URL,MEDIA_BUCKET,FLEET_ROLE,SecurityGroup
 except ImportError:
     raise ImportError,"Please create config.py with KEY_FILE,AMI,IAM_ROLE,SecurityGroupId,EFS_DNS,KeyName"
 
@@ -39,7 +40,6 @@ cd /home/ubuntu/DeepVideoAnalytics && git pull
 docker rmi akshayubhat/dva-auto:gpu
 docker rmi akshayubhat/dva-auto:caffe
 sudo pip install --upgrade nvidia-docker-compose
-cd /home/ubuntu/DeepVideoAnalytics/docker && nvidia-docker-compose -f custom/docker-compose-worker-gpu.yml up -d > launch.log 2>error.log &
 """.format(EFS_DNS,SECRET_KEY,DATABASE_URL,BROKER_URL,MEDIA_BUCKET)
 
 def get_status(ec2, spot_request_id):
@@ -64,18 +64,27 @@ def launch(container=False):
     """
     ec2 = boto3.client('ec2')
     ec2r = boto3.resource('ec2')
+    compose_file = """
+    cd /home/ubuntu/DeepVideoAnalytics/docker && nvidia-docker-compose -f {} up -d > launch.log 2>error.log &
+    """.format("custom/docker-compose-gpu.yml" if container else "custom/docker-compose-worker-gpu.yml")
+    user_data = USER_DATA + compose_file
     ec2spec = dict(ImageId=AMI,
                    KeyName=KeyName,
-                   SecurityGroupIds=[SecurityGroupId, ],
+                   SecurityGroups=[{'GroupId': SecurityGroupId},],
                    InstanceType="p2.xlarge",
-                   Monitoring={'Enabled': True, },
-                   UserData=USER_DATA,
+                   Monitoring={'Enabled': True,},
+                   UserData=base64.b64encode(user_data),
+                   Placement={
+                       "AvailabilityZone":"us-east-1a,us-east-1b,us-east-1c,us-east-1d,us-east-1e,us-east-1f"
+                   },
                    IamInstanceProfile=IAM_ROLE)
-    output = ec2.request_spot_instances(DryRun=False,
-                                        SpotPrice="0.9",
-                                        InstanceCount=1,
-                                        LaunchSpecification=ec2spec)
-    spot_request_id = output[u'SpotInstanceRequests'][0][u'SpotInstanceRequestId']
+    SpotFleetRequestConfig = dict(AllocationStrategy='lowestPrice',
+                                  SpotPrice = "0.9",
+                                  TargetCapacity = 1,
+                                  IamFleetRole = FLEET_ROLE,
+                                  LaunchSpecifications = [ec2spec,])
+    output = ec2.request_spot_fleet(DryRun=False,SpotFleetRequestConfig=SpotFleetRequestConfig)
+    fleet_request_id = output[u'SpotFleetRequestId']
     logging.info("instance requested")
     time.sleep(30)
     waiter = ec2.get_waiter('spot_instance_request_fulfilled')
@@ -93,12 +102,8 @@ def launch(container=False):
     fh = open("connect.sh", 'w')
     fh.write(
         "#!/bin/bash\n" + 'autossh -M 0 -o "ServerAliveInterval 30" -o "ServerAliveCountMax 3" -L 8600:localhost:8000 -i ' + env.key_filename + " " + env.user + "@" +
-        env.hosts[0] + "\n")
+        instance.public_ip_address + "\n")
     fh.close()
-    if container:
-        local("fab deploy_container")
-    else:
-        local("fab deploy")
 
 
 @task
@@ -112,7 +117,7 @@ def launch_on_demand():
     ec2r = boto3.resource('ec2')
     instances = ec2r.create_instances(DryRun=False, ImageId=AMI,
                                       KeyName=KeyName, MinCount=1, MaxCount=1,
-                                      SecurityGroupIds=[SecurityGroupId, ],
+                                      SecurityGroups=[SecurityGroupId, ],
                                       InstanceType="p2.xlarge",
                                       Monitoring={'Enabled': True, },
                                       IamInstanceProfile=IAM_ROLE)

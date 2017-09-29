@@ -61,7 +61,7 @@ def launch():
     ec2 = boto3.client('ec2')
     ec2r = boto3.resource('ec2')
     user_data = """{}
-echo 'aws s3 cp s3://aub3config/heroku.env /home/ubuntu/heroku.env && source /home/ubuntu/heroku.env && cd /home/ubuntu/DeepVideoAnalytics/docker && nvidia-docker-compose -f {} up -d > launch.log 2>error.log &' >> /home/ubuntu/startup.sh
+echo 'aws s3 cp s3://aub3config/heroku.env /home/ubuntu/heroku.env && . /home/ubuntu/heroku.env && cd /home/ubuntu/DeepVideoAnalytics/docker && nvidia-docker-compose -f {} up -d > launch.log 2>error.log &' >> /home/ubuntu/startup.sh
 """.format(USER_DATA,"custom/docker-compose-worker-gpu.yml")
     ec2spec = dict(ImageId=AMI,
                    KeyName=KeyName,
@@ -93,7 +93,7 @@ def launch_cpu():
     ec2 = boto3.client('ec2')
     ec2r = boto3.resource('ec2')
     user_data = """{}
-echo 'aws s3 cp s3://aub3config/heroku.env /home/ubuntu/heroku.env && source /home/ubuntu/heroku.env && cd /home/ubuntu/DeepVideoAnalytics/docker && nvidia-docker-compose -f {} up -d > launch.log 2>error.log &' >> /home/ubuntu/startup.sh
+echo 'aws s3 cp s3://aub3config/heroku.env /home/ubuntu/heroku.env && . /home/ubuntu/heroku.env && cd /home/ubuntu/DeepVideoAnalytics/docker && docker-compose -f {} up -d > launch.log 2>error.log &' >> /home/ubuntu/startup.sh
 """.format(USER_DATA,"custom/docker-compose-worker-cpu.yml")
     ec2spec = dict(ImageId=AMI,
                    KeyName=KeyName,

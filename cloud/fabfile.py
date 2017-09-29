@@ -33,7 +33,9 @@ def launch(gpu_count=1,cpu_count=0):
     :return:
     """
     ec2 = boto3.client('ec2')
-    user_data_gpu = file('initdata/worker_gpu.sh').read().format(EFS_DNS,CONFIG_BUCKET,"docker-compose-worker-gpu.yml")
+    user_data_gpu = file('initdata/gpu.yml').read().format(EFS_DNS,
+                                                       CONFIG_BUCKET,
+                                                       base64.b64encode(file("initdata/docker-compose-worker-gpu.yml").read()))
     ec2spec_gpu = dict(ImageId=AMI,
                    KeyName=KeyName,
                    SecurityGroups=[{'GroupId': SecurityGroupId},],
@@ -47,7 +49,7 @@ def launch(gpu_count=1,cpu_count=0):
                    IamInstanceProfile=IAM_ROLE)
     user_data_cpu = file('initdata/cpu.yml').read().format(EFS_DNS,
                                                        CONFIG_BUCKET,
-                                                       base64.b64encode(file("compose/docker-compose-worker-cpu.yml").read()))
+                                                       base64.b64encode(file("initdata/docker-compose-worker-cpu.yml").read()))
     ec2spec_cpu = dict(ImageId=AMI,
                    KeyName=KeyName,
                    SecurityGroups=[{'GroupId': SecurityGroupId},],

@@ -63,6 +63,7 @@ def launch(gpu_count=1,cpu_count=0):
                                   SpotPrice = "0.9",
                                   TargetCapacity = int(cpu_count)+int(gpu_count),
                                   IamFleetRole = FLEET_ROLE,
+                                  InstanceInterruptionBehavior='stop',
                                   LaunchSpecifications = launch_spec)
     output = ec2.request_spot_fleet(DryRun=False,SpotFleetRequestConfig=SpotFleetRequestConfig)
     fleet_request_id = output[u'SpotFleetRequestId']

@@ -8,7 +8,7 @@ logging.basicConfig(level=logging.INFO,
                     filemode='a')
 
 try:
-    from config import KEY_FILE,AMI,IAM_ROLE,SecurityGroupId,EFS_DNS,KeyName,FLEET_ROLE,SecurityGroup
+    from config import KEY_FILE,AMI,IAM_ROLE,SecurityGroupId,EFS_DNS,KeyName,FLEET_ROLE,SecurityGroup,CONFIG_BUCKET
 except ImportError:
     raise ImportError,"Please create config.py with KEY_FILE,AMI,IAM_ROLE,SecurityGroupId,EFS_DNS,KeyName"
 
@@ -33,7 +33,7 @@ def launch(gpu_count=1,cpu_count=0):
     :return:
     """
     ec2 = boto3.client('ec2')
-    user_data_gpu = file('initdata/worker_gpu.sh').read().format(EFS_DNS,"docker-compose-worker-gpu.yml")
+    user_data_gpu = file('initdata/worker_gpu.sh').read().format(EFS_DNS,CONFIG_BUCKET,"docker-compose-worker-gpu.yml")
     ec2spec_gpu = dict(ImageId=AMI,
                    KeyName=KeyName,
                    SecurityGroups=[{'GroupId': SecurityGroupId},],
@@ -45,7 +45,7 @@ def launch(gpu_count=1,cpu_count=0):
                        "AvailabilityZone":"us-east-1a,us-east-1b,us-east-1c,us-east-1d,us-east-1e,us-east-1f"
                    },
                    IamInstanceProfile=IAM_ROLE)
-    user_data_cpu = file('initdata/worker_cpu.sh').read().format(EFS_DNS,"docker-compose-worker-cpu.yml")
+    user_data_cpu = file('initdata/worker_cpu.sh').read().format(EFS_DNS,CONFIG_BUCKET,"docker-compose-worker-cpu.yml")
     ec2spec_cpu = dict(ImageId=AMI,
                    KeyName=KeyName,
                    SecurityGroups=[{'GroupId': SecurityGroupId},],

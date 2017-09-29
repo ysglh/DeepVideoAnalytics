@@ -6,4 +6,6 @@ IAM_ROLE = {'Arn': '', }  # REPLACE WITH YOUR OWN (Provide S3 access to allow sy
 KEY_FILE = ""  # REPLACE WITH YOUR OWN Path to private key
 EFS_DNS = "" #  e.g. fs-asdasdasdasd.efs.us-east-1.amazonaws.com
 FLEET_ROLE = "" # e.g. arn:aws:iam::123123123123123:role/aws-ec2-spot-fleet-role
+CONFIG_BUCKET = "" # AWS S3 private bucket containing heroku.env credentials
+
 

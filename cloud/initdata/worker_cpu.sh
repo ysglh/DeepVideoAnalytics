@@ -9,4 +9,4 @@ service docker restart
 docker volume create --opt type=none --opt device=/efs/media --opt o=bind dvadata
 cd /home/ubuntu/DeepVideoAnalytics && git pull
 sudo pip install --upgrade awscli
-echo 'aws s3 cp s3://aub3config/heroku.env /home/ubuntu/heroku.env && . /home/ubuntu/heroku.env && cd /home/ubuntu/DeepVideoAnalytics/cloud/compose/ && docker-compose -f {} up -d > launch.log 2>error.log &' >> /home/ubuntu/startup.sh
+echo 'aws s3 cp s3://{}/heroku.env /home/ubuntu/heroku.env && . /home/ubuntu/heroku.env && cd /home/ubuntu/DeepVideoAnalytics/cloud/compose/ && docker-compose -f {} up -d > launch.log 2>error.log &' >> /home/ubuntu/startup.sh

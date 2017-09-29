@@ -5,8 +5,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(name)-12s %(leveln
                     datefmt='%m-%d %H:%M', filename='../logs/aws.log', filemode='a')
 
 try:
-    from config import KEY_FILE,AMI,IAM_ROLE,SecurityGroupId,EFS_DNS,KeyName,\
-        SECRET_KEY,DATABASE_URL,BROKER_URL,MEDIA_BUCKET,FLEET_ROLE,SecurityGroup
+    from config import KEY_FILE,AMI,IAM_ROLE,SecurityGroupId,EFS_DNS,KeyName,FLEET_ROLE,SecurityGroup
 except ImportError:
     raise ImportError,"Please create config.py with KEY_FILE,AMI,IAM_ROLE,SecurityGroupId,EFS_DNS,KeyName"
 

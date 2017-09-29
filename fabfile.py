@@ -503,20 +503,24 @@ def download_model(root_dir, model_type_dir_name, model_dir_name, model_json):
     model_dir = "{}/{}/{}".format(root_dir, model_type_dir_name, model_dir_name)
     with lcd(model_type_dir):
         if not os.path.isdir(model_dir):
-            os.mkdir(model_dir)
-            if sys.platform == 'darwin':
-                local("cd {} && cp /users/aub3/Dropbox/DeepVideoAnalytics/shared/{} .".format(model_dir_name, filename))
-            else:
-                local("cd {} && wget --quiet {}".format(model_dir_name, url))
-            if 'additional_files' in model_json:
-                for m in model_json["additional_files"]:
-                    url = m['url']
-                    filename = m['filename']
-                    if sys.platform == 'darwin':
-                        local("cd {} && cp /users/aub3/Dropbox/DeepVideoAnalytics/shared/{} .".format(model_dir_name,
-                                                                                                      filename))
-                    else:
-                        local("cd {} && wget --quiet {}".format(model_dir_name, url))
+            try:
+                os.mkdir(model_dir)
+            except:
+                pass
+            else: # On the shared FS the which creates the DIR gets to download
+                if sys.platform == 'darwin':
+                    local("cd {} && cp /users/aub3/Dropbox/DeepVideoAnalytics/shared/{} .".format(model_dir_name, filename))
+                else:
+                    local("cd {} && wget --quiet {}".format(model_dir_name, url))
+                if 'additional_files' in model_json:
+                    for m in model_json["additional_files"]:
+                        url = m['url']
+                        filename = m['filename']
+                        if sys.platform == 'darwin':
+                            local("cd {} && cp /users/aub3/Dropbox/DeepVideoAnalytics/shared/{} .".format(model_dir_name,
+                                                                                                          filename))
+                        else:
+                            local("cd {} && wget --quiet {}".format(model_dir_name, url))
 
 
 @task

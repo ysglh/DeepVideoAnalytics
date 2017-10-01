@@ -1,0 +1,146 @@
+{
+  "requiresAttributes": [
+    {
+      "value": null,
+      "name": "com.amazonaws.ecs.capability.logging-driver.awslogs",
+      "targetId": null,
+      "targetType": null
+    },
+    {
+      "value": null,
+      "name": "com.amazonaws.ecs.capability.docker-remote-api.1.21",
+      "targetId": null,
+      "targetType": null
+    },
+    {
+      "value": null,
+      "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19",
+      "targetId": null,
+      "targetType": null
+    }
+  ],
+  "networkMode": "bridge",
+  "status": "ACTIVE",
+  "revision": 10,
+  "taskRoleArn": null,
+  "containerDefinitions": [
+    {
+      "volumesFrom": [],
+      "memory": null,
+      "extraHosts": null,
+      "linuxParameters": null,
+      "dnsServers": null,
+      "disableNetworking": null,
+      "dnsSearchDomains": null,
+      "portMappings": [],
+      "hostname": null,
+      "essential": true,
+      "entryPoint": [
+        "/bin/bash",
+        "-c"
+      ],
+      "mountPoints": [
+        {
+          "containerPath": "/root/DVA/dva/media",
+          "sourceVolume": "dvadata",
+          "readOnly": null
+        }
+      ],
+      "name": "cpu",
+      "ulimits": null,
+      "dockerSecurityOptions": null,
+      "environment": [
+        {
+          "name": "BROKER_URL",
+          "value": "<REPLACE THIS>"
+        },
+        {
+          "name": "CELERY_MUTE",
+          "value": "1"
+        },
+        {
+          "name": "DATABASE_URL",
+          "value": "<REPLACE THIS>"
+        },
+        {
+          "name": "DOCKER_MODE",
+          "value": "1"
+        },
+        {
+          "name": "LAUNCH_BY_NAME_analyzer_crnn",
+          "value": "1"
+        },
+        {
+          "name": "LAUNCH_BY_NAME_analyzer_tagger",
+          "value": "1"
+        },
+        {
+          "name": "LAUNCH_BY_NAME_detector_coco",
+          "value": "1"
+        },
+        {
+          "name": "LAUNCH_BY_NAME_detector_face",
+          "value": "1"
+        },
+        {
+          "name": "LAUNCH_BY_NAME_indexer_facenet",
+          "value": "1"
+        },
+        {
+          "name": "LAUNCH_BY_NAME_indexer_inception",
+          "value": "1"
+        },
+        {
+          "name": "LAUNCH_BY_NAME_retriever_facenet",
+          "value": "1"
+        },
+        {
+          "name": "LAUNCH_BY_NAME_retriever_inception",
+          "value": "1"
+        },
+        {
+          "name": "LAUNCH_Q_qextract",
+          "value": "4"
+        },
+        {
+          "name": "MEDIA_BUCKET",
+          "value": "<REPLACE THIS>"
+        },
+        {
+          "name": "SECRET_KEY",
+          "value": "<REPLACE THIS>"
+        }
+      ],
+      "links": null,
+      "workingDirectory": null,
+      "readonlyRootFilesystem": null,
+      "image": "akshayubhat/dva-auto:latest",
+      "command": [
+        "youtube-dl -U && git pull && fab start_container:worker"
+      ],
+      "user": null,
+      "dockerLabels": null,
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "dva_ecs",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "dva_cpu_"
+        }
+      },
+      "cpu": 2048,
+      "privileged": null,
+      "memoryReservation": 7168
+    }
+  ],
+  "placementConstraints": [],
+  "volumes": [
+    {
+      "host": {
+        "sourcePath": "/mnt/efs/"
+      },
+      "name": "dvadata"
+    }
+  ],
+  "family": "DVA"
+}

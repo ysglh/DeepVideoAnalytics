@@ -8,7 +8,8 @@ logging.basicConfig(level=logging.INFO,
                     filemode='a')
 
 try:
-    from config import KEY_FILE,AMI,IAM_ROLE,SecurityGroupId,EFS_DNS,KeyName,FLEET_ROLE,SecurityGroup,CONFIG_BUCKET
+    from config import KEY_FILE,AMI,IAM_ROLE,SecurityGroupId,EFS_DNS,KeyName,FLEET_ROLE,SecurityGroup,\
+        CONFIG_BUCKET,ECS_AMI,ECS_ROLE,CLUSTER_NAME
 except ImportError:
     raise ImportError,"Please create config.py with KEY_FILE,AMI,IAM_ROLE,SecurityGroupId,EFS_DNS,KeyName"
 
@@ -66,6 +67,42 @@ def launch(gpu_count=1,cpu_count=0):
         launch_spec.append(ec2spec_cpu)
     if gpu_count and int(gpu_count):
         launch_spec.append(ec2spec_gpu)
+    SpotFleetRequestConfig = dict(AllocationStrategy='lowestPrice',
+                                  SpotPrice = "0.9",
+                                  TargetCapacity = int(cpu_count)+int(gpu_count),
+                                  IamFleetRole = FLEET_ROLE,
+                                  InstanceInterruptionBehavior='stop',
+                                  LaunchSpecifications = launch_spec)
+    output = ec2.request_spot_fleet(DryRun=False,SpotFleetRequestConfig=SpotFleetRequestConfig)
+    fleet_request_id = output[u'SpotFleetRequestId']
+    print fleet_request_id
+
+
+@task
+def launch_ecs(gpu_count=0,cpu_count=1):
+    """
+    Launch Spot fleet with instances using ECS AMI into an ECS cluster.
+    The cluster can be then used to run task definitions.
+    :return:
+    """
+    ec2 = boto3.client('ec2')
+    user_data_cpu = file('initdata/efs_ecs_bootstrap.txt').read().format(EFS_DNS,CLUSTER_NAME)
+    ec2spec_cpu = dict(ImageId=ECS_AMI,
+                       KeyName=KeyName,
+                       SecurityGroups=[{'GroupId': SecurityGroupId},],
+                       InstanceType="c4.xlarge",
+                       UserData=base64.b64encode(user_data_cpu),
+                       WeightedCapacity=float(cpu_count),
+                       Placement={
+                           "AvailabilityZone":"us-east-1a,us-east-1b,us-east-1c,us-east-1d,us-east-1e,us-east-1f"
+                       },
+                       IamInstanceProfile=ECS_ROLE)
+    launch_spec = []
+    if cpu_count and int(cpu_count):
+        launch_spec.append(ec2spec_cpu)
+    if gpu_count and int(gpu_count):
+        raise NotImplementedError
+        # launch_spec.append(ec2spec_gpu)
     SpotFleetRequestConfig = dict(AllocationStrategy='lowestPrice',
                                   SpotPrice = "0.9",
                                   TargetCapacity = int(cpu_count)+int(gpu_count),

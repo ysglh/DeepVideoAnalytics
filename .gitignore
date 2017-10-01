@@ -86,5 +86,6 @@ notes/*.mov
 /dvalib/crfasrnn/cpp/high_dim_filter.so
 /celerybeat.pid
 /cloud/config.py
+/cloud/ecs/instance_config_private.json
 /cloud/host
 /cloud/connect.sh

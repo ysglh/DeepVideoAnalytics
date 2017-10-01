@@ -137,7 +137,7 @@
   "volumes": [
     {
       "host": {
-        "sourcePath": "/mnt/efs/"
+        "sourcePath": "/efs/"
       },
       "name": "dvadata"
     }

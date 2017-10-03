@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.INFO,
 
 try:
     from config import KEY_FILE,AMI,IAM_ROLE,SecurityGroupId,EFS_DNS,KeyName,FLEET_ROLE,SecurityGroup,\
-        CONFIG_BUCKET,ECS_AMI,ECS_ROLE,CLUSTER_NAME,ECS_GPU_AMI
+        CONFIG_BUCKET,ECS_AMI,ECS_ROLE,CLUSTER_NAME,ECS_GPU_AMI,GPU_CLUSTER_NAME
 except ImportError:
     raise ImportError,"Please create config.py with KEY_FILE,AMI,IAM_ROLE,SecurityGroupId,EFS_DNS,KeyName"
 
@@ -27,101 +27,46 @@ env.key_filename = KEY_FILE
 
 
 @task
-def launch(gpu_count=1,cpu_count=0):
-    """
-    A helper script to launch a spot P2 instance running Deep Video Analytics
-    To use this please change the keyname, security group and IAM roles at the top
-    :return:
-    """
-    ec2 = boto3.client('ec2')
-    user_data_gpu = file('initdata/gpu.yml').read().format(EFS_DNS,
-                                                       CONFIG_BUCKET,
-                                                       base64.b64encode(file("initdata/docker-compose-worker-gpu.yml").read()))
-    ec2spec_gpu = dict(ImageId=AMI,
-                   KeyName=KeyName,
-                   SecurityGroups=[{'GroupId': SecurityGroupId},],
-                   InstanceType="p2.xlarge",
-                   Monitoring={'Enabled': True,},
-                   UserData=base64.b64encode(user_data_gpu),
-                   WeightedCapacity=float(gpu_count),
-                   Placement={
-                       "AvailabilityZone":"us-east-1a,us-east-1b,us-east-1c,us-east-1d,us-east-1e,us-east-1f"
-                   },
-                   IamInstanceProfile=IAM_ROLE)
-    user_data_cpu = file('initdata/cpu.yml').read().format(EFS_DNS,
-                                                       CONFIG_BUCKET,
-                                                       base64.b64encode(file("initdata/docker-compose-worker-cpu.yml").read()))
-    ec2spec_cpu = dict(ImageId=AMI,
-                   KeyName=KeyName,
-                   SecurityGroups=[{'GroupId': SecurityGroupId},],
-                   InstanceType="c4.xlarge",
-                   Monitoring={'Enabled': True,},
-                   UserData=base64.b64encode(user_data_cpu),
-                   WeightedCapacity=float(cpu_count),
-                   Placement={
-                       "AvailabilityZone":"us-east-1a,us-east-1b,us-east-1c,us-east-1d,us-east-1e,us-east-1f"
-                   },
-                   IamInstanceProfile=IAM_ROLE)
-    launch_spec = []
-    if cpu_count and int(cpu_count):
-        launch_spec.append(ec2spec_cpu)
-    if gpu_count and int(gpu_count):
-        launch_spec.append(ec2spec_gpu)
-    SpotFleetRequestConfig = dict(AllocationStrategy='lowestPrice',
-                                  SpotPrice = "0.9",
-                                  TargetCapacity = int(cpu_count)+int(gpu_count),
-                                  IamFleetRole = FLEET_ROLE,
-                                  InstanceInterruptionBehavior='stop',
-                                  LaunchSpecifications = launch_spec)
-    output = ec2.request_spot_fleet(DryRun=False,SpotFleetRequestConfig=SpotFleetRequestConfig)
-    fleet_request_id = output[u'SpotFleetRequestId']
-    print fleet_request_id
-
-
-@task
-def launch_ecs(gpu_count=1,cpu_count=0):
+def launch(gpu_count=1,cpu_count=1,cpu_price=0.1,gpu_price=0.4):
     """
     Launch Spot fleet with instances using ECS AMI into an ECS cluster.
     The cluster can be then used to run task definitions.
     :return:
     """
     ec2 = boto3.client('ec2')
-    user_data_cpu = file('initdata/efs_ecs_bootstrap.txt').read().format(EFS_DNS,CLUSTER_NAME)
     ec2spec_cpu = dict(ImageId=ECS_AMI,
                        KeyName=KeyName,
                        SecurityGroups=[{'GroupId': SecurityGroupId},],
                        InstanceType="c4.xlarge",
-                       UserData=base64.b64encode(user_data_cpu),
+                       UserData=base64.b64encode(file('initdata/efs_ecs_bootstrap.txt').read().format(EFS_DNS,CLUSTER_NAME)),
                        WeightedCapacity=float(cpu_count),
                        Placement={
                            "AvailabilityZone":"us-east-1a,us-east-1b,us-east-1c,us-east-1d,us-east-1e,us-east-1f"
                        },
                        IamInstanceProfile=ECS_ROLE)
-    user_data_gpu = file('initdata/efs_ecs_bootstrap_gpu.txt').read().format(EFS_DNS,CLUSTER_NAME)
     ec2spec_gpu = dict(ImageId=ECS_GPU_AMI,
                        KeyName=KeyName,
                        SecurityGroups=[{'GroupId': SecurityGroupId},],
                        InstanceType="p2.xlarge",
-                       UserData=base64.b64encode(user_data_gpu),
+                       UserData=base64.b64encode(file('initdata/efs_ecs_bootstrap_gpu.txt').read().format(EFS_DNS,GPU_CLUSTER_NAME)),
                        WeightedCapacity=float(gpu_count),
                        Placement={
                            "AvailabilityZone":"us-east-1a,us-east-1b,us-east-1c,us-east-1d,us-east-1e,us-east-1f"
                        },
                        IamInstanceProfile=ECS_ROLE)
-    launch_spec = []
-    if cpu_count and int(cpu_count):
-        launch_spec.append(ec2spec_cpu)
-    if gpu_count and int(gpu_count):
-        launch_spec.append(ec2spec_gpu)
-    SpotFleetRequestConfig = dict(AllocationStrategy='lowestPrice',
-                                  SpotPrice = "0.9",
-                                  TargetCapacity = int(cpu_count)+int(gpu_count),
-                                  IamFleetRole = FLEET_ROLE,
-                                  InstanceInterruptionBehavior='stop',
-                                  LaunchSpecifications = launch_spec)
-    output = ec2.request_spot_fleet(DryRun=False,SpotFleetRequestConfig=SpotFleetRequestConfig)
-    fleet_request_id = output[u'SpotFleetRequestId']
-    print fleet_request_id
+    for count,spec,price,itype in [(cpu_count,ec2spec_cpu,cpu_price,'CPU'),
+                                   (gpu_count,ec2spec_gpu,gpu_price,'GPU')]:
+        if count and int(spec):
+            launch_spec = [spec,]
+            SpotFleetRequestConfig = dict(AllocationStrategy='lowestPrice',
+                                          SpotPrice=str(price),
+                                          TargetCapacity=int(count),
+                                          IamFleetRole=FLEET_ROLE,
+                                          InstanceInterruptionBehavior='stop',
+                                          LaunchSpecifications=launch_spec)
+            output = ec2.request_spot_fleet(DryRun=False, SpotFleetRequestConfig=SpotFleetRequestConfig)
+            fleet_request_id = output[u'SpotFleetRequestId']
+            print "Lauched fleet request with id {} for {} {} instances at {} price".format(fleet_request_id,count,itype,price)
 
 
 @task

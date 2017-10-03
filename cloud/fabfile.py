@@ -97,7 +97,7 @@ def launch_ecs(gpu_count=1,cpu_count=0):
                            "AvailabilityZone":"us-east-1a,us-east-1b,us-east-1c,us-east-1d,us-east-1e,us-east-1f"
                        },
                        IamInstanceProfile=ECS_ROLE)
-    user_data_gpu = file('initdata/efs_ecs_bootstrap.txt').read().format(EFS_DNS,CLUSTER_NAME)
+    user_data_gpu = file('initdata/efs_ecs_bootstrap_gpu.txt').read().format(EFS_DNS,CLUSTER_NAME)
     ec2spec_gpu = dict(ImageId=ECS_GPU_AMI,
                        KeyName=KeyName,
                        SecurityGroups=[{'GroupId': SecurityGroupId},],

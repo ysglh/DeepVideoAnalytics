@@ -56,7 +56,7 @@ def launch(gpu_count=1,cpu_count=1,cpu_price=0.1,gpu_price=0.4):
                        IamInstanceProfile=ECS_ROLE)
     for count,spec,price,itype in [(cpu_count,ec2spec_cpu,cpu_price,'CPU'),
                                    (gpu_count,ec2spec_gpu,gpu_price,'GPU')]:
-        if count and int(spec):
+        if count and int(count):
             launch_spec = [spec,]
             SpotFleetRequestConfig = dict(AllocationStrategy='lowestPrice',
                                           SpotPrice=str(price),

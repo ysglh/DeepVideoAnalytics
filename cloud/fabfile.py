@@ -103,7 +103,7 @@ def launch_ecs(gpu_count=1,cpu_count=0):
                        SecurityGroups=[{'GroupId': SecurityGroupId},],
                        InstanceType="p2.xlarge",
                        UserData=base64.b64encode(user_data_gpu),
-                       WeightedCapacity=float(cpu_count),
+                       WeightedCapacity=float(gpu_count),
                        Placement={
                            "AvailabilityZone":"us-east-1a,us-east-1b,us-east-1c,us-east-1d,us-east-1e,us-east-1f"
                        },

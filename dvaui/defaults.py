@@ -9,19 +9,13 @@ DEFAULT_PROCESSING_PLAN_VIDEO =[
         'filters':'__parent__',
         'detector':'coco',
         'next_tasks':[
-            {'operation': 'perform_transformation',
+            {'operation': 'perform_indexing',
              'arguments': {
-                 'filters': {'event_id': '__parent_event__'},
-                 'next_tasks': [
-                     {'operation': 'perform_indexing',
-                      'arguments': {
-                          'index': 'inception',
-                          'target': 'regions',
-                          'filters': {'event_id': '__grand_parent_event__', 'w__gte': 50, 'h__gte': 50}
-                      }
-                      },
-                 ]
-             }},
+                 'index': 'inception',
+                 'target': 'regions',
+                 'filters': {'event_id': '__grand_parent_event__', 'w__gte': 50, 'h__gte': 50}
+             }
+             },
         ]}
      },
     {'operation': 'perform_detection', 'arguments': {
@@ -56,19 +50,13 @@ DEFAULT_PROCESSING_PLAN_DATASET = [
         'frames_batch_size': DEFAULT_FRAMES_BATCH_SIZE,
         'detector':'coco',
         'next_tasks':[
-            {'operation': 'perform_transformation',
+            {'operation': 'perform_indexing',
              'arguments': {
-                 'filters': {'event_id': '__parent_event__'},
-                 'next_tasks': [
-                     {'operation': 'perform_indexing',
-                      'arguments': {
-                          'index': 'inception',
-                          'target': 'regions',
-                          'filters': {'event_id': '__grand_parent_event__', 'w__gte': 50, 'h__gte': 50}
-                      }
-                      },
-                 ]
-             }},
+                 'index': 'inception',
+                 'target': 'regions',
+                 'filters': {'event_id': '__grand_parent_event__', 'w__gte': 50, 'h__gte': 50}
+             }
+             },
         ]}
      },
     {'operation': 'perform_detection', 'arguments': {

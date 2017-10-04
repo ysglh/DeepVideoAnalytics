@@ -1,4 +1,4 @@
-import logging, json, uuid
+import logging, json, uuid, tempfile
 import celery
 from PIL import Image
 from django.conf import settings
@@ -63,10 +63,10 @@ class IndexerTask(celery.Task):
                     if frame_path not in images:
                         images[frame_path] = Image.open(frame_path)
                     img2 = images[frame_path].crop((df.x, df.y, df.x + df.w, df.y + df.h))
-                    img2.save(df.path())
+                    img2.save(df.path(media_root=tempfile.mkdtemp()))
             else:
                 raise ValueError,"{} target not configured".format(target)
-            paths.append(df.path())
+            paths.append(df.path(media_root=tempfile.mkdtemp()))
             entries.append(entry)
         if entries:
             features = visual_index.index_paths(paths)

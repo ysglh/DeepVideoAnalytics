@@ -470,17 +470,8 @@ def perform_model_import(task_id):
         start.started = True
         start.save()
     args = start.arguments
-    if args['model_type'] == 'analyzer':
-        dm = DeepModel.objects.get(pk=args['pk'],model_type=DeepModel.ANALYZER)
-        dirname = 'models'
-    elif args['model_type'] == 'indexer':
-        dm = DeepModel.objects.get(pk=args['pk'],model_type=DeepModel.INDEXER)
-        dirname = 'models'
-    elif args['model_type'] == 'detector':
-        dm = DeepModel.objects.get(pk=args['pk'],model_type=DeepModel.DETECTOR)
-        dirname = 'models'
-    else:
-        raise NotImplementedError,args
+    dm = DeepModel.objects.get(pk=args['pk'])
+    dirname = 'models'
     task_shared.download_model(settings.MEDIA_ROOT,dirname, dm)
     process_next(task_id)
     mark_as_completed(start)

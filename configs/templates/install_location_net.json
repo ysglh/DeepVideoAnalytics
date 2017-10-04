@@ -2,7 +2,7 @@
   "process_type": "V",
   "create": [
     {
-      "MODEL": "Analyzer",
+      "MODEL": "DeepModel",
       "spec": {
         "name": "location_net",
         "url": "https://s3.amazonaws.com/mmcommons-tutorial/models/RN101-5k500-0012.params",
@@ -23,7 +23,7 @@
         "operation":"perform_model_import",
         "arguments":{
           "pk":"__pk__",
-          "model_type":"analyzer"
+          "model_type":"A"
         }
       }]
     }

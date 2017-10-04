@@ -271,3 +271,8 @@ def make_requester_pays(bucket_name):
             }
         ]}
     _ = bucket_policy.put(Policy=json.dumps(policy))
+
+
+@task
+def get_envs():
+    local("")

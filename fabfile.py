@@ -149,7 +149,7 @@ def ci():
     django.setup()
     import base64
     from django.core.files.uploadedfile import SimpleUploadedFile
-    from dvaui.views import handle_uploaded_file, pull_vdn_list \
+    from dvaui.view_shared import handle_uploaded_file, pull_vdn_list \
         , import_vdn_dataset_url
     from dvaapp.models import Video, TEvent, VDNServer, DVAPQL, Retriever, DeepModel
     from django.conf import settings
@@ -626,7 +626,7 @@ def test():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from django.core.files.uploadedfile import SimpleUploadedFile
-    from dvaui.views import handle_uploaded_file, handle_video_url
+    from dvaui.view_shared import handle_uploaded_file, handle_video_url
     for fname in glob.glob('tests/*.mp4'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")
@@ -821,7 +821,7 @@ def qt():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from django.core.files.uploadedfile import SimpleUploadedFile
-    from dvaui.views import handle_uploaded_file
+    from dvaui.view_shared import handle_uploaded_file
     for fname in glob.glob('tests/ci/*.mp4'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/mp4")

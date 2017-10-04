@@ -271,9 +271,9 @@ def import_vdn_detector_url(server, url, user, cached_response):
     if not response:
         response = cached_response
     detector = DeepModel()
-    detector.model_type = DeepModel
+    detector.model_type = DeepModel.DETECTOR
     detector.name = response['name']
-    detector.detector_type = response.get('detector_type',detector.YOLO)
+    detector.detector_type = response.get('detector_type',DeepModel.YOLO)
     detector.save()
     if response.get('download_url',False):
         p = processing.DVAPQLProcess()

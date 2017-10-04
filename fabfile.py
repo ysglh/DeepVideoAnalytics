@@ -458,6 +458,17 @@ def launch_server_from_environment():
 
 
 @task
+def init_scheduler():
+    import django
+    sys.path.append(os.path.dirname(__file__))
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
+    django.setup()
+    from django_celery_beat.models import PeriodicTask,IntervalSchedule
+    di,created = IntervalSchedule.objects.get_or_create(every=os.environ.get('REFRESH_MINUTES',3),period=IntervalSchedule.MINUTES)
+    _ = PeriodicTask.objects.get_or_create(name="monitoring",task="monitor_system",interval=di,queue='qscheduler')
+
+
+@task
 def init_server():
     """
     Initialize server database by adding default VDN server and DVAPQL templates
@@ -468,11 +479,6 @@ def init_server():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from dvaapp.models import Video, VDNServer, StoredDVAPQL
-    from django_celery_beat.models import PeriodicTask,IntervalSchedule
-    di,created = IntervalSchedule.objects.get_or_create(every=os.environ.get('REFRESH_MINUTES',3),
-                                                        period=IntervalSchedule.MINUTES)
-    _ = PeriodicTask.objects.get_or_create(name="monitoring",task="monitor_system",
-                                           interval=di,queue='qscheduler')
     if StoredDVAPQL.objects.count() == 0:
         for fname in glob.glob('configs/templates/*.json'):
             StoredDVAPQL.objects.create(name=fname,

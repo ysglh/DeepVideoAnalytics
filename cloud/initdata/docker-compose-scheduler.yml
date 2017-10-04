@@ -13,4 +13,4 @@
        - LAUNCH_SCHEDULER=1
        - LAUNCH_Q_qscheduler=1
        - CELERY_MUTE=1
-     command: bash -c "git pull && fab start_container:worker"
+     command: bash -c "git pull && fab init_scheduler && fab start_container:worker"

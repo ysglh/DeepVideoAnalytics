@@ -274,5 +274,25 @@ def make_requester_pays(bucket_name):
 
 
 @task
-def get_envs():
-    local("")
+def get_heroku_env():
+    import os
+    if os.path.isfile("heroku.env"):
+        print "Warning! heroku.env already exists, appending lines."
+    local("heroku config:get SECRET_KEY -s  >> heroku.env")
+    local("heroku config:get MEDIA_BUCKET -s  >> heroku.env")
+    local("heroku config:get DATABASE_URL -s  >> heroku.env")
+    local("heroku config:get CLOUDAMQP_URL -s  >> heroku.env")
+    envs = file("heroku.env").read().replace("CLOUDAMQP_URL","BROKER_URL")
+    with open("heroku.env",'w') as out:
+        out.write(envs)
+
+
+@task
+def create_heroku_app(appname,db="heroku-postgresql:standard-0",amqp="cloudamqp:tiger"):
+    if raw_input("This will cost  50$ per month for DB and 20$ for RabbitMQ. Type yes to continue>>") == 'yes':
+        # Create app
+        local("heroku create {}".format(appname))
+        # provision DB add-on
+        local("heroku addons:create {}".format(db))
+        # provision Cloud AMQP add-on
+        local("heroku addons:create {}".format(amqp))

@@ -11,5 +11,6 @@
        - SECRET_KEY=${SECRET_KEY}
        - MEDIA_BUCKET=${MEDIA_BUCKET}
        - LAUNCH_SCHEDULER=1
+       - LAUNCH_Q_qscheduler=1
        - CELERY_MUTE=1
      command: bash -c "git pull && fab start_container:worker"

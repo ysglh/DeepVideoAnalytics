@@ -472,7 +472,7 @@ def init_server():
     di,created = IntervalSchedule.objects.get_or_create(every=os.environ.get('REFRESH_MINUTES',3),
                                                         period=IntervalSchedule.MINUTES)
     _ = PeriodicTask.objects.get_or_create(name="monitoring",task="monitor_system",
-                                           interval=di,queue='qextract')
+                                           interval=di,queue='qscheduler')
     if StoredDVAPQL.objects.count() == 0:
         for fname in glob.glob('configs/templates/*.json'):
             StoredDVAPQL.objects.create(name=fname,

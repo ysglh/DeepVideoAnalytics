@@ -143,7 +143,7 @@ class DeepModel(models.Model):
     name = models.CharField(max_length=100)
     algorithm = models.CharField(max_length=100,default="")
     shasum = models.CharField(max_length=40,null=True,unique=True)
-    model_filename = models.CharField(max_length=200,default="")
+    model_filename = models.CharField(max_length=200,default="",null=True)
     input_layer_name = models.CharField(max_length=300,default="")
     embedding_layer_name = models.CharField(max_length=300,default="")
     embedding_layer_size = models.CharField(max_length=300,default="")

@@ -1,4 +1,4 @@
-import os, json, requests, copy, time, subprocess, logging, shutil, zipfile, boto3, random, calendar, shlex, sys
+import os, json, requests, copy, time, subprocess, logging, shutil, zipfile, boto3, random, calendar, shlex, sys, tempfile
 from models import Video, QueryRegion, QueryRegionIndexVector
 from django.conf import settings
 from PIL import Image
@@ -363,3 +363,16 @@ def download_model(root_dir, model_type_dir_name, dm):
                 else:
                     p = subprocess.Popen(['wget', '--quiet', url], cwd=model_dir)
                     p.wait()
+
+
+def crop_and_get_region_path(df,images,temp_root):
+    if not df.materialized:
+        frame_path = df.frame_path()
+        if frame_path not in images:
+            images[frame_path] = Image.open(frame_path)
+        img2 = images[frame_path].crop((df.x, df.y, df.x + df.w, df.y + df.h))
+        region_path = df.path(temp_root=temp_root)
+        img2.save(region_path)
+    else:
+        return df.path()
+    return region_path

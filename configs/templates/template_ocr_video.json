@@ -1,36 +1,26 @@
 {
   "tasks": [
-      {
-          "operation": "perform_detection",
-          "video_id": "__enter_video_id_as_integer__",
-          "arguments": {
-              "segments_batch_size": 5,
-              "detector": "textbox",
-              "target": "frames",
-              "next_tasks": [
-                  {
-                      "operation": "perform_transformation",
-                      "arguments": {
-                          "next_tasks": [
-                              {
-                                  "operation": "perform_analysis",
-                                  "arguments": {
-                                      "analyzer": "crnn",
-                                      "target": "regions",
-                                      "filters": {
-                                          "event_id": "__grand_parent_event__"
-                                      }
-                                  }
-                              }
-                          ],
-                          "filters": {
-                              "event_id": "__parent_event__"
-                          }
-                      }
-                  }
-              ]
+    {
+      "operation": "perform_detection",
+      "video_id": "__enter_video_id_as_integer__",
+      "arguments": {
+        "segments_batch_size": 5,
+        "detector": "textbox",
+        "target": "frames",
+        "next_tasks": [
+          {
+            "operation": "perform_analysis",
+            "arguments": {
+              "analyzer": "crnn",
+              "target": "regions",
+              "filters": {
+                "event_id": "__parent_event__"
+              }
+            }
           }
+        ]
       }
+    }
   ],
   "process_type": "V"
 }

@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-import subprocess, os, time, logging, requests, zipfile, io, sys, json
+import subprocess, os, time, logging, requests, zipfile, io, sys, json, tempfile
 from collections import defaultdict
 from PIL import Image
 from django.conf import settings
@@ -339,6 +339,8 @@ def perform_analysis(task_id):
         query_path = task_shared.download_and_get_query_path(start)
     if target == 'query_regions':
         query_regions_paths = task_shared.download_and_get_query_region_path(start, queryset)
+    image_data = {}
+    temp_root = tempfile.mkdtemp()
     for i,f in enumerate(queryset):
         if query_regions_paths:
             path = query_regions_paths[i]
@@ -369,12 +371,15 @@ def perform_analysis(task_id):
                 a.frame_id = f.frame.id
                 a.frame_index = f.frame_index
                 a.segment_index = f.segment_index
+                path = task_shared.crop_and_get_region_path(f,image_data,temp_root)
             elif target == 'frames':
                 a.full_frame = True
                 a.frame_index = f.frame_index
                 a.segment_index = f.segment_index
                 a.frame_id = f.id
-            path = f.path()
+                path = f.path()
+            else:
+                raise NotImplementedError
         object_name, text, metadata = analyzer.apply(path)
         a.region_type = Region.ANNOTATION
         a.object_name = object_name

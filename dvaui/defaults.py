@@ -13,7 +13,7 @@ DEFAULT_PROCESSING_PLAN_VIDEO =[
              'arguments': {
                  'index': 'inception',
                  'target': 'regions',
-                 'filters': {'event_id': '__grand_parent_event__', 'w__gte': 50, 'h__gte': 50}
+                 'filters': {'event_id': '__parent_event__', 'w__gte': 50, 'h__gte': 50}
              }
              },
         ]}
@@ -22,19 +22,11 @@ DEFAULT_PROCESSING_PLAN_VIDEO =[
         'filters':'__parent__',
         'detector':'face',
         'next_tasks':[
-            {'operation': 'perform_transformation',
+            {'operation': 'perform_indexing',
              'arguments': {
-                 'resize':[182,182],
-                 'filters': {'event_id': '__parent_event__'},
-                 'next_tasks': [
-                     {'operation': 'perform_indexing',
-                      'arguments': {
-                          'index': 'facenet',
-                          'target': 'regions',
-                          'filters': {'event_id': '__grand_parent_event__'}
-                      }
-                      },
-                 ]
+                 'index': 'facenet',
+                 'target': 'regions',
+                 'filters': {'event_id': '__parent_event__'}
              }},
         ]}
      },
@@ -54,7 +46,7 @@ DEFAULT_PROCESSING_PLAN_DATASET = [
              'arguments': {
                  'index': 'inception',
                  'target': 'regions',
-                 'filters': {'event_id': '__grand_parent_event__', 'w__gte': 50, 'h__gte': 50}
+                 'filters': {'event_id': '__parent_event__', 'w__gte': 50, 'h__gte': 50}
              }
              },
         ]}
@@ -63,20 +55,13 @@ DEFAULT_PROCESSING_PLAN_DATASET = [
         'detector':'face',
         'frames_batch_size': DEFAULT_FRAMES_BATCH_SIZE,
         'next_tasks':[
-            {'operation': 'perform_transformation',
+            {'operation': 'perform_indexing',
              'arguments': {
-                 'resize':[182,182],
-                 'filters': {'event_id': '__parent_event__'},
-                 'next_tasks': [
-                     {'operation': 'perform_indexing',
-                      'arguments': {
-                          'index': 'facenet',
-                          'target': 'regions',
-                          'filters': {'event_id': '__grand_parent_event__'}
-                      }
-                      },
-                 ]
-             }},
+                 'index': 'facenet',
+                 'target': 'regions',
+                 'filters': {'event_id': '__parent_event__'}
+             }
+             },
         ]}
      },
     {'operation': 'perform_indexing', 'arguments':{

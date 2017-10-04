@@ -5,8 +5,8 @@ from PIL import Image
 from django.conf import settings
 from dva.celery import app
 from .models import Video, Frame, TEvent,  IndexEntries, LOPQCodes, Region, Tube, \
-    Retriever, Detector, Segment, QueryIndexVector, DeletedVideo, ManagementAction, Analyzer, SystemState, DVAPQL, \
-    Worker, QueryRegion, QueryRegionIndexVector, Indexer
+    Retriever, Segment, QueryIndexVector, DeletedVideo, ManagementAction, SystemState, DVAPQL, \
+    Worker, QueryRegion, QueryRegionIndexVector, DeepModel
 
 from .operations.indexing import IndexerTask
 from .operations.retrieval import RetrieverTask
@@ -245,11 +245,11 @@ def perform_detection(task_id):
     query_flow = (video_id is None) and (args['target'] == 'query')
     if 'detector_pk' in args:
         detector_pk = int(args['detector_pk'])
-        cd = Detector.objects.get(pk=detector_pk)
+        cd = DeepModel.objects.get(pk=detector_pk,model_type=DeepModel.DETECTOR)
         detector_name = cd.name
     else:
         detector_name = args['detector']
-        cd = Detector.objects.get(name=detector_name)
+        cd = DeepModel.objects.get(name=detector_name,model_type=DeepModel.DETECTOR)
         detector_pk = cd.pk
     perform_detection.load_detector(cd)
     detector = perform_detection.get_static_detectors[cd.pk]
@@ -328,7 +328,7 @@ def perform_analysis(task_id):
     args = start.arguments
     analyzer_name = args['analyzer']
     if analyzer_name not in perform_analysis._analyzers:
-        da = Analyzer.objects.get(name=analyzer_name)
+        da = DeepModel.objects.get(name=analyzer_name,model_type=DeepModel.ANALYZER)
         perform_analysis.load_analyzer(da)
     analyzer = perform_analysis.get_static_analyzers[analyzer_name]
     regions_batch = []
@@ -433,7 +433,7 @@ def perform_detector_import(task_id):
         start.started = True
         start.save()
     args = start.arguments
-    dd = Detector.objects.get(pk=start.arguments['detector_pk'])
+    dd = DeepModel.objects.get(pk=start.arguments['detector_pk'],detector_type=DeepModel.DETECTOR)
     dd.create_directory(create_subdirs=False)
     if 'www.dropbox.com' in args['download_url'] and not args['download_url'].endswith('?dl=1'):
         r = requests.get(args['download_url'] + '?dl=1')
@@ -466,14 +466,14 @@ def perform_model_import(task_id):
         start.save()
     args = start.arguments
     if args['model_type'] == 'analyzer':
-        dm = Analyzer.objects.get(pk=args['pk'])
-        dirname = 'analyzers'
+        dm = DeepModel.objects.get(pk=args['pk'],model_type=DeepModel.ANALYZER)
+        dirname = 'models'
     elif args['model_type'] == 'indexer':
-        dm = Indexer.objects.get(pk=args['pk'])
-        dirname = 'indexers'
+        dm = DeepModel.objects.get(pk=args['pk'],model_type=DeepModel.INDEXER)
+        dirname = 'models'
     elif args['model_type'] == 'detector':
-        dm = Detector.objects.get(pk=args['pk'])
-        dirname = 'detectors'
+        dm = DeepModel.objects.get(pk=args['pk'],model_type=DeepModel.DETECTOR)
+        dirname = 'models'
     else:
         raise NotImplementedError,args
     task_shared.download_model(settings.MEDIA_ROOT,dirname, dm)

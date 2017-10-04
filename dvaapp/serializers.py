@@ -2,7 +2,7 @@ from rest_framework import serializers, viewsets
 from django.contrib.auth.models import User
 from models import Video, Frame, Region, DVAPQL, QueryResults, TEvent, IndexEntries, \
     VDNServer, Tube, LOPQCodes, Segment, Label, VideoLabel, FrameLabel, RegionLabel, \
-    SegmentLabel, TubeLabel, Analyzer, Indexer, Detector, Retriever, SystemState, QueryRegion,\
+    SegmentLabel, TubeLabel, DeepModel, Retriever, SystemState, QueryRegion,\
     QueryRegionResults
 import os, json, logging, glob
 from collections import defaultdict
@@ -36,27 +36,15 @@ class VideoSerializer(serializers.HyperlinkedModelSerializer):
         fields = '__all__'
 
 
-class AnalyzerSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Analyzer
-        fields = '__all__'
-
-
-class IndexerSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Indexer
-        fields = '__all__'
-
-
 class RetrieverSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Retriever
         fields = '__all__'
 
 
-class DetectorSerializer(serializers.HyperlinkedModelSerializer):
+class DeepModelSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = Detector
+        model = DeepModel
         fields = '__all__'
 
 

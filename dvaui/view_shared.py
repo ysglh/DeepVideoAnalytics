@@ -1,5 +1,5 @@
 import os, json, requests, shutil, zipfile
-from dvaapp.models import Video, TEvent,  VDNServer, Detector, Label, RegionLabel, Indexer, Retriever, DVAPQL, Region, Frame
+from dvaapp.models import Video, TEvent,  VDNServer, Label, RegionLabel, DeepModel, Retriever, DVAPQL, Region, Frame
 from django.conf import settings
 from django_celery_results.models import TaskResult
 from collections import defaultdict
@@ -270,7 +270,8 @@ def import_vdn_detector_url(server, url, user, cached_response):
         pass
     if not response:
         response = cached_response
-    detector = Detector()
+    detector = DeepModel()
+    detector.model_type = DeepModel
     detector.name = response['name']
     detector.detector_type = response.get('detector_type',detector.YOLO)
     detector.save()
@@ -366,7 +367,7 @@ def create_query_from_request(p, request):
             indexer_pk, retriever_pk = k.split('_')
             indexer_tasks[int(indexer_pk)].append(int(retriever_pk))
     for i in indexer_tasks:
-        di = Indexer.objects.get(pk=i)
+        di = DeepModel.objects.get(pk=i,model_type=DeepModel.INDEXER)
         rtasks = []
         for r in indexer_tasks[i]:
             rtasks.append({'operation': 'perform_retrieval', 'arguments': {'count': int(count), 'retriever_pk': r}})
@@ -383,7 +384,7 @@ def create_query_from_request(p, request):
         )
     if selected_detectors:
         for d in selected_detectors:
-            dd = Detector.objects.get(pk=int(d))
+            dd = DeepModel.objects.get(pk=int(d),model_type=DeepModel.DETECTOR)
             if dd.name == 'textbox':
                 query_json['tasks'].append({'operation': 'perform_detection',
                                             'arguments': {'detector_pk': int(d),

@@ -1,9 +1,9 @@
 from django.conf import settings
 import json
 from .models import Video, Frame, DVAPQL, QueryResults, TEvent, IndexEntries, Region, VDNServer, \
-    LOPQCodes, Tube, Detector,  Segment, FrameLabel, SegmentLabel, \
-    VideoLabel, RegionLabel, TubeLabel, Label, Analyzer,\
-    Indexer, Retriever, SystemState, QueryRegion, QueryRegionResults
+    LOPQCodes, Tube,  Segment, FrameLabel, SegmentLabel, \
+    VideoLabel, RegionLabel, TubeLabel, Label, \
+    Retriever, SystemState, QueryRegion, QueryRegionResults, DeepModel
 import serializers
 from rest_framework import viewsets, mixins
 from django.contrib.auth.models import User
@@ -46,28 +46,16 @@ class VideoViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.VideoSerializer
 
 
-class AnalyzerViewSet(viewsets.ReadOnlyModelViewSet):
-    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
-    queryset = Analyzer.objects.all()
-    serializer_class = serializers.AnalyzerSerializer
-
-
-class IndexerViewSet(viewsets.ReadOnlyModelViewSet):
-    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
-    queryset = Indexer.objects.all()
-    serializer_class = serializers.IndexerSerializer
-
-
 class RetrieverViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
     queryset = Retriever.objects.all()
     serializer_class = serializers.RetrieverSerializer
 
 
-class DetectorViewSet(viewsets.ReadOnlyModelViewSet):
+class DeepModelViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
-    queryset = Detector.objects.all()
-    serializer_class = serializers.DetectorSerializer
+    queryset = DeepModel.objects.all()
+    serializer_class = serializers.DeepModelSerializer
 
 
 class FrameViewSet(viewsets.ReadOnlyModelViewSet):

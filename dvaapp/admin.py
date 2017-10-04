@@ -1,8 +1,8 @@
 from django.contrib import admin
 from .models import Video, Frame, TEvent, IndexEntries, QueryResults, DVAPQL, VDNServer,\
-    LOPQCodes, Region, Tube, Detector, Segment, DeletedVideo, \
+    LOPQCodes, Region, Tube, Segment, DeletedVideo, \
     VideoLabel, FrameLabel, RegionLabel, TubeLabel, SegmentLabel, Label, ManagementAction, \
-    StoredDVAPQL, Analyzer, Indexer, Retriever, SystemState, Worker, QueryRegion, QueryRegionIndexVector, \
+    StoredDVAPQL, DeepModel, Retriever, SystemState, Worker, QueryRegion, QueryRegionIndexVector, \
     QueryRegionResults
 
 
@@ -105,18 +105,8 @@ class TubeAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(Detector)
-class DetectorAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(Analyzer)
-class AnalyzerAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(Indexer)
-class IndexerAdmin(admin.ModelAdmin):
+@admin.register(DeepModel)
+class DeepModelAdmin(admin.ModelAdmin):
     pass
 
 

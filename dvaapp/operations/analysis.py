@@ -17,7 +17,7 @@ class AnalyzerTask(celery.Task):
 
     def load_analyzer(self,da):
         if da.name not in AnalyzerTask._analyzers:
-            aroot = "{}/analyzers/".format(settings.MEDIA_ROOT)
+            aroot = "{}/models/".format(settings.MEDIA_ROOT)
             if da.name == 'crnn':
                 AnalyzerTask._analyzers[da.name] = analyzer.CRNNAnnotator(aroot+"{}/crnn.pth".format(da.pk))
             elif da.name == 'tagger':

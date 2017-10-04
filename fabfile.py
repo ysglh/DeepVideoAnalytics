@@ -151,7 +151,7 @@ def ci():
     from django.core.files.uploadedfile import SimpleUploadedFile
     from dvaui.views import handle_uploaded_file, pull_vdn_list \
         , import_vdn_dataset_url
-    from dvaapp.models import Video, TEvent, VDNServer, DVAPQL, Retriever, Indexer
+    from dvaapp.models import Video, TEvent, VDNServer, DVAPQL, Retriever, DeepModel
     from django.conf import settings
     from dvaapp.processing import DVAPQLProcess
     from dvaapp.tasks import perform_dataset_extraction, perform_indexing, perform_export, perform_import, \
@@ -212,7 +212,7 @@ def ci():
     args['v'] = 8
     args['sub'] = 64
     dc.algorithm = Retriever.LOPQ
-    dc.source_filters = {'indexer_shasum': Indexer.objects.get(name="inception").shasum}
+    dc.source_filters = {'indexer_shasum': DeepModel.objects.get(name="inception",model_type=DeepModel.INDEXER).shasum}
     dc.arguments = args
     dc.save()
     clustering_task = TEvent()
@@ -372,14 +372,14 @@ def launch_workers_and_scheduler_from_environment(block_on_manager=False):
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
-    from dvaapp.models import Detector, Indexer, Analyzer, Retriever
+    from dvaapp.models import DeepModel, Retriever
     from dvaapp import queuing
     for k in os.environ:
         if k.startswith('LAUNCH_BY_NAME_'):
             qtype, model_name = k.split('_')[-2:]
             env_vars = ""
             if qtype == 'indexer':
-                dm = Indexer.objects.get(name=model_name)
+                dm = DeepModel.objects.get(name=model_name,model_type=DeepModel.INDEXER)
                 queue_name = 'q_indexer_{}'.format(dm.pk)
                 env_vars = "PYTORCH_MODE=1 " if dm.mode == dm.PYTORCH else env_vars
                 env_vars = "CAFFE_MODE=1 " if dm.mode == dm.CAFFE else env_vars
@@ -388,13 +388,13 @@ def launch_workers_and_scheduler_from_environment(block_on_manager=False):
                 dm = Retriever.objects.get(name=model_name)
                 queue_name = 'q_retriever_{}'.format(dm.pk)
             elif qtype == 'detector':
-                dm = Detector.objects.get(name=model_name)
+                dm = DeepModel.objects.get(name=model_name,model_type=DeepModel.DETECTOR)
                 queue_name = 'q_detector_{}'.format(dm.pk)
                 env_vars = "PYTORCH_MODE=1 " if dm.mode == dm.PYTORCH else env_vars
                 env_vars = "CAFFE_MODE=1 " if dm.mode == dm.CAFFE else env_vars
                 env_vars = "MXNET_MODE=1 " if dm.mode == dm.MXNET else env_vars
             elif qtype == 'analyzer':
-                dm = Analyzer.objects.get(name=model_name)
+                dm = DeepModel.objects.get(name=model_name,model_type=DeepModel.ANALYZER)
                 queue_name = 'q_analyzer_{}'.format(dm.pk)
                 env_vars = "PYTORCH_MODE=1 " if dm.mode == dm.PYTORCH else env_vars
                 env_vars = "CAFFE_MODE=1 " if dm.mode == dm.CAFFE else env_vars
@@ -536,33 +536,34 @@ def init_models():
     django.setup()
     from django.conf import settings
     from django.utils import timezone
-    from dvaapp.models import Detector, Analyzer, Indexer, Retriever
+    from dvaapp.models import DeepModel, Retriever
     with open("configs/models.json") as modelfile:
         models = json.load(modelfile)
     for m in models:
         if m['model_type'] == "detector":
-            dm, _ = Detector.objects.get_or_create(name=m['name'],
+            dm, _ = DeepModel.objects.get_or_create(name=m['name'],
                                                    algorithm=m['algorithm'],
                                                    mode=m['mode'],
                                                    model_filename=m.get("filename", ""),
                                                    detector_type=m.get("detector_type", ""),
-                                                   class_index_to_string=m.get("class_index_to_string", {})
+                                                   class_index_to_string=m.get("class_index_to_string", {}),
+                                                   model_type=DeepModel.DETECTOR
                                                    )
             if m['url']:
-                download_model(settings.MEDIA_ROOT, "detectors", dm.pk, m)
+                download_model(settings.MEDIA_ROOT, "models", dm.pk, m)
         if m['model_type'] == "indexer":
-            dm, created = Indexer.objects.get_or_create(name=m['name'], mode=m['mode'], shasum=m['shasum'])
+            dm, created = DeepModel.objects.get_or_create(name=m['name'], mode=m['mode'], shasum=m['shasum'],model_type=DeepModel.INDEXER)
             if created:
                 dr, dcreated = Retriever.objects.get_or_create(name=m['name'], source_filters={'indexer_shasum': dm.shasum})
                 if dcreated:
                     dr.last_built = timezone.now()
                     dr.save()
             if m['url']:
-                download_model(settings.MEDIA_ROOT, "indexers", dm.pk, m)
+                download_model(settings.MEDIA_ROOT, "models", dm.pk, m)
         if m['model_type'] == "analyzer":
-            dm, _ = Analyzer.objects.get_or_create(name=m['name'], mode=m['mode'])
+            dm, _ = DeepModel.objects.get_or_create(name=m['name'], mode=m['mode'],model_type=DeepModel.ANALYZER)
             if m['url']:
-                download_model(settings.MEDIA_ROOT, "analyzers", dm.pk, m)
+                download_model(settings.MEDIA_ROOT, "models", dm.pk, m)
 
 
 @task
@@ -721,14 +722,14 @@ def train_yolo(start_pk):
     """
     setup_django()
     from django.conf import settings
-    from dvaapp.models import Region, Frame, Detector, TEvent
+    from dvaapp.models import Region, Frame, DeepModel, TEvent
     from dvaui.view_shared import create_detector_dataset
     from dvalib.yolo import trainer
     start = TEvent.objects.get(pk=start_pk)
     args = start.arguments
     labels = set(args['labels']) if 'labels' in args else set()
     object_names = set(args['object_names']) if 'object_names' in args else set()
-    detector = Detector.objects.get(pk=args['detector_pk'])
+    detector = DeepModel.objects.get(pk=args['detector_pk'])
     detector.create_directory()
     args['root_dir'] = "{}/detectors/{}/".format(settings.MEDIA_ROOT, detector.pk)
     args['base_model'] = "{}/detectors/yolo/yolo.h5"
@@ -792,8 +793,8 @@ def temp_import_detector(path="/Users/aub3/tempd"):
     setup_django()
     import json
     from django.conf import settings
-    from dvaapp.models import Detector
-    d = Detector()
+    from dvaapp.models import DeepModel
+    d = DeepModel()
     with open("{}/input.json".format(path)) as infile:
         data = json.load(infile)
     d.name = "test detector"
@@ -802,6 +803,8 @@ def temp_import_detector(path="/Users/aub3/tempd"):
     d.phase_2_log = file("{}/phase_2.log".format(path)).read
     d.frames_count = 500
     d.boxes_count = 500
+    d.detector_type = d.YOLO
+    d.model_type = DeepModel.DETECTOR
     d.class_distribution = json.dumps(data['class_names'])
     d.save()
     d.create_directory()
@@ -835,7 +838,7 @@ def qt_lopq():
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
-    from dvaapp.models import Retriever, Indexer,TEvent,DVAPQL
+    from dvaapp.models import Retriever, DeepModel,TEvent,DVAPQL
     from dvaapp import processing
     spec = {
         'process_type':DVAPQL.PROCESS,
@@ -844,7 +847,7 @@ def qt_lopq():
             'spec':{
                 'algorithm':Retriever.LOPQ,
                 'arguments':{'components': 32, 'm': 8, 'v': 8, 'sub': 128},
-                'source_filters':{'indexer_shasum': Indexer.objects.get(name="inception").shasum}
+                'source_filters':{'indexer_shasum': DeepModel.objects.get(name="inception",model_type=DeepModel.INDEXER).shasum}
             },
             'tasks':[
                 {

@@ -8,9 +8,9 @@ from django.views.generic import ListView, DetailView
 from django.utils import timezone
 from .forms import UploadFileForm, YTVideoForm, AnnotationForm
 from dvaapp.models import Video, Frame, DVAPQL, QueryResults, TEvent, IndexEntries, Region, VDNServer, \
-    LOPQCodes, Tube, Detector,  Segment, FrameLabel, SegmentLabel, \
-    VideoLabel, RegionLabel, TubeLabel, Label, ManagementAction, StoredDVAPQL, Analyzer,\
-    Indexer, Retriever, SystemState, QueryRegion, QueryRegionResults
+    LOPQCodes, Tube,  Segment, FrameLabel, SegmentLabel, \
+    VideoLabel, RegionLabel, TubeLabel, Label, ManagementAction, StoredDVAPQL, \
+    DeepModel, Retriever, SystemState, QueryRegion, QueryRegionResults
 from dva.celery import app
 from rest_framework import viewsets, mixins
 from django.contrib.auth.models import User
@@ -214,7 +214,7 @@ class VideoDetail(UserPassesTestMixin, DetailView):
 
 
 class DetectionDetail(UserPassesTestMixin, DetailView):
-    model = Detector
+    model = DeepModel
     template_name = "dvaui/customdetector_detail.html"
 
 
@@ -417,9 +417,9 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
     else:
         form = UploadFileForm()
     context = {'form': form}
-    context['detectors'] = Detector.objects.all()
+    context['detectors'] = DeepModel.objects.filter(model_type=DeepModel.DETECTOR)
     context['indexer_retrievers'] = []
-    for i in Indexer.objects.all():
+    for i in DeepModel.objects.filter(model_type=DeepModel.INDEXER):
         for r in Retriever.objects.all():
             if 'indexer_shasum' in r.source_filters and r.source_filters['indexer_shasum'] == i.shasum and r.last_built:
                 context['indexer_retrievers'].append(('{} > {} retriever {} (pk:{})'.format(i.name,
@@ -449,7 +449,7 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
     context['region_count'] = Region.objects.all().count()
     context['tube_count'] = Tube.objects.all().count()
     context["videos"] = Video.objects.all().filter()
-    context['detector_count'] = Detector.objects.all().count()
+    context['detector_count'] = DeepModel.objects.filter(model_type=DeepModel.DETECTOR).count()
     context['rate'] = defaults.DEFAULT_RATE
     return render(request, 'dashboard.html', context)
 
@@ -684,7 +684,7 @@ def management(request):
 def training(request):
     context = {}
     context["videos"] = Video.objects.all().filter()
-    context["detectors"] = Detector.objects.all()
+    context["detectors"] = DeepModel.objects.filter(model_type=DeepModel.DETECTOR)
     return render(request, 'training.html', context)
 
 
@@ -715,7 +715,7 @@ def textsearch(request):
 @user_passes_test(user_check)
 def retrievers(request):
     context = {}
-    context['algorithms'] = {k.name for k in Indexer.objects.all()}
+    context['algorithms'] = {k.name for k in DeepModel.objects.filter(model_type=DeepModel.INDEXER)}
     context['index_entries'] = IndexEntries.objects.all()
     context['retrievers'] = Retriever.objects.all()
     return render(request, 'retrievers.html', context)
@@ -741,7 +741,8 @@ def create_retriever(request):
             if request.POST.get('source_filters',None):
                 spec['source_filters'] = json.loads(request.POST.get('source_filter','{}'))
             else:
-                spec['source_filters'] = {'indexer_shasum':Indexer.objects.get(name=request.POST.get('algorithm')).shasum}
+                spec['source_filters'] = {'indexer_shasum':DeepModel.objects.get(name=request.POST.get('algorithm'),
+                                                                                 model_type=DeepModel.INDEXER).shasum}
             next_tasks = [{'operation': "perform_retriever_creation",'arguments': {'retriever_pk':'__pk__'},},]
         elif request.POST.get('retriever_type') == Retriever.EXACT:
             spec['name'] = request.POST.get('name')
@@ -959,15 +960,14 @@ def rename_video(request):
 @user_passes_test(user_check)
 def models(request):
     context = {
-        'visual_index_list': Indexer.objects.all(),
+        'visual_index_list': DeepModel.objects.filter(model_type=DeepModel.INDEXER),
         'index_entries': IndexEntries.objects.all(),
-        'analyzers': Analyzer.objects.all(),
-        "videos": Video.objects.all().filter(),
+        'analyzers': DeepModel.objects.filter(model_type=DeepModel.ANALYZER),
+        "videos": Video.objects.all(),
         "region_types": Region.REGION_TYPES,
-        "detectors": Detector.objects.all()
+        "detectors": DeepModel.objects.filter(model_type=DeepModel.DETECTOR),
+        "deep_models": DeepModel.objects.all()
     }
-    detector_stats = []
-    context["detectors"] = Detector.objects.all()
     return render(request, 'models.html', context)
 
 

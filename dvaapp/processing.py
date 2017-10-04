@@ -11,7 +11,7 @@ except ImportError:
     np = None
     logging.warning("Could not import indexer / clustering assuming running in front-end mode / Heroku")
 from django.apps import apps
-from models import Video,DVAPQL,QueryResults,TEvent,Region,Analyzer,Indexer,Detector,\
+from models import Video,DVAPQL,QueryResults,TEvent,Region,DeepModel,\
     Retriever,QueryRegion,QueryRegionResults
 from collections import defaultdict
 from celery.result import AsyncResult
@@ -52,15 +52,15 @@ def get_queue_name(operation,args):
         return 'q_retriever_{}'.format(RETRIEVER_NAME_TO_PK[args['retriever']])
     elif 'index' in args:
         if args['index'] not in INDEXER_NAME_TO_PK:
-            INDEXER_NAME_TO_PK[args['index']] = Indexer.objects.get(name=args['index']).pk
+            INDEXER_NAME_TO_PK[args['index']] = DeepModel.objects.get(name=args['index'],model_type=DeepModel.INDEXER).pk
         return 'q_indexer_{}'.format(INDEXER_NAME_TO_PK[args['index']])
     elif 'analyzer' in args:
         if args['analyzer'] not in ANALYER_NAME_TO_PK:
-            ANALYER_NAME_TO_PK[args['analyzer']] = Analyzer.objects.get(name=args['analyzer']).pk
+            ANALYER_NAME_TO_PK[args['analyzer']] = DeepModel.objects.get(name=args['analyzer'],model_type=DeepModel.ANALYZER).pk
         return 'q_analyzer_{}'.format(ANALYER_NAME_TO_PK[args['analyzer']])
     elif 'detector' in args:
         if args['detector'] not in DETECTOR_NAME_TO_PK:
-            DETECTOR_NAME_TO_PK[args['detector']] = Detector.objects.get(name=args['detector']).pk
+            DETECTOR_NAME_TO_PK[args['detector']] = DeepModel.objects.get(name=args['detector'],model_type=DeepModel.DETECTOR).pk
         return 'q_detector_{}'.format(DETECTOR_NAME_TO_PK[args['detector']])
     else:
         raise NotImplementedError,"{}, {}".format(operation,args)
@@ -175,7 +175,6 @@ class DVAPQLProcess(object):
         self.media_dir = media_dir
         self.task_results = {}
         self.context = {}
-        self.visual_indexes = {k.name:{'name':k.name,'algorithm':k.name} for k in Indexer.objects.all()}
 
     def store(self):
         if settings.HEROKU_DEPLOY:
@@ -331,6 +330,6 @@ def get_query_region_json(rd):
 def get_retrieval_event_name(r,rids_to_names):
     if r.retrieval_event_id not in rids_to_names:
         retriever = Retriever.objects.get(pk=r.retrieval_event.arguments['retriever_pk'])
-        indexer = Indexer.objects.get(name=r.retrieval_event.parent.arguments['index'])
+        indexer = DeepModel.objects.get(name=r.retrieval_event.parent.arguments['index'],model_type=DeepModel.INDEXER)
         rids_to_names[r.retrieval_event_id] = get_sequence_name(indexer, retriever)
     return rids_to_names[r.retrieval_event_id]

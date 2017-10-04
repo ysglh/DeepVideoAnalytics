@@ -1,10 +1,12 @@
-import os, json, requests, shutil, zipfile
-from dvaapp.models import Video, TEvent,  VDNServer, Label, RegionLabel, DeepModel, Retriever, DVAPQL, Region, Frame
+import os, json, requests, shutil, zipfile, cStringIO, base64
+from dvaapp.models import Video, TEvent,  VDNServer, Label, RegionLabel, DeepModel, Retriever, DVAPQL, Region, Frame, \
+    QueryRegion, QueryRegionResults,QueryResults
 from django.conf import settings
 from django_celery_results.models import TaskResult
 from collections import defaultdict
 from dvaapp import processing
 from dvaapp import serializers
+from PIL import Image
 import defaults
 
 
@@ -424,6 +426,80 @@ def create_query_from_request(p, request):
     user = request.user if request.user.is_authenticated else None
     p.create_from_json(query_json, user)
     return p.process
+
+
+def collect(p):
+    context = {'results': defaultdict(list), 'regions': []}
+    rids_to_names = {}
+    for rd in QueryRegion.objects.all().filter(query=p.process):
+        rd_json = get_query_region_json(rd)
+        for r in QueryRegionResults.objects.filter(query=p.process, query_region=rd):
+            gather_results(r, rids_to_names, rd_json['results'])
+        context['regions'].append(rd_json)
+    for r in QueryResults.objects.all().filter(query=p.process):
+        gather_results(r, rids_to_names, context['results'])
+    for k, v in context['results'].iteritems():
+        if v:
+            context['results'][k].sort()
+            context['results'][k] = zip(*v)[1]
+    for rd in context['regions']:
+        for k, v in rd['results'].iteritems():
+            if v:
+                rd['results'][k].sort()
+                rd['results'][k] = zip(*v)[1]
+    return context
+
+
+def gather_results(r,rids_to_names,results):
+    name = get_retrieval_event_name(r,rids_to_names)
+    results[name].append((r.rank, get_result_json(r)))
+
+
+def get_url(r):
+    if r.detection_id:
+        dd = r.detection
+        if dd.materialized:
+            return '{}{}/regions/{}.jpg'.format(settings.MEDIA_URL, r.video_id,r.detection_id)
+        else:
+            frame_url = get_frame_url(r)
+            if frame_url.startswith('http'):
+                response = requests.get(frame_url)
+                img = Image.open(cStringIO.StringIO(response.content))
+            else:
+                img = Image.open('{}{}/frames/{}.jpg'.format(settings.MEDIA_ROOT,r.video_id,r.frame.frame_index))
+            cropped = img.crop((dd.x, dd.y, dd.x + dd.w, dd.y + dd.h))
+            buffer = cStringIO.StringIO()
+            cropped.save(buffer, format="JPEG")
+            return "data:image/jpeg;base64, {}".format(base64.b64encode(buffer.getvalue()))
+    else:
+        return '{}{}/frames/{}.jpg'.format(settings.MEDIA_URL,r.video_id,r.frame.frame_index)
+
+
+def get_frame_url(r):
+    return '{}{}/frames/{}.jpg'.format(settings.MEDIA_URL,r.video_id,r.frame.frame_index)
+
+
+def get_sequence_name(i,r):
+    return "Indexer {} -> {} {} retriever".format(i.name,r.get_algorithm_display(),r.name)
+
+
+def get_result_json(r):
+    return dict(url=get_url(r), result_type="Region" if r.detection_id else "Frame", rank=r.rank, frame_id=r.frame_id,
+                frame_index=r.frame.frame_index, distance=r.distance, video_id=r.video_id, video_name=r.video.name)
+
+
+def get_query_region_json(rd):
+    return dict(object_name=rd.object_name, event_id=rd.event_id, pk=rd.pk, x=rd.x, y=rd.y, w=rd.w,
+                confidence=round(rd.confidence,2), text=rd.text, metadata=rd.metadata,
+                region_type=rd.get_region_type_display(), h=rd.h, results=defaultdict(list))
+
+
+def get_retrieval_event_name(r,rids_to_names):
+    if r.retrieval_event_id not in rids_to_names:
+        retriever = Retriever.objects.get(pk=r.retrieval_event.arguments['retriever_pk'])
+        indexer = DeepModel.objects.get(name=r.retrieval_event.parent.arguments['index'],model_type=DeepModel.INDEXER)
+        rids_to_names[r.retrieval_event_id] = get_sequence_name(indexer, retriever)
+    return rids_to_names[r.retrieval_event_id]
 
 
 # if request.method == 'POST':

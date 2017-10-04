@@ -11,11 +11,10 @@ except ImportError:
     np = None
     logging.warning("Could not import indexer / clustering assuming running in front-end mode / Heroku")
 from django.apps import apps
-from models import Video,DVAPQL,QueryResults,TEvent,Region,DeepModel,\
-    Retriever,QueryRegion,QueryRegionResults
-from collections import defaultdict
+from models import Video,DVAPQL,TEvent,DeepModel,Retriever
 from celery.result import AsyncResult
 import queuing
+
 
 SYNC_TASKS = {
     "perform_dataset_extraction":[{'operation':'perform_sync','arguments':{'dirname':'frames'}},],
@@ -174,7 +173,6 @@ class DVAPQLProcess(object):
         self.process = process
         self.media_dir = media_dir
         self.task_results = {}
-        self.context = {}
 
     def store(self):
         if settings.HEROKU_DEPLOY:
@@ -275,61 +273,8 @@ class DVAPQLProcess(object):
             dt.save()
             self.task_results[dt.pk] = app.send_task(name=dt.operation, args=[dt.pk, ], queue=dt.queue)
 
-    def collect(self):
-        self.context = {'results':defaultdict(list), 'regions':[]}
-        rids_to_names = {}
-        for rd in QueryRegion.objects.all().filter(query=self.process):
-            rd_json = get_query_region_json(rd)
-            for r in QueryRegionResults.objects.filter(query=self.process,query_region=rd):
-                gather_results(r,rids_to_names,rd_json['results'])
-            self.context['regions'].append(rd_json)
-        for r in QueryResults.objects.all().filter(query=self.process):
-            gather_results(r,rids_to_names,self.context['results'])
-        for k, v in self.context['results'].iteritems():
-            if v:
-                self.context['results'][k].sort()
-                self.context['results'][k] = zip(*v)[1]
-        for rd in self.context['regions']:
-            for k, v in rd['results'].iteritems():
-                if v:
-                    rd['results'][k].sort()
-                    rd['results'][k] = zip(*v)[1]
-
     def to_json(self):
         json_query = {}
         return json.dumps(json_query)
 
 
-def gather_results(r,rids_to_names,results):
-    name = get_retrieval_event_name(r,rids_to_names)
-    results[name].append((r.rank, get_result_json(r)))
-
-
-def get_url(r):
-    if r.detection_id:
-        return '{}{}/regions/{}.jpg'.format(settings.MEDIA_URL, r.video_id,r.detection_id)
-    else:
-        return '{}{}/frames/{}.jpg'.format(settings.MEDIA_URL,r.video_id,r.frame.frame_index)
-
-
-def get_sequence_name(i,r):
-    return "Indexer {} -> {} {} retriever".format(i.name,r.get_algorithm_display(),r.name)
-
-
-def get_result_json(r):
-    return dict(url=get_url(r), result_type="Region" if r.detection_id else "Frame", rank=r.rank, frame_id=r.frame_id,
-                frame_index=r.frame.frame_index, distance=r.distance, video_id=r.video_id, video_name=r.video.name)
-
-
-def get_query_region_json(rd):
-    return dict(object_name=rd.object_name, event_id=rd.event_id, pk=rd.pk, x=rd.x, y=rd.y, w=rd.w,
-                confidence=round(rd.confidence,2), text=rd.text, metadata=rd.metadata,
-                region_type=rd.get_region_type_display(), h=rd.h, results=defaultdict(list))
-
-
-def get_retrieval_event_name(r,rids_to_names):
-    if r.retrieval_event_id not in rids_to_names:
-        retriever = Retriever.objects.get(pk=r.retrieval_event.arguments['retriever_pk'])
-        indexer = DeepModel.objects.get(name=r.retrieval_event.parent.arguments['index'],model_type=DeepModel.INDEXER)
-        rids_to_names[r.retrieval_event_id] = get_sequence_name(indexer, retriever)
-    return rids_to_names[r.retrieval_event_id]

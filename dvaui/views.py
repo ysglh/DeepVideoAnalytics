@@ -18,9 +18,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticate
 from django.db.models import Count
 import math
 from django.db.models import Max
-from view_shared import handle_uploaded_file, create_annotation, handle_video_url, pull_vdn_list, \
-    import_vdn_dataset_url, create_detector_dataset, import_vdn_detector_url, refresh_task_status, \
-    delete_video_object, create_query_from_request
+import view_shared
 from dvaapp.processing import DVAPQLProcess
 from django.contrib.auth.decorators import user_passes_test,login_required
 from django.utils.decorators import method_decorator
@@ -114,7 +112,7 @@ class TEventList(UserPassesTestMixin, ListView):
         return new_context
 
     def get_context_data(self, **kwargs):
-        refresh_task_status()
+        view_shared.refresh_task_status()
         context = super(TEventList, self).get_context_data(**kwargs)
         context['header'] = ""
         if self.kwargs.get('pk',None):
@@ -297,9 +295,9 @@ class VisualSearchDetail(UserPassesTestMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super(VisualSearchDetail, self).get_context_data(**kwargs)
         qp = DVAPQLProcess(process=context['object'],media_dir=settings.MEDIA_ROOT)
-        qp.collect()
-        context['results'] = qp.context['results'].items()
-        context['regions'] = qp.context['regions']
+        qp_context = view_shared.collect(qp)
+        context['results'] = qp_context['results'].items()
+        context['regions'] = qp_context['regions']
         script = context['object'].script
         script[u'image_data_b64'] = "<excluded>"
         context['plan'] = script
@@ -380,14 +378,14 @@ class StoredProcessDetail(UserPassesTestMixin, DetailView):
 def search(request):
     if request.method == 'POST':
         qp = DVAPQLProcess()
-        create_query_from_request(qp,request)
+        view_shared.create_query_from_request(qp,request)
         qp.launch()
         qp.wait()
-        qp.collect()
+        qp_context = view_shared.collect(qp)
         return JsonResponse(data={'task_id': "",
                                   'primary_key': qp.process.pk,
-                                  'results': qp.context['results'],
-                                  'regions': qp.context['regions'],
+                                  'results': qp_context['results'],
+                                  'regions': qp_context['regions'],
                                   'url': '{}queries/{}.png'.format(settings.MEDIA_URL, qp.process.pk)
                                   })
 
@@ -409,7 +407,7 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
         form = UploadFileForm(request.POST, request.FILES)
         user = request.user if request.user.is_authenticated else None
         if form.is_valid():
-            handle_uploaded_file(request.FILES['file'], form.cleaned_data['name'], user=user,rate=form.cleaned_data['nth'],
+            view_shared.handle_uploaded_file(request.FILES['file'], form.cleaned_data['name'], user=user,rate=form.cleaned_data['nth'],
                                  rescale=form.cleaned_data['rescale'] if 'rescale' in form.cleaned_data else 0)
             return redirect('video_list')
         else:
@@ -506,7 +504,7 @@ def annotate(request, frame_pk):
         form = AnnotationForm(request.POST)
         if form.is_valid():
             applied_tags = form.cleaned_data['tags'].split(',') if form.cleaned_data['tags'] else []
-            create_annotation(form, form.cleaned_data['object_name'], applied_tags, frame)
+            view_shared.create_annotation(form, form.cleaned_data['object_name'], applied_tags, frame)
             return JsonResponse({'status': True})
         else:
             raise ValueError, form.errors
@@ -560,7 +558,7 @@ def yt(request):
         if form.is_valid():
             rate = form.cleaned_data['nth']
             rescale = form.cleaned_data['rescale'] if 'rescale' in form.cleaned_data else 0
-            video = handle_video_url(form.cleaned_data['name'], form.cleaned_data['url'], user=user)
+            video = view_shared.handle_video_url(form.cleaned_data['name'], form.cleaned_data['url'], user=user)
             process_spec = {
                 'process_type': DVAPQL.PROCESS,
                 'tasks': [{'video_id': video.pk,
@@ -822,7 +820,7 @@ def import_dataset(request):
         server = VDNServer.objects.get(pk=request.POST.get('server_pk'))
         user = request.user if request.user.is_authenticated else None
         cached_response = server.last_response_datasets[int(request.POST.get('dindex'))]
-        import_vdn_dataset_url(server, url, user, cached_response)
+        view_shared.import_vdn_dataset_url(server, url, user, cached_response)
     else:
         raise NotImplementedError
     return redirect('video_list')
@@ -835,7 +833,7 @@ def import_detector(request):
         server = VDNServer.objects.get(pk=request.POST.get('server_pk'))
         user = request.user if request.user.is_authenticated else None
         cached_response = server.last_response_detectors[int(request.POST.get('dindex'))]
-        import_vdn_detector_url(server, url, user, cached_response)
+        view_shared.import_vdn_detector_url(server, url, user, cached_response)
     else:
         raise NotImplementedError
     return redirect('models')
@@ -904,7 +902,7 @@ def external(request):
     if request.method == 'POST':
         pk = request.POST.get('server_pk')
         try:
-            pull_vdn_list(pk)
+            view_shared.pull_vdn_list(pk)
         except:
             pass
     context = {
@@ -938,7 +936,7 @@ def retry_task(request):
 def delete_video(request):
     if request.user.is_staff: # currently only staff can delete
         video_pk = request.POST.get('video_id')
-        delete_video_object(video_pk,request.user)
+        view_shared.delete_video_object(video_pk,request.user)
         return redirect('video_list')
     else:
         return redirect('accounts/login/')

@@ -1,0 +1,16 @@
+ version: '3'
+ services:
+   dva:
+     image: akshayubhat/dva-auto:latest
+     container_name: scheduler
+     environment:
+       - DOCKER_MODE=true
+       - LAUNCH_SERVER_NGINX=1
+       - BROKER_URL=${BROKER_URL}
+       - DATABASE_URL=${DATABASE_URL}
+       - SECRET_KEY=${SECRET_KEY}
+       - MEDIA_BUCKET=${MEDIA_BUCKET}
+       - LAUNCH_SCHEDULER=1
+       - CELERY_MUTE=1
+       - DVA_PRIVATE_ENABLE=1
+     command: bash -c "git pull && fab pull_private && fab start_container:worker"

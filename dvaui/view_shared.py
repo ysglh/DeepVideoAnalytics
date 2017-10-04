@@ -466,7 +466,7 @@ def get_url(r):
                 response = requests.get(frame_url)
                 img = Image.open(cStringIO.StringIO(response.content))
             else:
-                img = Image.open('{}{}/frames/{}.jpg'.format(settings.MEDIA_ROOT,r.video_id,r.frame.frame_index))
+                img = Image.open('{}/{}/frames/{}.jpg'.format(settings.MEDIA_ROOT,r.video_id,r.frame.frame_index))
             cropped = img.crop((dd.x, dd.y, dd.x + dd.w, dd.y + dd.h))
             buffer = cStringIO.StringIO()
             cropped.save(buffer, format="JPEG")

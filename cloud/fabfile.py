@@ -84,7 +84,7 @@ def create_ecs_tasks_and_services():
     envars = {}
     with open('heroku.env') as envfile:
         for l in envfile.readlines():
-            k,v = l.split('=')
+            k,v = l.strip().split('=')
             if v.startswith("'") and v.endswith("'"):
                 envars[k] = v[1:-1]
             else:

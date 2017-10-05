@@ -1,4 +1,4 @@
-import logging, boto3, json, base64
+import logging, boto3, json, base64, glob
 from fabric.api import task, local, lcd, env
 
 logging.basicConfig(level=logging.INFO,
@@ -296,3 +296,19 @@ def create_heroku_app(appname,db="heroku-postgresql:standard-0",amqp="cloudamqp:
         local("heroku addons:create {}".format(db))
         # provision Cloud AMQP add-on
         local("heroku addons:create {}".format(amqp))
+
+
+@task
+def create_ecs_tasks():
+    envars = {}
+    with open('heroku.env') as envfile:
+        for l in envfile.readlines():
+            k,v = l.split('=')[0]
+            envars[k] = v
+    print "Using {}".format(envars)
+    for fname in glob.glob('ecs_tasks/*.json'):
+        j = json.load(file(fname))
+        for c in j['containerDefinitions']:
+            for e in c['environment']:
+                if e['name'] in ['SECRET_KEY','MEDIA_BUCKET','DATABASE_URL','BROKER_URL']:
+                    e['value'] = envars[name]

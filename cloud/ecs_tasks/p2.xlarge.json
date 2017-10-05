@@ -2,6 +2,18 @@
   "requiresAttributes": [
     {
       "value": null,
+      "name": "com.amazonaws.ecs.capability.privileged-container",
+      "targetId": null,
+      "targetType": null
+    },
+    {
+      "value": null,
+      "name": "com.amazonaws.ecs.capability.ecr-auth",
+      "targetId": null,
+      "targetType": null
+    },
+    {
+      "value": null,
       "name": "com.amazonaws.ecs.capability.logging-driver.awslogs",
       "targetId": null,
       "targetType": null
@@ -21,7 +33,6 @@
   ],
   "networkMode": "bridge",
   "status": "ACTIVE",
-  "revision": 10,
   "taskRoleArn": null,
   "containerDefinitions": [
     {
@@ -44,15 +55,20 @@
           "containerPath": "/root/DVA/dva/media",
           "sourceVolume": "dvadata",
           "readOnly": null
+        },
+        {
+          "containerPath": "/usr/local/nvidia",
+          "sourceVolume": "nvidia",
+          "readOnly": false
         }
       ],
-      "name": "cpu",
+      "name": "gpu",
       "ulimits": null,
       "dockerSecurityOptions": null,
       "environment": [
         {
           "name": "BROKER_URL",
-          "value": "<REPLACE THIS>"
+          "value": ""
         },
         {
           "name": "CELERY_MUTE",
@@ -60,10 +76,14 @@
         },
         {
           "name": "DATABASE_URL",
-          "value": "<REPLACE THIS>"
+          "value": ""
         },
         {
           "name": "DOCKER_MODE",
+          "value": "1"
+        },
+        {
+          "name": "GPU_AVAILABLE",
           "value": "1"
         },
         {
@@ -91,30 +111,18 @@
           "value": "1"
         },
         {
-          "name": "LAUNCH_BY_NAME_retriever_facenet",
-          "value": "1"
-        },
-        {
-          "name": "LAUNCH_BY_NAME_retriever_inception",
-          "value": "1"
-        },
-        {
-          "name": "LAUNCH_Q_qextract",
-          "value": "4"
-        },
-        {
           "name": "MEDIA_BUCKET",
-          "value": "<REPLACE THIS>"
+          "value": ""
         },
         {
           "name": "SECRET_KEY",
-          "value": "<REPLACE THIS>"
+          "value": ""
         }
       ],
       "links": null,
       "workingDirectory": null,
       "readonlyRootFilesystem": null,
-      "image": "akshayubhat/dva-auto:latest",
+      "image": "akshayubhat/dva-auto:gpu",
       "command": [
         "youtube-dl -U && git pull && fab start_container:worker"
       ],
@@ -128,9 +136,9 @@
           "awslogs-stream-prefix": "dva_cpu_"
         }
       },
-      "cpu": 2048,
-      "privileged": null,
-      "memoryReservation": 7168
+      "cpu": 4000,
+      "privileged": true,
+      "memoryReservation": 32000
     }
   ],
   "placementConstraints": [],
@@ -140,7 +148,13 @@
         "sourcePath": "/efs/"
       },
       "name": "dvadata"
+    },
+    {
+      "host": {
+        "sourcePath": "/var/lib/nvidia-docker/volumes/nvidia_driver/latest"
+      },
+      "name": "nvidia"
     }
   ],
-  "family": "DVA"
+  "family": "DeepVideoAnalyticsGPU"
 }

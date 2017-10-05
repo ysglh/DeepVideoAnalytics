@@ -71,6 +71,13 @@ def launch(gpu_count=1,cpu_count=1,cpu_price=0.1,gpu_price=0.4):
 
 @task
 def create_ecs_tasks_and_services():
+    """
+    This creates ECS task and services in CPU and GPU clusters.
+    The tasks contain information similar to docker-compose file.
+    The service describes how many tasks instances should be launched and in which cluster.
+    Once ecs tasks and services are set up, you can launch EC2 spot fleet request using fab launch:1,1
+    :return:
+    """
     import boto3
     from config import CLUSTER_NAME,GPU_CLUSTER_NAME
     client = boto3.client('ecs')
@@ -81,7 +88,7 @@ def create_ecs_tasks_and_services():
             envars[k] = v
     print "Using {}".format(envars)
     keys = {'SECRET_KEY','MEDIA_BUCKET','DATABASE_URL','BROKER_URL'}
-    for fname,cluster_name in [('ecs_tasks/c4.xlarge.json',CLUSTER_NAME),('ecs_tasks/c4.xlarge.json',GPU_CLUSTER_NAME)]:
+    for fname,cluster_name in [('ecs_tasks/c4.xlarge.json',CLUSTER_NAME),('ecs_tasks/p2.xlarge.json',GPU_CLUSTER_NAME)]:
         j = json.load(file(fname))
         for c in j['containerDefinitions']:
             for e in c['environment']:
@@ -90,11 +97,13 @@ def create_ecs_tasks_and_services():
         response = client.register_task_definition(family=fname.replace('/','_').replace('.','_'),networkMode=j['networkMode'],
                                                    containerDefinitions=j['containerDefinitions'],volumes=j['volumes'])
         task_arn = response['taskDefinition']['taskDefinitionArn']
+        print "created task {} now creating service".format(task_arn)
         response = client.create_service(cluster=cluster_name,
                                          serviceName='service_{}'.format(fname.replace('/','_').replace('.','_')),
                                          taskDefinition=task_arn,
                                          desiredCount=1,
                                          deploymentConfiguration={'maximumPercent': 200,'minimumHealthyPercent':50})
+        print "created service for {} in cluster {}".format(task_arn,cluster_name)
 
 
 @task

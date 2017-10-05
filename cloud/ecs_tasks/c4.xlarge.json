@@ -30,14 +30,7 @@
   "containerDefinitions": [
     {
       "volumesFrom": [],
-      "memory": null,
-      "extraHosts": null,
-      "linuxParameters": null,
-      "dnsServers": null,
-      "disableNetworking": null,
-      "dnsSearchDomains": null,
       "portMappings": [],
-      "hostname": null,
       "essential": true,
       "entryPoint": [
         "/bin/bash",
@@ -47,12 +40,11 @@
         {
           "containerPath": "/root/DVA/dva/media",
           "sourceVolume": "dvadata",
-          "readOnly": null
+          "readOnly": false
         }
       ],
       "name": "cpu",
-      "ulimits": null,
-      "dockerSecurityOptions": null,
+      "ulimits": [],
       "environment": [
         {
           "name": "BROKER_URL",
@@ -99,15 +91,12 @@
           "value": ""
         }
       ],
-      "links": null,
-      "workingDirectory": null,
-      "readonlyRootFilesystem": null,
+      "links": [],
+      "readonlyRootFilesystem": false,
       "image": "akshayubhat/dva-auto:latest",
       "command": [
         "youtube-dl -U && git pull && fab start_container:worker"
       ],
-      "user": null,
-      "dockerLabels": null,
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
@@ -117,7 +106,7 @@
         }
       },
       "cpu": 4000,
-      "privileged": null,
+      "privileged": false,
       "memoryReservation": 7000
     }
   ],

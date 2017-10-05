@@ -70,6 +70,34 @@ def launch(gpu_count=1,cpu_count=1,cpu_price=0.1,gpu_price=0.4):
 
 
 @task
+def create_ecs_tasks_and_services():
+    import boto3
+    from config import CLUSTER_NAME,GPU_CLUSTER_NAME
+    client = boto3.client('ecs')
+    envars = {}
+    with open('heroku.env') as envfile:
+        for l in envfile.readlines():
+            k,v = l.split('=')
+            envars[k] = v
+    print "Using {}".format(envars)
+    keys = {'SECRET_KEY','MEDIA_BUCKET','DATABASE_URL','BROKER_URL'}
+    for fname,cluster_name in [('ecs_tasks/c4.xlarge.json',CLUSTER_NAME),('ecs_tasks/c4.xlarge.json',GPU_CLUSTER_NAME)]:
+        j = json.load(file(fname))
+        for c in j['containerDefinitions']:
+            for e in c['environment']:
+                if e['name'] in keys and e['value'] == '':
+                    e['value'] = envars[e['name']]
+        response = client.register_task_definition(family=fname.replace('/','_').replace('.','_'),networkMode=j['networkMode'],
+                                                   containerDefinitions=j['containerDefinitions'],volumes=j['volumes'])
+        task_arn = response['taskDefinition']['taskDefinitionArn']
+        response = client.create_service(cluster=cluster_name,
+                                         serviceName='service_{}'.format(fname.replace('/','_').replace('.','_')),
+                                         taskDefinition=task_arn,
+                                         desiredCount=1,
+                                         deploymentConfiguration={'maximumPercent': 200,'minimumHealthyPercent':50})
+
+
+@task
 def launch_on_demand():
     """
     A helper script to launch a spot P2 instance running Deep Video Analytics
@@ -296,19 +324,3 @@ def create_heroku_app(appname,db="heroku-postgresql:standard-0",amqp="cloudamqp:
         local("heroku addons:create {}".format(db))
         # provision Cloud AMQP add-on
         local("heroku addons:create {}".format(amqp))
-
-
-@task
-def create_ecs_tasks():
-    envars = {}
-    with open('heroku.env') as envfile:
-        for l in envfile.readlines():
-            k,v = l.split('=')[0]
-            envars[k] = v
-    print "Using {}".format(envars)
-    for fname in glob.glob('ecs_tasks/*.json'):
-        j = json.load(file(fname))
-        for c in j['containerDefinitions']:
-            for e in c['environment']:
-                if e['name'] in ['SECRET_KEY','MEDIA_BUCKET','DATABASE_URL','BROKER_URL']:
-                    e['value'] = envars[name]

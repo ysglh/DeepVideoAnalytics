@@ -33,18 +33,10 @@
   ],
   "networkMode": "bridge",
   "status": "ACTIVE",
-  "taskRoleArn": null,
   "containerDefinitions": [
     {
       "volumesFrom": [],
-      "memory": null,
-      "extraHosts": null,
-      "linuxParameters": null,
-      "dnsServers": null,
-      "disableNetworking": null,
-      "dnsSearchDomains": null,
       "portMappings": [],
-      "hostname": null,
       "essential": true,
       "entryPoint": [
         "/bin/bash",
@@ -54,7 +46,7 @@
         {
           "containerPath": "/root/DVA/dva/media",
           "sourceVolume": "dvadata",
-          "readOnly": null
+          "readOnly": false
         },
         {
           "containerPath": "/usr/local/nvidia",
@@ -63,8 +55,6 @@
         }
       ],
       "name": "gpu",
-      "ulimits": null,
-      "dockerSecurityOptions": null,
       "environment": [
         {
           "name": "BROKER_URL",
@@ -119,15 +109,10 @@
           "value": ""
         }
       ],
-      "links": null,
-      "workingDirectory": null,
-      "readonlyRootFilesystem": null,
       "image": "akshayubhat/dva-auto:gpu",
       "command": [
         "youtube-dl -U && git pull && fab start_container:worker"
       ],
-      "user": null,
-      "dockerLabels": null,
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {

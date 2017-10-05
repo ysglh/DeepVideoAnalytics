@@ -89,3 +89,4 @@ notes/*.mov
 /cloud/ecs/instance_config_private.json
 /cloud/host
 /cloud/connect.sh
+/cloud/heroku.env

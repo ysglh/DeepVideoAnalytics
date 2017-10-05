@@ -85,7 +85,10 @@ def create_ecs_tasks_and_services():
     with open('heroku.env') as envfile:
         for l in envfile.readlines():
             k,v = l.split('=')
-            envars[k] = v
+            if v.startswith("'") and v.endswith("'"):
+                envars[k] = v[1:-1]
+            else:
+                envars[k] = v
     print "Using {}".format(envars)
     keys = {'SECRET_KEY','MEDIA_BUCKET','DATABASE_URL','BROKER_URL'}
     for fname,cluster_name in [('ecs_tasks/c4.xlarge.json',CLUSTER_NAME),('ecs_tasks/p2.xlarge.json',GPU_CLUSTER_NAME)]:

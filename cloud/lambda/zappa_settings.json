@@ -1,0 +1,14 @@
+{
+    "dev": {
+        "app_function": "app.app", 
+        "aws_region": "us-east-1", 
+        "profile_name": "default", 
+        "project_name": "zptest", 
+        "runtime": "python2.7", 
+        "s3_bucket": "aub3zappa",
+        "binary_support": true,
+		"cors": true,
+		"slim_handler": false,
+		"keep_warm" : false
+    }
+}

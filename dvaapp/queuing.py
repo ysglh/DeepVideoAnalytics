@@ -2,7 +2,7 @@ Q_MANAGER = 'qmanager'
 Q_EXTRACTOR = 'qextract'
 Q_CLUSTER = 'qclusterer'
 Q_TRAINER = 'qtrainer'
-Q_VGG = 'qvgg'
+Q_LAMBDA = 'qlambda'
 
 TASK_NAMES_TO_QUEUE = {
     "perform_model_import":Q_EXTRACTOR,
@@ -17,6 +17,7 @@ TASK_NAMES_TO_QUEUE = {
     "perform_import":Q_EXTRACTOR,
     "perform_retriever_creation": Q_CLUSTER,
     "perform_detector_training": Q_TRAINER,
+    "perform_video_decode_lambda": Q_LAMBDA
 }
 
 VIDEO_TASK = 'video'

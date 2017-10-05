@@ -225,6 +225,29 @@ def perform_video_decode(task_id):
     return task_id
 
 
+@app.task(track_started=True,name="perform_video_decode_lambda",ignore_result=False)
+def perform_video_decode_lambda(task_id):
+    start = TEvent.objects.get(pk=task_id)
+    if start.started:
+        return 0  # to handle celery bug with ACK in SOLO mode
+    else:
+        start.started = True
+        start.save()
+    args = start.arguments
+    video_id = start.video_id
+    dv = Video.objects.get(id=video_id)
+    kwargs = args.get('filters',{})
+    kwargs['video_id'] = video_id
+    v = VideoDecoder(dvideo=dv, media_dir=settings.MEDIA_ROOT)
+    for ds in Segment.objects.filter(**kwargs):
+        request_args = dict(ds=ds,denominator=args['rate'],rescale=args['rescale'])
+        # TODO : Implement this, call API gateway with video id, segment index and rate.
+        #        If successful bulk create frame objects using response sent by the lambda function.
+    process_next(task_id)
+    mark_as_completed(start)
+    raise NotImplementedError
+
+
 @app.task(track_started=True, name="perform_detection",base=DetectorTask)
 def perform_detection(task_id):
     """

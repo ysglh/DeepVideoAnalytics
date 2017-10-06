@@ -180,16 +180,17 @@ def heroku_psql():
 
 
 @task
-def heroku_reset(bucket_name):
+def heroku_reset():
     """
     Reset heroku database and empty S3 bucket used for www.deepvideoanalytics.com
     """
+    from config import MEDIA_BUCKET
     if raw_input("Are you sure type yes >>") == 'yes':
         local('heroku pg:reset DATABASE_URL')
         heroku_migrate()
         local('heroku run python manage.py createsuperuser')
         print "emptying bucket"
-        local("aws s3 rm s3://{} --recursive --quiet".format(bucket_name))
+        local("aws s3 rm s3://{} --recursive --quiet".format(MEDIA_BUCKET))
 
 
 @task

@@ -12,3 +12,4 @@ ECS_GPU_AMI = "ami-b1c106cb" # Create your own modified AWS Deep Learning AMI wi
 ECS_ROLE = {'Arn':''} # REPLACE WITH YOUR OWN (Attach both S3 AND ECSforEC2) E.g. arn:aws:iam::23123123:instance-profile/role_that_gives_s3_access
 CLUSTER_NAME = ''
 GPU_CLUSTER_NAME = '' # have a seperate cluster of GPU instances to prevent underutilization
+MEDIA_BUCKET = '' # media bucket name

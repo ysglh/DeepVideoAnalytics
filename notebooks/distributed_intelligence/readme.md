@@ -1,7 +1,7 @@
 # Towards large scale intelligent systems that learn continuously and interactively in a reproducible manner
 
 
-### State of AI/ML libraries & framework
+### State of AI/ML libraries & frameworks
 Over the last five years with emergence of deep learning, several libraries/frameworks such as Caffe, Torch, 
 PyTorch, Tensor Flow have become popular. Each new library has solved several problems such as model portability,
 distributed training, autograd, etc. For an overview of evolution of Deep Learning Libraries listen 
@@ -22,6 +22,10 @@ Typically researchers download existing dataset or collect & annotate new data. 
  especially in topics such as interactive learning or learning by continuously ingesting data.
  
 ![datacentric](figures/datacentric.png "data centric")
+
+As a solution to this problem we present Deep Video Analytics a data-centric system. Deep Video Analytics,
+imposes structure on not only models and data but also on the processing pipeline. Deep Video Analytics can
+be thought of being similar to a traditional relational database. 
 
 ### Learning continuously/interactively while maintaining reproducibility
 

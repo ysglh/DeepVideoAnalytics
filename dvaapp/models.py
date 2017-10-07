@@ -163,6 +163,8 @@ class DeepModel(models.Model):
     produces_labels = models.BooleanField(default=False)
     produces_json = models.BooleanField(default=False)
     produces_text = models.BooleanField(default=False)
+    # Following allows us to have a hierarchy of models (E.g. inception pretrined -> inception finetuned)
+    parent = models.ForeignKey('self', null=True)
 
     def create_directory(self,create_subdirs=True):
         try:

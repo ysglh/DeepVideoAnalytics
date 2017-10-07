@@ -251,7 +251,7 @@
         </div>
         <div class="col-md-6 ">
 <pre class="m-t"  style="padding:0"><code class="bash">git clone https://github.com/AKSHAYUBHAT/DeepVideoAnalytics
-cd DeepVideoAnalytics/docker && docker-compose up
+cd DeepVideoAnalytics/deploy/demo && docker-compose up
 # Above command will automatically pull container images from docker-hub
 </code></pre>
         </div>
@@ -264,8 +264,8 @@ cd DeepVideoAnalytics/docker && docker-compose up
         <div class="col-md-6 ">
 <pre class="m-t"  style="padding:0"><code class="bash">pip install --upgrade nvidia-docker-compose
 git clone https://github.com/AKSHAYUBHAT/DeepVideoAnalytics
-cd DeepVideoAnalytics/single
-nvidia-docker-compose -f compose/docker-compose-gpu.yml up
+cd DeepVideoAnalytics/deploy/single
+nvidia-docker-compose -f docker-compose-gpu.yml up
 # Above command will automatically pull container images from docker-hub
 </code></pre>
         </div>
@@ -274,7 +274,7 @@ nvidia-docker-compose -f compose/docker-compose-gpu.yml up
         <div class="col-lg-12">
             <div class="alert alert-danger"><h4 class="text-center">Security warning</h4>
             When deploying/running on remote Ubuntu machines on VPS services such as Linode etc. beware of the <a href="https://askubuntu.com/questions/652556/uncomplicated-firewall-ufw-is-not-blocking-anything-when-using-docker" target="_blank">Docker/UFW firewall issues</a>.
-            Docker bypasses UFW firewall and opens the port 8000 to internet. You can change the behavior by using a loopback interface (127.0.0.1:8000:80) and then forwarding the port (8000) over SSH tunnel, an example of this is <a href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/docker/docker-compose-linode.yml" target="_blank">shown here</a>.
+            Docker bypasses UFW firewall and opens the port 8000 to internet. You can change the behavior by using a loopback interface (127.0.0.1:8000:80) and then forwarding the port (8000) over SSH tunnel, an example of this is <a href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/deploy/single/docker-compose-linode.yml" target="_blank">shown here</a>.
             </div>
         </div>
     </div>

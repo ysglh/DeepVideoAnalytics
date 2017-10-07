@@ -1,19 +1,17 @@
 # Towards large scale intelligent systems that learn continuously and interactively
 
-### A new paradigm: From model-centric to data-centric
 | **"we shape our buildings thereafter they shape us"** -- Winston Churchil
 
 Over the last five years with emergence of Deep Learning, several libraries and frameworks such as Caffe, Torch, 
 PyTorch, MXNet & TensorFlow have been developed. Each new library has solved new problems such as model portability,
 distributed training, autograd, etc. However they are developed primarily with goal of training models individual tasks. 
 We believe this model-centric approach is not only slowing down research but also limiting possibility of novel intelligent 
-systems. 
- 
-![modelcentric](figures/modelcentric.png "model centric")
+systems. As a result we propose a data-centric approach which standardizes data and processing in addition to models. We present 
+Deep Video Analytics a distributed visual data processing system which adopts a data-centric approach. 
 
- We propose a data-centric approach which standardizes data and processing in addition to models. We present 
- Deep Video Analytics a distributed visual data processing system which adopts a data-centric approach. 
+![modelcentric](figures/modelcentric.png "model centric")
  
+ ### Deep Video Analytics: A distributed visual data processing system 
  Today most the published research in Computer Vision uses a model-centric pattern illustrated above. 
  Typically researchers download existing dataset or collect & annotate new data. Either a baseline model or
  a new model is proposed and evaluated for solving a particular problem (detection, segmentation, counting etc.)
@@ -26,7 +24,7 @@ systems.
  
 ![datacentric](figures/datacentric.png "data centric")
 
-### An architecture for distributed intelligence
+### Architecture
 ![system](figures/system.png "Ideal system")
 
  

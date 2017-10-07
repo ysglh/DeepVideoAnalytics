@@ -1,7 +1,7 @@
 # Deep Video Analytics  •  [![Build Status](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics.svg?branch=master)](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics)
 
-![UI Screenshot](architecture/figures/emma.png "Emma Watson, from poster of her latest subject appropriate movie The Circle")
-![Banner](architecture/figures/banner_small.png "banner")
+![UI Screenshot](notebooks/figures/emma.png "Emma Watson, from poster of her latest subject appropriate movie The Circle")
+![Banner](notebooks/figures/banner_small.png "banner")
 
 
 **Don't be worried by complexity of this banner, with latest version of docker installed correctly, you can run Deep Video Analytics in minutes locally (even without a GPU) using a single command.** 
@@ -9,6 +9,17 @@
 #### Author: [Akshay Bhat, Cornell University.](http://www.akshaybhat.com)
 
 #### Deep Video Analytics is a platform for indexing and extracting information from videos and images. For installation instructions & demo go to [https://www.deepvideoanalytics.com](https://www.deepvideoanalytics.com)
+
+#### Documentation
+
+Documentation along with presentation and blogpost is being written in [/notebooks](/notebooks) directory.
+For a quick overview we reocmmend going through the [presentation in readme.pdf](readme.pdf)
+
+#### Architecture, data & processing model
+![Architecture](notebooks/distributed_intelligence/figures/system.png "architecture")
+![Data model](notebooks/figures/data_model_2.png "data model")
+![Processing model](notebooks/figures/task_model_2.png "processing model")
+
 
 #### Libraries used/modified in code and their licenses
 
@@ -44,10 +55,6 @@
 * Nvidia-docker
 * Docker-compose
 * All packages in [requirements.txt](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/requirements.txt) & used in Dockerfiles.
-
-### Data & Processing model
-![Data model](architecture/figures/data_model_2.png "data model")
-![Processing model](architecture/figures/task_model_2.png "processing model")
 
 
 

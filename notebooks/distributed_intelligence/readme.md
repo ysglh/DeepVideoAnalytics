@@ -9,6 +9,8 @@ We believe this model-centric approach is not only slowing down research but als
 systems. As a result we propose a data-centric approach which standardizes data and processing in addition to models. We present 
 Deep Video Analytics a distributed visual data processing system which adopts a data-centric approach. 
 
+
+
 ![modelcentric](figures/modelcentric.png "model centric")
  
  ### Deep Video Analytics: A distributed visual data processing system 

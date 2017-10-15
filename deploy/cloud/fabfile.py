@@ -4,7 +4,7 @@ from fabric.api import task, local, lcd, env
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                     datefmt='%m-%d %H:%M',
-                    filename='../logs/cloud.log',
+                    filename='../../logs/cloud.log',
                     filemode='a')
 
 try:

@@ -3,28 +3,29 @@
 | **"we shape our buildings thereafter they shape us"** -- Winston Churchil
 
 Over the last five years with emergence of Deep Learning, several libraries and frameworks such as Caffe, Torch, 
-PyTorch, MXNet & TensorFlow have been developed. Each new library has solved new problems such as model portability,
-distributed training, autograd, etc. However they are developed primarily with goal of training models individual tasks. 
-We believe this model-centric approach is not only slowing down research but also limiting possibility of novel intelligent 
-systems. As a result we propose a data-centric approach which standardizes data and processing in addition to models. We present 
-Deep Video Analytics a distributed visual data processing system which adopts a data-centric approach. 
-
-
+PyTorch, MXNet & TensorFlow have been developed. Each library has solved new problems such as model portability,
+distributed training, autograd, etc. However they are developed primarily with goal of training models for individual tasks. 
+We believe this model-centric approach is only slowing down research and limiting possibility of developing 
+novel intelligent systems. As a result we propose a data-centric approach which standardizes data and 
+processing in addition to models. 
 
 ![modelcentric](figures/modelcentric.png "model centric")
  
- ### Deep Video Analytics: A distributed visual data processing system 
+ ### From Model-centric to Data-centric 
  Today most the published research in Computer Vision uses a model-centric pattern illustrated above. 
- Typically researchers download existing dataset or collect & annotate new data. Either a baseline model or
- a new model is proposed and evaluated for solving a particular problem (detection, segmentation, counting etc.)
- A significant part Computer Vision research and applications involves data collection, annotation and organization. Currently there 
+ Typically researchers download existing datasets or collect & annotate new data. A model is proposed and 
+ evaluated for solving a particular problem (detection, segmentation, counting etc.) A significant part Computer Vision 
+ research and applications involves data collection, annotation and organization. Currently there 
  are no frameworks that support these tasks. The closest would be Robot Operating System (ROS) used in robotics.  
  While the pattern described above works well for evaluation of specific tasks, it slows down research in Computer Vision, 
- especially in topics such as interactive learning or learning by continuously ingesting data. We believe with Deep Video 
- Analytics we can enable novel research as well as applications that are even difficult to imagine in the current
- model-centric paradigm. 
+ especially in topics such as interactive learning or learning by continuously ingesting data. 
  
 ![datacentric](figures/datacentric.png "data centric")
+
+## Deep Video Analytics: A distributed visual data processing system
+We present Deep Video Analytics a distributed visual data processing system which 
+adopts a data-centric approach. We believe with Deep Video Analytics we can enable novel research & 
+applications that are difficult to achieve in the model-centric paradigm.  
 
 ### Architecture
 ![system](figures/system.png "Ideal system")

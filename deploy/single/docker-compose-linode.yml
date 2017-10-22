@@ -31,6 +31,7 @@
        - DB_PASS=pgdbpass
        - LAUNCH_SERVER_NGINX=1
        - DISABLE_DEBUG=1
+       - MEDIA_BUCKET=aub3dvatest
        - SECRET_KEY=283y312bhv2b13v13
        - LAUNCH_BY_NAME_indexer_inception=1
        - LAUNCH_BY_NAME_indexer_facenet=1
@@ -60,6 +61,7 @@
        - RABBIT_HOST=rabbit
        - RABBIT_USER=dvauser
        - RABBIT_PASS=localpass
+       - MEDIA_BUCKET=aub3dvatest
        - DB_HOST=db
        - DB_NAME=postgres
        - DB_USER=pgdbuser

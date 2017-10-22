@@ -353,7 +353,7 @@ def download_model(root_dir, model_type_dir_name, dm):
     if not os.path.isdir(model_dir):
         os.mkdir(model_dir)
         if sys.platform == 'darwin':
-            p = subprocess.Popen(['cp','/users/aub3/Dropbox/DeepVideoAnalytics/shared/{}'.format(dm.model_filename),'.'],cwd=model_dir)
+            p = subprocess.Popen(['cp','/users/aub3/Dropbox/shared/{}'.format(dm.model_filename),'.'],cwd=model_dir)
             p.wait()
         else:
             p = subprocess.Popen(['wget','--quiet',dm.url],cwd=model_dir)
@@ -364,7 +364,7 @@ def download_model(root_dir, model_type_dir_name, dm):
                 filename = m['filename']
                 if sys.platform == 'darwin':
                     p = subprocess.Popen(
-                        ['cp', '/users/aub3/Dropbox/DeepVideoAnalytics/shared/{}'.format(filename), '.'],cwd=model_dir)
+                        ['cp', '/users/aub3/Dropbox/shared/{}'.format(filename), '.'],cwd=model_dir)
                     p.wait()
                 else:
                     p = subprocess.Popen(['wget', '--quiet', url], cwd=model_dir)

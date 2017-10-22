@@ -93,6 +93,6 @@ class IndexerTask(celery.Task):
             i.indexer_shasum = di.shasum
             i.entries_file_name = entries_fname.split('/')[-1]
             i.features_file_name = feat_fname.split('/')[-1]
-            i.source_id = event.pk
+            i.event_id = event.pk
             i.source_filter_json = event.arguments
             i.save()

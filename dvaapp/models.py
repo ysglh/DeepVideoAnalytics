@@ -442,7 +442,7 @@ class IndexEntries(models.Model):
     contains_frames = models.BooleanField(default=False)
     contains_detections = models.BooleanField(default=False)
     created = models.DateTimeField('date created', auto_now_add=True)
-    source = models.ForeignKey(TEvent, null=True)
+    event = models.ForeignKey(TEvent, null=True)
 
     class Meta:
         unique_together = ('video', 'features_file_name',)

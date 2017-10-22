@@ -192,7 +192,7 @@ def perform_video_segmentation(task_id):
     dv = Video.objects.get(id=video_id)
     v = VideoDecoder(dvideo=dv, media_dir=settings.MEDIA_ROOT)
     v.get_metadata()
-    v.segment_video()
+    v.segment_video(task_id)
     if args.get('sync',False):
         next_args = {'rescale': args['rescale'], 'rate': args['rate']}
         next_task = TEvent.objects.create(video=dv, operation='perform_video_decode', arguments=next_args, parent=start)
@@ -219,7 +219,7 @@ def perform_video_decode(task_id):
     kwargs['video_id'] = video_id
     v = VideoDecoder(dvideo=dv, media_dir=settings.MEDIA_ROOT)
     for ds in Segment.objects.filter(**kwargs):
-        v.decode_segment(ds=ds,denominator=args['rate'],rescale=args['rescale'])
+        v.decode_segment(ds=ds,denominator=args['rate'],event_id=task_id)
     process_next(task_id)
     mark_as_completed(start)
     return task_id
@@ -589,19 +589,20 @@ def perform_sync(task_id):
     args = start.arguments
     if settings.MEDIA_BUCKET.strip():
         if 'dirname' in args:
-            src = '{}/{}/{}/'.format(settings.MEDIA_ROOT, video_id, args['dirname'])
-            dest = 's3://{}/{}/{}/'.format(settings.MEDIA_BUCKET, video_id, args['dirname'])
+            dirname = args['dirname']
+            for fp in task_shared.get_sync_paths(dirname,task_id):
+                task_shared.upload_file_to_remote(fp)
         else:
             src = '{}/{}/'.format(settings.MEDIA_ROOT, video_id)
             dest = 's3://{}/{}/'.format(settings.MEDIA_BUCKET, video_id)
-        command = " ".join(['aws', 's3', 'sync','--quiet', src, dest])
-        syncer = subprocess.Popen(['aws', 's3', 'sync','--quiet', '--size-only', src, dest])
-        syncer.wait()
-        if syncer.returncode != 0:
-            start.errored = True
-            start.error_message = "Error while executing : {}".format(command)
-            start.save()
-            return
+            command = " ".join(['aws', 's3', 'sync','--quiet', src, dest])
+            syncer = subprocess.Popen(['aws', 's3', 'sync','--quiet', '--size-only', src, dest])
+            syncer.wait()
+            if syncer.returncode != 0:
+                start.errored = True
+                start.error_message = "Error while executing : {}".format(command)
+                start.save()
+                return
     else:
         logging.info("Media bucket name not specified, nothing was synced.")
         start.error_message = "Media bucket name is empty".format(settings.MEDIA_BUCKET)

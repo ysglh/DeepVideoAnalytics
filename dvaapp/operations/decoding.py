@@ -93,15 +93,13 @@ class VideoDecoder(object):
     def extract(self,args,start):
         self.extract_zip_dataset(start)
 
-    def decode_segment(self,ds,denominator,rescale):
+    def decode_segment(self,ds,denominator,event_id=None):
         output_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'frames')
         input_segment = ds.path()
         ffmpeg_command = 'ffmpeg -fflags +igndts -loglevel panic -i {} -vf'.format(input_segment) # Alternative to igndts is setting vsync vfr
         df_list = []
-        if rescale:
-            filter_command = '"select=not(mod(n\,{}))+eq(pict_type\,PICT_TYPE_I),scale={}:-1" -vsync 0'.format(denominator,rescale)
-        else:
-            filter_command = '"select=not(mod(n\,{}))+eq(pict_type\,PICT_TYPE_I)" -vsync 0'.format(denominator)
+        # filter_command = '"select=not(mod(n\,{}))+eq(pict_type\,PICT_TYPE_I),scale={}:-1" -vsync 0'.format(denominator,rescale)
+        filter_command = '"select=not(mod(n\,{}))+eq(pict_type\,PICT_TYPE_I)" -vsync 0'.format(denominator)
         output_command = "{}/segment_{}_%d_b.jpg".format(output_dir,ds.segment_index)
         command = " ".join([ffmpeg_command,filter_command,output_command])
         logging.info(command)
@@ -131,11 +129,12 @@ class VideoDecoder(object):
             df.t = frame_data['ts']
             df.segment_index = ds.segment_index
             df.h = frame_height
+            df.event_id = event_id
             df.w = frame_width
             df_list.append(df)
         _ = Frame.objects.bulk_create(df_list, batch_size=1000)
 
-    def segment_video(self):
+    def segment_video(self,event_id):
         segments_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'segments')
         command = 'ffmpeg -loglevel panic -i {} -c copy -map 0 -segment_time 1 -f segment ' \
                   '-segment_list_type csv -segment_list {}/segments.csv ' \
@@ -171,6 +170,7 @@ class VideoDecoder(object):
                 ds.frame_count = len(self.segment_frames_dict[segment_id])
                 ds.end_time = end_time
                 ds.video_id = self.dvideo.pk
+                ds.event_id = event_id
                 ds.metadata = segment_json
                 ds.save()
             logging.info("Took {} seconds to process {} segments".format(time.time() - timer_start,len(self.segment_frames_dict)))

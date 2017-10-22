@@ -1,11 +1,16 @@
 import os, json, requests, copy, time, subprocess, logging, shutil, zipfile, boto3, random, calendar, shlex, sys, tempfile
-from models import Video, QueryRegion, QueryRegionIndexVector
+from models import Video, QueryRegion, QueryRegionIndexVector, DVAPQL, Region, Frame, Segment, IndexEntries
 from django.conf import settings
 from PIL import Image
-from models import DVAPQL,Region,Frame
 from . import serializers
 from botocore.exceptions import ClientError
 
+if settings.MEDIA_BUCKET:
+    S3 = boto3.resource('s3')
+    BUCKET = S3.Bucket(settings.MEDIA_BUCKET)
+else:
+    S3 = None
+    BUCKET = None
 
 def handle_downloaded_file(downloaded, video, name):
     video.name = name
@@ -376,3 +381,23 @@ def crop_and_get_region_path(df,images,temp_root):
     else:
         return df.path()
     return region_path
+
+
+def get_sync_paths(dirname,task_id):
+    if dirname == 'indexes':
+        f = [k.entries_path(media_root="") for k in IndexEntries.objects.filter(event_id=task_id)]
+        f += [k.npy_path(media_root="") for k in IndexEntries.objects.filter(event_id=task_id)]
+    elif dirname == 'frames':
+        f = [k.path(media_root="") for k in Frame.objects.filter(event_id=task_id)]
+    elif dirname == 'segments':
+        f = [k.path(media_root="") for k in Segment.objects.filter(event_id=task_id)]
+    elif dirname == 'regions':
+        f = [k.path(media_root="") for k in Region.objects.filter(event_id=task_id)]
+    else:
+        raise NotImplementedError,"dirname : {} not configured".format(dirname)
+    return f
+
+
+def upload_file_to_remote(fpath):
+    with open('{}{}'.format(settings.MEDIA_ROOT,fpath),'rb') as body:
+        BUCKET.put_object(Key=fpath, Body=body)

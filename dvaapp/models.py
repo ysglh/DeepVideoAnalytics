@@ -56,7 +56,7 @@ class Video(models.Model):
         return u'{}'.format(self.name)
 
     def path(self,media_root=None):
-        if media_root:
+        if not (media_root is None):
             return "{}/{}/video/{}.mp4".format(media_root, self.pk, self.pk)
         else:
             return "{}/{}/video/{}.mp4".format(settings.MEDIA_ROOT,self.pk,self.pk)
@@ -234,6 +234,7 @@ class QueryIndexVector(models.Model):
 
 class Frame(models.Model):
     video = models.ForeignKey(Video)
+    event = models.ForeignKey(TEvent,null=True)
     frame_index = models.IntegerField()
     name = models.CharField(max_length=200,null=True)
     subdir = models.TextField(default="") # Retains information if the source is a dataset for labeling
@@ -250,7 +251,7 @@ class Frame(models.Model):
         return u'{}:{}'.format(self.video_id, self.frame_index)
 
     def path(self,media_root=None):
-        if media_root:
+        if not (media_root is None):
             return "{}/{}/frames/{}.jpg".format(media_root, self.video_id, self.frame_index)
         else:
             return "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,self.video_id,self.frame_index)
@@ -264,6 +265,7 @@ class Segment(models.Model):
     segment_index = models.IntegerField()
     start_time = models.FloatField(default=0.0)
     end_time = models.FloatField(default=0.0)
+    event = models.ForeignKey(TEvent,null=True)
     metadata = models.TextField(default="{}")
     frame_count = models.IntegerField(default=0)
     start_index = models.IntegerField(default=0)
@@ -277,13 +279,13 @@ class Segment(models.Model):
         return u'{}:{}'.format(self.video_id, self.segment_index)
 
     def path(self, media_root=None):
-        if media_root:
+        if not (media_root is None):
             return "{}/{}/segments/{}.mp4".format(media_root, self.video_id, self.segment_index)
         else:
             return "{}/{}/segments/{}.mp4".format(settings.MEDIA_ROOT, self.video_id, self.segment_index)
 
     def framelist_path(self, media_root=None):
-        if media_root:
+        if not (media_root is None):
             return "{}/{}/segments/{}.txt".format(media_root, self.video_id, self.segment_index)
         else:
             return "{}/{}/segments/{}.txt".format(settings.MEDIA_ROOT, self.video_id, self.segment_index)
@@ -343,13 +345,13 @@ class Region(models.Model):
     def path(self,media_root=None,temp_root=None):
         if temp_root:
             return "{}/{}_{}.jpg".format(temp_root, self.video_id, self.pk)
-        elif media_root:
+        elif not (media_root is None):
             return "{}/{}/regions/{}.jpg".format(media_root, self.video_id, self.pk)
         else:
             return "{}/{}/regions/{}.jpg".format(settings.MEDIA_ROOT, self.video_id, self.pk)
 
     def frame_path(self,media_root=None):
-        if media_root:
+        if not (media_root is None):
             return "{}/{}/frames/{}.jpg".format(media_root, self.video_id, self.frame_index)
         else:
             return "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT, self.video_id, self.frame_index)
@@ -449,10 +451,16 @@ class IndexEntries(models.Model):
         return "{} in {} index by {}".format(self.detection_name, self.algorithm, self.video.name)
 
     def npy_path(self, media_root=None):
-        if media_root:
+        if not (media_root is None):
             return "{}/{}/indexes/{}".format(media_root, self.video_id, self.features_file_name)
         else:
             return "{}/{}/indexes/{}".format(settings.MEDIA_ROOT, self.video_id, self.features_file_name)
+
+    def entries_path(self, media_root=None):
+        if not (media_root is None):
+            return "{}/{}/indexes/{}".format(media_root, self.video_id, self.entries_file_name)
+        else:
+            return "{}/{}/indexes/{}".format(settings.MEDIA_ROOT, self.video_id, self.entries_file_name)
 
 
 class Tube(models.Model):

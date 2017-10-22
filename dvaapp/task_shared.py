@@ -392,7 +392,7 @@ def get_sync_paths(dirname,task_id):
     elif dirname == 'segments':
         f = [k.path(media_root="") for k in Segment.objects.filter(event_id=task_id)]
     elif dirname == 'regions':
-        f = [k.path(media_root="") for k in Region.objects.filter(event_id=task_id)]
+        f = [k.path(media_root="") for k in Region.objects.filter(event_id=task_id) if k.materialized]
     else:
         raise NotImplementedError,"dirname : {} not configured".format(dirname)
     return f

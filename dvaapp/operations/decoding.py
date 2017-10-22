@@ -205,6 +205,7 @@ class VideoDecoder(object):
                             df.video_id = self.dvideo.pk
                             df.h = h
                             df.w = w
+                            df.event_id = event.pk
                             df.name = fname.split('/')[-1][:150]
                             df.subdir = subdir[root_length:].replace('/', ' ')
                             df_list.append(df)

@@ -388,7 +388,10 @@ def get_sync_paths(dirname,task_id):
     elif dirname == 'frames':
         f = [k.path(media_root="") for k in Frame.objects.filter(event_id=task_id)]
     elif dirname == 'segments':
-        f = [k.path(media_root="") for k in Segment.objects.filter(event_id=task_id)]
+        f = []
+        for k in Segment.objects.filter(event_id=task_id):
+            f.append(k.path(media_root=""))
+            f.append(k.framelist_path(media_root=""))
     elif dirname == 'regions':
         f = [k.path(media_root="") for k in Region.objects.filter(event_id=task_id) if k.materialized]
     else:

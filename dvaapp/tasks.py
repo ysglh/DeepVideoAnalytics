@@ -587,12 +587,15 @@ def perform_sync(task_id):
         start.save()
     video_id = start.video_id
     args = start.arguments
-    if settings.MEDIA_BUCKET.strip():
+    if settings.MEDIA_BUCKET:
         if 'dirname' in args:
             dirname = args['dirname']
-            for fp in task_shared.get_sync_paths(dirname,task_id):
+            fnames = task_shared.get_sync_paths(dirname,start.parent_id)
+            logging.info("Syncing {} containing {} files".format(dirname,len(fnames)))
+            for fp in fnames:
                 task_shared.upload_file_to_remote(fp)
         else:
+            logging.info("Syncing entire directory for {}".format(video_id))
             src = '{}/{}/'.format(settings.MEDIA_ROOT, video_id)
             dest = 's3://{}/{}/'.format(settings.MEDIA_BUCKET, video_id)
             command = " ".join(['aws', 's3', 'sync','--quiet', src, dest])

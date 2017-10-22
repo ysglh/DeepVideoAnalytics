@@ -359,6 +359,7 @@ def launch():
               'LAUNCH_Q_qclusterer', 'LAUNCH_Q_qextract','LAUNCH_SCHEDULER']
     for k in envars:
         os.environ[k] = "1"
+    os.environ['MEDIA_BUCKET'] = 'aub3dvatest'
     launch_workers_and_scheduler_from_environment(False)
 
 

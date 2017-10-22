@@ -7,10 +7,8 @@ from botocore.exceptions import ClientError
 
 if settings.MEDIA_BUCKET:
     S3 = boto3.resource('s3')
-    BUCKET = S3.Bucket(settings.MEDIA_BUCKET)
 else:
     S3 = None
-    BUCKET = None
 
 def handle_downloaded_file(downloaded, video, name):
     video.name = name
@@ -400,4 +398,4 @@ def get_sync_paths(dirname,task_id):
 
 def upload_file_to_remote(fpath):
     with open('{}{}'.format(settings.MEDIA_ROOT,fpath),'rb') as body:
-        BUCKET.put_object(Key=fpath, Body=body)
+        S3.Object(settings.MEDIA_BUCKET,fpath.strip('/')).put(Body=body)

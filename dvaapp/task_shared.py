@@ -402,3 +402,20 @@ def get_sync_paths(dirname,task_id):
 def upload_file_to_remote(fpath):
     with open('{}{}'.format(settings.MEDIA_ROOT,fpath),'rb') as body:
         S3.Object(settings.MEDIA_BUCKET,fpath.strip('/')).put(Body=body)
+
+
+def upload(dirname,event_id,video_id):
+    if dirname:
+        fnames = get_sync_paths(dirname, event_id)
+        logging.info("Syncing {} containing {} files".format(dirname, len(fnames)))
+        for fp in fnames:
+            upload_file_to_remote(fp)
+    else:
+        logging.info("Syncing entire directory for {}".format(video_id))
+        src = '{}/{}/'.format(settings.MEDIA_ROOT, video_id)
+        dest = 's3://{}/{}/'.format(settings.MEDIA_BUCKET, video_id)
+        command = " ".join(['aws', 's3', 'sync', '--quiet', src, dest])
+        syncer = subprocess.Popen(['aws', 's3', 'sync', '--quiet', '--size-only', src, dest])
+        syncer.wait()
+        if syncer.returncode != 0:
+            raise ValueError,"Error while executing : {}".format(command)

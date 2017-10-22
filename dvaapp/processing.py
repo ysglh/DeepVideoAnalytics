@@ -13,6 +13,7 @@ except ImportError:
 from django.apps import apps
 from models import Video,DVAPQL,TEvent,DeepModel,Retriever
 from celery.result import AsyncResult
+import task_shared
 import queuing
 
 
@@ -153,7 +154,11 @@ def process_next(task_id,inject_filters=None,custom_next_tasks=None,sync=True,la
     next_tasks = dt.arguments.get('next_tasks',[]) if dt.arguments and launch_next else []
     if sync and settings.MEDIA_BUCKET:
         for k in SYNC_TASKS.get(dt.operation,[]):
-            launched += launch_tasks(k,dt,inject_filters,None,'sync')
+            if settings.DISABLE_NFS:
+                dirname = k['arguments'].get('dirname',None)
+                task_shared.upload(dirname,task_id,dt.video_id)
+            else:
+                launched += launch_tasks(k,dt,inject_filters,None,'sync')
     for k in next_tasks+custom_next_tasks:
         map_filters = get_map_filters(k,dt.video)
         launched += launch_tasks(k, dt, inject_filters,map_filters,'next_tasks')

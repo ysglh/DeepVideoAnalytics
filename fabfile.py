@@ -359,7 +359,10 @@ def launch():
               'LAUNCH_Q_qclusterer', 'LAUNCH_Q_qextract','LAUNCH_SCHEDULER']
     for k in envars:
         os.environ[k] = "1"
-    os.environ['MEDIA_BUCKET'] = 'aub3dvatest'
+    if sys.platform == 'darwin':
+        os.environ['MEDIA_BUCKET'] = 'aub3dvatest'
+        os.environ['DISABLE_NFS'] = '1'
+
     launch_workers_and_scheduler_from_environment(False)
 
 
@@ -949,3 +952,8 @@ def capture_stream(url="https://www.youtube.com/watch?v=vpm16w3ik0g"):
             "This code uses os.system and is a huge security risk if url is malicious shell string. Type yes to confirm>>") == "yes":
         print command
         os.system(command)
+
+
+@task
+def clear_test_bucket():
+    local('aws s3 rm --recursive s3://aub3dvatest')

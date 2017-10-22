@@ -4,11 +4,14 @@ from django.conf import settings
 from PIL import Image
 from . import serializers
 from botocore.exceptions import ClientError
+import errno
 
 if settings.MEDIA_BUCKET:
     S3 = boto3.resource('s3')
+    BUCKET = S3.Bucket(settings.MEDIA_BUCKET)
 else:
     S3 = None
+    BUCKET = None
 
 def handle_downloaded_file(downloaded, video, name):
     video.name = name
@@ -419,3 +422,37 @@ def upload(dirname,event_id,video_id):
         syncer.wait()
         if syncer.returncode != 0:
             raise ValueError,"Error while executing : {}".format(command)
+
+
+def ensure_files(target,queryset):
+    dirnames = {}
+    if target == 'frames':
+        for k in queryset:
+            ensure(k.path(),dirnames)
+    elif target == 'regions':
+        for k in queryset:
+            if k.materialized:
+                raise NotImplementedError
+            else:
+                raise NotImplementedError
+    elif target == 'segments':
+        raise NotImplementedError
+    elif target == 'indexes':
+        raise NotImplementedError
+
+
+def ensure(path,dirnames=None):
+    if dirnames is None:
+        dirnames = {}
+    dlpath = "{}{}".format(settings.MEDIA_ROOT,path)
+    dirname = os.path.dirname(dlpath)
+    if os.path.isfile(dlpath):
+        return True
+    else:
+        if  dirname not in dirnames and not os.path.exists(dirname):
+            try:
+                os.makedirs(os.path.dirname(dlpath))
+            except OSError as e:
+                if e.errno != errno.EEXIST:
+                    raise
+            BUCKET.download_file(path.strip('/'),dlpath)

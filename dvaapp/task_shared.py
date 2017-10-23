@@ -455,3 +455,24 @@ def ensure(path,dirnames=None):
                 if e.errno != errno.EEXIST:
                     raise
             BUCKET.download_file(path.strip('/'),dlpath)
+
+
+def import_regions_json(regions_json,video_id,event_id):
+    fname_to_pk = { df.name : df.pk for df in Frame.objects.filter(video_id=video_id)}
+    regions = []
+    for k in regions_json:
+        if k['target'] == 'filename':
+            r = Region()
+            r.frame_id = fname_to_pk[k['filename']]
+            r.video_id = video_id
+            r.event_id = event_id
+            r.x = k['x']
+            r.y = k['y']
+            r.w = k['w']
+            r.h = k['h']
+            r.metadata = k['metadata']
+            r.text = k['text']
+        else:
+            raise ValueError
+    Region.objects.bulk_create(regions,1000)
+    raise NotImplementedError

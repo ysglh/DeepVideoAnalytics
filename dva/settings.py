@@ -89,7 +89,7 @@ INSTALLED_APPS = [
                      'crispy_forms',
                      'rest_framework.authtoken',
                      'django_celery_beat'
-                 ] + (['dvap', ] if DVA_PRIVATE_ENABLE else [])+ (['debug_toolbar'] if MACOS and DEBUG else [])
+                 ] + (['dvap', ] if DVA_PRIVATE_ENABLE else [])+ (['debug_toolbar'] if DEV_ENV and DEBUG else [])
 
 
 MIDDLEWARE_CLASSES = [
@@ -104,7 +104,7 @@ MIDDLEWARE_CLASSES = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-if MACOS and DEBUG:
+if DEV_ENV and DEBUG:
     MIDDLEWARE_CLASSES = ['debug_toolbar.middleware.DebugToolbarMiddleware',] +MIDDLEWARE_CLASSES
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_METHODS = ('POST', 'GET',)

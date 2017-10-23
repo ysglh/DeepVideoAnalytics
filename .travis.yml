@@ -52,7 +52,7 @@ before_script:
   - cd repos/lopq/python && python setup.py install && cd ../../..
   - python manage.py migrate
   - python manage.py runserver 8000 &
-  - cd tests && wget --quiet https://www.dropbox.com/s/xwbk5g1qit5s9em/WorldIsNotEnough.mp4 && cd ..
+  - cd tests && wget --quiet https://www.dropbox.com/s/t4bgkh2w2ow8o10/WorldIsNotEnough.mp4 && cd ..
   - cd dvalib/crfasrnn/cpp && ./compile.sh && cd ../../..
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"

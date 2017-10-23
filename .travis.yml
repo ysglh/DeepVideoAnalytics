@@ -33,7 +33,7 @@ env:
 before_install:
   - sudo apt-get -qq update
   - wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-64bit-static.tar.xz && tar xvfJ ffmpeg-release-64bit-static.tar.xz
-  - sudp mv ffmpeg*/* /bin/
+  - sudo mv ffmpeg*/* /bin/
   - sudo apt-get -qq install -y pkg-config python-dev unzip swig3.0 libopencv-dev libhdf5-dev python-pip libav-tools libjpeg-dev  libpng-dev  libtiff-dev  libjasper-dev  python-numpy python-scipy  python-pycurl  python-opencv
   - sudo dpkg -L python-opencv
   - sudo wget --quiet https://yt-dl.org/downloads/latest/youtube-dl -O /bin/youtube-dl

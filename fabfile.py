@@ -180,18 +180,23 @@ def ci():
             arguments = {'detector': 'face'}
             dt = TEvent.objects.create(video=v, arguments=arguments)
             perform_detection(dt.pk)
+            print "done perform_detection"
             arguments = {'filters': {'event_id': dt.pk}, }
             perform_transformation(TEvent.objects.create(video=v, arguments=arguments).pk)
+            print "done perform_transformation"
             # coco_mobilenet
             arguments = {'detector': 'coco'}
             dt = TEvent.objects.create(video=v, arguments=arguments)
             perform_detection(dt.pk)
+            print "done perform_detection"
             arguments = {'filters': {'event_id': dt.pk}, }
             perform_transformation(TEvent.objects.create(video=v, arguments=arguments).pk)
+            print "done perform_transformation"
             # inception on crops from detector
             arguments = {'index': 'inception', 'target': 'regions',
                          'filters': {'event_id': dt.pk, 'w__gte': 50, 'h__gte': 50}}
             perform_indexing(TEvent.objects.create(video=v, arguments=arguments).pk)
+            print "done perform_indexing"
             # assign_open_images_text_tags_by_id(TEvent.objects.create(video=v).pk)
         temp = TEvent.objects.create(video=v, arguments={'destination': "FILE"})
         perform_export(temp.pk)

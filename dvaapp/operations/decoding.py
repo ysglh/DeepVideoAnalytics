@@ -83,7 +83,7 @@ class VideoDecoder(object):
             self.width = float(self.metadata['streams'][0]['width'])
             self.height = float(self.metadata['streams'][0]['height'])
         except:
-            raise ValueError,str(self.metadata)
+            raise ValueError,"{} : {}".format(self.local_path,str(output))
         self.dvideo.metadata = self.metadata
         self.dvideo.length_in_seconds = self.duration
         self.dvideo.height = self.height

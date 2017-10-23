@@ -93,7 +93,7 @@ def clean():
     django.setup()
     from django.conf import settings
     from dvaapp import queuing
-    if sys.platform == 'darwin':
+    if settings.DEV_ENV:
         for qname in set(queuing.TASK_NAMES_TO_QUEUE.values()):
             try:
                 local('rabbitmqadmin purge queue name={}'.format(qname))
@@ -106,7 +106,7 @@ def clean():
     migrate()
     local("rm -rf {}/*".format(settings.MEDIA_ROOT))
     local("mkdir {}/queries".format(settings.MEDIA_ROOT))
-    if sys.platform == 'darwin':
+    if settings.DEV_ENV:
         local("rm logs/*.log")
         try:
             local("ps auxww | grep 'celery -A dva' | awk '{print $2}' | xargs kill -9")
@@ -115,7 +115,7 @@ def clean():
     init_fs()
     init_server()
     init_models()
-    if sys.platform == 'darwin':
+    if settings.DEV_ENV:
         superu()
 
 
@@ -161,12 +161,8 @@ def ci():
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")
         handle_uploaded_file(f, name, False)
-    if sys.platform != 'darwin':
-        for fname in glob.glob('tests/*.mp4'):
-            name = fname.split('/')[-1].split('.')[0]
-            f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")
-            handle_uploaded_file(f, name, False)
-        for fname in glob.glob('tests/*.zip'):
+    if settings.DEV_ENV:
+        for fname in glob.glob('tests/ci/*.zip'):
             name = fname.split('/')[-1].split('.')[0]
             f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
             handle_uploaded_file(f, name)
@@ -222,7 +218,7 @@ def ci():
     perform_retriever_creation(clustering_task.pk)
     query_dict = {
         'process_type': DVAPQL.QUERY,
-        'image_data_b64': base64.encodestring(file('tests/query.png').read()),
+        'image_data_b64': base64.encodestring(file('tests/queries/query.png').read()),
         'tasks': [
             {
                 'operation': 'perform_indexing',
@@ -267,7 +263,7 @@ def ci_search():
     launch_workers_and_scheduler_from_environment()
     query_dict = {
         'process_type': DVAPQL.QUERY,
-        'image_data_b64': base64.encodestring(file('tests/query.png').read()),
+        'image_data_b64': base64.encodestring(file('tests/queries/query.png').read()),
         'tasks': [
             {
                 'operation': 'perform_indexing',
@@ -519,7 +515,7 @@ def download_model(root_dir, model_type_dir_name, model_dir_name, model_json):
                 pass
             else: # On the shared FS the which creates the DIR gets to download
                 if sys.platform == 'darwin':
-                    local("cd {} && cp /users/aub3/Dropbox/shared/{} .".format(model_dir_name, filename))
+                    local("cd {} && cp /users/aub3/shared/{} .".format(model_dir_name, filename))
                 else:
                     local("cd {} && wget --quiet {}".format(model_dir_name, url))
                 if 'additional_files' in model_json:
@@ -527,7 +523,7 @@ def download_model(root_dir, model_type_dir_name, model_dir_name, model_json):
                         url = m['url']
                         filename = m['filename']
                         if sys.platform == 'darwin':
-                            local("cd {} && cp /users/aub3/Dropbox/shared/{} .".format(model_dir_name,filename))
+                            local("cd {} && cp /users/aub3/shared/{} .".format(model_dir_name,filename))
                         else:
                             local("cd {} && wget --quiet {}".format(model_dir_name, url))
 
@@ -636,11 +632,11 @@ def test():
     django.setup()
     from django.core.files.uploadedfile import SimpleUploadedFile
     from dvaui.view_shared import handle_uploaded_file, handle_video_url
-    for fname in glob.glob('tests/*.mp4'):
+    for fname in glob.glob('tests/ci/*.mp4'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")
         handle_uploaded_file(f, name)
-    for fname in glob.glob('tests/*.zip'):
+    for fname in glob.glob('tests/ci/*.zip'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
         handle_uploaded_file(f, name)
@@ -835,11 +831,12 @@ def qt():
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/mp4")
         _ = handle_uploaded_file(f, name)
-    for fname in glob.glob('tests/example*.zip'):
+        break
+    for fname in glob.glob('tests/ci/example*.zip'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
         _ = handle_uploaded_file(f, name)
-
+        break
 
 @task
 def qt_lopq():

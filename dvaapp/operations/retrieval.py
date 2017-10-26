@@ -51,11 +51,7 @@ class RetrieverTask(celery.Task):
         visual_index = RetrieverTask._visual_retriever[dr.pk]
         for index_entry in index_entries:
             if index_entry.pk not in visual_index.loaded_entries and index_entry.count > 0:
-                fname = "{}/{}/indexes/{}".format(settings.MEDIA_ROOT, index_entry.video_id,
-                                                  index_entry.features_file_name)
-                vectors = indexer.np.load(fname)
-                vector_entries = json.load(file("{}/{}/indexes/{}".format(settings.MEDIA_ROOT, index_entry.video_id,
-                                                                          index_entry.entries_file_name)))
+                vectors, vector_entries = index_entry.load_index()
                 logging.info("Starting {} in {} with shape {}".format(index_entry.video_id, visual_index.name,vectors.shape))
                 start_index = visual_index.findex
                 try:

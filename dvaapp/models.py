@@ -4,7 +4,10 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.postgres.fields import ArrayField, JSONField
 from django.conf import settings
-
+try:
+    import numpy as np
+except ImportError:
+    pass
 
 class VDNServer(models.Model):
     """
@@ -461,6 +464,18 @@ class IndexEntries(models.Model):
             return "{}/{}/indexes/{}".format(media_root, self.video_id, self.entries_file_name)
         else:
             return "{}/{}/indexes/{}".format(settings.MEDIA_ROOT, self.video_id, self.entries_file_name)
+
+    def load_index(self,media_root=None):
+        if media_root is None:
+            media_root = settings.MEDIA_ROOT
+        index_dir = "{}/{}/indexes".format(media_root, self.video_id)
+        if not os.path.isdir(index_dir):
+            os.mkdir(index_dir)
+        fname = "{}/{}/indexes/{}".format(media_root, self.video_id, self.features_file_name)
+        entries_fname = "{}/{}/indexes/{}".format(media_root, self.video_id, self.entries_file_name)
+        vectors = np.load(fname)
+        vector_entries = json.load(file(entries_fname))
+        return vectors,vector_entries
 
 
 class Tube(models.Model):

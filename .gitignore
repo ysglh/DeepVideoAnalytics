@@ -64,7 +64,7 @@ notes/*.mov
 /marketing/
 /marketing/private_static/
 *.mov
-
+creds.json
 /shared/ctpn_trained_model.caffemodel
 /dvalib/yolo/yolo.weights
 /dvalib/yolo/model_data/yolo.h5

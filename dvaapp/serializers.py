@@ -203,6 +203,12 @@ class QueryResultsExportSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class TaskExportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TEvent
+        fields = '__all__'
+
+
 class QueryRegionResultsExportSerializer(serializers.ModelSerializer):
     class Meta:
         model = QueryRegionResults
@@ -272,10 +278,11 @@ class QueryRegionExportSerializer(serializers.ModelSerializer):
 class DVAPQLSerializer(serializers.HyperlinkedModelSerializer):
     query_regions = QueryRegionExportSerializer(source='queryregion_set', read_only=True, many=True)
     query_results = QueryResultsExportSerializer(source='queryresults_set', read_only=True, many=True)
+    tasks = TaskExportSerializer(source='tevent_set', read_only=True, many=True)
 
     class Meta:
         model = DVAPQL
-        fields =('process_type', 'created', 'user', 'image_data', 'script',
+        fields =('process_type', 'created', 'user', 'image_data', 'script','tasks',
                  'results_metadata', 'results_available', 'completed','query_regions','query_results','id')
 
 

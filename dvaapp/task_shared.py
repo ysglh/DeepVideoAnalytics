@@ -4,14 +4,8 @@ from django.conf import settings
 from PIL import Image
 from . import serializers
 from botocore.exceptions import ClientError
-import errno
+from .fs import ensure,upload_file_to_remote
 
-if settings.MEDIA_BUCKET:
-    S3 = boto3.resource('s3')
-    BUCKET = S3.Bucket(settings.MEDIA_BUCKET)
-else:
-    S3 = None
-    BUCKET = None
 
 def handle_downloaded_file(downloaded, video, name):
     video.name = name
@@ -400,12 +394,6 @@ def get_sync_paths(dirname,task_id):
         raise NotImplementedError,"dirname : {} not configured".format(dirname)
     return f
 
-
-def upload_file_to_remote(fpath):
-    with open('{}{}'.format(settings.MEDIA_ROOT,fpath),'rb') as body:
-        S3.Object(settings.MEDIA_BUCKET,fpath.strip('/')).put(Body=body)
-
-
 def upload(dirname,event_id,video_id):
     if dirname:
         fnames = get_sync_paths(dirname, event_id)
@@ -438,24 +426,6 @@ def ensure_files(target,queryset):
         raise NotImplementedError
     elif target == 'indexes':
         raise NotImplementedError
-
-
-def ensure(path,dirnames=None):
-    if dirnames is None:
-        dirnames = {}
-    dlpath = "{}{}".format(settings.MEDIA_ROOT,path)
-    dirname = os.path.dirname(dlpath)
-    if os.path.isfile(dlpath):
-        return True
-    else:
-        if  dirname not in dirnames and not os.path.exists(dirname):
-            try:
-                os.makedirs(os.path.dirname(dlpath))
-            except OSError as e:
-                if e.errno != errno.EEXIST:
-                    raise
-            BUCKET.download_file(path.strip('/'),dlpath)
-
 
 def import_regions_json(regions_json,video_id,event_id):
     fname_to_pk = { df.name : df.pk for df in Frame.objects.filter(video_id=video_id)}

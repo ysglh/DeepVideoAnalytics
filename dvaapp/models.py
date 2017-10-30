@@ -4,6 +4,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.postgres.fields import ArrayField, JSONField
 from django.conf import settings
+from .fs import ensure
 try:
     import numpy as np
 except ImportError:
@@ -468,11 +469,17 @@ class IndexEntries(models.Model):
     def load_index(self,media_root=None):
         if media_root is None:
             media_root = settings.MEDIA_ROOT
+        video_dir = "{}/{}".format(media_root, self.video_id)
+        if not os.path.isdir(video_dir):
+            os.mkdir(video_dir)
         index_dir = "{}/{}/indexes".format(media_root, self.video_id)
         if not os.path.isdir(index_dir):
             os.mkdir(index_dir)
+        dirnames = {}
         fname = "{}/{}/indexes/{}".format(media_root, self.video_id, self.features_file_name)
         entries_fname = "{}/{}/indexes/{}".format(media_root, self.video_id, self.entries_file_name)
+        ensure(fname,dirnames,'')
+        ensure(entries_fname,dirnames,'')
         vectors = np.load(fname)
         vector_entries = json.load(file(entries_fname))
         return vectors,vector_entries

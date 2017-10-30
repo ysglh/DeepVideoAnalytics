@@ -476,12 +476,10 @@ class IndexEntries(models.Model):
         if not os.path.isdir(index_dir):
             os.mkdir(index_dir)
         dirnames = {}
-        fname = "{}/{}/indexes/{}".format(media_root, self.video_id, self.features_file_name)
-        entries_fname = "{}/{}/indexes/{}".format(media_root, self.video_id, self.entries_file_name)
-        ensure(fname,dirnames,'')
-        ensure(entries_fname,dirnames,'')
-        vectors = np.load(fname)
-        vector_entries = json.load(file(entries_fname))
+        ensure(self.entries_path(media_root=''),dirnames,media_root)
+        ensure(self.npy_path(media_root=''),dirnames,media_root)
+        vectors = np.load(self.npy_path(media_root))
+        vector_entries = json.load(file(self.entries_path(media_root)))
         return vectors,vector_entries
 
 

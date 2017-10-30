@@ -411,20 +411,26 @@ def upload(dirname,event_id,video_id):
             raise ValueError,"Error while executing : {}".format(command)
 
 
-def ensure_files(target,queryset):
+def ensure_files(queryset, target):
     dirnames = {}
     if target == 'frames':
         for k in queryset:
-            ensure(k.path(),dirnames)
+            ensure(k.path(media_root=''),dirnames)
     elif target == 'regions':
         for k in queryset:
             if k.materialized:
-                raise NotImplementedError
+                ensure(k.path(media_root=''), dirnames)
             else:
-                raise NotImplementedError
+                ensure(k.frame_path(media_root=''), dirnames)
     elif target == 'segments':
-        raise NotImplementedError
+        for k in queryset:
+            ensure(k.path(),dirnames)
+            ensure(k.framelist_path(media_root=''), dirnames)
     elif target == 'indexes':
+        for k in queryset:
+            ensure(k.npy_path(media_root=''), dirnames)
+            ensure(k.entries_path(media_root=''), dirnames)
+    else:
         raise NotImplementedError
 
 def import_regions_json(regions_json,video_id,event_id):

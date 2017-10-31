@@ -275,9 +275,10 @@ def build_queryset(args,video_id=None,query_id=None):
         queryset = QueryRegion.objects.all().filter(**kwargs)
     elif target == 'query_region_index_vectors':
         queryset = QueryRegionIndexVector.objects.all().filter(**kwargs)
+    elif target == 'segments':
+        queryset = Segment.objects.filter(**kwargs)
     else:
-        queryset = None
-        raise ValueError
+        raise ValueError("target {} not found".format(target))
     return queryset,target
 
 

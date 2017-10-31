@@ -272,7 +272,7 @@ def perform_detection(task_id):
     frame_detections_list = []
     dv = None
     dd_list = []
-    query_flow = args['target'] == 'query'
+    query_flow = ('target' in args and args['target'] == 'query')
     if 'detector_pk' in args:
         detector_pk = int(args['detector_pk'])
         cd = DeepModel.objects.get(pk=detector_pk,model_type=DeepModel.DETECTOR)
@@ -290,6 +290,8 @@ def perform_detection(task_id):
         local_path = task_shared.download_and_get_query_path(start)
         frame_detections_list.append((None,detector.detect(local_path)))
     else:
+        if 'target' not in args:
+            args['target'] = 'frames'
         dv = Video.objects.get(id=video_id)
         queryset, target = task_shared.build_queryset(args, video_id, start.parent_process_id)
         task_shared.ensure_files(queryset,target)

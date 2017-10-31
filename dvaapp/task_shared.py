@@ -425,7 +425,7 @@ def ensure_files(queryset, target):
                 ensure(k.frame_path(media_root=''), dirnames)
     elif target == 'segments':
         for k in queryset:
-            ensure(k.path(),dirnames)
+            ensure(k.path(media_root=''),dirnames)
             ensure(k.framelist_path(media_root=''), dirnames)
     elif target == 'indexes':
         for k in queryset:

@@ -21,13 +21,16 @@ def ensure(path,dirnames=None,media_root=None):
     if os.path.isfile(dlpath):
         return True
     else:
-        if  dirname not in dirnames and not os.path.exists(dirname):
+        if dirname not in dirnames and not os.path.exists(dirname):
             try:
                 os.makedirs(os.path.dirname(dlpath))
             except OSError as e:
                 if e.errno != errno.EEXIST:
                     raise
-            BUCKET.download_file(path.strip('/'),dlpath)
+            try:
+                BUCKET.download_file(path.strip('/'),dlpath)
+            except:
+                raise ValueError("path:{} dlpath:{}".format(path,dlpath))
 
 
 def upload_file_to_remote(fpath):

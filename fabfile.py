@@ -520,7 +520,7 @@ def download_model(root_dir, model_type_dir_name, model_dir_name, model_json):
                 pass
             else: # On the shared FS the which creates the DIR gets to download
                 if sys.platform == 'darwin':
-                    local("cd {} && cp /users/aub3/shared/{} .".format(model_dir_name, filename))
+                    local("cd {} && cp /users/aub3/DeepVideoAnalytics/shared/{} .".format(model_dir_name, filename))
                 else:
                     local("cd {} && wget --quiet {}".format(model_dir_name, url))
                 if 'additional_files' in model_json:
@@ -528,7 +528,7 @@ def download_model(root_dir, model_type_dir_name, model_dir_name, model_json):
                         url = m['url']
                         filename = m['filename']
                         if sys.platform == 'darwin':
-                            local("cd {} && cp /users/aub3/shared/{} .".format(model_dir_name,filename))
+                            local("cd {} && cp /users/aub3/DeepVideoAnalytics/shared/{} .".format(model_dir_name,filename))
                         else:
                             local("cd {} && wget --quiet {}".format(model_dir_name, url))
 

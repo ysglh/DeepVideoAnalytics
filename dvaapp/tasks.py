@@ -67,8 +67,8 @@ def perform_indexing(task_id):
         # can be replaced by Redis instead of using DB
         _ = QueryIndexVector.objects.create(vector=s.getvalue(),event=start)
         sync = False
-    if target == 'query_regions':
-        queryset, target = task_shared.build_queryset(args=start.arguments, )
+    elif target == 'query_regions':
+        queryset, target = task_shared.build_queryset(args=start.arguments)
         region_paths = task_shared.download_and_get_query_region_path(start, queryset)
         for i,dr in enumerate(queryset):
             local_path = region_paths[i]
@@ -80,6 +80,7 @@ def perform_indexing(task_id):
         sync = False
     else:
         queryset, target = task_shared.build_queryset(args=start.arguments, video_id=start.video_id)
+        task_shared.ensure_files(queryset, target)
         perform_indexing.index_queryset(di,visual_index,start,target,queryset)
     next_ids = process_next(task_id,sync=sync)
     mark_as_completed(start)
@@ -218,7 +219,11 @@ def perform_video_decode(task_id):
     kwargs = args.get('filters',{})
     kwargs['video_id'] = video_id
     v = VideoDecoder(dvideo=dv, media_dir=settings.MEDIA_ROOT)
-    for ds in Segment.objects.filter(**kwargs):
+    target,queryset = task_shared.build_queryset(args,video_id,start.parent_process_id)
+    if target != 'segments':
+        raise NotImplementedError("Cannot decode target:{}".format(target))
+    task_shared.ensure_files(queryset,target)
+    for ds in queryset:
         v.decode_segment(ds=ds,denominator=args['rate'],event_id=task_id)
     process_next(task_id)
     mark_as_completed(start)
@@ -265,7 +270,7 @@ def perform_detection(task_id):
     frame_detections_list = []
     dv = None
     dd_list = []
-    query_flow = (video_id is None) and (args['target'] == 'query')
+    query_flow = args['target'] == 'query'
     if 'detector_pk' in args:
         detector_pk = int(args['detector_pk'])
         cd = DeepModel.objects.get(pk=detector_pk,model_type=DeepModel.DETECTOR)
@@ -279,23 +284,21 @@ def perform_detection(task_id):
     if detector.session is None:
         logging.info("loading detection model")
         detector.load()
-    if video_id:
-        dv = Video.objects.get(id=video_id)
-        if 'filters' in args:
-            kwargs = args['filters']
-            kwargs['video_id'] = video_id
-            frames = Frame.objects.all().filter(**kwargs)
-            logging.info("Running {} Using filters {}".format(detector_name,kwargs))
-        else:
-            frames = Frame.objects.all().filter(video=dv)
-        for df in frames:
-            local_path = df.path()
-            frame_detections_list.append((df,detector.detect(local_path)))
-    elif query_flow:
+    if query_flow:
         local_path = task_shared.download_and_get_query_path(start)
         frame_detections_list.append((None,detector.detect(local_path)))
     else:
-        raise ValueError,"Video_id is null, nor the target is a query"
+        dv = Video.objects.get(id=video_id)
+        queryset, target = task_shared.build_queryset(args, video_id, start.parent_process_id)
+        task_shared.ensure_files(queryset,target)
+        for k in queryset:
+            if target == 'frames':
+                local_path = k.path()
+            elif target == 'regions':
+                local_path = k.frame_path()
+            else:
+                raise NotImplementedError("Invalid target:{}".format(target))
+            frame_detections_list.append((k, detector.detect(local_path)))
     for df,detections in frame_detections_list:
         for d in detections:
             dd = QueryRegion() if query_flow else Region()
@@ -360,8 +363,10 @@ def perform_analysis(task_id):
     query_regions_paths = None
     if target == 'query':
         query_path = task_shared.download_and_get_query_path(start)
-    if target == 'query_regions':
+    elif target == 'query_regions':
         query_regions_paths = task_shared.download_and_get_query_region_path(start, queryset)
+    else:
+        task_shared.ensure_files(queryset, target)
     image_data = {}
     temp_root = tempfile.mkdtemp()
     for i,f in enumerate(queryset):

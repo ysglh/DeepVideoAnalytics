@@ -219,6 +219,8 @@ def perform_video_decode(task_id):
     kwargs = args.get('filters',{})
     kwargs['video_id'] = video_id
     v = VideoDecoder(dvideo=dv, media_dir=settings.MEDIA_ROOT)
+    if 'target' not in args:
+        args['target'] = 'segments'
     target,queryset = task_shared.build_queryset(args,video_id,start.parent_process_id)
     if target != 'segments':
         raise NotImplementedError("Cannot decode target:{}".format(target))

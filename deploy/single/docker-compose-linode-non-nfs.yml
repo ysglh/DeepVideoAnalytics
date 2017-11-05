@@ -1,0 +1,97 @@
+# specify using docker-compose -f docker-compose-deploy.yml up
+ version: '3'
+ services:
+   db:
+     image: postgres
+     container_name: dva-pg
+     volumes:
+      - dvapgdata:/var/lib/postgresql/data
+     environment:
+       - POSTGRES_USER=pgdbuser
+       - POSTGRES_PASSWORD=pgdbpass
+   rabbit:
+     image: rabbitmq
+     container_name: dva-rmq
+     environment:
+       - RABBITMQ_DEFAULT_USER=dvauser
+       - RABBITMQ_DEFAULT_PASS=localpass
+     volumes:
+       - dvarabbit:/var/lib/rabbitmq
+   dva-web:
+     image: akshayubhat/dva-auto:latest
+     container_name: dva-webserver
+     environment:
+       - DOCKER_MODE=true
+       - RABBIT_HOST=rabbit
+       - RABBIT_USER=dvauser
+       - RABBIT_PASS=localpass
+       - DB_HOST=db
+       - DB_NAME=postgres
+       - DB_USER=pgdbuser
+       - DB_PASS=pgdbpass
+       - LAUNCH_SERVER_NGINX=1
+       - DISABLE_DEBUG=1
+       - MEDIA_BUCKET=aub3dvatest
+       - SECRET_KEY=283y312bhv2b13v13
+       - TEST=1
+     command: bash -c "youtube-dl -U && git pull && sleep 10 && fab migrate && fab start_container:server"
+     ports:
+       - "127.0.0.1:8000:80" # Since Docker messes up iptables, ufw has no effect as a result bind to localhost and tunnel / Port forward through SSH
+     depends_on:
+       - db
+       - rabbit
+     volumes:
+       - dvadata_1:/root/DVA/dva/media
+   dva-extract:
+     image: akshayubhat/dva-auto:latest
+     container_name: dva-extract
+     environment:
+       - DOCKER_MODE=true
+       - RABBIT_HOST=rabbit
+       - RABBIT_USER=dvauser
+       - RABBIT_PASS=localpass
+       - DB_HOST=db
+       - DB_NAME=postgres
+       - DB_USER=pgdbuser
+       - DB_PASS=pgdbpass
+       - DISABLE_DEBUG=1
+       - MEDIA_BUCKET=aub3dvatest
+       - SECRET_KEY=283y312bhv2b13v13
+       - LAUNCH_Q_qclusterer=1
+       - LAUNCH_Q_qextract=1
+       - LAUNCH_SCHEDULER=1
+       - TEST=1
+     command: bash -c "youtube-dl -U && git pull && sleep 60 && fab migrate && fab start_container:worker"
+     depends_on:
+       - db
+       - rabbit
+     volumes:
+       - dvadata_2:/root/DVA/dva/media
+   dva-caffe:
+     image: akshayubhat/dva-auto:caffe-cpu
+     container_name: dva-caffe
+     environment:
+       - DOCKER_MODE=true
+       - RABBIT_HOST=rabbit
+       - RABBIT_USER=dvauser
+       - RABBIT_PASS=localpass
+       - MEDIA_BUCKET=aub3dvatest
+       - DB_HOST=db
+       - DB_NAME=postgres
+       - DB_USER=pgdbuser
+       - DB_PASS=pgdbpass
+       - LAUNCH_BY_NAME_detector_textbox=1
+       - CAFFE_MODE=1
+     command: bash -c "sleep 60 && git pull && fab start_container:worker"
+     depends_on:
+       - db
+       - rabbit
+     volumes:
+       - dvadata:/root/DVA/dva/media
+ volumes:
+  dvapgdata:
+  dvadata_1:
+  dvadata_3:
+  dvadata_2:
+  dvadata_4:
+  dvarabbit:

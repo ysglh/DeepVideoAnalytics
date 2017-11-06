@@ -131,29 +131,6 @@ def handle_uploaded_file(f, name, extract=True, user=None, rate=None, rescale=No
     return video
 
 
-def handle_downloaded_file(downloaded, video, name):
-    video.name = name
-    video.save()
-    filename = downloaded.split('/')[-1]
-    if filename.endswith('.dva_export.zip'):
-        video.create_directory(create_subdirs=False)
-        os.rename(downloaded, '{}/{}/{}.{}'.format(settings.MEDIA_ROOT, video.pk, video.pk, filename.split('.')[-1]))
-        video.uploaded = True
-        video.save()
-        import_local(video)
-    elif filename.endswith('.mp4') or filename.endswith('.flv') or filename.endswith('.zip'):
-        video.create_directory(create_subdirs=True)
-        os.rename(downloaded,
-                  '{}/{}/video/{}.{}'.format(settings.MEDIA_ROOT, video.pk, video.pk, filename.split('.')[-1]))
-        video.uploaded = True
-        if filename.endswith('.zip'):
-            video.dataset = True
-        video.save()
-    else:
-        raise ValueError, "Extension {} not allowed".format(filename.split('.')[-1])
-    return video
-
-
 def create_annotation(form, object_name, labels, frame):
     annotation = Region()
     annotation.object_name = object_name

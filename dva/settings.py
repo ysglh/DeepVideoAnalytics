@@ -29,7 +29,7 @@ HEROKU_DEPLOY = 'HEROKU_DEPLOY' in os.environ
 DISABLE_NFS = os.environ.get('DISABLE_NFS',False)
 
 if DISABLE_NFS and (MEDIA_BUCKET is None):
-    raise EnvironmentError,"Either an NFS/Data volume or a remote S3 bucket is required!"
+    raise EnvironmentError("Either an NFS/Data volume or a remote S3 bucket is required!")
 
 # SECURITY WARNING: keep the secret key used in production secret!
 if 'SECRET_KEY' in os.environ or HEROKU_DEPLOY:
@@ -234,9 +234,15 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 MEDIA_ROOT = os.path.join(PROJECT_ROOT, 'media')
 
-if HEROKU_DEPLOY:
-    STATIC_URL = os.environ['STATIC_URL']  # ENV to set static URL on cloud UI platform
-    MEDIA_URL = os.environ.get('MEDIA_URL', '')  # ENV to set static URL on cloud UI platform
+if DISABLE_NFS:
+    if 'MEDIA_URL' not in os.environ:
+        raise EnvironmentError('If NFS is disabled please provide S3 or GCS URL to retrieve media assets')
+    else:
+        MEDIA_URL = os.environ['MEDIA_URL']
+    STATIC_URL = os.environ.get('STATIC_URL', '/static/')
+elif HEROKU_DEPLOY:
+    STATIC_URL = os.environ['STATIC_URL']
+    MEDIA_URL = os.environ['MEDIA_URL']
 else:
     STATIC_URL = '/static/'
     MEDIA_URL = '/media/'

@@ -34,6 +34,8 @@
        - LAUNCH_SERVER_NGINX=1
        - DISABLE_DEBUG=1
        - MEDIA_BUCKET=${MEDIA_BUCKET}
+       - MEDIA_URL=${MEDIA_URL}
+       - DISABLE_NFS=1
        - SECRET_KEY=283y312bhv2b13v13
        - TEST=1
      command: bash -c "youtube-dl -U && git pull && sleep 10 && fab migrate && fab start_container:server"
@@ -60,6 +62,8 @@
        - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
        - DISABLE_DEBUG=1
        - MEDIA_BUCKET=${MEDIA_BUCKET}
+       - MEDIA_URL=${MEDIA_URL}
+       - DISABLE_NFS=1
        - SECRET_KEY=283y312bhv2b13v13
        - LAUNCH_Q_qclusterer=1
        - LAUNCH_Q_qextract=1
@@ -93,6 +97,8 @@
        - LAUNCH_BY_NAME_detector_face=1
        - DISABLE_DEBUG=1
        - MEDIA_BUCKET=${MEDIA_BUCKET}
+       - MEDIA_URL=${MEDIA_URL}
+       - DISABLE_NFS=1
        - SECRET_KEY=283y312bhv2b13v13
      command: bash -c "youtube-dl -U && git pull && sleep 60 && fab start_container:worker"
      depends_on:
@@ -118,6 +124,8 @@
        - LAUNCH_BY_NAME_retriever_inception=1
        - LAUNCH_BY_NAME_retriever_facenet=1
        - MEDIA_BUCKET=${MEDIA_BUCKET}
+       - MEDIA_URL=${MEDIA_URL}
+       - DISABLE_NFS=1
        - SECRET_KEY=283y312bhv2b13v13
      command: bash -c "youtube-dl -U && git pull && sleep 60 && fab start_container:worker"
      depends_on:
@@ -134,6 +142,8 @@
        - RABBIT_USER=dvauser
        - RABBIT_PASS=localpass
        - MEDIA_BUCKET=${MEDIA_BUCKET}
+       - MEDIA_URL=${MEDIA_URL}
+       - DISABLE_NFS=1
        - DB_HOST=db
        - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
        - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}

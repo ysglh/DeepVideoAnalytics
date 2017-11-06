@@ -89,3 +89,6 @@ creds.json
 /deploy/cloud/host
 /deploy/cloud/connect.sh
 /deploy/cloud/heroku.env
+/dva/media/
+!/dva/media/gitkeep
+!/dva/media/queries/gitkeep

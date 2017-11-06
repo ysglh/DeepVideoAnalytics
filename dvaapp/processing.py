@@ -185,7 +185,7 @@ class DVAPQLProcess(object):
         with open(query_path, 'w') as fh:
             fh.write(self.process.image_data)
         if settings.HEROKU_DEPLOY or settings.DISABLE_NFS:
-            query_key = "queries/{}.png".format(self.process.pk)
+            query_key = "/queries/{}.png".format(self.process.pk)
             fs.upload_file_to_remote(query_key)
             os.remove(query_path)
 

@@ -30,6 +30,8 @@
        - DB_USER=pgdbuser
        - DB_PASS=pgdbpass
        - LAUNCH_SERVER_NGINX=1
+       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
        - DISABLE_DEBUG=1
        - MEDIA_BUCKET=aub3dvatest
        - SECRET_KEY=283y312bhv2b13v13
@@ -66,6 +68,8 @@
        - DB_NAME=postgres
        - DB_USER=pgdbuser
        - DB_PASS=pgdbpass
+       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
        - LAUNCH_BY_NAME_detector_textbox=1
        - CAFFE_MODE=1
      command: bash -c "sleep 60 && git pull && fab start_container:worker"

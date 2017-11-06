@@ -232,14 +232,13 @@ USE_TZ = True
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
+MEDIA_ROOT = os.path.join(PROJECT_ROOT, 'media')
 
 if HEROKU_DEPLOY:
     STATIC_URL = os.environ['STATIC_URL']  # ENV to set static URL on cloud UI platform
     MEDIA_URL = os.environ.get('MEDIA_URL', '')  # ENV to set static URL on cloud UI platform
-    MEDIA_ROOT = '/tmp/'
 else:
     STATIC_URL = '/static/'
-    MEDIA_ROOT = '/Users/aub3/media/' if DEV_ENV else os.path.join(PROJECT_ROOT, 'media')
     MEDIA_URL = '/media/'
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400

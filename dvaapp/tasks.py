@@ -165,7 +165,7 @@ def perform_dataset_extraction(task_id):
     start.save()
     video_id = start.video_id
     dv = Video.objects.get(id=video_id)
-    task_shared.ensure(dv.path(media_root=''))
+    task_shared.ensure('/{}/video/{}.zip'.format(video_id,video_id))
     dv.create_directory(create_subdirs=True)
     v = VideoDecoder(dvideo=dv, media_dir=settings.MEDIA_ROOT)
     v.extract(args=args,start=start)
@@ -191,11 +191,11 @@ def perform_video_segmentation(task_id):
     start.arguments = args
     video_id = start.video_id
     dv = Video.objects.get(id=video_id)
+    task_shared.ensure(dv.path(media_root=''))
+    dv.create_directory(create_subdirs=True)
     v = VideoDecoder(dvideo=dv, media_dir=settings.MEDIA_ROOT)
     v.get_metadata()
     v.segment_video(task_id)
-    task_shared.ensure(dv.path(media_root=''))
-    dv.create_directory(create_subdirs=True)
     if args.get('sync',False):
         next_args = {'rescale': args['rescale'], 'rate': args['rate']}
         next_task = TEvent.objects.create(video=dv, operation='perform_video_decode', arguments=next_args, parent=start)

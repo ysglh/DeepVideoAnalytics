@@ -1,4 +1,4 @@
-import logging, json, uuid, tempfile
+import logging, json, uuid, tempfile, os
 import celery
 from PIL import Image
 from django.conf import settings
@@ -76,6 +76,12 @@ class IndexerTask(celery.Task):
         if entries:
             features = visual_index.index_paths(paths)
             uid = str(uuid.uuid1()).replace('-','_')
+            dirname = '{}/{}/indexes/'.format(settings.MEDIA_ROOT,event.video_id)
+            if not os.path.isdir(dirname):
+                try:
+                    os.mkdir(dirname)
+                except:
+                    pass
             feat_fname = "{}/{}/indexes/{}.npy".format(settings.MEDIA_ROOT,event.video_id,uid)
             entries_fname = "{}/{}/indexes/{}.json".format(settings.MEDIA_ROOT,event.video_id,uid)
             with open(feat_fname, 'w') as feats:

@@ -6,6 +6,7 @@ from django_celery_results.models import TaskResult
 from collections import defaultdict
 from dvaapp import processing
 from dvaapp import serializers
+from dvaapp import fs
 from PIL import Image
 import defaults
 
@@ -55,6 +56,10 @@ def handle_uploaded_file(f, name, extract=True, user=None, rate=None, rescale=No
                   'wb+') as destination:
             for chunk in f.chunks():
                 destination.write(chunk)
+        if settings.DISABLE_NFS or settings.HEROKU_DEPLOY:
+            fpath = '/{}/{}.{}'.format( video.pk, video.pk, filename.split('.')[-1])
+            fs.upload_file_to_remote(fpath)
+            os.remove('{}/{}/{}.{}'.format(settings.MEDIA_ROOT, video.pk, video.pk, filename.split('.')[-1]))
         video.uploaded = True
         video.save()
         p = processing.DVAPQLProcess()
@@ -76,6 +81,10 @@ def handle_uploaded_file(f, name, extract=True, user=None, rate=None, rescale=No
                   'wb+') as destination:
             for chunk in f.chunks():
                 destination.write(chunk)
+        if settings.DISABLE_NFS or settings.HEROKU_DEPLOY:
+            fpath = '/{}/video/{}.{}'.format(video.pk, video.pk, filename.split('.')[-1])
+            fs.upload_file_to_remote(fpath)
+            os.remove('{}/{}/video/{}.{}'.format(settings.MEDIA_ROOT, video.pk, video.pk, filename.split('.')[-1]))
         video.uploaded = True
         if filename.endswith('.zip'):
             video.dataset = True

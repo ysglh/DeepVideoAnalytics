@@ -1,9 +1,10 @@
-import base64, copy
+import base64, copy, os
 from django.utils import timezone
 import json,logging
 import boto3
 from django.conf import settings
 from dva.celery import app
+from . import fs
 try:
     from dvalib import indexer, clustering, retriever
     import numpy as np
@@ -180,14 +181,13 @@ class DVAPQLProcess(object):
         self.task_results = {}
 
     def store(self):
-        if settings.HEROKU_DEPLOY:
+        query_path = "{}/queries/{}.png".format(settings.MEDIA_ROOT, self.process.pk)
+        with open(query_path, 'w') as fh:
+            fh.write(self.process.image_data)
+        if settings.HEROKU_DEPLOY or settings.DISABLE_NFS:
             query_key = "queries/{}.png".format(self.process.pk)
-            s3 = boto3.resource('s3')
-            s3.Bucket(settings.MEDIA_BUCKET).put_object(Key=query_key, Body=self.process.image_data)
-        else:
-            query_path = "{}/queries/{}.png".format(settings.MEDIA_ROOT, self.process.pk)
-            with open(query_path, 'w') as fh:
-                fh.write(self.process.image_data)
+            fs.upload_file_to_remote(query_key)
+            os.remove(query_path)
 
     def create_from_json(self, j, user=None):
         if self.process is None:

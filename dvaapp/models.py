@@ -66,16 +66,20 @@ class Video(models.Model):
             return "{}/{}/video/{}.mp4".format(settings.MEDIA_ROOT,self.pk,self.pk)
 
     def create_directory(self, create_subdirs=True):
-        os.mkdir('{}/{}'.format(settings.MEDIA_ROOT, self.pk))
+        d = '{}/{}'.format(settings.MEDIA_ROOT, self.pk)
+        if not os.path.exists(d):
+            try:
+                os.mkdir(d)
+            except OSError:
+                pass
         if create_subdirs:
-            os.mkdir('{}/{}/video/'.format(settings.MEDIA_ROOT, self.pk))
-            os.mkdir('{}/{}/frames/'.format(settings.MEDIA_ROOT, self.pk))
-            os.mkdir('{}/{}/segments/'.format(settings.MEDIA_ROOT, self.pk))
-            os.mkdir('{}/{}/indexes/'.format(settings.MEDIA_ROOT, self.pk))
-            os.mkdir('{}/{}/regions/'.format(settings.MEDIA_ROOT, self.pk))
-            os.mkdir('{}/{}/transforms/'.format(settings.MEDIA_ROOT, self.pk))
-            os.mkdir('{}/{}/audio/'.format(settings.MEDIA_ROOT, self.pk))
-
+            for s in ['video','frames','segments','indexes','regions','transforms','audio']:
+                d = '{}/{}/{}/'.format(settings.MEDIA_ROOT, self.pk, s)
+                if not os.path.exists(d):
+                    try:
+                        os.mkdir(d)
+                    except OSError:
+                        pass
 
 class IngestEntry(models.Model):
     video = models.ForeignKey(Video)

@@ -1,0 +1,19 @@
+Content-Type: multipart/mixed; boundary="==BOUNDARY=="
+MIME-Version: 1.0
+
+--==BOUNDARY==
+Content-Type: text/cloud-boothook; charset="us-ascii"
+
+# Create /efs folder
+cloud-init-per once mkdir_efs mkdir /efs
+
+--==BOUNDARY==
+Content-Type: text/x-shellscript; charset="us-ascii"
+
+#!/bin/bash
+# Set any ECS agent configuration options
+echo "ECS_CLUSTER={}" >> /etc/ecs/ecs.config
+sudo nvidia-smi -pm 1
+sudo nvidia-smi --auto-boost-default=0
+sudo nvidia-smi -ac 2505,875
+--==BOUNDARY==--

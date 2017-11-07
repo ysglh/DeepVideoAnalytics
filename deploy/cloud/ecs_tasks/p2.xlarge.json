@@ -77,6 +77,10 @@
           "value": "1"
         },
         {
+          "name": "DISABLE_NFS",
+          "value": "1"
+        },
+        {
           "name": "LAUNCH_BY_NAME_analyzer_crnn",
           "value": "1"
         },

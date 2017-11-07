@@ -10,22 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
-import os, dj_database_url, sys
+import os, dj_database_url, sys, logging
 
 DVA_PRIVATE_ENABLE = 'DVA_PRIVATE_ENABLE' in os.environ
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MEDIA_BUCKET = os.environ.get('MEDIA_BUCKET', None)
 HEROKU_DEPLOY = 'HEROKU_DEPLOY' in os.environ
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
-
-# Disable shared NFS / data volume mode
-# In this mode the DVAPQL task tree is dynamically edited and an "perform_pull" task
-# is added before each task. Further all tasks consume from two queues the default named queue
-# and a unique queue (where the task gets deferred to pending a pull from remote).
-# TODO copy implementation from private branch.
-
 DISABLE_NFS = os.environ.get('DISABLE_NFS',False)
 
 if DISABLE_NFS and (MEDIA_BUCKET is None):
@@ -234,19 +224,14 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 MEDIA_ROOT = os.path.join(PROJECT_ROOT, 'media')
 
-if DISABLE_NFS:
-    if 'MEDIA_URL' not in os.environ:
-        raise EnvironmentError('If NFS is disabled please provide S3 or GCS URL to retrieve media assets')
-    else:
-        MEDIA_URL = os.environ['MEDIA_URL']
-    STATIC_URL = os.environ.get('STATIC_URL', '/static/')
-elif HEROKU_DEPLOY:
-    STATIC_URL = os.environ['STATIC_URL']
-    MEDIA_URL = os.environ['MEDIA_URL']
-else:
-    STATIC_URL = '/static/'
-    MEDIA_URL = '/media/'
+if HEROKU_DEPLOY and ('MEDIA_URL' not in os.environ or 'STATIC_URL' not in os.environ):
+    raise EnvironmentError('Please set STATIC_URL and MEDIA_URL')
+elif DISABLE_NFS and ('LAUNCH_SERVER' in os.environ or 'LAUNCH_SERVER_NGINX' in os.environ) and 'MEDIA_URL' not in os.environ:
+    raise EnvironmentError('You must set MEDIA_URL (e.g. http://s3bucketname.s3-website-us-east-1.amazonaws.com/)'
+                           ' when launching websever in NFS disabled mode.')
 
+MEDIA_URL = os.environ.get('MEDIA_URL', '/media/')
+STATIC_URL = os.environ.get('STATIC_URL', '/static/')
 DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400
 
 STATIC_ROOT = os.path.join(PROJECT_ROOT, 'staticfiles')

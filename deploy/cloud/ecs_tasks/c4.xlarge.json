@@ -71,6 +71,10 @@
           "value": "1"
         },
         {
+          "name": "DISABLE_NFS",
+          "value": "1"
+        },
+        {
           "name": "LAUNCH_BY_NAME_retriever_facenet",
           "value": "1"
         },

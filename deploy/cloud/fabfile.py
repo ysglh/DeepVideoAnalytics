@@ -8,10 +8,10 @@ logging.basicConfig(level=logging.INFO,
                     filemode='a')
 
 try:
-    from config import KEY_FILE,AMI,IAM_ROLE,SecurityGroupId,EFS_DNS,KeyName,FLEET_ROLE,SecurityGroup,\
+    from config import KEY_FILE,AMI,IAM_ROLE,SecurityGroupId,KeyName,FLEET_ROLE,SecurityGroup,\
         CONFIG_BUCKET,ECS_AMI,ECS_ROLE,CLUSTER_NAME,ECS_GPU_AMI,GPU_CLUSTER_NAME
 except ImportError:
-    raise ImportError,"Please create config.py with KEY_FILE,AMI,IAM_ROLE,SecurityGroupId,EFS_DNS,KeyName"
+    raise ImportError,"Please create config.py with KEY_FILE,AMI,IAM_ROLE,SecurityGroupId,KeyName"
 
 env.user = "ubuntu"  # DONT CHANGE
 
@@ -38,7 +38,7 @@ def launch(gpu_count=1,cpu_count=1,cpu_price=0.1,gpu_price=0.4):
                        KeyName=KeyName,
                        SecurityGroups=[{'GroupId': SecurityGroupId},],
                        InstanceType="c4.xlarge",
-                       UserData=base64.b64encode(file('initdata/efs_ecs_bootstrap.txt').read().format(EFS_DNS,CLUSTER_NAME)),
+                       UserData=base64.b64encode(file('initdata/ecs_bootstrap.txt').read().format(CLUSTER_NAME)),
                        WeightedCapacity=float(cpu_count),
                        Placement={
                            "AvailabilityZone":"us-east-1a,us-east-1b,us-east-1c,us-east-1d,us-east-1e,us-east-1f"
@@ -48,7 +48,7 @@ def launch(gpu_count=1,cpu_count=1,cpu_price=0.1,gpu_price=0.4):
                        KeyName=KeyName,
                        SecurityGroups=[{'GroupId': SecurityGroupId},],
                        InstanceType="p2.xlarge",
-                       UserData=base64.b64encode(file('initdata/efs_ecs_bootstrap_gpu.txt').read().format(EFS_DNS,GPU_CLUSTER_NAME)),
+                       UserData=base64.b64encode(file('initdata/ecs_bootstrap_gpu.txt').read().format(GPU_CLUSTER_NAME)),
                        WeightedCapacity=float(gpu_count),
                        Placement={
                            "AvailabilityZone":"us-east-1a,us-east-1b,us-east-1c,us-east-1d,us-east-1e,us-east-1f"

@@ -29,7 +29,6 @@ RUN pip install --no-cache-dir http://download.pytorch.org/whl/cu75/torch-0.1.12
 RUN pip install --no-cache-dir mxnet==0.11.0
 RUN pip install torchvision
 WORKDIR "/root/DVA"
-RUN cd dvalib/crfasrnn/cpp && ./compile.sh && cd ../../..
 WORKDIR "/root/DVA/repos/lopq/python"
 RUN python setup.py install
 WORKDIR "/root/DVA"

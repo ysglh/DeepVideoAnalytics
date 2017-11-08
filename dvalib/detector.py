@@ -140,7 +140,7 @@ class TFDetector(BaseDetector):
         self.detection_graph = tf.Graph()
         with self.detection_graph.as_default():
             self.filenames_placeholder = tf.placeholder("string")
-            dataset = tf.contrib.data.Dataset.from_tensor_slices(self.filenames_placeholder)
+            dataset = tf.data.Dataset.from_tensor_slices(self.filenames_placeholder)
             dataset = dataset.map(_parse_function)
             self.iterator = dataset.make_initializable_iterator()
             self.od_graph_def = tf.GraphDef()

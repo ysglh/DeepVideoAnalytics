@@ -119,7 +119,7 @@ class InceptionIndexer(BaseIndexer):
             logging.warning("Loading the network {} , first apply / query will be slower".format(self.name))
             with tf.variable_scope("inception_pre"):
                 self.filenames_placeholder = tf.placeholder("string",name="inception_filename")
-                dataset = tf.contrib.data.Dataset.from_tensor_slices(self.filenames_placeholder)
+                dataset = tf.data.Dataset.from_tensor_slices(self.filenames_placeholder)
                 dataset = dataset.map(_parse_resize_inception_function)
                 dataset = dataset.batch(self.batch_size)
                 self.iterator = dataset.make_initializable_iterator()
@@ -193,7 +193,7 @@ class VGGIndexer(BaseIndexer):
             network_path = self.model_path
             with tf.variable_scope("vgg_pre"):
                 self.filenames_placeholder = tf.placeholder("string",name="vgg_filenames")
-                dataset = tf.contrib.data.Dataset.from_tensor_slices(self.filenames_placeholder)
+                dataset = tf.data.Dataset.from_tensor_slices(self.filenames_placeholder)
                 dataset = dataset.map(_parse_resize_vgg_function)
                 dataset = dataset.batch(self.batch_size)
                 self.iterator = dataset.make_initializable_iterator()
@@ -262,7 +262,7 @@ class FacenetIndexer(BaseIndexer):
         if self.graph_def is None:
             logging.warning("Loading {} , first apply / query will be slower".format(self.name))
             self.filenames_placeholder = tf.placeholder("string")
-            dataset = tf.contrib.data.Dataset.from_tensor_slices(self.filenames_placeholder)
+            dataset = tf.data.Dataset.from_tensor_slices(self.filenames_placeholder)
             dataset = dataset.map(_parse_scale_standardize_function)
             batched_dataset = dataset.batch(self.batch_size)
             self.iterator = batched_dataset.make_initializable_iterator()
@@ -371,7 +371,7 @@ class CustomTFIndexer(BaseCustomIndexer):
             config.gpu_options.per_process_gpu_memory_fraction = self.gpu_fraction
             self.session = tf.InteractiveSession(config=config)
             self.filenames_placeholder = tf.placeholder("string")
-            dataset = tf.contrib.data.Dataset.from_tensor_slices(self.filenames_placeholder)
+            dataset = tf.data.Dataset.from_tensor_slices(self.filenames_placeholder)
             dataset = dataset.map(_parse_function)
             self.iterator = dataset.make_initializable_iterator()
             false_phase_train = tf.constant(False)

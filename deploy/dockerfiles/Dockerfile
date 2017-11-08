@@ -5,7 +5,7 @@ WORKDIR "/bin/"
 RUN wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-64bit-static.tar.xz
 RUN tar xvfJ ffmpeg-release-64bit-static.tar.xz
 RUN mv ffmpeg*/* .
-WORKDIR "/root/
+WORKDIR "/root/"
 RUN apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8
 RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main" > /etc/apt/sources.list.d/pgdg.list
 RUN apt-get update && apt-get install -y postgresql-client-9.6 zip

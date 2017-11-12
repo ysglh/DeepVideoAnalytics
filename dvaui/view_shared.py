@@ -56,7 +56,7 @@ def handle_uploaded_file(f, name, extract=True, user=None, rate=None, rescale=No
                   'wb+') as destination:
             for chunk in f.chunks():
                 destination.write(chunk)
-        if settings.DISABLE_NFS or settings.HEROKU_DEPLOY:
+        if settings.DISABLE_NFS or settings.DEPLOY_ON_HEROKU:
             fpath = '/{}/{}.{}'.format( video.pk, video.pk, filename.split('.')[-1])
             fs.upload_file_to_remote(fpath)
             os.remove('{}/{}/{}.{}'.format(settings.MEDIA_ROOT, video.pk, video.pk, filename.split('.')[-1]))
@@ -81,7 +81,7 @@ def handle_uploaded_file(f, name, extract=True, user=None, rate=None, rescale=No
                   'wb+') as destination:
             for chunk in f.chunks():
                 destination.write(chunk)
-        if settings.DISABLE_NFS or settings.HEROKU_DEPLOY:
+        if settings.DISABLE_NFS or settings.DEPLOY_ON_HEROKU:
             fpath = '/{}/video/{}.{}'.format(video.pk, video.pk, filename.split('.')[-1])
             fs.upload_file_to_remote(fpath)
             os.remove('{}/{}/video/{}.{}'.format(settings.MEDIA_ROOT, video.pk, video.pk, filename.split('.')[-1]))

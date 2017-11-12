@@ -53,7 +53,7 @@ NFS (2049)  | TCP (6) 2049          | sg-(Security group of EC2)
 - DATABASE_URL:                <postgres auth url> # auto set by cloudamqp add-on
 - DISABLE_COLLECTSTATIC:       1 # Disable static asset creation since they are served through cloudfront
 - DISABLE_DEBUG:               1
-- HEROKU_DEPLOY:               1
+- DEPLOY_ON_HEROKU:            1
 - MEDIA_BUCKET:                <s3-media-bucket> # manually create
 - MEDIA_URL:                   http://<s3-media-bucket>.s3-website-us-east-1.amazonaws.com/
 - SECRET_KEY:                  <Django seceret> # make sure this stays secret

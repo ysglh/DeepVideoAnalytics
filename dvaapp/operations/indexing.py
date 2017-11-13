@@ -39,7 +39,7 @@ class IndexerTask(celery.Task):
                 raise ValueError,"unregistered indexer with id {}".format(di.pk)
         return IndexerTask._visual_indexer[di.pk]
 
-    def index_queryset(self,di,visual_index,event,target,queryset):
+    def index_queryset(self,di,visual_index,event,target,queryset, cloud_paths=False):
         visual_index.load()
         temp_root = tempfile.mkdtemp()
         entries, paths, images = [], [], {}
@@ -50,7 +50,10 @@ class IndexerTask(celery.Task):
                          'video_primary_key': event.video_id,
                          'index': i,
                          'type': 'frame'}
-                paths.append(df.path())
+                if cloud_paths:
+                    paths.append(df.path('{}://{}/'.format(settings.CLOUD_FS_PREFIX,settings.MEDIA_BUCKET)))
+                else:
+                    paths.append(df.path())
             elif target == 'regions':
                 entry = {
                     'frame_index': df.frame.frame_index,

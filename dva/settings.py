@@ -15,6 +15,7 @@ import os, dj_database_url, sys, logging
 DVA_PRIVATE_ENABLE = 'DVA_PRIVATE_ENABLE' in os.environ
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MEDIA_BUCKET = os.environ.get('MEDIA_BUCKET', None)
+CLOUD_FS_PREFIX = os.environ.get('CLOUD_FS_PREFIX', 's3') # By default AWS "s3", Tensorflow also supports "gs" for GCS
 DEPLOY_ON_HEROKU = 'DEPLOY_ON_HEROKU' in os.environ
 DISABLE_NFS = os.environ.get('DISABLE_NFS',False)
 

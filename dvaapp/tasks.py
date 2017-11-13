@@ -78,10 +78,20 @@ def perform_indexing(task_id):
             # can be replaced by Redis instead of using DB
             _ = QueryRegionIndexVector.objects.create(vector=s.getvalue(),event=start,query_region=dr)
         sync = False
-    else:
+    elif target == 'regions':
+        # For regions simply download/ensure files exists.
         queryset, target = task_shared.build_queryset(args=start.arguments, video_id=start.video_id)
         task_shared.ensure_files(queryset, target)
         perform_indexing.index_queryset(di,visual_index,start,target,queryset)
+    elif target == 'frames':
+        queryset, target = task_shared.build_queryset(args=start.arguments, video_id=start.video_id)
+        if visual_index.cloud_fs_support and settings.DISABLE_NFS:
+            # if NFS is disabled and index supports cloud file systems natively (e.g. like Tensorflow)
+            perform_indexing.index_queryset(di, visual_index, start, target, queryset, cloud_paths=True)
+        else:
+            # Otherwise download and ensure that the files exist
+            task_shared.ensure_files(queryset, target)
+            perform_indexing.index_queryset(di,visual_index,start,target,queryset)
     next_ids = process_next(task_id,sync=sync)
     mark_as_completed(start)
     return next_ids

@@ -77,6 +77,7 @@ class IndexerTask(celery.Task):
                 raise ValueError,"{} target not configured".format(target)
             entries.append(entry)
         if entries:
+            logging.info(paths)  # adding temporary logging to check whether s3:// paths are being correctly used.
             features = visual_index.index_paths(paths)
             uid = str(uuid.uuid1()).replace('-','_')
             dirname = '{}/{}/indexes/'.format(settings.MEDIA_ROOT,event.video_id)

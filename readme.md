@@ -10,6 +10,7 @@
 
 #### Deep Video Analytics is a platform for indexing and extracting information from videos and images. For installation instructions & demo go to [https://www.deepvideoanalytics.com](https://www.deepvideoanalytics.com)
 
+
 #### Documentation
 
 Documentation along with presentation and blogpost is being written in [/notebooks](/notebooks) directory.

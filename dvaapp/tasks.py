@@ -861,9 +861,9 @@ def monitor_system():
             p.save()
     last_action = ManagementAction.objects.filter(ping_index__isnull=False).last()
     if last_action:
-        ping_index = 0
-    else:
         ping_index = last_action.ping_index + 1
+    else:
+        ping_index = 0
     # TODO: Handle the case where host manager has not responded to last and itself has died
     _ = app.send_task('manage_host', args=['list', ping_index], exchange='qmanager')
     s = SystemState()

@@ -115,7 +115,7 @@
                     <th>queue_name</th>
                     <th>host</th>
                     <th>pid</th>
-                    <th>Completed tasks</th>
+                    <th>Alive</th>
                     <th>Timestamp</th>
                     <th>Since</th>
                 </tr>
@@ -126,7 +126,7 @@
                             <td>{{ k.queue_name }} </td>
                             <td>{{ k.host }}</td>
                             <td>{{ k.pid }}</td>
-                            <td>{{ k.aline }}</td>
+                            <td>{{ k.alive }}</td>
                             <td>{{ k.created }}</td>
                             <td>{{ k.created|timesince }}</td>
                         </tr>

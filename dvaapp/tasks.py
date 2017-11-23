@@ -25,14 +25,17 @@ except ImportError:
     pass
 from . import serializers
 
+global W
+
 
 @celeryd_init.connect
 def configure_workers(sender, conf,**kwargs):
-    w = Worker()
-    w.pid = os.getpid()
-    w.host = sender
-    w.queue_name = sender.split('@')[1].split('.')[0]
-    w.save()
+    global W
+    W = Worker()
+    W.pid = os.getpid()
+    W.host = sender.split('.')[-1]
+    W.queue_name = sender.split('@')[1].split('.')[0]
+    W.save()
 
 
 @task_prerun.connect
@@ -41,6 +44,8 @@ def start_task(task_id,task,args,**kwargs):
         start = TEvent.objects.get(pk=args[0])
         start.task_id = task_id
         start.start_ts = timezone.now()
+        if W:
+            start.worker_id = W.pk
         start.save()
 
 
@@ -792,11 +797,15 @@ def manage_host(self,op,worker_name=None,queue_name=None):
     message = ""
     host_name = self.request.hostname
     if op == "list":
-        message = "test"
+        for w in Worker.objects.filter(host=host_name.split('.')[-1], alive=True):
+            if not task_shared.pid_exists(w.pid):
+                w.alive = False
+                w.save()
+                task_shared.launch_worker(w.queue_name, worker_name)
+                message += "worker processing {} is dead, launching again".format(w.queue_name)
     elif op == "launch":
         if worker_name == host_name:
-            p = subprocess.Popen(['fab','startq:{}'.format(queue_name)],close_fds=True)
-            message = "launched {} with pid {} on {}".format(queue_name,p.pid,worker_name)
+            message = task_shared.launch_worker(queue_name, worker_name)
         else:
             message = "{} on {} ignored".format(queue_name, worker_name)
     elif op == "gpuinfo":
@@ -842,6 +851,7 @@ def monitor_system():
         if TEvent.objects.filter(parent_process=p,completed=False).count() == 0:
             p.completed = True
             p.save()
+    _ = app.send_task('manage_host', args=['list', ], exchange='qmanager')
     s = SystemState()
     s.processes = DVAPQL.objects.count()
     s.completed_processes = DVAPQL.objects.filter(completed=True).count()

@@ -32,6 +32,7 @@
        - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
        - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
        - LAUNCH_SERVER_NGINX=1
+       - LAUNCH_SCHEDULER=1
        - DISABLE_DEBUG=1
        - MEDIA_BUCKET=${MEDIA_BUCKET}
        - MEDIA_URL=${MEDIA_URL}
@@ -77,7 +78,7 @@
        - dvadata_2:/root/DVA/dva/media
    processors:
      image: akshayubhat/dva-auto:latest
-     container_name: dva-process
+     container_name: non_caffe_models
      environment:
        - DOCKER_MODE=true
        - RABBIT_HOST=rabbit

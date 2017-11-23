@@ -10,7 +10,7 @@ from .forms import UploadFileForm, YTVideoForm, AnnotationForm
 from dvaapp.models import Video, Frame, DVAPQL, QueryResults, TEvent, IndexEntries, Region, VDNServer, \
     LOPQCodes, Tube,  Segment, FrameLabel, SegmentLabel, \
     VideoLabel, RegionLabel, TubeLabel, Label, ManagementAction, StoredDVAPQL, \
-    DeepModel, Retriever, SystemState, QueryRegion, QueryRegionResults
+    DeepModel, Retriever, SystemState, QueryRegion, QueryRegionResults, Worker
 from dva.celery import app
 from rest_framework import viewsets, mixins
 from django.contrib.auth.models import User
@@ -658,6 +658,7 @@ def management(request):
     context = {
         'timeout':timeout,
         'actions':ManagementAction.objects.all(),
+        'workers': Worker.objects.all(),
         'state':SystemState.objects.all().order_by('-created')[:100]
     }
     if request.method == 'POST':

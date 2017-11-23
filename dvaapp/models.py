@@ -10,6 +10,15 @@ try:
 except ImportError:
     pass
 
+
+class Worker(models.Model):
+    queue_name = models.CharField(max_length=500, default="")
+    host = models.CharField(max_length=500, default="")
+    pid = models.IntegerField()
+    alive = models.BooleanField(default=True)
+    created = models.DateTimeField('date created', auto_now_add=True)
+
+
 class VDNServer(models.Model):
     """
     A VDN server
@@ -99,6 +108,7 @@ class TEvent(models.Model):
     started = models.BooleanField(default=False)
     completed = models.BooleanField(default=False)
     errored = models.BooleanField(default=False)
+    worker = models.ForeignKey(Worker, null=True)
     error_message = models.TextField(default="")
     video = models.ForeignKey(Video, null=True)
     operation = models.CharField(max_length=100, default="")
@@ -614,11 +624,6 @@ class ManagementAction(models.Model):
     created = models.DateTimeField('date created', auto_now_add=True)
 
 
-class Worker(models.Model):
-    queue_name = models.CharField(max_length=500, default="")
-    host = models.CharField(max_length=500, default="")
-    pid = models.IntegerField()
-    created = models.DateTimeField('date created', auto_now_add=True)
 
 
 class StoredDVAPQL(models.Model):

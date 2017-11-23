@@ -7,6 +7,21 @@ from botocore.exceptions import ClientError
 from .fs import ensure,upload_file_to_remote
 
 
+def pid_exists(pid):
+    try:
+        os.kill(pid, 0)
+    except OSError:
+        return False
+    else:
+        return True
+
+
+def launch_worker(queue_name, worker_name):
+    p = subprocess.Popen(['fab', 'startq:{}'.format(queue_name)], close_fds=True)
+    message = "launched {} with pid {} on {}".format(queue_name, p.pid, worker_name)
+    return message
+
+
 def handle_downloaded_file(downloaded, video, name):
     video.name = name
     video.save()

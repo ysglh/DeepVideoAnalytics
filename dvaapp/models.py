@@ -622,8 +622,7 @@ class ManagementAction(models.Model):
     host = models.CharField(max_length=500, default="")
     message = models.TextField()
     created = models.DateTimeField('date created', auto_now_add=True)
-
-
+    ping_index = models.IntegerField(null=True)
 
 
 class StoredDVAPQL(models.Model):

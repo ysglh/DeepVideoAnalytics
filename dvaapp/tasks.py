@@ -44,8 +44,8 @@ def start_task(task_id,task,args,**kwargs):
         start = TEvent.objects.get(pk=args[0])
         start.task_id = task_id
         start.start_ts = timezone.now()
-        if W:
-            start.worker_id = W.pk
+        if W and start.worker is None:
+                start.worker_id = W.pk
         start.save()
 
 
@@ -783,7 +783,7 @@ def perform_decompression(task_id):
 
 
 @app.task(track_started=True,name="manage_host",bind=True)
-def manage_host(self,op,worker_name=None,queue_name=None):
+def manage_host(self,op,ping_index=None,worker_name=None,queue_name=None):
     """
     Manage host
     This task is handled by workers consuming from a broadcast management queue.
@@ -794,28 +794,34 @@ def manage_host(self,op,worker_name=None,queue_name=None):
     1. Launch worker to consume from a specific queue
     2. Gather GPU memory utilization info
     """
-    message = ""
     host_name = self.request.hostname
     if op == "list":
+        ManagementAction.objects.create(op=op, parent_task=self.request.id, message="", host=host_name,
+                                        ping_index=ping_index)
         for w in Worker.objects.filter(host=host_name.split('.')[-1], alive=True):
             # launch all queues EXCEPT worker processing manager queue
             if not task_shared.pid_exists(w.pid):
                 w.alive = False
                 w.save()
+                for t in TEvent.objects.filter(started=True, completed=False, errored=False, worker=w):
+                    t.errored = True
+                    t.save()
                 if w.queue_name != 'manager':
                     task_shared.launch_worker(w.queue_name, worker_name)
-                    message += "worker processing {} is dead, launching again".format(w.queue_name)
+                    message = "worker processing {} is dead, restarting".format(w.queue_name)
+                    ManagementAction.objects.create(op='worker_restart', parent_task=self.request.id,
+                                                    message=message, host=host_name)
     elif op == "launch":
         if worker_name == host_name:
             message = task_shared.launch_worker(queue_name, worker_name)
-        else:
-            message = "{} on {} ignored".format(queue_name, worker_name)
+            ManagementAction.objects.create(op='worker_launch', parent_task=self.request.id,
+                                            message=message, host=host_name)
     elif op == "gpuinfo":
         try:
             message = subprocess.check_output(['nvidia-smi','--query-gpu=memory.free,memory.total','--format=csv']).splitlines()[1]
         except:
             message = "No GPU available"
-    ManagementAction.objects.create(op=op,parent_task=self.request.id,message=message,host=host_name)
+        ManagementAction.objects.create(op=op,parent_task=self.request.id,message=message,host=host_name)
 
 
 @app.task(track_started=True,name="perform_ingestion")
@@ -853,7 +859,13 @@ def monitor_system():
         if TEvent.objects.filter(parent_process=p,completed=False).count() == 0:
             p.completed = True
             p.save()
-    _ = app.send_task('manage_host', args=['list', ], exchange='qmanager')
+    last_action = ManagementAction.objects.filter(ping_index__isnull=False).last()
+    if last_action:
+        ping_index = 0
+    else:
+        ping_index = last_action.ping_index + 1
+    # TODO: Handle the case where host manager has not responded to last and itself has died
+    _ = app.send_task('manage_host', args=['list', ping_index], exchange='qmanager')
     s = SystemState()
     s.processes = DVAPQL.objects.count()
     s.completed_processes = DVAPQL.objects.filter(completed=True).count()

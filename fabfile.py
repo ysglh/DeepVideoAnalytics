@@ -899,6 +899,8 @@ def start_scheduler():
     Start celery-beat scheduler using django database as source for tasks.
 
     """
+    init_scheduler()
+    local('fab startq:qscheduler &')
     local("celery -A dva beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler -f logs/beat.log")
 
 

@@ -25,7 +25,7 @@ except ImportError:
     pass
 from . import serializers
 
-global W
+W = None
 
 
 @celeryd_init.connect

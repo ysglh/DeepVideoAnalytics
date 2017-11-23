@@ -3,7 +3,7 @@ import json
 from .models import Video, Frame, DVAPQL, QueryResults, TEvent, IndexEntries, Region, VDNServer, \
     LOPQCodes, Tube,  Segment, FrameLabel, SegmentLabel, \
     VideoLabel, RegionLabel, TubeLabel, Label, \
-    Retriever, SystemState, QueryRegion, QueryRegionResults, DeepModel
+    Retriever, SystemState, QueryRegion, QueryRegionResults, DeepModel, Worker
 import serializers
 from rest_framework import viewsets, mixins
 from django.contrib.auth.models import User
@@ -169,6 +169,12 @@ class TEventViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = TEvent.objects.all()
     serializer_class = serializers.TEventSerializer
     filter_fields = ('video', 'operation')
+
+
+class WorkerViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
+    queryset = Worker.objects.all()
+    serializer_class = serializers.WorkerSerializer
 
 
 class IndexEntriesViewSet(viewsets.ReadOnlyModelViewSet):

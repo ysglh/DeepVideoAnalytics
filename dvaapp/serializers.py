@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from models import Video, Frame, Region, DVAPQL, QueryResults, TEvent, IndexEntries, \
     VDNServer, Tube, LOPQCodes, Segment, Label, VideoLabel, FrameLabel, RegionLabel, \
     SegmentLabel, TubeLabel, DeepModel, Retriever, SystemState, QueryRegion,\
-    QueryRegionResults
+    QueryRegionResults, Worker
 import os, json, logging, glob
 from collections import defaultdict
 from django.conf import settings
@@ -106,6 +106,12 @@ class VideoLabelExportSerializer(serializers.ModelSerializer):
     class Meta:
         model = VideoLabel
         fields = '__all__'
+
+
+class WorkerSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Worker
+        fields = ('queue_name', 'id')
 
 
 class TubeLabelExportSerializer(serializers.ModelSerializer):

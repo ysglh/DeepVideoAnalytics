@@ -799,11 +799,12 @@ def manage_host(self,op,worker_name=None,queue_name=None):
     if op == "list":
         for w in Worker.objects.filter(host=host_name.split('.')[-1], alive=True):
             # launch all queues EXCEPT worker processing manager queue
-            if not task_shared.pid_exists(w.pid) and w.queue_name != 'manager':
+            if not task_shared.pid_exists(w.pid):
                 w.alive = False
                 w.save()
-                task_shared.launch_worker(w.queue_name, worker_name)
-                message += "worker processing {} is dead, launching again".format(w.queue_name)
+                if w.queue_name != 'manager':
+                    task_shared.launch_worker(w.queue_name, worker_name)
+                    message += "worker processing {} is dead, launching again".format(w.queue_name)
     elif op == "launch":
         if worker_name == host_name:
             message = task_shared.launch_worker(queue_name, worker_name)

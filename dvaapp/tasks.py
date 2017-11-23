@@ -798,7 +798,8 @@ def manage_host(self,op,worker_name=None,queue_name=None):
     host_name = self.request.hostname
     if op == "list":
         for w in Worker.objects.filter(host=host_name.split('.')[-1], alive=True):
-            if not task_shared.pid_exists(w.pid):
+            # launch all queues EXCEPT worker processing manager queue
+            if not task_shared.pid_exists(w.pid) and w.queue_name != 'manager':
                 w.alive = False
                 w.save()
                 task_shared.launch_worker(w.queue_name, worker_name)

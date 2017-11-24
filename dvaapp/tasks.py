@@ -18,12 +18,13 @@ from .processing import process_next, mark_as_completed
 from dvalib import retriever
 from django.utils import timezone
 from celery.signals import task_prerun,celeryd_init
+from . import serializers
+from . import fs
 from . import task_shared
 try:
     import numpy as np
 except ImportError:
     pass
-from . import serializers
 
 W = None
 
@@ -455,6 +456,8 @@ def perform_export(task_id):
         start.save()
     video_id = start.video_id
     dv = Video.objects.get(pk=video_id)
+    if settings.DISABLE_NFS:
+        fs.download_video_from_remote_to_local(dv)
     destination = start.arguments['destination']
     try:
         if destination == "FILE":
@@ -615,7 +618,7 @@ def perform_sync(task_id):
     args = start.arguments
     if settings.MEDIA_BUCKET:
         dirname = args.get('dirname',None)
-        task_shared.upload(dirname,start.parent_id,start.video_id)
+        fs.upload(dirname,start.parent_id,start.video_id)
     else:
         logging.info("Media bucket name not specified, nothing was synced.")
         start.error_message = "Media bucket name is empty".format(settings.MEDIA_BUCKET)

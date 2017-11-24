@@ -90,6 +90,7 @@ class Video(models.Model):
                     except OSError:
                         pass
 
+
 class IngestEntry(models.Model):
     video = models.ForeignKey(Video)
     ingest_index = models.IntegerField()
@@ -275,7 +276,8 @@ class Frame(models.Model):
             return "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,self.video_id,self.frame_index)
 
     def original_path(self):
-        return "{}/{}".format(self.subdir,self.name).replace('//','/')
+        return "{}{}".format(self.subdir,self.name)
+
 
 class Segment(models.Model):
     """

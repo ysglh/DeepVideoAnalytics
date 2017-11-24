@@ -207,7 +207,8 @@ class VideoDecoder(object):
                             df.w = w
                             df.event_id = event.pk
                             df.name = fname.split('/')[-1][:150]
-                            df.subdir = subdir[root_length:].replace('/', ' ')
+                            s = "/{}/".format(subdir[root_length:]).replace('//','/')
+                            df.subdir = s
                             df_list.append(df)
 
                     else:
@@ -220,7 +221,7 @@ class VideoDecoder(object):
         labels_to_frame = defaultdict(set)
         for i,f in enumerate(df_list):
             if f.name:
-                for l in f.subdir.split(' ')[1:]:
+                for l in f.subdir.split('/')[1:]:
                     if l.strip():
                         labels_to_frame[l].add((df_ids[i].id,f.frame_index))
         label_list = []

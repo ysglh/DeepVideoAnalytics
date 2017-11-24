@@ -3,7 +3,7 @@ import os
 import boto3
 import errno
 import logging, subprocess
-from models import Frame, IndexEntries, Segment, Region
+from .models import Frame, IndexEntries, Segment, Region
 
 if settings.MEDIA_BUCKET:
     S3 = boto3.resource('s3')

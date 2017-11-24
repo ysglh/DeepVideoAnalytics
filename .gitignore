@@ -92,3 +92,4 @@ creds.json
 /dva/media/
 !/dva/media/gitkeep
 !/dva/media/queries/gitkeep
+scripts/coco_annotations/*.json

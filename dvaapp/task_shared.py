@@ -4,7 +4,7 @@ from django.conf import settings
 from PIL import Image
 from . import serializers
 from botocore.exceptions import ClientError
-from .fs import ensure,upload_file_to_remote
+from .fs import ensure, upload_file_to_remote, upload_video_to_remote
 
 
 def pid_exists(pid):
@@ -480,3 +480,31 @@ def import_frame_regions_json(regions_json,video,event_id):
         r.metadata = k['metadata']
         r.text = k['text']
     Region.objects.bulk_create(regions,1000)
+
+
+def get_sync_paths(dirname,task_id):
+    if dirname == 'indexes':
+        f = [k.entries_path(media_root="") for k in IndexEntries.objects.filter(event_id=task_id)]
+        f += [k.npy_path(media_root="") for k in IndexEntries.objects.filter(event_id=task_id)]
+    elif dirname == 'frames':
+        f = [k.path(media_root="") for k in Frame.objects.filter(event_id=task_id)]
+    elif dirname == 'segments':
+        f = []
+        for k in Segment.objects.filter(event_id=task_id):
+            f.append(k.path(media_root=""))
+            f.append(k.framelist_path(media_root=""))
+    elif dirname == 'regions':
+        f = [k.path(media_root="") for k in Region.objects.filter(event_id=task_id) if k.materialized]
+    else:
+        raise NotImplementedError,"dirname : {} not configured".format(dirname)
+    return f
+
+
+def upload(dirname,event_id,video_id):
+    if dirname:
+        fnames = get_sync_paths(dirname, event_id)
+        logging.info("Syncing {} containing {} files".format(dirname, len(fnames)))
+        for fp in fnames:
+            upload_file_to_remote(fp)
+    else:
+        upload_video_to_remote(video_id)

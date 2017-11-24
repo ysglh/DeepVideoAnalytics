@@ -15,6 +15,7 @@ from django.apps import apps
 from models import Video,DVAPQL,TEvent,DeepModel,Retriever
 from celery.result import AsyncResult
 import fs
+import task_shared
 import queuing
 
 
@@ -157,7 +158,7 @@ def process_next(task_id,inject_filters=None,custom_next_tasks=None,sync=True,la
         for k in SYNC_TASKS.get(dt.operation,[]):
             if settings.DISABLE_NFS:
                 dirname = k['arguments'].get('dirname',None)
-                fs.upload(dirname,task_id,dt.video_id)
+                task_shared.upload(dirname,task_id,dt.video_id)
             else:
                 launched += launch_tasks(k,dt,inject_filters,None,'sync')
     for k in next_tasks+custom_next_tasks:

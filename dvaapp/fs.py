@@ -3,7 +3,6 @@ import os
 import boto3
 import errno
 import logging, subprocess
-from .models import Frame, IndexEntries, Segment, Region
 
 if settings.MEDIA_BUCKET:
     S3 = boto3.resource('s3')
@@ -60,36 +59,14 @@ def download_video_from_remote_to_local(dv):
         raise ValueError, "Error while executing : {}".format(command)
 
 
-def upload(dirname,event_id,video_id):
-    if dirname:
-        fnames = get_sync_paths(dirname, event_id)
-        logging.info("Syncing {} containing {} files".format(dirname, len(fnames)))
-        for fp in fnames:
-            upload_file_to_remote(fp)
-    else:
-        logging.info("Syncing entire directory for {}".format(video_id))
-        src = '{}/{}/'.format(settings.MEDIA_ROOT, video_id)
-        dest = 's3://{}/{}/'.format(settings.MEDIA_BUCKET, video_id)
-        command = " ".join(['aws', 's3', 'sync', '--quiet', src, dest])
-        syncer = subprocess.Popen(['aws', 's3', 'sync', '--quiet', '--size-only', src, dest])
-        syncer.wait()
-        if syncer.returncode != 0:
-            raise ValueError,"Error while executing : {}".format(command)
+def upload_video_to_remote(video_id):
+    logging.info("Syncing entire directory for {}".format(video_id))
+    src = '{}/{}/'.format(settings.MEDIA_ROOT, video_id)
+    dest = 's3://{}/{}/'.format(settings.MEDIA_BUCKET, video_id)
+    command = " ".join(['aws', 's3', 'sync', '--quiet', src, dest])
+    syncer = subprocess.Popen(['aws', 's3', 'sync', '--quiet', '--size-only', src, dest])
+    syncer.wait()
+    if syncer.returncode != 0:
+        raise ValueError, "Error while executing : {}".format(command)
 
 
-def get_sync_paths(dirname,task_id):
-    if dirname == 'indexes':
-        f = [k.entries_path(media_root="") for k in IndexEntries.objects.filter(event_id=task_id)]
-        f += [k.npy_path(media_root="") for k in IndexEntries.objects.filter(event_id=task_id)]
-    elif dirname == 'frames':
-        f = [k.path(media_root="") for k in Frame.objects.filter(event_id=task_id)]
-    elif dirname == 'segments':
-        f = []
-        for k in Segment.objects.filter(event_id=task_id):
-            f.append(k.path(media_root=""))
-            f.append(k.framelist_path(media_root=""))
-    elif dirname == 'regions':
-        f = [k.path(media_root="") for k in Region.objects.filter(event_id=task_id) if k.materialized]
-    else:
-        raise NotImplementedError,"dirname : {} not configured".format(dirname)
-    return f

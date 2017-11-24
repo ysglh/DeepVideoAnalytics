@@ -618,7 +618,7 @@ def perform_sync(task_id):
     args = start.arguments
     if settings.MEDIA_BUCKET:
         dirname = args.get('dirname',None)
-        fs.upload(dirname,start.parent_id,start.video_id)
+        task_shared.upload(dirname,start.parent_id,start.video_id)
     else:
         logging.info("Media bucket name not specified, nothing was synced.")
         start.error_message = "Media bucket name is empty".format(settings.MEDIA_BUCKET)

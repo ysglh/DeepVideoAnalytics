@@ -1,5 +1,5 @@
 import os, json, requests, copy, time, subprocess, logging, shutil, zipfile, boto3, random, calendar, shlex, sys, tempfile
-from models import Video, QueryRegion, QueryRegionIndexVector, DVAPQL, Region, Frame, Segment, IndexEntries
+from models import Video, QueryRegion, QueryRegionIndexVector, DVAPQL, Region, Frame, Segment, IndexEntries, TEvent
 from django.conf import settings
 from PIL import Image
 from . import serializers
@@ -14,6 +14,22 @@ def pid_exists(pid):
         return False
     else:
         return True
+
+
+def relaunch_failed_task(old, app):
+    """
+    TODO: Relaunch failed tasks, requires a rethink in how we store number of attempts.
+    Cleanup of objects created by previous task that that failed.
+    :param old:
+    :param app:
+    :return:
+    """
+    if old.errored:
+        next_task = TEvent.objects.create(video=old.video, operation=old.operation, arguments=old.arguments,
+                                          parent=old.parent, parent_process=old.parent_process, queue=old.queue)
+        app.send_task(next_task.operation, args=[next_task.pk, ], queue=old.queue)
+    else:
+        raise ValueError("Task not errored")
 
 
 def launch_worker(queue_name, worker_name):
@@ -410,6 +426,7 @@ def get_sync_paths(dirname,task_id):
         raise NotImplementedError,"dirname : {} not configured".format(dirname)
     return f
 
+
 def upload(dirname,event_id,video_id):
     if dirname:
         fnames = get_sync_paths(dirname, event_id)
@@ -449,22 +466,49 @@ def ensure_files(queryset, target):
     else:
         raise NotImplementedError
 
-def import_regions_json(regions_json,video_id,event_id):
-    fname_to_pk = { df.name : df.pk for df in Frame.objects.filter(video_id=video_id)}
+
+def import_frame_regions_json(regions_json,video,event_id):
+    """
+    Import regions from a JSON with frames identified by immuntable identifiers such as filename/path
+    :param regions_json:
+    :param video:
+    :param event_id:
+    :return:
+    """
+    video_id = video.pk
+    filename_to_pk = {}
+    frame_index_to_pk = {}
+    if video.dataset:
+        # For dataset frames are identified by subdir/filename
+        filename_to_pk = { df.original_path(): (df.pk, df.frame_index)
+                           for df in Frame.objects.filter(video_id=video_id)}
+    else:
+        # For videos frames are identified by frame index
+        frame_index_to_pk = { df.frame_index: (df.pk, df.segment_index) for df in
+                        Frame.objects.filter(video_id=video_id)}
     regions = []
     for k in regions_json:
+        r = Region()
         if k['target'] == 'filename':
-            r = Region()
-            r.frame_id = fname_to_pk[k['filename']]
-            r.video_id = video_id
-            r.event_id = event_id
-            r.x = k['x']
-            r.y = k['y']
-            r.w = k['w']
-            r.h = k['h']
-            r.metadata = k['metadata']
-            r.text = k['text']
+            pk,findx = filename_to_pk[k['filename']]
+            r.frame_id = pk
+            r.frame_index = findx
+        elif k['target'] == 'index':
+            pk,sindx = frame_index_to_pk[k['frame_index']]
+            r.frame_id = pk
+            r.frame_index = k['frame_index']
+            r.segment_index = sindx
         else:
-            raise ValueError
+            raise ValueError('invalid target: {}'.format(k['target']))
+        r.video_id = video_id
+        r.event_id = event_id
+        r.region_type = k['region_type']
+        r.materialized = k.get('materialized',False)
+        r.full_frame = k.get('full_frame',False)
+        r.x = k['x']
+        r.y = k['y']
+        r.w = k['w']
+        r.h = k['h']
+        r.metadata = k['metadata']
+        r.text = k['text']
     Region.objects.bulk_create(regions,1000)
-    raise NotImplementedError

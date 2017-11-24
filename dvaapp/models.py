@@ -274,6 +274,8 @@ class Frame(models.Model):
         else:
             return "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT,self.video_id,self.frame_index)
 
+    def original_path(self):
+        return "{}/{}".format(self.subdir,self.name).replace('//','/')
 
 class Segment(models.Model):
     """

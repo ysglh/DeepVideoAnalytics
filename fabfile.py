@@ -960,3 +960,15 @@ def capture_stream(url="https://www.youtube.com/watch?v=vpm16w3ik0g"):
 @task
 def clear_test_bucket():
     local('aws s3 rm --recursive s3://aub3dvatest')
+
+
+@task
+def test_region_import():
+    """
+    Test ability to import region json files.
+    :return:
+    """
+    regions_json = [
+        {'target':'filename'}
+    ]
+    raise NotImplementedError

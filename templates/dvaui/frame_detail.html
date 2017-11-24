@@ -6,7 +6,7 @@
     <div class="box box-info">
         <div class="box-header">
             <h4>Details for <a href="/videos/{{ object.video_id }}">{{ object.video.name }}</a>
-                {% if object.video.dataset %} file named: {{ object.name }} {% else %} at {{ object.frame_index }}
+                {% if object.video.dataset %} file named: {{ object.name }} in directory {{ object.subdir }} {% else %} at {{ object.frame_index }}
                 <a href="/segments/by_index/{{ object.video_id }}/{{ object.segment_index }}"> in Segment {{ object.segment_index }} </a>
                 {% endif %}
             </h4>

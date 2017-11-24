@@ -490,7 +490,10 @@ def import_frame_regions_json(regions_json,video,event_id):
     for k in regions_json:
         r = Region()
         if k['target'] == 'filename':
-            pk,findx = filename_to_pk[k['filename']]
+            fname = k['filename']
+            if not fname.startswith('/'):
+                fname = '/{}'.format(fname)
+            pk,findx = filename_to_pk[fname]
             r.frame_id = pk
             r.frame_index = findx
         elif k['target'] == 'index':

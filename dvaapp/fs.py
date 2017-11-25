@@ -26,7 +26,10 @@ def ensure(path, dirnames=None, media_root=None):
             media_root = settings.MEDIA_ROOT
         if dirnames is None:
             dirnames = {}
-        dlpath = "{}{}".format(media_root,path)
+        if path.startswith('/') or media_root.endswith('/'):
+            dlpath = "{}{}".format(media_root,path)
+        else:
+            dlpath = "{}/{}".format(media_root, path)
         dirname = os.path.dirname(dlpath)
         if os.path.isfile(dlpath):
             return True

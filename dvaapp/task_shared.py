@@ -210,7 +210,9 @@ def import_local(dv):
     video_id = dv.pk
     video_obj = Video.objects.get(pk=video_id)
     if settings.DISABLE_NFS:
-        ensure("{}/{}.zip".format(video_id, video_id))
+        fname = "/{}/{}.zip".format(video_id, video_id)
+        logging.info("Downloading {}".format(fname))
+        ensure(fname)
     zipf = zipfile.ZipFile("{}/{}/{}.zip".format(settings.MEDIA_ROOT, video_id, video_id), 'r')
     zipf.extractall("{}/{}/".format(settings.MEDIA_ROOT, video_id))
     zipf.close()

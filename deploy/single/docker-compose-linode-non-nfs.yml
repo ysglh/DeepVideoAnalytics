@@ -67,7 +67,6 @@
        - SECRET_KEY=283y312bhv2b13v13
        - LAUNCH_Q_qextract=1
        - LAUNCH_Q_qclusterer=1
-       - LAUNCH_SCHEDULER=1
      command: bash -c "youtube-dl -U && git pull && sleep 60 && fab start_container:worker"
      depends_on:
        - db

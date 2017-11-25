@@ -346,5 +346,5 @@
   dvadata_tagger:
   dvadata_face:
   dvadata_exact_inception:
-  dvadata_exact_face:
+  dvadata_exact_facenet:
   dvadata_textdetector:

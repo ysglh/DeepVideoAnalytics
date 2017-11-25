@@ -80,12 +80,15 @@ class IndexerTask(celery.Task):
             logging.info(paths)  # adding temporary logging to check whether s3:// paths are being correctly used.
             features = visual_index.index_paths(paths)
             uid = str(uuid.uuid1()).replace('-','_')
-            dirname = '{}/{}/indexes/'.format(settings.MEDIA_ROOT,event.video_id)
-            if not os.path.isdir(dirname):
-                try:
-                    os.mkdir(dirname)
-                except:
-                    pass
+            dirnames = ['{}/{}/'.format(settings.MEDIA_ROOT,event.video_id),
+                        '{}/{}/indexes/'.format(settings.MEDIA_ROOT,event.video_id)]
+            for dirname in dirnames:
+                if not os.path.isdir(dirname):
+                    try:
+                        os.mkdir(dirname)
+                    except:
+                        logging.exception("error creating {}".format(dirname))
+                        pass
             feat_fname = "{}/{}/indexes/{}.npy".format(settings.MEDIA_ROOT,event.video_id,uid)
             entries_fname = "{}/{}/indexes/{}.json".format(settings.MEDIA_ROOT,event.video_id,uid)
             with open(feat_fname, 'w') as feats:

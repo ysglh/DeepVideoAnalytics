@@ -260,6 +260,7 @@
        - dvadata_face:/root/DVA/dva/media
    retriever_exact_inception:
      image: akshayubhat/dva-auto:latest
+     container-name: retriever_exact_inception
      environment:
        - DOCKER_MODE=true
        - RABBIT_HOST=rabbit
@@ -285,6 +286,7 @@
        - dvadata_exact_inception:/root/DVA/dva/media
    retriever_exact_facenet:
      image: akshayubhat/dva-auto:latest
+     container-name: retriever_exact_facenet
      environment:
        - DOCKER_MODE=true
        - RABBIT_HOST=rabbit

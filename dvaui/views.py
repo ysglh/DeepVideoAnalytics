@@ -83,6 +83,22 @@ class TEventDetail(UserPassesTestMixin, DetailView):
         return user_check(self.request.user)
 
 
+class LabelDetail(UserPassesTestMixin, DetailView):
+    model = Label
+    template_name = "dvaui/label_detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(LabelDetail, self).get_context_data(**kwargs)
+        context['frames'] = FrameLabel.objects.filter(label=context['object'])
+        context['videos'] = VideoLabel.objects.filter(label=context['object'])
+        context['segments'] = SegmentLabel.objects.filter(label=context['object'])
+        context['regions'] = RegionLabel.objects.filter(label=context['object'])
+        return context
+
+    def test_func(self):
+        return user_check(self.request.user)
+
+
 class TEventList(UserPassesTestMixin, ListView):
     model = TEvent
     paginate_by = 500

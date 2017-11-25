@@ -12,6 +12,7 @@ urlpatterns = [
     url(r'^status$', views.status, name='status'),
     url(r'^tasks/$', views.TEventList.as_view(), name='tasks'),
     url(r'^task_detail/(?P<pk>\d+)/$', views.TEventDetail.as_view(), name='task_detail'),
+    url(r'^label_detail/(?P<pk>\d+)/$', views.LabelDetail.as_view(), name='label_detail'),
     url(r'^video_tasks/(?P<pk>\d+)/$', views.TEventList.as_view(), name='video_tasks'),
     url(r'^video_tasks/(?P<pk>\d+)/(?P<status>\w+)/$', views.TEventList.as_view(), name='video_tasks_status'),
     url(r'^process_tasks/(?P<process_pk>\d+)/$', views.TEventList.as_view(), name='process_tasks'),

@@ -131,20 +131,18 @@
                     <thead>
                     <tr>
                         <th class="text-center">Label</th>
-                        <th class="text-center">Video</th>
-                        <th class="text-center">Clip</th>
-                        <th class="text-center">Region</th>
-                        <th class="text-center">Frame</th>
+                        <th class="text-center">Set</th>
+                        <th class="text-center">Text</th>
+                        <th class="text-center">Details</th>
                     </tr>
                     </thead>
                     <tbody>
                     {% for l in results.labels %}
                         <tr>
-                            <td>{{ l.label_name }}</td>
-                            <td>{{ l.video.name }}</td>
-                            <td> TODO </td>
-                            <td>{% if l.region %}{{ l.region.object_name }}{% endif %}</td>
-                            <td class="text-center"><a href="/frames/{{ l.frame.pk }}">details</a></td>
+                            <td>{{ l.name }}</td>
+                            <td>{{ l.set }}</td>
+                            <td>{{ l.text }}</td>
+                            <td class="text-center"><a href="/label/{{ l.pk }}"> labeled object</a></td>
                         </tr>
                     {% endfor %}
                     </tbody>

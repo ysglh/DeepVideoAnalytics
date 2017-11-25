@@ -287,6 +287,9 @@ def export_file(video_obj,export_event_pk=None):
                               cwd='{}/exports/'.format(settings.MEDIA_ROOT))
     zipper.wait()
     shutil.rmtree("{}/exports/{}".format(settings.MEDIA_ROOT, video_id))
+    # if NFS is disabled upload to the bucket
+    if settings.DISABLE_NFS:
+        upload_file_to_remote("/exports/{}".format(file_name))
     return file_name
 
 

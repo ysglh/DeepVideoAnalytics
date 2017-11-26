@@ -210,7 +210,7 @@ class ProcessVideoURL(DVAQuery):
 
 
 class FindSimilarImages(DVAQuery):
-    def __init__(self, query_image_path, retriever_pk, n=20):
+    def __init__(self, query_image_path, indexer_pk, retriever_pk, n=20):
         super(FindSimilarImages, self).__init__()
         self.query_image_path = query_image_path
         self.query_json = {
@@ -220,7 +220,7 @@ class FindSimilarImages(DVAQuery):
                 {
                     'operation': 'perform_indexing',
                     'arguments': {
-                        'index': 'inception',
+                        'indexer_pk': indexer_pk,
                         'target': 'query',
                         'next_tasks': [
                             {'operation': 'perform_retrieval',

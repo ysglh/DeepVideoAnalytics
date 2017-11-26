@@ -483,7 +483,11 @@ def get_query_region_json(rd):
 def get_retrieval_event_name(r,rids_to_names):
     if r.retrieval_event_id not in rids_to_names:
         retriever = Retriever.objects.get(pk=r.retrieval_event.arguments['retriever_pk'])
-        indexer = DeepModel.objects.get(name=r.retrieval_event.parent.arguments['index'],model_type=DeepModel.INDEXER)
+        if 'index' in r.retrieval_event.parent.arguments:
+            indexer = DeepModel.objects.get(name=r.retrieval_event.parent.arguments['index'],
+                                            model_type=DeepModel.INDEXER)
+        else:
+            indexer = DeepModel.objects.get(pk=r.retrieval_event.parent.arguments['indexer_pk'])
         rids_to_names[r.retrieval_event_id] = get_sequence_name(indexer, retriever)
     return rids_to_names[r.retrieval_event_id]
 

@@ -331,8 +331,8 @@ class DVAPQLSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = DVAPQL
-        fields =('process_type', 'created', 'user', 'image_data', 'script','tasks',
-                 'results_metadata', 'results_available', 'completed','query_regions','query_results','id')
+        fields =('process_type', 'created', 'user', 'image_data', 'script', 'tasks',
+                 'results_metadata', 'results_available', 'completed','id')
 
 
 class VideoExportSerializer(serializers.ModelSerializer):

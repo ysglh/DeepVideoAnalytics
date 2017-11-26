@@ -22,17 +22,6 @@ def docker_superu():
 
 
 @task
-def setup_nginx_auth():
-    try:
-        local("rm .htpasswd")
-    except:
-        pass
-    local("echo -n 'dvauser:' >> .htpasswd")
-    local("openssl passwd -apr1 >> .htpasswd")
-    local("cp .htpasswd dva-server:/etc/nginx/.htpasswd")
-    local('docker exec -u="root" -it dva-server bash -c "supervisorctl restart nginx-app"')
-
-@task
 def notebook():
     local('docker exec -u="root" -it dva-server bash -c "pip install --upgrade jupyter"')
     local('docker exec -u="root" -it dva-server bash -c "jupyter notebook --allow-root"')

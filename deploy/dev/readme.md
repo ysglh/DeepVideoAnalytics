@@ -1,1 +1,1 @@
-### Quickly spin up postgres & rabbitmq for development
+### Quickly spin up postgres & rabbitmq for development on a local machine

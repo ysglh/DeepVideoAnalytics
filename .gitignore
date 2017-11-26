@@ -89,7 +89,12 @@ creds.json
 /deploy/cloud/host
 /deploy/cloud/connect.sh
 /deploy/cloud/heroku.env
+/deploy/aws_example/config.py
+/deploy/aws_example/host
+/deploy/aws_example/connect.sh
+/deploy/aws_example/heroku.env
 /dva/media/
 !/dva/media/gitkeep
 !/dva/media/queries/gitkeep
 scripts/coco_annotations/*.json
+/tests/debug/tensorflow_dataset.ipynb

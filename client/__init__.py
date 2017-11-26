@@ -1,7 +1,7 @@
 """
 A simple wrapper around Deep Video Analytics REST API
 """
-import os, json, requests
+import os, json, requests, time, logging
 
 
 class DVAContext(object):
@@ -46,7 +46,16 @@ class DVAContext(object):
         pass
 
     def execute_query(self,query):
-        r = requests.post(self.server, data={'script': json.dumps(query)}, headers=self.headers)
+        r = requests.post("{server}/queries/".format(server=self.server), data={'script': json.dumps(query)},
+                          headers=self.headers)
+        if r.ok:
+            return r.json()
+        else:
+            raise r.raise_for_status()
+
+    def get_results(self,query_id):
+        r = requests.get("{server}/queries/{query_id}/".format(server=self.server,query_id=query_id),
+                         headers=self.headers)
         if r.ok:
             return r.json()
         else:
@@ -57,15 +66,31 @@ class DVAQuery(object):
     def __init__(self):
         self.query_json = {}
         self.query_request = None
+        self.context = None
+        self.results = None
+        self.query_id = None
 
     def execute(self, context):
         if self.query_request is None:
             self.query_request = context.execute_query(self.query_json)
+            self.query_id = self.query_request['id']
+            self.context = context
         else:
             raise ValueError("Query already requested")
 
-    def wait(self):
-        pass
+    def wait(self, timeout=5, max_attempts=20):
+        while not self.completed() and max_attempts > 0:
+            logging.info("Query {qid} not completed sleeping for {timeout} and"
+                         " waiting for at most {attempts} attempts, ".format(qid=self, timeout=timeout,
+                                                                             attempts=max_attempts))
+            max_attempts -= 1
+            time.sleep(timeout)
+
+    def completed(self):
+        if (self.results is None) or (not self.results['completed']):
+            self.results = self.context.get_results(self.query_id)
+        else:
+            return self.results['completed']
 
     def view_results(self):
         pass
@@ -112,25 +137,15 @@ class ProcessVideoURL(DVAQuery):
                                                             "detector": "coco",
                                                             "next_tasks": [
                                                                 {
-                                                                    "operation": "perform_transformation",
+                                                                    "operation": "perform_indexing",
                                                                     "arguments": {
+                                                                        "index": "inception",
+                                                                        "target": "regions",
                                                                         "filters": {
-                                                                            "event_id": "__parent_event__"
-                                                                        },
-                                                                        "next_tasks": [
-                                                                            {
-                                                                                "operation": "perform_indexing",
-                                                                                "arguments": {
-                                                                                    "index": "inception",
-                                                                                    "target": "regions",
-                                                                                    "filters": {
-                                                                                        "event_id": "__grand_parent_event__",
-                                                                                        "w__gte": 50,
-                                                                                        "h__gte": 50
-                                                                                    }
-                                                                                }
-                                                                            }
-                                                                        ]
+                                                                            "event_id": "__parent_event__",
+                                                                            "w__gte": 50,
+                                                                            "h__gte": 50
+                                                                        }
                                                                     }
                                                                 }
                                                             ]
@@ -143,27 +158,13 @@ class ProcessVideoURL(DVAQuery):
                                                             "detector": "face",
                                                             "next_tasks": [
                                                                 {
-                                                                    "operation": "perform_transformation",
+                                                                    "operation": "perform_indexing",
                                                                     "arguments": {
-                                                                        "resize": [
-                                                                            182,
-                                                                            182
-                                                                        ],
+                                                                        "index": "facenet",
+                                                                        "target": "regions",
                                                                         "filters": {
                                                                             "event_id": "__parent_event__"
-                                                                        },
-                                                                        "next_tasks": [
-                                                                            {
-                                                                                "operation": "perform_indexing",
-                                                                                "arguments": {
-                                                                                    "index": "facenet",
-                                                                                    "target": "regions",
-                                                                                    "filters": {
-                                                                                        "event_id": "__grand_parent_event__"
-                                                                                    }
-                                                                                }
-                                                                            }
-                                                                        ]
+                                                                        }
                                                                     }
                                                                 }
                                                             ]

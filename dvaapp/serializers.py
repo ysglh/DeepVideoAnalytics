@@ -31,78 +31,104 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class VideoSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = Video
         fields = '__all__'
 
 
 class RetrieverSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = Retriever
         fields = '__all__'
 
 
 class DeepModelSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = DeepModel
         fields = '__all__'
 
 
 class LabelSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = Label
         fields = '__all__'
 
 
 class FrameLabelSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = FrameLabel
         fields = '__all__'
 
 
 class RegionLabelSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = RegionLabel
         fields = '__all__'
 
 
 class SegmentLabelSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = SegmentLabel
         fields = '__all__'
 
 
 class VideoLabelSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = VideoLabel
         fields = '__all__'
 
 
 class TubeLabelSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = TubeLabel
         fields = '__all__'
 
 
 class FrameLabelExportSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = FrameLabel
         fields = '__all__'
 
 
 class RegionLabelExportSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = RegionLabel
         fields = '__all__'
 
 
 class SegmentLabelExportSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = SegmentLabel
         fields = '__all__'
 
 
 class VideoLabelExportSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = VideoLabel
         fields = '__all__'
@@ -141,7 +167,7 @@ class SegmentSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Segment
         fields = ('video','segment_index','start_time','end_time','metadata',
-                  'frame_count','start_index','start_frame','end_frame','url','media_url')
+                  'frame_count','start_index','start_frame','end_frame','url','media_url', 'id')
 
 
 class RegionSerializer(serializers.HyperlinkedModelSerializer):
@@ -158,16 +184,20 @@ class RegionSerializer(serializers.HyperlinkedModelSerializer):
         model = Region
         fields = ('url','media_url','region_type','video','user','frame','event','frame_index',
                   'segment_index','text','metadata','full_frame','x','y','h','w',
-                  'polygon_points','created','object_name','confidence','materialized','png')
+                  'polygon_points','created','object_name','confidence','materialized','png', 'id')
 
 
 class TubeSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = Tube
         fields = '__all__'
 
 
 class QueryRegionSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = QueryRegion
         fields = '__all__'
@@ -192,12 +222,16 @@ class VDNServerSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class QueryResultsSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = QueryResults
         fields = '__all__'
 
 
 class QueryRegionResultsSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = QueryRegionResults
         fields = '__all__'
@@ -222,12 +256,16 @@ class QueryRegionResultsExportSerializer(serializers.ModelSerializer):
 
 
 class TEventSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = TEvent
         fields = '__all__'
 
 
 class IndexEntriesSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = IndexEntries
         fields = '__all__'

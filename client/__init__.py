@@ -1,7 +1,10 @@
 """
 A simple wrapper around Deep Video Analytics REST API
 """
-import os, json, requests, time, logging
+import os, json, requests, time, logging, base64
+
+TYPE_QUERY_CONSTANT = 'Q'
+TYPE_PROCESSING_CONSTANT = 'V'
 
 
 class DVAContext(object):
@@ -42,10 +45,23 @@ class DVAContext(object):
         else:
             r.raise_for_status()
 
-    def list_events(self):
-        pass
+    def list_retrievers(self):
+        r = requests.get("{server}/retrievers/".format(server=self.server),
+                         headers=self.headers)
+        if r.ok:
+            return r.json()
+        else:
+            r.raise_for_status()
 
-    def execute_query(self,query):
+    def list_events(self):
+        r = requests.get("{server}/events/".format(server=self.server),
+                         headers=self.headers)
+        if r.ok:
+            return r.json()
+        else:
+            r.raise_for_status()
+
+    def execute_query(self, query):
         r = requests.post("{server}/queries/".format(server=self.server), data={'script': json.dumps(query)},
                           headers=self.headers)
         if r.ok:
@@ -53,8 +69,8 @@ class DVAContext(object):
         else:
             raise r.raise_for_status()
 
-    def get_results(self,query_id):
-        r = requests.get("{server}/queries/{query_id}/".format(server=self.server,query_id=query_id),
+    def get_results(self, query_id):
+        r = requests.get("{server}/queries/{query_id}/".format(server=self.server, query_id=query_id),
                          headers=self.headers)
         if r.ok:
             return r.json()
@@ -102,7 +118,7 @@ class ProcessVideoURL(DVAQuery):
         self.url = url
         self.name = name
         self.query_json = {
-            "process_type": "V",
+            "process_type": TYPE_PROCESSING_CONSTANT,
             "tasks": [
                 {
                     "operation": "perform_import",
@@ -179,5 +195,31 @@ class ProcessVideoURL(DVAQuery):
                         ]
                     }
                 }
+            ]
+        }
+
+
+class FindSimilarImages(DVAQuery):
+    def __init__(self, query_image_path, retriever_pk, n=20):
+        super(FindSimilarImages, self).__init__()
+        self.query_image_path = query_image_path
+        self.query_json = {
+            'process_type': TYPE_QUERY_CONSTANT,
+            'image_data_b64': base64.encodestring(file(self.query_image_path).read()),
+            'tasks': [
+                {
+                    'operation': 'perform_indexing',
+                    'arguments': {
+                        'index': 'inception',
+                        'target': 'query',
+                        'next_tasks': [
+                            {'operation': 'perform_retrieval',
+                             'arguments': {'count': n, 'retriever_pk': retriever_pk}
+                             }
+                        ]
+                    }
+
+                }
+
             ]
         }

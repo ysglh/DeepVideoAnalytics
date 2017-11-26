@@ -245,6 +245,21 @@ class QueryResultsExportSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class QueryRegionResultsExportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QueryRegionResults
+        fields = '__all__'
+
+
+class QueryRegionExportSerializer(serializers.ModelSerializer):
+    query_region_results = QueryRegionResultsExportSerializer(source='queryregionresults_set', read_only=True, many=True)
+
+    class Meta:
+        model = QueryRegion
+        fields = ('id','region_type','query','event','text','metadata','full_frame','x','y','h','w','polygon_points',
+                  'created','object_name','confidence','png','query_region_results')
+
+
 class TaskExportSerializer(serializers.ModelSerializer):
     query_results = QueryResultsExportSerializer(source='queryresults_set', read_only=True, many=True)
     query_regions = QueryRegionExportSerializer(source='queryregion_set', read_only=True, many=True)
@@ -254,12 +269,6 @@ class TaskExportSerializer(serializers.ModelSerializer):
         fields = ('started','completed','errored','worker','error_message','video','operation','queue',
                   'created','start_ts','duration','arguments','task_id','parent','parent_process',
                   'imported','query_results', 'query_regions', 'id')
-
-
-class QueryRegionResultsExportSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = QueryRegionResults
-        fields = '__all__'
 
 
 class TEventSerializer(serializers.HyperlinkedModelSerializer):
@@ -315,15 +324,6 @@ class SegmentExportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Segment
         fields = '__all__'
-
-
-class QueryRegionExportSerializer(serializers.ModelSerializer):
-    query_region_results = QueryRegionResultsExportSerializer(source='queryregionresults_set', read_only=True, many=True)
-
-    class Meta:
-        model = QueryRegion
-        fields = ('id','region_type','query','event','text','metadata','full_frame','x','y','h','w','polygon_points',
-                  'created','object_name','confidence','png','query_region_results')
 
 
 class DVAPQLSerializer(serializers.HyperlinkedModelSerializer):
@@ -397,8 +397,6 @@ def create_event(e, v):
     de.arguments = e.get('arguments', {})
     de.task_id = e.get('task_id', "")
     return de
-
-
 
 
 class VideoImporter(object):

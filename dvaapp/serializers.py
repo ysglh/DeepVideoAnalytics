@@ -238,15 +238,22 @@ class QueryRegionResultsSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class QueryResultsExportSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = QueryResults
         fields = '__all__'
 
 
 class TaskExportSerializer(serializers.ModelSerializer):
+    query_results = QueryResultsExportSerializer(source='queryresults_set', read_only=True, many=True)
+    query_regions = QueryRegionExportSerializer(source='queryregion_set', read_only=True, many=True)
+
     class Meta:
         model = TEvent
-        fields = '__all__'
+        fields = ('started','completed','errored','worker','error_message','video','operation','queue',
+                  'created','start_ts','duration','arguments','task_id','parent','parent_process',
+                  'imported','query_results', 'query_regions', 'id')
 
 
 class QueryRegionResultsExportSerializer(serializers.ModelSerializer):
@@ -320,8 +327,6 @@ class QueryRegionExportSerializer(serializers.ModelSerializer):
 
 
 class DVAPQLSerializer(serializers.HyperlinkedModelSerializer):
-    query_regions = QueryRegionExportSerializer(source='queryregion_set', read_only=True, many=True)
-    query_results = QueryResultsExportSerializer(source='queryresults_set', read_only=True, many=True)
     tasks = TaskExportSerializer(source='tevent_set', read_only=True, many=True)
 
     class Meta:

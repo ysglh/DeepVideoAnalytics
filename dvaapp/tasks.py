@@ -60,9 +60,12 @@ def perform_indexing(task_id):
         start.save()
     json_args = start.arguments
     target = json_args.get('target','frames')
-    index_name = json_args['index']
     start.save()
-    visual_index, di = perform_indexing.get_index_by_name(index_name)
+    if 'index' in json_args:
+        index_name = json_args['index']
+        visual_index, di = perform_indexing.get_index_by_name(index_name)
+    else:
+        visual_index, di = perform_indexing.get_index_by_pk(json_args['indexer_pk'])
     sync = True
     if target == 'query':
         local_path = task_shared.download_and_get_query_path(start)

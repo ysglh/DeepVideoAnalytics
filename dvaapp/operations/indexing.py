@@ -26,6 +26,12 @@ class IndexerTask(celery.Task):
             di = IndexerTask._name_to_index[name]
         return self.get_index(di),di
 
+    def get_index_by_pk(self,pk):
+        di = DeepModel.objects.get(pk=pk)
+        if di.model_type != DeepModel.INDEXER:
+            raise ValueError("Model {} id: {} is not an Indexer".format(di.name,di.pk))
+        return self.get_index(di),di
+
     def get_index(self,di):
         if di.pk not in IndexerTask._visual_indexer:
             iroot = "{}/models/".format(settings.MEDIA_ROOT)

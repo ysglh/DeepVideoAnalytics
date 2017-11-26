@@ -168,7 +168,7 @@ class TEventViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
     queryset = TEvent.objects.all()
     serializer_class = serializers.TEventSerializer
-    filter_fields = ('video', 'operation')
+    filter_fields = ('video', 'operation', 'completed', 'pending', 'errored', 'parent_process')
 
 
 class WorkerViewSet(viewsets.ReadOnlyModelViewSet):

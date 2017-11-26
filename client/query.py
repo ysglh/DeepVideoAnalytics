@@ -23,22 +23,25 @@ class DVAQuery(object):
         else:
             raise ValueError("Query already requested")
 
-    def wait(self, timeout=5, max_attempts=20):
+    def wait(self, timeout=3, max_attempts=20):
         while not self.completed() and max_attempts > 0:
             logging.info("Query {qid} not completed sleeping for {timeout} and"
                          " waiting for at most {attempts} attempts, ".format(qid=self, timeout=timeout,
                                                                              attempts=max_attempts))
             max_attempts -= 1
             time.sleep(timeout)
+        if max_attempts == 0:
+            raise ValueError('Timed out after {} seconds'.format(max_attempts*timeout))
 
     def completed(self):
-        if (self.results is None) or (not self.results['completed']):
+        if self.results is None:
             self.results = self.context.get_results(self.query_id)
-        else:
+        if not self.results['completed']:
+            self.results = self.context.get_results(self.query_id)  # refresh results
             if all([t['completed'] for t in self.results['tasks']]):
                 # dont wait for scheduler just check if all launched tasks have completed.
                 self.results['completed'] = True
-            return self.results['completed']
+        return self.results['completed']
 
     def gather_search_results(self):
         if self.query_json['process_type'] != constants.TYPE_QUERY_CONSTANT:
@@ -47,7 +50,6 @@ class DVAQuery(object):
             for t in self.results['tasks']:
                 if t['query_results']:
                     self.search_results.append(visual_search_results.VisualSearchResults(self,task=t))
-
 
 
 class ProcessVideoURL(DVAQuery):

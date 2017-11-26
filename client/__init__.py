@@ -61,6 +61,14 @@ class DVAContext(object):
         else:
             r.raise_for_status()
 
+    def get_frame(self, frame_pk):
+        r = requests.get("{server}/frames/{frame_pk}".format(server=self.server,frame_pk=frame_pk),
+                         headers=self.headers)
+        if r.ok:
+            return r.json()
+        else:
+            r.raise_for_status()
+
     def execute_query(self, query):
         r = requests.post("{server}/queries/".format(server=self.server), data={'script': json.dumps(query)},
                           headers=self.headers)
@@ -79,14 +87,16 @@ class DVAContext(object):
 
 
 class DVAQuery(object):
-    def __init__(self):
+    def __init__(self, query_id = None, context = None):
         self.query_json = {}
         self.query_request = None
-        self.context = None
+        self.context = context
         self.results = None
-        self.query_id = None
+        self.query_id = query_id
 
-    def execute(self, context):
+    def execute(self, context = None):
+        if self.context is None:
+            self.context = context
         if self.query_request is None:
             self.query_request = context.execute_query(self.query_json)
             self.query_id = self.query_request['id']

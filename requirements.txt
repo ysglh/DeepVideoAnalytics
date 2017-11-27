@@ -25,3 +25,4 @@ uwsgi
 lmdb
 gunicorn
 django-celery-beat
+cython

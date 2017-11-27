@@ -269,8 +269,8 @@ class TextBoxDetector():
         scores, boxes = test_ctpn(self.session, self.net, img)
         boxes = self.textdetector.detect(boxes, scores[:, np.newaxis], img.shape[:2])
         for box in boxes:
-            top, left = int(box[0]), int(box[1])
-            bottom, right = int(box[6]), int(box[7])
+            left, top = int(box[0]), int(box[1])
+            right, bottom = int(box[6]), int(box[7])
             score = float(box[8])
             left, top, right, bottom = int(left * mul_w), int(top * mul_h), int(right * mul_w), int(bottom * mul_h)
             r = {'score':float(score),'y':top,'x':left,'w':right - left,'h':bottom - top,}

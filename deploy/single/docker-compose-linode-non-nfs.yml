@@ -310,7 +310,7 @@
      volumes:
        - dvadata_exact_facenet:/root/DVA/dva/media
    textdetector:
-     image: akshayubhat/dva-auto:caffe-cpu
+     image: akshayubhat/dva-auto:latest
      container_name: textdetector
      environment:
        - DOCKER_MODE=true
@@ -327,7 +327,6 @@
        - DB_USER=pgdbuser
        - DB_PASS=pgdbpass
        - LAUNCH_BY_NAME_detector_textbox=1
-       - CAFFE_MODE=1
      command: bash -c "sleep 60 && git pull && fab start_container:worker"
      depends_on:
        - db

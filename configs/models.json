@@ -93,29 +93,23 @@
   {
     "model_type": "detector",
     "name": "textbox",
-    "url": "https://www.dropbox.com/s/yyj53aet2emhvs7/ctpn_trained_model.caffemodel",
-    "filename": "ctpn_trained_model.caffemodel",
-    "additional_files":[
-      {"url": "https://www.dropbox.com/s/1fcgzui32wrtlvd/ctpn_trained_model.prototxt",
-      "filename": "ctpn_trained_model.prototxt"}
-    ],
-    "algorithm": "CTPN",
-    "mode": "C"
-  },
-  {
-    "model_type": "detector",
-    "name": "tf_textbox",
     "url": "https://www.dropbox.com/s/ghxowdua65r82d6/checkpoint",
     "filename": "checkpoint",
-    "additional_files":[
-      {"url": "https://www.dropbox.com/s/v9w4mhcks7a719k/VGGnet_fast_rcnn_iter_50000.ckpt.data-00000-of-00001",
-      "filename": "VGGnet_fast_rcnn_iter_50000.ckpt.data-00000-of-00001"},
-      {"url": "https://www.dropbox.com/s/2d0licy8npype6r/VGGnet_fast_rcnn_iter_50000.ckpt.index",
-      "filename": "VGGnet_fast_rcnn_iter_50000.ckpt.index"},
-      {"url": "https://www.dropbox.com/s/vwmz2ra9jovlxjd/VGGnet_fast_rcnn_iter_50000.ckpt.meta",
-      "filename": "VGGnet_fast_rcnn_iter_50000.ckpt.meta"}
+    "additional_files": [
+      {
+        "url": "https://www.dropbox.com/s/v9w4mhcks7a719k/VGGnet_fast_rcnn_iter_50000.ckpt.data-00000-of-00001",
+        "filename": "VGGnet_fast_rcnn_iter_50000.ckpt.data-00000-of-00001"
+      },
+      {
+        "url": "https://www.dropbox.com/s/2d0licy8npype6r/VGGnet_fast_rcnn_iter_50000.ckpt.index",
+        "filename": "VGGnet_fast_rcnn_iter_50000.ckpt.index"
+      },
+      {
+        "url": "https://www.dropbox.com/s/vwmz2ra9jovlxjd/VGGnet_fast_rcnn_iter_50000.ckpt.meta",
+        "filename": "VGGnet_fast_rcnn_iter_50000.ckpt.meta"
+      }
     ],
-    "algorithm": "TFCTPN",
+    "algorithm": "CTPN",
     "mode": "T"
   },
   {
@@ -154,10 +148,19 @@
     "name": "tagger",
     "url": "https://www.dropbox.com/s/umo0xtljm9an90x/open_images.ckpt",
     "filename": "open_images.ckpt",
-    "additional_files":[
-      {"url": "https://www.dropbox.com/s/f93axdtlb3ltj40/open_images.ckpt.meta", "filename": "open_images.ckpt.meta"},
-      {"url": "https://www.dropbox.com/s/2sd5nzpyhsj10w5/open_images_labelmap.txt", "filename": "open_images_labelmap.txt"},
-      {"url": "https://www.dropbox.com/s/yboqv4leem6oy01/open_images_dict.csv", "filename": "open_images_dict.csv"}
+    "additional_files": [
+      {
+        "url": "https://www.dropbox.com/s/f93axdtlb3ltj40/open_images.ckpt.meta",
+        "filename": "open_images.ckpt.meta"
+      },
+      {
+        "url": "https://www.dropbox.com/s/2sd5nzpyhsj10w5/open_images_labelmap.txt",
+        "filename": "open_images_labelmap.txt"
+      },
+      {
+        "url": "https://www.dropbox.com/s/yboqv4leem6oy01/open_images_dict.csv",
+        "filename": "open_images_dict.csv"
+      }
     ],
     "mode": "T"
   }

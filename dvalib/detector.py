@@ -243,8 +243,7 @@ class TextBoxDetector():
             self.gpu_fraction = gpu_fraction
         else:
             self.gpu_fraction = float(os.environ.get('GPU_MEMORY', 0.20))
-        self.model_path = str(model_path.encode('utf-8'))
-        self.network_def = str(model_path.replace('.caffemodel','.prototxt').encode('utf-8'))
+        self.model_path = os.path.dirname(str(model_path.encode('utf-8')))
 
     def load(self):
         logging.info('Creating networks and loading parameters')
@@ -263,27 +262,20 @@ class TextBoxDetector():
             self.load()
         regions = []
         img = cv2.imread(image_path)
+        old_h, old_w, channels = img.shape
         img, scale = self.resize_im(img, scale=TextLineCfg.SCALE, max_scale=TextLineCfg.MAX_SCALE)
+        new_h, new_w, channels = img.shape
+        mul_h, mul_w = float(old_h) / float(new_h), float(old_w) / float(new_w)
         scores, boxes = test_ctpn(self.session, self.net, img)
         boxes = self.textdetector.detect(boxes, scores[:, np.newaxis], img.shape[:2])
         for box in boxes:
-            # cv2.line(img, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 255, 0), 2)
-            # cv2.line(img, (int(box[0]), int(box[1])), (int(box[4]), int(box[5])), (0, 255, 0), 2)
-            # cv2.line(img, (int(box[6]), int(box[7])), (int(box[2]), int(box[3])), (0, 255, 0), 2)
-            # cv2.line(img, (int(box[4]), int(box[5])), (int(box[6]), int(box[7])), (0, 255, 0), 2)
-            # old_h, old_w, channels = im.shape
-            # im, _ = resize_im(im, cfg.SCALE, cfg.MAX_SCALE)
-            # new_h, new_w, channels = im.shape
-            # mul_h = float(old_h) / float(new_h)
-            # mul_w = float(old_w) / float(new_w)
-            # text_lines = self.session.detect(im)
-            # for k in text_lines:
-            #     left, top, right, bottom, score = k
-            #     left, top, right, bottom = int(left * mul_w), int(top * mul_h), int(right * mul_w), int(bottom * mul_h)
-            #     r = {'score':float(score),'y':top,'x':left,'w':right - left,'h':bottom - top,}
-            #     regions.append(r)
-            pass
-        return boxes
+            top, left = int(box[0]), int(box[1])
+            bottom, right = int(box[6]), int(box[7])
+            score = float(box[8])
+            left, top, right, bottom = int(left * mul_w), int(top * mul_h), int(right * mul_w), int(bottom * mul_h)
+            r = {'score':float(score),'y':top,'x':left,'w':right - left,'h':bottom - top,}
+            regions.append(r)
+        return regions
 
     def resize_im(self, im, scale, max_scale=None):
         f=float(scale)/min(im.shape[0], im.shape[1])

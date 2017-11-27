@@ -42,6 +42,7 @@
        - LAUNCH_BY_NAME_analyzer_crnn=1
        - LAUNCH_BY_NAME_analyzer_tagger=1
        - LAUNCH_BY_NAME_detector_face=1
+       - LAUNCH_BY_NAME_detector_textbox=1
        - LAUNCH_Q_qclusterer=1
        - LAUNCH_Q_qextract=1
        - LAUNCH_SCHEDULER=1
@@ -49,28 +50,6 @@
      command: bash -c "youtube-dl -U && git pull && sleep 10 && fab migrate && fab start_container:server"
      ports:
        - "127.0.0.1:8000:80" # Since Docker messes up iptables, ufw has no effect as a result bind to localhost and tunnel / Port forward through SSH
-     depends_on:
-       - db
-       - rabbit
-     volumes:
-       - dvadata:/root/DVA/dva/media
-   dva-caffe:
-     image: akshayubhat/dva-auto:caffe-cpu
-     container_name: dva-caffe
-     environment:
-       - DOCKER_MODE=true
-       - RABBIT_HOST=rabbit
-       - RABBIT_USER=dvauser
-       - RABBIT_PASS=localpass
-       - DB_HOST=db
-       - DB_NAME=postgres
-       - DB_USER=pgdbuser
-       - DB_PASS=pgdbpass
-       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-       - LAUNCH_BY_NAME_detector_textbox=1
-       - CAFFE_MODE=1
-     command: bash -c "sleep 60 && git pull && fab start_container:worker"
      depends_on:
        - db
        - rabbit

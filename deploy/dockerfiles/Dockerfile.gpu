@@ -30,6 +30,8 @@ RUN pip install --no-deps h5py
 WORKDIR "/root/DVA"
 WORKDIR "/root/DVA/repos/lopq/python"
 RUN python setup.py install
+WORKDIR "/root/DVA/repos/tf_ctpn_cpu/lib/utils/"
+RUN ./make.sh
 WORKDIR "/root/DVA"
 VOLUME ["/root/DVA/dva/media"]
 EXPOSE 80

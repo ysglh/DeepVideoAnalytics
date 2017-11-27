@@ -50,6 +50,7 @@ install: "pip install -q -r requirements.txt > /dev/null"
 
 before_script:
   - cd repos/lopq/python && python setup.py install && cd ../../..
+  - cd repos/tf_ctpn_cpu/lib/utils && ./make.sh && cd ../../../..
   - python manage.py migrate
   - python manage.py runserver 8000 &
   - cd tests/ci && wget --quiet https://www.dropbox.com/s/t4bgkh2w2ow8o10/WorldIsNotEnough.mp4 && cd ../..

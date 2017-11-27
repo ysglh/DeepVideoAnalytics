@@ -104,6 +104,22 @@
   },
   {
     "model_type": "detector",
+    "name": "tf_textbox",
+    "url": "https://www.dropbox.com/s/ghxowdua65r82d6/checkpoint",
+    "filename": "checkpoint",
+    "additional_files":[
+      {"url": "https://www.dropbox.com/s/v9w4mhcks7a719k/VGGnet_fast_rcnn_iter_50000.ckpt.data-00000-of-00001",
+      "filename": "VGGnet_fast_rcnn_iter_50000.ckpt.data-00000-of-00001"},
+      {"url": "https://www.dropbox.com/s/2d0licy8npype6r/VGGnet_fast_rcnn_iter_50000.ckpt.index",
+      "filename": "VGGnet_fast_rcnn_iter_50000.ckpt.index"},
+      {"url": "https://www.dropbox.com/s/vwmz2ra9jovlxjd/VGGnet_fast_rcnn_iter_50000.ckpt.meta",
+      "filename": "VGGnet_fast_rcnn_iter_50000.ckpt.meta"}
+    ],
+    "algorithm": "TFCTPN",
+    "mode": "T"
+  },
+  {
+    "model_type": "detector",
     "name": "face",
     "url": null,
     "filename": null,

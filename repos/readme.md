@@ -7,4 +7,4 @@ This directory contains repos for third party projects.
 - Tensorflow models/research/slim
 - Tensorflow models/research/object_detection
 - Tensorflow models/research/delf
-
+- Text Detection CTPN 

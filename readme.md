@@ -37,6 +37,7 @@ For a quick overview we reocmmend going through the [presentation in readme.pdf]
 | Object Detector App using TF Object detection API |  [MIT License](https://github.com/datitran/Object-Detector-App) | 
 | Plotly.js |  [MIT License](https://github.com/plotly/plotly.js/blob/master/LICENSE) | 
 | CRF as RNN  |  [MIT License](https://github.com/sadeepj/crfasrnn_keras/blob/master/LICENSE) | 
+| Text Detection CTPN  |  [MIT License](https://github.com/eragonruan/text-detection-ctpn/LICENSE) | 
 | SphereFace  |  [MIT License](https://github.com/wy1iu/sphereface/blob/master/license) |
 | Segment annotator  |   [BSD 3-clause](https://github.com/kyamagu/js-segment-annotator/blob/master/LICENSE) |
 | TF Object detection API  | [Apache 2.0](https://github.com/tensorflow/models/tree/master/research/object_detection) |

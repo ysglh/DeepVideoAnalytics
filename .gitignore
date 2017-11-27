@@ -98,3 +98,10 @@ creds.json
 !/dva/media/queries/gitkeep
 scripts/coco_annotations/*.json
 /tests/debug/tensorflow_dataset.ipynb
+/repos/tf_ctpn_cpu/checkpoints/checkpoint
+/repos/tf_ctpn_cpu/checkpoints/VGGnet_fast_rcnn_iter_50000.ckpt.meta
+/repos/tf_ctpn_cpu/checkpoints/VGGnet_fast_rcnn_iter_50000.ckpt.index
+/repos/tf_ctpn_cpu/checkpoints/VGGnet_fast_rcnn_iter_50000.ckpt.data-00000-of-00001
+/repos/tf_ctpn_cpu/lib/utils/cython_nms.so
+/repos/tf_ctpn_cpu/lib/utils/bbox.so
+/repos/tf_ctpn_cpu/lib/utils/build/

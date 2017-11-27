@@ -19,10 +19,17 @@ elif os.environ.get('CAFFE_MODE',False):
     logging.info("Using Caffe only mode")
 else:
     try:
+        import cv2
         import tensorflow as tf
         from dvalib.yolo import trainer
         from .facenet import facenet
         from .facenet.align import detect_face
+        sys.path.append(os.path.join(os.path.dirname(__file__),'../repos/tf_ctpn_cpu/'))
+        from lib.networks.factory import get_network
+        from lib.fast_rcnn.config import cfg, cfg_from_file
+        from lib.fast_rcnn.test import test_ctpn
+        from lib.text_connector.detectors import TextDetector
+        from lib.text_connector.text_connect_cfg import Config as TextLineCfg
     except:
         logging.info("Could not import TensorFlow assuming front-end mode")
 
@@ -230,39 +237,56 @@ class FaceDetector():
 
 class TextBoxDetector():
 
-    def __init__(self,model_path):
+    def __init__(self,model_path,gpu_fraction=None):
         self.session = None
+        if gpu_fraction:
+            self.gpu_fraction = gpu_fraction
+        else:
+            self.gpu_fraction = float(os.environ.get('GPU_MEMORY', 0.20))
         self.model_path = str(model_path.encode('utf-8'))
         self.network_def = str(model_path.replace('.caffemodel','.prototxt').encode('utf-8'))
 
-
     def load(self):
         logging.info('Creating networks and loading parameters')
-        if os.environ.get('GPU_AVAILABLE',False):
-            caffe.set_mode_gpu()
-            caffe.set_device(cfg.TEST_GPU_ID)
-            logging.info("GPU mode")
-        else:
-            caffe.set_mode_cpu()
-            logging.info("CPU mode")
-        text_proposals_detector = TextProposalDetector(CaffeModel(self.network_def,self.model_path))
-        self.session = TextDetector(text_proposals_detector)
-        logging.info('model loaded!')
+        cfg_from_file(os.path.join(os.path.dirname(__file__),'ctpn/text.yml'))
+        gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=self.gpu_fraction)
+        config = tf.ConfigProto(allow_soft_placement=True,gpu_options=gpu_options)
+        self.session = tf.Session(config=config)
+        self.net = get_network("VGGnet_test")
+        self.textdetector = TextDetector()
+        saver = tf.train.Saver()
+        ckpt = tf.train.get_checkpoint_state(self.model_path)
+        saver.restore(self.session, ckpt.model_checkpoint_path)
 
     def detect(self,image_path):
         if self.session is None:
             self.load()
         regions = []
-        im = cv2.imread(image_path)
-        old_h, old_w, channels = im.shape
-        im, _ = resize_im(im, cfg.SCALE, cfg.MAX_SCALE)
-        new_h, new_w, channels = im.shape
-        mul_h = float(old_h) / float(new_h)
-        mul_w = float(old_w) / float(new_w)
-        text_lines = self.session.detect(im)
-        for k in text_lines:
-            left, top, right, bottom, score = k
-            left, top, right, bottom = int(left * mul_w), int(top * mul_h), int(right * mul_w), int(bottom * mul_h)
-            r = {'score':float(score),'y':top,'x':left,'w':right - left,'h':bottom - top,}
-            regions.append(r)
-        return regions
+        img = cv2.imread(image_path)
+        img, scale = self.resize_im(img, scale=TextLineCfg.SCALE, max_scale=TextLineCfg.MAX_SCALE)
+        scores, boxes = test_ctpn(self.session, self.net, img)
+        boxes = self.textdetector.detect(boxes, scores[:, np.newaxis], img.shape[:2])
+        for box in boxes:
+            # cv2.line(img, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 255, 0), 2)
+            # cv2.line(img, (int(box[0]), int(box[1])), (int(box[4]), int(box[5])), (0, 255, 0), 2)
+            # cv2.line(img, (int(box[6]), int(box[7])), (int(box[2]), int(box[3])), (0, 255, 0), 2)
+            # cv2.line(img, (int(box[4]), int(box[5])), (int(box[6]), int(box[7])), (0, 255, 0), 2)
+            # old_h, old_w, channels = im.shape
+            # im, _ = resize_im(im, cfg.SCALE, cfg.MAX_SCALE)
+            # new_h, new_w, channels = im.shape
+            # mul_h = float(old_h) / float(new_h)
+            # mul_w = float(old_w) / float(new_w)
+            # text_lines = self.session.detect(im)
+            # for k in text_lines:
+            #     left, top, right, bottom, score = k
+            #     left, top, right, bottom = int(left * mul_w), int(top * mul_h), int(right * mul_w), int(bottom * mul_h)
+            #     r = {'score':float(score),'y':top,'x':left,'w':right - left,'h':bottom - top,}
+            #     regions.append(r)
+            pass
+        return boxes
+
+    def resize_im(self, im, scale, max_scale=None):
+        f=float(scale)/min(im.shape[0], im.shape[1])
+        if max_scale!=None and f*max(im.shape[0], im.shape[1])>max_scale:
+            f=float(max_scale)/max(im.shape[0], im.shape[1])
+        return cv2.resize(im, None,None, fx=f, fy=f,interpolation=cv2.INTER_LINEAR), f

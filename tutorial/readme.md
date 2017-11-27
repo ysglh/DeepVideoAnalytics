@@ -1,3 +1,3 @@
 # Deep Video Analytics tutorial
 
-To run this tutorial start a jupyter notebook and run the tutorial notebook.
+To run tutorials start a jupyter notebook and run the tutorial notebook.

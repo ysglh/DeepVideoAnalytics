@@ -107,3 +107,4 @@ scripts/coco_annotations/*.json
 /repos/tf_ctpn_cpu/lib/utils/build/
 /repos/tf_ctpn_cpu/data/demo/test.jpg
 /repos/tf_ctpn_cpu/data/results/
+/client/build/

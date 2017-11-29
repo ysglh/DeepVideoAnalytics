@@ -1,0 +1,98 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: dvawebserver
+  labels:
+    name: dvawebserver
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        name: dvawebserver
+    spec:
+      containers:
+      - name: dvawebserver
+      - args:
+        - bash
+        - -c
+        - youtube-dl -U && git pull && sleep 10 && fab migrate && fab start_container:server
+        image: akshayubhat/dva:latest
+        env:
+        - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+            secretKeyRef:
+              name: app-secret
+              key: AWS_ACCESS_KEY_ID
+        - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+            secretKeyRef:
+              name: app-secret
+              key: AWS_SECRET_ACCESS_KEY
+        - name: DB_HOST
+          value: db
+        - name: DB_NAME
+          value: postgres
+        - name: DISABLE_DEBUG
+          value: "1"
+        - name: DISABLE_NFS
+          value: "1"
+        - name: DOCKER_MODE
+          value: "true"
+        - name: LAUNCH_SERVER_NGINX
+          value: "1"
+        - name: MEDIA_BUCKET
+            valueFrom:
+            secretKeyRef:
+              name: app-secret
+              key: MEDIA_BUCKET
+        - name: MEDIA_URL
+            valueFrom:
+            secretKeyRef:
+              name: app-secret
+              key: MEDIA_URL
+        - name: RABBIT_HOST
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-secret
+              key: rabbithost
+        - name: RABBIT_USER
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-secret
+              key: rabbitusername
+        - name: RABBIT_PASS
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-secret
+              key: rabbitpassword
+        - name: SECRET_KEY
+          value: 283y312bhv2b13v13
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: dbusername
+        - name: DB_PASS
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: dbpassword
+        - name: TEST
+          value: "1"
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dvawebserver
+  labels:
+    name: dvawebserver
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 8000
+  selector:
+    name: dvawebserver

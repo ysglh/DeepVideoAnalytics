@@ -108,3 +108,4 @@ scripts/coco_annotations/*.json
 /repos/tf_ctpn_cpu/data/demo/test.jpg
 /repos/tf_ctpn_cpu/data/results/
 /client/build/
+/deploy/google_kube_example/secrets.yml

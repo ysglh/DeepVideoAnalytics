@@ -64,12 +64,12 @@ spec:
           valueFrom:
             secretKeyRef:
               name: postgres-secret
-              key: username
+              key: dbusername
         - name: POSTGRES_PASSWORD
           valueFrom:
             secretKeyRef:
               name: postgres-secret
-              key: password
+              key: dbpassword
         ports:
         - containerPort: 5432
           name: postgres-master

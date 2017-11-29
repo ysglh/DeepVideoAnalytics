@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq-master
+  labels:
+    app: rabbitmq
+    tier: backend
+    role: master
+spec:
+  selector:
+    app: rabbitmq
+    tier: backend
+    role: master
+  ports:
+    - port: 5432
+      targetPort: 5432
+  clusterIP: None
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: rabbitmq-secret
+type: Opaque
+data:
+  rabbithost: dGVzdGluZwo=
+  rabbitusername: dGVzdGluZwo=
+  rabbitpassword: dGVzdGluZwo=
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: rabbitmqdata-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 3Gi
+  storageClassName: slow
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: rabbitmq-master
+spec:
+  replicas: 1
+  progressDeadlineSeconds: 600
+  minReadySeconds: 15
+  revisionHistoryLimit: 5
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+        role: master
+        tier: backend
+    spec:
+      containers:
+      - image: rabbitmq
+        imagePullPolicy: "IfNotPresent"
+        name: master
+        env:
+        - name: RABBIT_HOST
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-secret
+              key: rabbithost
+        - name: RABBITMQ_DEFAULT_USER
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-secret
+              key: rabbitusername
+        - name: RABBITMQ_DEFAULT_PASS
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-secret
+              key: rabbitpassword
+        ports:
+        - containerPort: 5672
+          name: rabbitmq-master
+        volumeMounts:
+        - name: rabbitmq-data
+          mountPath: "/var/lib/rabbitmq"
+      volumes:
+        - name: rabbitmq-data
+          persistentVolumeClaim:
+            claimName: rabbitmqdata-claim

@@ -1,0 +1,62 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose.yml
+    kompose.version: 1.5.0 ()
+  creationTimestamp: null
+  labels:
+    io.kompose.service: webserver
+  name: webserver
+spec:
+  replicas: 1
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        io.kompose.service: webserver
+    spec:
+      containers:
+      - args:
+        - bash
+        - -c
+        - youtube-dl -U && git pull && sleep 10 && fab migrate && fab start_container:server
+        env:
+        - name: AWS_ACCESS_KEY_ID
+        - name: AWS_SECRET_ACCESS_KEY
+        - name: DB_HOST
+          value: db
+        - name: DB_NAME
+          value: postgres
+        - name: DB_PASS
+          value: pgdbpass
+        - name: DB_USER
+          value: pgdbuser
+        - name: DISABLE_DEBUG
+          value: "1"
+        - name: DISABLE_NFS
+          value: "1"
+        - name: DOCKER_MODE
+          value: "true"
+        - name: LAUNCH_SERVER_NGINX
+          value: "1"
+        - name: MEDIA_BUCKET
+        - name: MEDIA_URL
+        - name: RABBIT_HOST
+          value: rabbit
+        - name: RABBIT_PASS
+          value: localpass
+        - name: RABBIT_USER
+          value: dvauser
+        - name: SECRET_KEY
+          value: 283y312bhv2b13v13
+        - name: TEST
+          value: "1"
+        image: akshayubhat/dva-auto:latest
+        name: webserver
+        ports:
+        - containerPort: 80
+        resources: {}
+      restartPolicy: Always
+status: {}

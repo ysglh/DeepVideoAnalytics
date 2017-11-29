@@ -40,12 +40,10 @@
        - TEST=1
      command: bash -c "youtube-dl -U && git pull && sleep 10 && fab migrate && fab start_container:server"
      ports:
-       - "127.0.0.1:8000:80" # Since Docker messes up iptables, ufw has no effect as a result bind to localhost and tunnel / Port forward through SSH
+       - "80:80"
      depends_on:
        - db
        - rabbit
-     volumes:
-       - dvadata_webserver:/root/DVA/dva/media
    extractor:
      image: akshayubhat/dva-auto:latest
      container_name: extractor
@@ -71,8 +69,6 @@
      depends_on:
        - db
        - rabbit
-     volumes:
-       - dvadata_extractor:/root/DVA/dva/media
    scheduler:
      image: akshayubhat/dva-auto:latest
      container_name: scheduler
@@ -97,8 +93,6 @@
      depends_on:
        - db
        - rabbit
-     volumes:
-       - dvadata_scheduler:/root/DVA/dva/media
    inception:
      image: akshayubhat/dva-auto:latest
      container_name: inception
@@ -123,8 +117,6 @@
      depends_on:
        - db
        - rabbit
-     volumes:
-       - dvadata_inception:/root/DVA/dva/media
    facenet:
      image: akshayubhat/dva-auto:latest
      container_name: facenet
@@ -149,8 +141,6 @@
      depends_on:
        - db
        - rabbit
-     volumes:
-       - dvadata_facenet:/root/DVA/dva/media
    coco:
      image: akshayubhat/dva-auto:latest
      container_name: coco
@@ -175,8 +165,6 @@
      depends_on:
        - db
        - rabbit
-     volumes:
-       - dvadata_coco:/root/DVA/dva/media
    crnn:
      image: akshayubhat/dva-auto:latest
      container_name: crnn
@@ -203,8 +191,6 @@
      depends_on:
        - db
        - rabbit
-     volumes:
-       - dvadata_crnn:/root/DVA/dva/media
    tagger:
      image: akshayubhat/dva-auto:latest
      container_name: tagger
@@ -229,8 +215,6 @@
      depends_on:
        - db
        - rabbit
-     volumes:
-       - dvadata_tagger:/root/DVA/dva/media
    face:
      image: akshayubhat/dva-auto:latest
      container_name: face
@@ -255,8 +239,6 @@
      depends_on:
        - db
        - rabbit
-     volumes:
-       - dvadata_face:/root/DVA/dva/media
    retriever_exact_inception:
      image: akshayubhat/dva-auto:latest
      container_name: retriever_exact_inception
@@ -281,8 +263,6 @@
      depends_on:
        - db
        - rabbit
-     volumes:
-       - dvadata_exact_inception:/root/DVA/dva/media
    retriever_exact_facenet:
      image: akshayubhat/dva-auto:latest
      container_name: retriever_exact_facenet
@@ -307,8 +287,6 @@
      depends_on:
        - db
        - rabbit
-     volumes:
-       - dvadata_exact_facenet:/root/DVA/dva/media
    textdetector:
      image: akshayubhat/dva-auto:latest
      container_name: textdetector
@@ -331,20 +309,6 @@
      depends_on:
        - db
        - rabbit
-     volumes:
-       - dvadata_textdetector:/root/DVA/dva/media
  volumes:
   dvapgdata:
   dvarabbit:
-  dvadata_webserver:
-  dvadata_extractor:
-  dvadata_scheduler:
-  dvadata_inception:
-  dvadata_facenet:
-  dvadata_coco:
-  dvadata_crnn:
-  dvadata_tagger:
-  dvadata_face:
-  dvadata_exact_inception:
-  dvadata_exact_facenet:
-  dvadata_textdetector:

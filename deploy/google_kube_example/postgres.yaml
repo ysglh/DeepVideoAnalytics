@@ -17,19 +17,16 @@ spec:
   clusterIP: None
 ---
 apiVersion: v1
-kind: PersistentVolume
+kind: Secret
 metadata:
-  name: postgres-data
-spec:
-  accessModes:
-    - ReadWriteOnce
-  capacity:
-    storage: 1Gi
-  hostPath:
-    path: /data/postgres-data/
+  name: postgres-secret
+type: Opaque
+data:
+  dbusername: dGVzdGluZwo=
+  dbpassword: dGVzdGluZwo=
 ---
-apiVersion: v1
 kind: PersistentVolumeClaim
+apiVersion: v1
 metadata:
   name: postgresdata-claim
 spec:
@@ -37,17 +34,8 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 5Gi
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: postgres-secret
-type: Opaque
-data:
-  username: dGVzdGluZwo=
-  password: dGVzdGluZwo=
-  database: dGVzdGluZwo=
+      storage: 3Gi
+  storageClassName: slow
 ---
 apiVersion: apps/v1beta1
 kind: Deployment
@@ -82,11 +70,6 @@ spec:
             secretKeyRef:
               name: postgres-secret
               key: password
-        - name: POSTGRES_DB
-          valueFrom:
-            secretKeyRef:
-              name: postgres-secret
-              key: database
         ports:
         - containerPort: 5432
           name: postgres-master

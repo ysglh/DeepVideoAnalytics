@@ -6,31 +6,31 @@ metadata:
     name: dvawebserver
 spec:
   replicas: 2
+  progressDeadlineSeconds: 600
+  minReadySeconds: 15
+  revisionHistoryLimit: 5
   template:
     metadata:
       labels:
         name: dvawebserver
     spec:
       containers:
-      - name: dvawebserver
-      - args:
-        - bash
-        - -c
-        - youtube-dl -U && git pull && sleep 10 && fab migrate && fab start_container:server
-        image: akshayubhat/dva:latest
+      - image: akshayubhat/dva:latest
+        imagePullPolicy: "IfNotPresent"
+        name: dvawebserver
         env:
         - name: AWS_ACCESS_KEY_ID
-            valueFrom:
+          valueFrom:
             secretKeyRef:
               name: app-secret
-              key: AWS_ACCESS_KEY_ID
+              key: awskey
         - name: AWS_SECRET_ACCESS_KEY
-            valueFrom:
+          valueFrom:
             secretKeyRef:
               name: app-secret
-              key: AWS_SECRET_ACCESS_KEY
+              key: awssecret
         - name: DB_HOST
-          value: db
+          value: postgres
         - name: DB_NAME
           value: postgres
         - name: DISABLE_DEBUG
@@ -42,20 +42,17 @@ spec:
         - name: LAUNCH_SERVER_NGINX
           value: "1"
         - name: MEDIA_BUCKET
-            valueFrom:
-            secretKeyRef:
-              name: app-secret
-              key: MEDIA_BUCKET
-        - name: MEDIA_URL
-            valueFrom:
-            secretKeyRef:
-              name: app-secret
-              key: MEDIA_URL
-        - name: RABBIT_HOST
           valueFrom:
             secretKeyRef:
-              name: rabbitmq-secret
-              key: rabbithost
+              name: app-secret
+              key: mediabucket
+        - name: MEDIA_URL
+          valueFrom:
+            secretKeyRef:
+              name: app-secret
+              key: mediaurl
+        - name: RABBIT_HOST
+          value: rabbitmq
         - name: RABBIT_USER
           valueFrom:
             secretKeyRef:
@@ -67,7 +64,10 @@ spec:
               name: rabbitmq-secret
               key: rabbitpassword
         - name: SECRET_KEY
-          value: 283y312bhv2b13v13
+          valueFrom:
+            secretKeyRef:
+              name: app-secret
+              key: secretkey
         - name: DB_USER
           valueFrom:
             secretKeyRef:
@@ -82,6 +82,10 @@ spec:
           value: "1"
         ports:
         - containerPort: 80
+        args:
+          - bash
+          - -c
+          - youtube-dl -U && git pull && sleep 10 && fab migrate && fab start_container:server
 ---
 apiVersion: v1
 kind: Service

@@ -16,15 +16,6 @@ spec:
       targetPort: 5432
   clusterIP: None
 ---
-apiVersion: v1
-kind: Secret
-metadata:
-  name: postgres-secret
-type: Opaque
-data:
-  dbusername: dGVzdGluZwo=
-  dbpassword: dGVzdGluZwo=
----
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:

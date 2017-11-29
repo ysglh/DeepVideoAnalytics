@@ -15,7 +15,7 @@ spec:
         name: dvawebserver
     spec:
       containers:
-      - image: akshayubhat/dva:latest
+      - image: akshayubhat/dva-auto:latest
         imagePullPolicy: "IfNotPresent"
         name: dvawebserver
         env:
@@ -30,7 +30,7 @@ spec:
               name: app-secret
               key: awssecret
         - name: DB_HOST
-          value: postgres
+          value: postgres-master
         - name: DB_NAME
           value: postgres
         - name: DISABLE_DEBUG
@@ -52,7 +52,7 @@ spec:
               name: app-secret
               key: mediaurl
         - name: RABBIT_HOST
-          value: rabbitmq
+          value: rabbitmq-master
         - name: RABBIT_USER
           valueFrom:
             secretKeyRef:

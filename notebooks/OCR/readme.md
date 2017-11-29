@@ -1,6 +1,10 @@
 # Practical Deep OCR for scene text using CTPN + CRNN
 
-This folder contains two notebooks which demonstrate use of CTPN (Caffe implementation) [1,2] for
+
+#### Please note that the CTPN code used in this post has been updated.
+#### Instead of the Caffe based CTPN I have migrated to (Tensorflow CTPN by eragonruan](https://github.com/eragonruan/text-detection-ctpn)
+
+This folder contains two notebooks which demonstrate use of CTPN [1,2, 5] for
 Text box detection and CRNN (PyTorch implmentation) [3,4] for Text character recognition. Most online tutorials 
 describe traditional OCR techniques using Tessaract. However Tessaract is not useful for scene text recognition, 
 i.e. text occurring in natural scenes, with wide variation in fonts, colors and background. Over the last couple of years 
@@ -15,10 +19,10 @@ using following command and open the url show in terminal.
 
 ````bash
 # If you have an NVidia GPU with NVidia-docker and Docker
-nvidia-docker run -p 8888:8888 -it akshayubhat/dva-auto:caffe
+nvidia-docker run -p 8888:8888 -it akshayubhat/dva-auto:latest
 
 # If you do not have a GPU run following docker command
-docker run -p 8888:8888 -it akshayubhat/dva-auto:caffe-cpu
+docker run -p 8888:8888 -it akshayubhat/dva-auto:latest
 ````
 
 
@@ -62,3 +66,4 @@ without having to write any code. Extracted text can be conveniently queried usi
 2. [https://github.com/qingswu/CTPN (CUDA 8.0 compatible, used here)](https://github.com/qingswu/CTPN)
 3. [https://github.com/meijieru/crnn.pytorch](https://github.com/meijieru/crnn.pytorch)
 4. [https://github.com/bgshih/crnn (Original implementation)](https://github.com/bgshih/crnn)
+5. [https://github.com/eragonruan/text-detection-ctpn](https://github.com/eragonruan/text-detection-ctpn)

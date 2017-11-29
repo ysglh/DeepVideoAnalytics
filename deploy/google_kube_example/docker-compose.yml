@@ -1,0 +1,350 @@
+# specify using docker-compose -f docker-compose-deploy.yml up
+ version: '3'
+ services:
+   db:
+     image: postgres
+     container_name: dva-pg
+     volumes:
+      - dvapgdata:/var/lib/postgresql/data
+     environment:
+       - POSTGRES_USER=pgdbuser
+       - POSTGRES_PASSWORD=pgdbpass
+   rabbit:
+     image: rabbitmq
+     container_name: dva-rmq
+     environment:
+       - RABBITMQ_DEFAULT_USER=dvauser
+       - RABBITMQ_DEFAULT_PASS=localpass
+     volumes:
+       - dvarabbit:/var/lib/rabbitmq
+   webserver:
+     image: akshayubhat/dva-auto:latest
+     container_name: webserver
+     environment:
+       - DOCKER_MODE=true
+       - RABBIT_HOST=rabbit
+       - RABBIT_USER=dvauser
+       - RABBIT_PASS=localpass
+       - DB_HOST=db
+       - DB_NAME=postgres
+       - DB_USER=pgdbuser
+       - DB_PASS=pgdbpass
+       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+       - LAUNCH_SERVER_NGINX=1
+       - DISABLE_DEBUG=1
+       - MEDIA_BUCKET=${MEDIA_BUCKET}
+       - MEDIA_URL=${MEDIA_URL}
+       - DISABLE_NFS=1
+       - SECRET_KEY=283y312bhv2b13v13
+       - TEST=1
+     command: bash -c "youtube-dl -U && git pull && sleep 10 && fab migrate && fab start_container:server"
+     ports:
+       - "127.0.0.1:8000:80" # Since Docker messes up iptables, ufw has no effect as a result bind to localhost and tunnel / Port forward through SSH
+     depends_on:
+       - db
+       - rabbit
+     volumes:
+       - dvadata_webserver:/root/DVA/dva/media
+   extractor:
+     image: akshayubhat/dva-auto:latest
+     container_name: extractor
+     environment:
+       - DOCKER_MODE=true
+       - RABBIT_HOST=rabbit
+       - RABBIT_USER=dvauser
+       - RABBIT_PASS=localpass
+       - DB_HOST=db
+       - DB_NAME=postgres
+       - DB_USER=pgdbuser
+       - DB_PASS=pgdbpass
+       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+       - DISABLE_DEBUG=1
+       - MEDIA_BUCKET=${MEDIA_BUCKET}
+       - MEDIA_URL=${MEDIA_URL}
+       - DISABLE_NFS=1
+       - SECRET_KEY=283y312bhv2b13v13
+       - LAUNCH_Q_qextract=1
+       - LAUNCH_Q_qclusterer=1
+     command: bash -c "youtube-dl -U && git pull && sleep 60 && fab start_container:worker"
+     depends_on:
+       - db
+       - rabbit
+     volumes:
+       - dvadata_extractor:/root/DVA/dva/media
+   scheduler:
+     image: akshayubhat/dva-auto:latest
+     container_name: scheduler
+     environment:
+       - DOCKER_MODE=true
+       - RABBIT_HOST=rabbit
+       - RABBIT_USER=dvauser
+       - RABBIT_PASS=localpass
+       - DB_HOST=db
+       - DB_NAME=postgres
+       - DB_USER=pgdbuser
+       - DB_PASS=pgdbpass
+       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+       - DISABLE_DEBUG=1
+       - MEDIA_BUCKET=${MEDIA_BUCKET}
+       - MEDIA_URL=${MEDIA_URL}
+       - DISABLE_NFS=1
+       - SECRET_KEY=283y312bhv2b13v13
+       - LAUNCH_SCHEDULER=1
+     command: bash -c "youtube-dl -U && git pull && sleep 60 && fab start_container:worker"
+     depends_on:
+       - db
+       - rabbit
+     volumes:
+       - dvadata_scheduler:/root/DVA/dva/media
+   inception:
+     image: akshayubhat/dva-auto:latest
+     container_name: inception
+     environment:
+       - DOCKER_MODE=true
+       - RABBIT_HOST=rabbit
+       - RABBIT_USER=dvauser
+       - RABBIT_PASS=localpass
+       - DB_HOST=db
+       - DB_NAME=postgres
+       - DB_USER=pgdbuser
+       - DB_PASS=pgdbpass
+       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+       - LAUNCH_BY_NAME_indexer_inception=1
+       - DISABLE_DEBUG=1
+       - MEDIA_BUCKET=${MEDIA_BUCKET}
+       - MEDIA_URL=${MEDIA_URL}
+       - DISABLE_NFS=1
+       - SECRET_KEY=283y312bhv2b13v13
+     command: bash -c "youtube-dl -U && git pull && sleep 60 && fab start_container:worker"
+     depends_on:
+       - db
+       - rabbit
+     volumes:
+       - dvadata_inception:/root/DVA/dva/media
+   facenet:
+     image: akshayubhat/dva-auto:latest
+     container_name: facenet
+     environment:
+       - DOCKER_MODE=true
+       - RABBIT_HOST=rabbit
+       - RABBIT_USER=dvauser
+       - RABBIT_PASS=localpass
+       - DB_HOST=db
+       - DB_NAME=postgres
+       - DB_USER=pgdbuser
+       - DB_PASS=pgdbpass
+       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+       - LAUNCH_BY_NAME_indexer_facenet=1
+       - DISABLE_DEBUG=1
+       - MEDIA_BUCKET=${MEDIA_BUCKET}
+       - MEDIA_URL=${MEDIA_URL}
+       - DISABLE_NFS=1
+       - SECRET_KEY=283y312bhv2b13v13
+     command: bash -c "youtube-dl -U && git pull && sleep 60 && fab start_container:worker"
+     depends_on:
+       - db
+       - rabbit
+     volumes:
+       - dvadata_facenet:/root/DVA/dva/media
+   coco:
+     image: akshayubhat/dva-auto:latest
+     container_name: coco
+     environment:
+       - DOCKER_MODE=true
+       - RABBIT_HOST=rabbit
+       - RABBIT_USER=dvauser
+       - RABBIT_PASS=localpass
+       - DB_HOST=db
+       - DB_NAME=postgres
+       - DB_USER=pgdbuser
+       - DB_PASS=pgdbpass
+       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+       - LAUNCH_BY_NAME_detector_coco=1
+       - DISABLE_DEBUG=1
+       - MEDIA_BUCKET=${MEDIA_BUCKET}
+       - MEDIA_URL=${MEDIA_URL}
+       - DISABLE_NFS=1
+       - SECRET_KEY=283y312bhv2b13v13
+     command: bash -c "youtube-dl -U && git pull && sleep 60 && fab start_container:worker"
+     depends_on:
+       - db
+       - rabbit
+     volumes:
+       - dvadata_coco:/root/DVA/dva/media
+   crnn:
+     image: akshayubhat/dva-auto:latest
+     container_name: crnn
+     environment:
+       - DOCKER_MODE=true
+       - RABBIT_HOST=rabbit
+       - RABBIT_USER=dvauser
+       - RABBIT_PASS=localpass
+       - DB_HOST=db
+       - DB_NAME=postgres
+       - DB_USER=pgdbuser
+       - DB_PASS=pgdbpass
+       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+
+       - LAUNCH_BY_NAME_analyzer_crnn=1
+
+       - DISABLE_DEBUG=1
+       - MEDIA_BUCKET=${MEDIA_BUCKET}
+       - MEDIA_URL=${MEDIA_URL}
+       - DISABLE_NFS=1
+       - SECRET_KEY=283y312bhv2b13v13
+     command: bash -c "youtube-dl -U && git pull && sleep 60 && fab start_container:worker"
+     depends_on:
+       - db
+       - rabbit
+     volumes:
+       - dvadata_crnn:/root/DVA/dva/media
+   tagger:
+     image: akshayubhat/dva-auto:latest
+     container_name: tagger
+     environment:
+       - DOCKER_MODE=true
+       - RABBIT_HOST=rabbit
+       - RABBIT_USER=dvauser
+       - RABBIT_PASS=localpass
+       - DB_HOST=db
+       - DB_NAME=postgres
+       - DB_USER=pgdbuser
+       - DB_PASS=pgdbpass
+       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+       - LAUNCH_BY_NAME_analyzer_tagger=1
+       - DISABLE_DEBUG=1
+       - MEDIA_BUCKET=${MEDIA_BUCKET}
+       - MEDIA_URL=${MEDIA_URL}
+       - DISABLE_NFS=1
+       - SECRET_KEY=283y312bhv2b13v13
+     command: bash -c "youtube-dl -U && git pull && sleep 60 && fab start_container:worker"
+     depends_on:
+       - db
+       - rabbit
+     volumes:
+       - dvadata_tagger:/root/DVA/dva/media
+   face:
+     image: akshayubhat/dva-auto:latest
+     container_name: face
+     environment:
+       - DOCKER_MODE=true
+       - RABBIT_HOST=rabbit
+       - RABBIT_USER=dvauser
+       - RABBIT_PASS=localpass
+       - DB_HOST=db
+       - DB_NAME=postgres
+       - DB_USER=pgdbuser
+       - DB_PASS=pgdbpass
+       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+       - LAUNCH_BY_NAME_detector_face=1
+       - DISABLE_DEBUG=1
+       - MEDIA_BUCKET=${MEDIA_BUCKET}
+       - MEDIA_URL=${MEDIA_URL}
+       - DISABLE_NFS=1
+       - SECRET_KEY=283y312bhv2b13v13
+     command: bash -c "youtube-dl -U && git pull && sleep 60 && fab start_container:worker"
+     depends_on:
+       - db
+       - rabbit
+     volumes:
+       - dvadata_face:/root/DVA/dva/media
+   retriever_exact_inception:
+     image: akshayubhat/dva-auto:latest
+     container_name: retriever_exact_inception
+     environment:
+       - DOCKER_MODE=true
+       - RABBIT_HOST=rabbit
+       - RABBIT_USER=dvauser
+       - RABBIT_PASS=localpass
+       - DB_HOST=db
+       - DB_NAME=postgres
+       - DB_USER=pgdbuser
+       - DB_PASS=pgdbpass
+       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+       - DISABLE_DEBUG=1
+       - LAUNCH_BY_NAME_retriever_inception=1
+       - MEDIA_BUCKET=${MEDIA_BUCKET}
+       - MEDIA_URL=${MEDIA_URL}
+       - DISABLE_NFS=1
+       - SECRET_KEY=283y312bhv2b13v13
+     command: bash -c "youtube-dl -U && git pull && sleep 60 && fab start_container:worker"
+     depends_on:
+       - db
+       - rabbit
+     volumes:
+       - dvadata_exact_inception:/root/DVA/dva/media
+   retriever_exact_facenet:
+     image: akshayubhat/dva-auto:latest
+     container_name: retriever_exact_facenet
+     environment:
+       - DOCKER_MODE=true
+       - RABBIT_HOST=rabbit
+       - RABBIT_USER=dvauser
+       - RABBIT_PASS=localpass
+       - DB_HOST=db
+       - DB_NAME=postgres
+       - DB_USER=pgdbuser
+       - DB_PASS=pgdbpass
+       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+       - DISABLE_DEBUG=1
+       - LAUNCH_BY_NAME_retriever_facenet=1
+       - MEDIA_BUCKET=${MEDIA_BUCKET}
+       - MEDIA_URL=${MEDIA_URL}
+       - DISABLE_NFS=1
+       - SECRET_KEY=283y312bhv2b13v13
+     command: bash -c "youtube-dl -U && git pull && sleep 60 && fab start_container:worker"
+     depends_on:
+       - db
+       - rabbit
+     volumes:
+       - dvadata_exact_facenet:/root/DVA/dva/media
+   textdetector:
+     image: akshayubhat/dva-auto:latest
+     container_name: textdetector
+     environment:
+       - DOCKER_MODE=true
+       - RABBIT_HOST=rabbit
+       - RABBIT_USER=dvauser
+       - RABBIT_PASS=localpass
+       - MEDIA_BUCKET=${MEDIA_BUCKET}
+       - MEDIA_URL=${MEDIA_URL}
+       - DISABLE_NFS=1
+       - DB_HOST=db
+       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+       - DB_NAME=postgres
+       - DB_USER=pgdbuser
+       - DB_PASS=pgdbpass
+       - LAUNCH_BY_NAME_detector_textbox=1
+     command: bash -c "sleep 60 && git pull && fab start_container:worker"
+     depends_on:
+       - db
+       - rabbit
+     volumes:
+       - dvadata_textdetector:/root/DVA/dva/media
+ volumes:
+  dvapgdata:
+  dvarabbit:
+  dvadata_webserver:
+  dvadata_extractor:
+  dvadata_scheduler:
+  dvadata_inception:
+  dvadata_facenet:
+  dvadata_coco:
+  dvadata_crnn:
+  dvadata_tagger:
+  dvadata_face:
+  dvadata_exact_inception:
+  dvadata_exact_facenet:
+  dvadata_textdetector:

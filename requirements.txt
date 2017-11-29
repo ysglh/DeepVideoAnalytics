@@ -27,3 +27,4 @@ gunicorn
 django-celery-beat
 cython
 easydict
+google-cloud-storage

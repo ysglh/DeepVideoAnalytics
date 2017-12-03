@@ -864,41 +864,42 @@ def import_s3(request):
         create = []
         for key in keys.strip().split('\n'):
             if key.startswith('gs://') or key.startswith('s3://'):
-                raise
-            tasks =[]
-            key = key.strip()
-            if key:
-                extract_task = {'arguments': {'rate': rate, 'rescale': rescale,
-                                              'next_tasks': defaults.DEFAULT_PROCESSING_PLAN_DATASET},
-                                 'operation': 'perform_dataset_extraction'}
-                segment_decode_task = {'operation': 'perform_video_segmentation',
-                                        'arguments': {
-                                            'next_tasks': [
-                                                {'operation': 'perform_video_decode',
-                                                 'arguments': {
-                                                     'rate': rate, 'rescale': rescale,
-                                                     'segments_batch_size':defaults.DEFAULT_SEGMENTS_BATCH_SIZE,
-                                                     'next_tasks': defaults.DEFAULT_PROCESSING_PLAN_VIDEO
+                tasks =[]
+                key = key.strip()
+                if key:
+                    extract_task = {'arguments': {'rate': rate, 'rescale': rescale,
+                                                  'next_tasks': defaults.DEFAULT_PROCESSING_PLAN_DATASET},
+                                     'operation': 'perform_dataset_extraction'}
+                    segment_decode_task = {'operation': 'perform_video_segmentation',
+                                            'arguments': {
+                                                'next_tasks': [
+                                                    {'operation': 'perform_video_decode',
+                                                     'arguments': {
+                                                         'rate': rate, 'rescale': rescale,
+                                                         'segments_batch_size':defaults.DEFAULT_SEGMENTS_BATCH_SIZE,
+                                                         'next_tasks': defaults.DEFAULT_PROCESSING_PLAN_VIDEO
+                                                    }
                                                 }
+                                                ]},
                                             }
-                                            ]},
-                                        }
-                if key.endswith('.dva_export.zip'):
-                    next_tasks = []
-                elif key.endswith('.zip'):
-                    next_tasks = [extract_task,]
-                else:
-                    next_tasks = [segment_decode_task,]
-                tasks.append({'video_id':'__pk__',
-                              'operation':'perform_import',
-                              'arguments':{'path':key,
-                                           'next_tasks':next_tasks}
-                              })
-                create.append({'MODEL': 'Video',
-                               'spec': {'uploader_id': user.pk if user else None,
-                                        'name': "pending import {} ".format(key)},
-                               'tasks': tasks
-                               })
+                    if key.endswith('.dva_export.zip'):
+                        next_tasks = []
+                    elif key.endswith('.zip'):
+                        next_tasks = [extract_task,]
+                    else:
+                        next_tasks = [segment_decode_task,]
+                    tasks.append({'video_id':'__pk__',
+                                  'operation':'perform_import',
+                                  'arguments':{'path':key,
+                                               'next_tasks':next_tasks}
+                                  })
+                    create.append({'MODEL': 'Video',
+                                   'spec': {'uploader_id': user.pk if user else None,
+                                            'name': "pending import {} ".format(key)},
+                                   'tasks': tasks
+                                   })
+            else:
+                raise NotImplementedError("{} startswith an unknown remote store prefix".format(key))
         process_spec = {'process_type': DVAPQL.PROCESS,
                         'create':create}
         p = DVAPQLProcess()

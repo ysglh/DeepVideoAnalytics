@@ -858,8 +858,6 @@ def import_detector(request):
 def import_s3(request):
     if request.method == 'POST':
         keys = request.POST.get('key')
-        rate = request.POST.get('rate',defaults.DEFAULT_RATE)
-        rescale = request.POST.get('rescale',defaults.DEFAULT_RESCALE)
         user = request.user if request.user.is_authenticated else None
         create = []
         for key in keys.strip().split('\n'):
@@ -867,15 +865,13 @@ def import_s3(request):
                 tasks =[]
                 key = key.strip()
                 if key:
-                    extract_task = {'arguments': {'rate': rate, 'rescale': rescale,
-                                                  'next_tasks': defaults.DEFAULT_PROCESSING_PLAN_DATASET},
+                    extract_task = {'arguments': {'next_tasks': defaults.DEFAULT_PROCESSING_PLAN_DATASET},
                                      'operation': 'perform_dataset_extraction'}
                     segment_decode_task = {'operation': 'perform_video_segmentation',
                                             'arguments': {
                                                 'next_tasks': [
                                                     {'operation': 'perform_video_decode',
                                                      'arguments': {
-                                                         'rate': rate, 'rescale': rescale,
                                                          'segments_batch_size':defaults.DEFAULT_SEGMENTS_BATCH_SIZE,
                                                          'next_tasks': defaults.DEFAULT_PROCESSING_PLAN_VIDEO
                                                     }
@@ -891,6 +887,7 @@ def import_s3(request):
                     tasks.append({'video_id':'__pk__',
                                   'operation':'perform_import',
                                   'arguments':{'path':key,
+                                               'source':'REMOTE',
                                                'next_tasks':next_tasks}
                                   })
                     create.append({'MODEL': 'Video',

@@ -93,21 +93,20 @@ def perform_s3_export(dv,path,export_event_pk=None):
         raise NotImplementedError
 
 
-def import_s3(start,dv):
-    s3key = start.arguments['key']
-    s3bucket = start.arguments['bucket']
-    logging.info("processing key  {}space".format(s3key))
+def import_remote(start,dv):
+    remote_path = start.arguments['path']
+    logging.info("processing key {} ".format(remote_path))
     if dv is None:
         dv = Video()
-        dv.name = "pending S3 import from s3://{}/{}".format(s3bucket, s3key)
+        dv.name = "pending {}".format(remote_path)
         dv.save()
         start.video = dv
         start.save()
     path = "{}/{}/".format(settings.MEDIA_ROOT, start.video.pk)
-    if s3key.strip() and (s3key.endswith('.zip') or s3key.endswith('.mp4')):
+    if remote_path.strip() and (remote_path.endswith('.zip') or remote_path.endswith('.mp4')):
         fname = 'temp_' + str(time.time()).replace('.', '_') + '_' + str(random.randint(0, 100)) + '.' + \
-                s3key.split('.')[-1]
-        command = ["aws", "s3", "cp", '--quiet', "s3://{}/{}".format(s3bucket, s3key), fname]
+                remote_path.split('.')[-1]
+        command = ["aws", "s3", "cp", '--quiet', remote_path, fname]
         path = "{}/".format(settings.MEDIA_ROOT)
         download = subprocess.Popen(args=command, cwd=path)
         download.communicate()
@@ -117,11 +116,10 @@ def import_s3(start,dv):
             start.error_message = "return code for '{}' was {}".format(" ".join(command), download.returncode)
             start.save()
             raise ValueError, start.error_message
-        handle_downloaded_file("{}/{}".format(settings.MEDIA_ROOT, fname), start.video,
-                               "s3://{}/{}".format(s3bucket, s3key))
+        handle_downloaded_file("{}/{}".format(settings.MEDIA_ROOT, fname), start.video, remote_path)
     else:
         start.video.create_directory(create_subdirs=False)
-        command = ["aws", "s3", "cp", '--quiet', "s3://{}/{}/".format(s3bucket, s3key), '.', '--recursive']
+        command = ["aws", "s3", "cp", '--quiet', remote_path, '.', '--recursive']
         command_exec = " ".join(command)
         download = subprocess.Popen(args=command, cwd=path)
         download.communicate()

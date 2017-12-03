@@ -38,11 +38,9 @@ def delete_video_object(video_pk,deleter):
     p.launch()
 
 
-def handle_uploaded_file(f, name, extract=True, user=None, rate=None, rescale=None):
+def handle_uploaded_file(f, name, extract=True, user=None, rate=None):
     if rate is None:
         rate = defaults.DEFAULT_RATE
-    if rescale is None:
-        rescale = defaults.DEFAULT_RESCALE
     video = Video()
     if user:
         video.uploader = user
@@ -96,8 +94,7 @@ def handle_uploaded_file(f, name, extract=True, user=None, rate=None, rescale=No
                     'process_type':DVAPQL.PROCESS,
                     'tasks':[
                         {
-                            'arguments':{'rescale': rescale,
-                                         'next_tasks':defaults.DEFAULT_PROCESSING_PLAN_DATASET},
+                            'arguments':{'next_tasks':defaults.DEFAULT_PROCESSING_PLAN_DATASET},
                             'video_id':video.pk,
                             'operation': 'perform_dataset_extraction',
                         }
@@ -114,7 +111,6 @@ def handle_uploaded_file(f, name, extract=True, user=None, rate=None, rescale=No
                                                'arguments':{
                                                    'segments_batch_size': defaults.DEFAULT_SEGMENTS_BATCH_SIZE,
                                                    'rate': rate,
-                                                   'rescale': rescale,
                                                    'next_tasks':defaults.DEFAULT_PROCESSING_PLAN_VIDEO
                                                }
                                               }

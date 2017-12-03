@@ -557,8 +557,8 @@ def perform_import(event_id):
             start.video = task_shared.handle_video_url(start.arguments['name'], start.arguments['url'])
             start.save()
         task_shared.retrieve_video_via_url(start.video, settings.MEDIA_ROOT)
-    elif source == 'S3':
-        task_shared.import_s3(start, dv)
+    elif source == 'REMOTE':
+        task_shared.import_remote(start, dv)
     elif source == 'VDN_URL':
         task_shared.import_vdn_url(dv, start.arguments['url'])
     elif source == 'VDN_S3':

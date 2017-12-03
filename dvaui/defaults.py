@@ -75,6 +75,6 @@ DEFAULT_PROCESSING_PLAN_DATASET = [
     {'operation': 'perform_analysis', 'arguments':
         {'analyzer': 'tagger',
          'target': 'frames',
-         'filters': '__parent__'
+         'frames_batch_size': DEFAULT_FRAMES_BATCH_SIZE,
          }}
 ]

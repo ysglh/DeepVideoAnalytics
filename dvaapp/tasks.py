@@ -453,11 +453,12 @@ def perform_analysis(task_id):
             if target == 'regions':
                 regions_to_labels.append(RegionLabel(label=labels_pk[(l,analyzer.label_set)],region_id=f.pk,
                                                      frame_id=f.frame.pk, frame_index=f.frame_index,
-                                                     segment_index=f.segment_index,video_id=f.video_id))
+                                                     segment_index=f.segment_index,video_id=f.video_id,
+                                                     event_id=task_id))
             elif target == 'frames':
-                frames_to_labels.append(RegionLabel(label=labels_pk[(l, analyzer.label_set)],
-                                                    frame_id=f.pk, frame_index=f.frame_index,
-                                                    segment_index=f.segment_index, video_id=f.video_id))
+                frames_to_labels.append(FrameLabel(label=labels_pk[(l, analyzer.label_set)],frame_id=f.pk,
+                                                   frame_index=f.frame_index, segment_index=f.segment_index,
+                                                   video_id=f.video_id, event_id=task_id))
         a.region_type = Region.ANNOTATION
         a.object_name = object_name
         a.text = text

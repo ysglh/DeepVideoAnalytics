@@ -5,7 +5,7 @@ import errno
 import logging, subprocess
 try:
     from google.cloud import storage
-except ImportError:
+except:
     pass
 if settings.MEDIA_BUCKET and settings.CLOUD_FS_PREFIX == 's3':
     S3_MODE = True

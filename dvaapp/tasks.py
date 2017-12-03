@@ -403,8 +403,8 @@ def perform_analysis(task_id):
     else:
         task_shared.ensure_files(queryset, target)
     image_data = {}
-    frames_to_labels = defaultdict(set)
-    regions_to_labels = defaultdict(set)
+    frames_to_labels = []
+    regions_to_labels = []
     labels_pk = {}
     temp_root = tempfile.mkdtemp()
     for i,f in enumerate(queryset):

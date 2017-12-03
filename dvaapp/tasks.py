@@ -449,7 +449,7 @@ def perform_analysis(task_id):
         object_name, text, metadata, labels = analyzer.apply(path)
         for l in labels:
             if (l,analyzer.label_set) not in labels_pk:
-                labels_pk[(l,analyzer.label_set)] = Label.objects.get_or_create(name=l,set=analyzer.label_set).pk
+                labels_pk[(l,analyzer.label_set)] = Label.objects.get_or_create(name=l,set=analyzer.label_set)[0].pk
             if target == 'regions':
                 regions_to_labels.append(RegionLabel(label=labels_pk[(l,analyzer.label_set)],region_id=f.pk,
                                                      frame_id=f.frame.pk, frame_index=f.frame_index,

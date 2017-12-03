@@ -3,11 +3,23 @@ import os
 import boto3
 import errno
 import logging, subprocess
-
-if settings.MEDIA_BUCKET:
+try:
+    from google.cloud import storage
+except ImportError:
+    pass
+if settings.MEDIA_BUCKET and settings.CLOUD_FS_PREFIX == 's3':
+    S3_MODE = True
+    GS_MODE = False
     S3 = boto3.resource('s3')
     BUCKET = S3.Bucket(settings.MEDIA_BUCKET)
+elif settings.MEDIA_BUCKET and settings.CLOUD_FS_PREFIX == 'gs':
+    S3_MODE = False
+    GS_MODE = True
+    GS = storage.Client()
+    BUCKET = GS.get_bucket(settings.MEDIA_BUCKET)
 else:
+    S3_MODE = False
+    GS_MODE = False
     S3 = None
     BUCKET = None
 
@@ -37,7 +49,11 @@ def ensure(path, dirnames=None, media_root=None):
             if dirname not in dirnames and not os.path.exists(dirname):
                 mkdir_safe(dlpath)
             try:
-                BUCKET.download_file(path.strip('/'),dlpath)
+                if S3_MODE:
+                    BUCKET.download_file(path.strip('/'),dlpath)
+                else:
+                    with open(dlpath) as fout:
+                        BUCKET.get_blob(path.strip('/')).download_to_file(fout)
             except:
                 raise ValueError("path:{} dlpath:{}".format(path,dlpath))
 

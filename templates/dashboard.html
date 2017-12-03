@@ -146,18 +146,6 @@
                                         </div>
                                     </div>
                                     </div>
-                                    <div class="row">
-                                    <div class="col-xs-6">
-                                        <div class="form-group">
-                                        <label for="nth">Extract every n<sup>th</sup> frame from video<input id="nth" class="form-control" name="nth" type="number" value="{{ rate }}"></label>
-                                        </div>
-                                    </div>
-                                    <div class="col-xs-6">
-                                        <div class="form-group">
-                                        <label for="rescale">Rescale frames to width <input id="rescale" class="form-control" name="rescale" type="number" placeholder="Default original width"></label>
-                                        </div>
-                                    </div>
-                                    </div>
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-primary btn-block">Upload</button>
                                 </form>
@@ -175,18 +163,6 @@
                                 </div>
                                 <div class="form-group">
                                     <input id="id_yturl" name="url" class="form-control" type="text" required="" placeholder="url of youtube video">
-                                </div>
-                                <div class="row">
-                                <div class="col-xs-6">
-                                    <div class="form-group">
-                                    <label for="nth">Extract every n<sup>th</sup> frame from video<input id="nth" class="form-control" name="nth" type="number" value="30"></label>
-                                    </div>
-                                </div>
-                                <div class="col-xs-6">
-                                    <div class="form-group">
-                                    <label for="rescale">Rescale frames to width <input id="rescale" class="form-control" name="rescale" type="number" placeholder="Default original width"></label>
-                                    </div>
-                                </div>
                                 </div>
                                 <div class="form-group">
                                 {% csrf_token %}
@@ -213,13 +189,7 @@
                                 <p>We do not provide a method to enter AWS credentials via web interface.</p>
                                 <form role="form"  method="post" action="/import_s3" >
                                 <div class="form-group">
-                                    <div class="row">
-                                        <div class="col-sm-6"><input id="id_s3_region" name="region" class="form-control" type="text" required="" placeholder="S3 region" value="us-east-1"></div>
-                                        <div class="col-sm-6"><input id="id_s3_bucket" name="bucket" class="form-control" type="text" required="" placeholder="S3 bucket"></div>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <textarea id="id_s3_key" rows="2" name="key" class="form-control" type="text" required="" placeholder="S3 key or list of keys (.mp4, .zip or .dva_export.zip) with one per line"></textarea>
+                                    <textarea id="id_s3_key" rows="2" name="key" class="form-control" type="text" required="" placeholder="S3 or GCS paths e.g. s3://bucket_name/key (.mp4, .zip or .dva_export.zip) with one per line"></textarea>
                                 </div>
                                 <div class="form-group">
                                     {% csrf_token %}

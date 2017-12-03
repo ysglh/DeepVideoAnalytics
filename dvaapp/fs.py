@@ -73,3 +73,27 @@ def upload_video_to_remote(video_id):
         raise ValueError, "Error while executing : {}".format(command)
 
 
+def download_s3_dir(dist, local, bucket, client = None, resource = None):
+    """
+    Taken from http://stackoverflow.com/questions/31918960/boto3-to-download-all-files-from-a-s3-bucket
+    :param client:
+    :param resource:
+    :param dist:
+    :param local:
+    :param bucket:
+    :return:
+    """
+    if client is None and resource is None:
+        client = boto3.client('s3')
+        resource = boto3.resource('s3')
+    paginator = client.get_paginator('list_objects')
+    for result in paginator.paginate(Bucket=bucket, Delimiter='/', Prefix=dist, RequestPayer='requester'):
+        if result.get('CommonPrefixes') is not None:
+            for subdir in result.get('CommonPrefixes'):
+                download_s3_dir(subdir.get('Prefix'), local, bucket, client, resource)
+        if result.get('Contents') is not None:
+            for ffile in result.get('Contents'):
+                if not os.path.exists(os.path.dirname(local + os.sep + ffile.get('Key'))):
+                    os.makedirs(os.path.dirname(local + os.sep + ffile.get('Key')))
+                resource.meta.client.download_file(bucket, ffile.get('Key'), local + os.sep + ffile.get('Key'),
+                                                   ExtraArgs={'RequestPayer': 'requester'})

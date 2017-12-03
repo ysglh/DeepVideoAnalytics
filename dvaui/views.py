@@ -423,8 +423,7 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
         form = UploadFileForm(request.POST, request.FILES)
         user = request.user if request.user.is_authenticated else None
         if form.is_valid():
-            view_shared.handle_uploaded_file(request.FILES['file'], form.cleaned_data['name'], user=user,rate=form.cleaned_data['nth'],
-                                 rescale=form.cleaned_data['rescale'] if 'rescale' in form.cleaned_data else 0)
+            view_shared.handle_uploaded_file(request.FILES['file'], form.cleaned_data['name'], user=user)
             return redirect('video_list')
         else:
             raise ValueError
@@ -621,15 +620,13 @@ def export_video(request):
         export_method = request.POST.get('export_method')
         if video:
             if export_method == 's3':
-                key = request.POST.get('key')
-                bucket = request.POST.get('bucket')
-                region = request.POST.get('region','us-east-1')
+                path = request.POST.get('path')
                 process_spec = {'process_type':DVAPQL.PROCESS,
                           'tasks':[
                               {
                                   'video_id':video.pk,
                                   'operation':'perform_export',
-                                  'arguments': {'key':key,'bucket':bucket,'region':region,'destination':'S3'}
+                                  'arguments': {'path':path}
                               },
                           ]}
             else:
@@ -861,13 +858,13 @@ def import_detector(request):
 def import_s3(request):
     if request.method == 'POST':
         keys = request.POST.get('key')
-        region = request.POST.get('region')
-        bucket = request.POST.get('bucket')
         rate = request.POST.get('rate',defaults.DEFAULT_RATE)
         rescale = request.POST.get('rescale',defaults.DEFAULT_RESCALE)
         user = request.user if request.user.is_authenticated else None
         create = []
         for key in keys.strip().split('\n'):
+            if key.startswith('gs://') or key.startswith('s3://'):
+                raise
             tasks =[]
             key = key.strip()
             if key:
@@ -894,15 +891,12 @@ def import_s3(request):
                     next_tasks = [segment_decode_task,]
                 tasks.append({'video_id':'__pk__',
                               'operation':'perform_import',
-                              'arguments':{'key':key,
-                                           'bucket':bucket,
-                                           'region':region,
-                                           'source':'S3',
+                              'arguments':{'path':key,
                                            'next_tasks':next_tasks}
                               })
                 create.append({'MODEL': 'Video',
                                'spec': {'uploader_id': user.pk if user else None,
-                                        'name': "pending S3 import {} s3://{}/{}".format(region, bucket, key)},
+                                        'name': "pending import {} ".format(key)},
                                'tasks': tasks
                                })
         process_spec = {'process_type': DVAPQL.PROCESS,

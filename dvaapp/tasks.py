@@ -6,7 +6,7 @@ from django.conf import settings
 from dva.celery import app
 from .models import Video, Frame, TEvent,  IndexEntries, LOPQCodes, Region, Tube, \
     Retriever, Segment, QueryIndexVector, DeletedVideo, ManagementAction, SystemState, DVAPQL, \
-    Worker, QueryRegion, QueryRegionIndexVector, DeepModel
+    Worker, QueryRegion, QueryRegionIndexVector, DeepModel, RegionLabel, FrameLabel
 
 from .operations.indexing import IndexerTask
 from .operations.retrieval import RetrieverTask
@@ -48,6 +48,16 @@ def start_task(task_id,task,args,**kwargs):
         if W and start.worker is None:
                 start.worker_id = W.pk
         start.save()
+
+
+@app.task(track_started=True, name="perform_map")
+def perform_map(task_id):
+    """
+    map tasks on set of videos/datasets.
+    :param task_id:
+    :return:
+    """
+    raise NotImplementedError
 
 
 @app.task(track_started=True, name="perform_indexing", base=IndexerTask)
@@ -393,6 +403,9 @@ def perform_analysis(task_id):
     else:
         task_shared.ensure_files(queryset, target)
     image_data = {}
+    frames_to_labels = defaultdict(set)
+    regions_to_labels = defaultdict(set)
+    label_set = set()
     temp_root = tempfile.mkdtemp()
     for i,f in enumerate(queryset):
         if query_regions_paths:
@@ -433,7 +446,7 @@ def perform_analysis(task_id):
                 path = f.path()
             else:
                 raise NotImplementedError
-        object_name, text, metadata = analyzer.apply(path)
+        object_name, text, metadata, labels = analyzer.apply(path)
         a.region_type = Region.ANNOTATION
         a.object_name = object_name
         a.text = text
@@ -467,11 +480,8 @@ def perform_export(task_id):
                 file_name = task_shared.export_file(dv, export_event_pk=start.pk)
                 start.arguments['file_name'] = file_name
         elif destination == "S3":
-            s3bucket = start.arguments['bucket']
-            s3region = start.arguments['region']
-            create_bucket = start.arguments.get('create_bucket',False)
-            s3key = start.arguments['key']
-            returncode = task_shared.perform_s3_export(dv, s3key, s3bucket, s3region, export_event_pk=start.pk, create_bucket=create_bucket)
+            path = start.arguments['path']
+            returncode = task_shared.perform_s3_export(dv, path, export_event_pk=start.pk)
             if returncode != 0:
                 raise ValueError,"return code != 0"
     except:

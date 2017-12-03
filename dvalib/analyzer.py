@@ -53,6 +53,7 @@ class OpenImagesAnnotator(BaseAnnotator):
         self.net = None
         self.tf = True
         self.session = None
+        self.label_set = 'open_images_tags'
         self.graph_def = None
         self.input_image = None
         self.predictions = None
@@ -96,9 +97,10 @@ class OpenImagesAnnotator(BaseAnnotator):
         predictions_eval = np.squeeze(self.session.run(self.predictions, {self.input_image: img_data}))
         results = {self.label_dict.get(self.labelmap[idx], 'unknown'):predictions_eval[idx]
                    for idx in predictions_eval.argsort()[-self.top_n:][::-1]}
-        text = " ".join([t for t,v in results.iteritems() if v > 0.1])
+        labels = [t for t,v in results.iteritems() if v > 0.1]
+        text = " ".join(labels)
         metadata = {t:round(100.0*v,2) for t,v in results.iteritems() if v > 0.1}
-        return self.object_name,text,metadata
+        return self.object_name,text,metadata,labels
 
 
 class CRNNAnnotator(BaseAnnotator):
@@ -139,6 +141,6 @@ class CRNNAnnotator(BaseAnnotator):
         preds = preds.transpose(1, 0).contiguous().view(-1)
         preds_size = Variable(torch.IntTensor([preds.size(0)]))
         sim_pred = self.converter.decode(preds.data, preds_size.data, raw=False)
-        return self.object_name,sim_pred,{}
+        return self.object_name,sim_pred,{},None
 
 

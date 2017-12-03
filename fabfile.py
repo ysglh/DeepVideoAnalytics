@@ -104,8 +104,9 @@ def clean():
     migrate()
     local('python manage.py flush --no-input')
     migrate()
-    local("rm -rf {}/*".format(settings.MEDIA_ROOT))
-    local("mkdir {}/queries".format(settings.MEDIA_ROOT))
+    for dirname in os.listdir(settings.MEDIA_ROOT):
+        if dirname != 'gitkeep':
+            local("rm -rf {}/{}".format(settings.MEDIA_ROOT,dirname))
     if settings.DEV_ENV:
         local("rm logs/*.log")
         try:

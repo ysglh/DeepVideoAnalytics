@@ -98,7 +98,6 @@ class VideoDecoder(object):
         input_segment = ds.path()
         ffmpeg_command = 'ffmpeg -fflags +igndts -loglevel panic -i {} -vf'.format(input_segment) # Alternative to igndts is setting vsync vfr
         df_list = []
-        # filter_command = '"select=not(mod(n\,{}))+eq(pict_type\,PICT_TYPE_I),scale={}:-1" -vsync 0'.format(denominator,rescale)
         filter_command = '"select=not(mod(n\,{}))+eq(pict_type\,PICT_TYPE_I)" -vsync 0'.format(denominator)
         output_command = "{}/segment_{}_%d_b.jpg".format(output_dir,ds.segment_index)
         command = " ".join([ffmpeg_command,filter_command,output_command])

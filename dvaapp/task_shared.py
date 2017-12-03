@@ -1,10 +1,9 @@
-import os, json, requests, copy, time, subprocess, logging, shutil, zipfile, boto3, random, calendar, shlex, sys, tempfile
+import os, json, requests, copy, time, subprocess, logging, shutil, zipfile, random, calendar, shlex, sys, tempfile
 from models import Video, QueryRegion, QueryRegionIndexVector, DVAPQL, Region, Frame, Segment, IndexEntries, TEvent
 from django.conf import settings
 from PIL import Image
 from . import serializers
-from botocore.exceptions import ClientError
-from .fs import ensure, upload_file_to_remote, upload_video_to_remote
+from .fs import ensure, upload_file_to_remote, upload_video_to_remote, download_s3_dir
 
 
 def pid_exists(pid):
@@ -76,57 +75,22 @@ def handle_video_url(name, url, user = None):
     return Video.objects.create(name=name,url=url,youtube_video=True,uploader=user)
 
 
-def download_s3_dir(client, resource, dist, local, bucket):
-    """
-    Taken from http://stackoverflow.com/questions/31918960/boto3-to-download-all-files-from-a-s3-bucket
-    :param client:
-    :param resource:
-    :param dist:
-    :param local:
-    :param bucket:
-    :return:
-    """
-    paginator = client.get_paginator('list_objects')
-    for result in paginator.paginate(Bucket=bucket, Delimiter='/', Prefix=dist, RequestPayer='requester'):
-        if result.get('CommonPrefixes') is not None:
-            for subdir in result.get('CommonPrefixes'):
-                download_s3_dir(client, resource, subdir.get('Prefix'), local, bucket)
-        if result.get('Contents') is not None:
-            for ffile in result.get('Contents'):
-                if not os.path.exists(os.path.dirname(local + os.sep + ffile.get('Key'))):
-                    os.makedirs(os.path.dirname(local + os.sep + ffile.get('Key')))
-                resource.meta.client.download_file(bucket, ffile.get('Key'), local + os.sep + ffile.get('Key'),
-                                                   ExtraArgs={'RequestPayer': 'requester'})
-
-
-def perform_s3_export(dv,s3key,s3bucket,s3region,export_event_pk=None,create_bucket=False):
-    s3 = boto3.resource('s3')
-    if create_bucket:
-        if s3region == 'us-east-1':
-            s3.create_bucket(Bucket=s3bucket)
-        else:
-            s3.create_bucket(Bucket=s3bucket, CreateBucketConfiguration={'LocationConstraint': s3region})
-        time.sleep(20)  # wait for it to create the bucket
-    path = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
+def perform_s3_export(dv,path,export_event_pk=None):
+    cwd_path = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
     a = serializers.VideoExportSerializer(instance=dv)
     data = copy.deepcopy(a.data)
     data['labels'] = serializers.serialize_video_labels(dv)
     if export_event_pk:
         data['export_event_pk'] = export_event_pk
-    exists = False
-    try:
-        s3.Object(s3bucket, '{}/table_data.json'.format(s3key).replace('//', '/')).load()
-    except ClientError as e:
-        if e.response['Error']['Code'] != "404":
-            raise ValueError,"Key s3://{}/{}/table_data.json already exists".format(s3bucket,s3key)
-    else:
-        return -1, "Error key already exists"
     with file("{}/{}/table_data.json".format(settings.MEDIA_ROOT, dv.pk), 'w') as output:
         json.dump(data, output)
-    upload = subprocess.Popen(args=["aws", "s3", "sync",'--quiet', ".", "s3://{}/{}/".format(s3bucket,s3key)],cwd=path)
-    upload.communicate()
-    upload.wait()
-    return upload.returncode
+    if path.startswith('s3://'):
+        upload = subprocess.Popen(args=["aws", "s3", "sync",'--quiet', ".",path],cwd=cwd_path)
+        upload.communicate()
+        upload.wait()
+        return upload.returncode
+    elif path.startswith('gs://'):
+        raise NotImplementedError
 
 
 def import_s3(start,dv):
@@ -235,11 +199,10 @@ def import_local(dv):
 
 def import_vdn_s3(dv,key,bucket):
     dv.create_directory(create_subdirs=False)
-    client = boto3.client('s3')
-    resource = boto3.resource('s3')
     if key.endswith('.dva_export.zip'):
         ofname = "{}/{}/{}.zip".format(settings.MEDIA_ROOT, dv.pk, dv.pk)
-        resource.meta.client.download_file(bucket, key, ofname, ExtraArgs={'RequestPayer': 'requester'})
+        raise NotImplementedError
+        # resource.meta.client.download_file(bucket, key, ofname, ExtraArgs={'RequestPayer': 'requester'})
         zipf = zipfile.ZipFile(ofname, 'r')
         zipf.extractall("{}/{}/".format(settings.MEDIA_ROOT, dv.pk))
         zipf.close()
@@ -256,7 +219,7 @@ def import_vdn_s3(dv,key,bucket):
     else:
         video_root_dir = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
         path = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
-        download_s3_dir(client, resource, key, path, bucket)
+        download_s3_dir(key, path, bucket)
         for filename in os.listdir(os.path.join(path, key)):
             shutil.move(os.path.join(path, key, filename), os.path.join(path, filename))
         os.rmdir(os.path.join(path, key))

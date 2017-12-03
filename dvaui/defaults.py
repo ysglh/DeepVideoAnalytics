@@ -33,6 +33,11 @@ DEFAULT_PROCESSING_PLAN_VIDEO =[
          'target': 'frames',
          'filters':'__parent__'
      }},
+    {'operation': 'perform_analysis', 'arguments':
+        {'analyzer': 'tagger',
+         'target': 'frames',
+         'filters':'__parent__'
+     }}
 ]
 
 DEFAULT_PROCESSING_PLAN_DATASET = [
@@ -67,4 +72,9 @@ DEFAULT_PROCESSING_PLAN_DATASET = [
          'frames_batch_size': DEFAULT_FRAMES_BATCH_SIZE,
          'target': 'frames',
      }},
+    {'operation': 'perform_analysis', 'arguments':
+        {'analyzer': 'tagger',
+         'target': 'frames',
+         'filters': '__parent__'
+         }}
 ]

@@ -6,7 +6,7 @@ from django.conf import settings
 from dva.celery import app
 from .models import Video, Frame, TEvent,  IndexEntries, LOPQCodes, Region, Tube, \
     Retriever, Segment, QueryIndexVector, DeletedVideo, ManagementAction, SystemState, DVAPQL, \
-    Worker, QueryRegion, QueryRegionIndexVector, DeepModel, RegionLabel, FrameLabel
+    Worker, QueryRegion, QueryRegionIndexVector, DeepModel, RegionLabel, FrameLabel, Label
 
 from .operations.indexing import IndexerTask
 from .operations.retrieval import RetrieverTask
@@ -405,7 +405,7 @@ def perform_analysis(task_id):
     image_data = {}
     frames_to_labels = defaultdict(set)
     regions_to_labels = defaultdict(set)
-    label_set = set()
+    labels_pk = {}
     temp_root = tempfile.mkdtemp()
     for i,f in enumerate(queryset):
         if query_regions_paths:
@@ -447,6 +447,17 @@ def perform_analysis(task_id):
             else:
                 raise NotImplementedError
         object_name, text, metadata, labels = analyzer.apply(path)
+        for l in labels:
+            if (l,analyzer.label_set) not in labels_pk:
+                labels_pk[(l,analyzer.label_set)] = Label.objects.get_or_create(name=l,set=analyzer.label_set).pk
+            if target == 'regions':
+                regions_to_labels.append(RegionLabel(label=labels_pk[(l,analyzer.label_set)],region_id=f.pk,
+                                                     frame_id=f.frame.pk, frame_index=f.frame_index,
+                                                     segment_index=f.segment_index,video_id=f.video_id))
+            elif target == 'frames':
+                frames_to_labels.append(RegionLabel(label=labels_pk[(l, analyzer.label_set)],
+                                                    frame_id=f.pk, frame_index=f.frame_index,
+                                                    segment_index=f.segment_index, video_id=f.video_id))
         a.region_type = Region.ANNOTATION
         a.object_name = object_name
         a.text = text
@@ -457,6 +468,10 @@ def perform_analysis(task_id):
         QueryRegion.objects.bulk_create(regions_batch, 1000)
     else:
         Region.objects.bulk_create(regions_batch,1000)
+    if regions_to_labels:
+        RegionLabel.objects.bulk_create(regions_to_labels,1000)
+    if frames_to_labels:
+        FrameLabel.objects.bulk_create(frames_to_labels,1000)
     process_next(task_id)
     mark_as_completed(start)
     return 0

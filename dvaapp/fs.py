@@ -37,6 +37,7 @@ def ingest_path(dv,path):
     extension = path.split('.')[-1]
     if path.endswith('dva_export.zip'):
         if settings.DISABLE_NFS:
+            dv.create_directory(create_subdirs=False)
             if S3_MODE:
                 source = '{}/{}'.format(settings.MEDIA_BUCKET, path.strip('/'))
                 dest = '{}/{}.{}'.format(dv.pk,dv.pk,extension)
@@ -50,14 +51,14 @@ def ingest_path(dv,path):
             else:
                 raise ValueError("NFS disabled and unknown cloud storage prefix")
         else:
-            dv.create_directory(create_subdirs=False)
             shutil.move(os.path.join(settings.MEDIA_ROOT,path.strip('/')),
                         '{}/{}/{}.{}'.format(settings.MEDIA_ROOT,dv.pk,dv.pk,extension))
     else:
+        dv.create_directory(create_subdirs=True)
         if settings.DISABLE_NFS:
             if S3_MODE:
                 source = '{}/{}'.format(settings.MEDIA_BUCKET, path.strip('/'))
-                dest = 'video/{}/{}.{}'.format(dv.pk,dv.pk,extension)
+                dest = '{}/video/{}.{}'.format(dv.pk,dv.pk,extension)
                 try:
                     BUCKET.Object(dest).copy({'Bucket': settings.MEDIA_BUCKET, 'Key': path.strip('/')})
                 except:
@@ -68,7 +69,6 @@ def ingest_path(dv,path):
             else:
                 raise ValueError("NFS disabled and unknown cloud storage prefix")
         else:
-            dv.create_directory(create_subdirs=True)
             shutil.move(os.path.join(settings.MEDIA_ROOT,path.strip('/')),
                         '{}/{}/video/{}.{}'.format(settings.MEDIA_ROOT,dv.pk,dv.pk,extension))
 

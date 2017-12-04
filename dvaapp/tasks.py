@@ -561,6 +561,7 @@ def perform_model_import(task_id):
 
 @app.task(track_started=True, name="perform_import")
 def perform_import(event_id):
+    sync = True
     start = TEvent.objects.get(pk=event_id)
     if start.started:
         return 0  # to handle celery bug with ACK in SOLO mode

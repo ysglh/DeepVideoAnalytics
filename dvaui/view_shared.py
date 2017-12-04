@@ -45,8 +45,8 @@ def handle_uploaded_file(f, name, user=None, rate=None):
     filename = filename.lower()
     vuid = str(uuid.uuid1()).replace('-', '_')
     if filename.endswith('.dva_export.zip'):
-        local_fname = '{}/ingest/{}.{}'.format(settings.MEDIA_ROOT, vuid, filename.split('.')[-1])
-        fpath = '/ingest/{}.{}'.format(vuid, filename.split('.')[-1])
+        local_fname = '{}/ingest/{}.dva_export.zip'.format(settings.MEDIA_ROOT, vuid)
+        fpath = '/ingest/{}.dva_export.zip'.format(vuid)
         with open(local_fname,'wb+') as destination:
             for chunk in f.chunks():
                 destination.write(chunk)

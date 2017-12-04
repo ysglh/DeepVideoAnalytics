@@ -161,7 +161,7 @@ def ci():
     for fname in glob.glob('tests/ci/*.mp4'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")
-        handle_uploaded_file(f, name, False)
+        handle_uploaded_file(f, name)
     if settings.DEV_ENV:
         for fname in glob.glob('tests/ci/*.zip'):
             name = fname.split('/')[-1].split('.')[0]
@@ -206,6 +206,7 @@ def ci():
         fname = temp.arguments['file_name']
         f = SimpleUploadedFile(fname, file("{}/exports/{}".format(settings.MEDIA_ROOT, fname)).read(),
                                content_type="application/zip")
+        print fname
         vimported = handle_uploaded_file(f, fname)
         perform_import(TEvent.objects.get(video=vimported,operation='perform_import').pk)
     dc = Retriever()

@@ -38,7 +38,7 @@ def delete_video_object(video_pk,deleter):
     p.launch()
 
 
-def handle_uploaded_file(f, name, extract=True, user=None, rate=None):
+def handle_uploaded_file(f, name, user=None, rate=None):
     if rate is None:
         rate = defaults.DEFAULT_RATE
     filename = f.name
@@ -80,66 +80,65 @@ def handle_uploaded_file(f, name, extract=True, user=None, rate=None):
         if settings.DISABLE_NFS or settings.DEPLOY_ON_HEROKU:
             fs.upload_file_to_remote(fpath)
             os.remove(local_fname)
-        if extract:
-            p = processing.DVAPQLProcess()
-            if filename.endswith('.zip'):
-                query = {
-                    'process_type':DVAPQL.PROCESS,
-                    'create': [
-                        {
-                            'spec': {
-                                'name': name,
-                                'dataset': True,
-                                'uploader_id': user.pk if user else None,
-                                'created': '__timezone.now__'},
-                            'MODEL': 'Video',
-                            'tasks': [
-                                {'arguments': {'source': 'LOCAL', 'path': fpath}, 'video_id': '__pk__',
-                                 'operation': 'perform_import', 'next_tasks':[
-                                    {
-                                        'arguments': {'next_tasks': defaults.DEFAULT_PROCESSING_PLAN_DATASET},
-                                        'operation': 'perform_dataset_extraction',
-                                    }
-                                ]}
-                            ]
-                        },
-                    ],
-                }
-            else:
-                query = {
-                    'process_type':DVAPQL.PROCESS,
-                    'create': [
-                        {'spec': {
+        p = processing.DVAPQLProcess()
+        if filename.endswith('.zip'):
+            query = {
+                'process_type':DVAPQL.PROCESS,
+                'create': [
+                    {
+                        'spec': {
                             'name': name,
+                            'dataset': True,
                             'uploader_id': user.pk if user else None,
-                            'created': '__timezone.now__'
-                        },
-                            'MODEL': 'Video',
-                            'tasks': [
-                                {'arguments': {'source': 'LOCAL', 'path': fpath}, 'video_id': '__pk__',
-                                 'operation': 'perform_import',
-                                 'next_tasks': [
-                                     {
-                                         'arguments': {
-                                             'next_tasks': [
-                                                 {'operation': 'perform_video_decode',
-                                                  'arguments': {
-                                                      'segments_batch_size': defaults.DEFAULT_SEGMENTS_BATCH_SIZE,
-                                                      'rate': rate,
-                                                      'next_tasks': defaults.DEFAULT_PROCESSING_PLAN_VIDEO
-                                                  }
-                                                  }
-                                             ]},
-                                         'operation': 'perform_video_segmentation',
-                                     }
-                                 ]
+                            'created': '__timezone.now__'},
+                        'MODEL': 'Video',
+                        'tasks': [
+                            {'arguments': {'source': 'LOCAL', 'path': fpath}, 'video_id': '__pk__',
+                             'operation': 'perform_import', 'next_tasks':[
+                                {
+                                    'arguments': {'next_tasks': defaults.DEFAULT_PROCESSING_PLAN_DATASET},
+                                    'operation': 'perform_dataset_extraction',
+                                }
+                            ]}
+                        ]
+                    },
+                ],
+            }
+        else:
+            query = {
+                'process_type':DVAPQL.PROCESS,
+                'create': [
+                    {'spec': {
+                        'name': name,
+                        'uploader_id': user.pk if user else None,
+                        'created': '__timezone.now__'
+                    },
+                        'MODEL': 'Video',
+                        'tasks': [
+                            {'arguments': {'source': 'LOCAL', 'path': fpath}, 'video_id': '__pk__',
+                             'operation': 'perform_import',
+                             'next_tasks': [
+                                 {
+                                     'arguments': {
+                                         'next_tasks': [
+                                             {'operation': 'perform_video_decode',
+                                              'arguments': {
+                                                  'segments_batch_size': defaults.DEFAULT_SEGMENTS_BATCH_SIZE,
+                                                  'rate': rate,
+                                                  'next_tasks': defaults.DEFAULT_PROCESSING_PLAN_VIDEO
+                                              }
+                                              }
+                                         ]},
+                                     'operation': 'perform_video_segmentation',
                                  }
-                            ]
-                        },
-                    ],
-                }
-            p.create_from_json(j=query,user=user)
-            p.launch()
+                             ]
+                             }
+                        ]
+                    },
+                ],
+            }
+        p.create_from_json(j=query,user=user)
+        p.launch()
     else:
         raise ValueError, "Extension {} not allowed".format(filename.split('.')[-1])
     return p.created_objects[0]

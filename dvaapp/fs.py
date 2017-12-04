@@ -46,7 +46,7 @@ def ingest_path(dv,path):
             else:
                 raise ValueError("NFS disabled and unknown cloud storage prefix")
         else:
-            dv.create_directory()
+            dv.create_directory(create_subdirs=False)
             shutil.move(os.path.join(settings.MEDIA_ROOT,path.strip('/')),
                         '{}/{}/{}.{}'.format(settings.MEDIA_ROOT,dv.pk,dv.pk,extension))
     else:

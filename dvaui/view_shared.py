@@ -213,13 +213,13 @@ def import_vdn_dataset_url(server, url, user, cached_response):
         video.uploader = user
     video.name = response['name']
     video.save()
-    if response['download_url']:
+    if response['path'].startswith('http'):
         p = processing.DVAPQLProcess()
         query = {
             'process_type': DVAPQL.PROCESS,
             'tasks': [
                 {
-                    'arguments': {'source':'VDN_URL','url':response['download_url']},
+                    'arguments': {'source':'URL','url':response['path']},
                     'video_id': video.pk,
                     'operation': 'perform_import',
                 }
@@ -227,13 +227,13 @@ def import_vdn_dataset_url(server, url, user, cached_response):
         }
         p.create_from_json(j=query, user=user)
         p.launch()
-    elif response['aws_key'] and response['aws_bucket']:
+    elif response['path'].startswith('gs://') or response['path'].startswith('s3://'):
         p = processing.DVAPQLProcess()
         query = {
             'process_type': DVAPQL.PROCESS,
             'tasks': [
                 {
-                    'arguments': {'source':'VDN_S3','key':response['aws_key'],'bucket':response['aws_bucket']},
+                    'arguments': {'source':'REMOTE','path':response['path']},
                     'video_id': video.pk,
                     'operation': 'perform_import',
                 }
@@ -242,7 +242,7 @@ def import_vdn_dataset_url(server, url, user, cached_response):
         p.create_from_json(j=query, user=user)
         p.launch()
     else:
-        raise NotImplementedError
+        raise NotImplementedError("Unknown prefix {}".format(response['path']))
 
 
 def import_vdn_detector_url(server, url, user, cached_response):
@@ -254,28 +254,20 @@ def import_vdn_detector_url(server, url, user, cached_response):
         pass
     if not response:
         response = cached_response
-    detector = DeepModel()
-    detector.model_type = DeepModel.DETECTOR
-    detector.name = response['name']
-    detector.detector_type = response.get('detector_type',DeepModel.YOLO)
-    detector.save()
-    if response.get('download_url',False):
-        p = processing.DVAPQLProcess()
-        query = {
-            'process_type': DVAPQL.PROCESS,
-            'tasks': [
-                {
-                    'arguments': {'detector_pk': detector.pk,'download_url':response['download_url']},
-                    'operation': 'perform_detector_import',
-                }
-            ]
+    p = processing.DVAPQLProcess()
+    query = {
+        'process_type': DVAPQL.PROCESS,
+        'create':[{'MODEL': 'DeepModel',
+                   'spec':{'name': response['name'],'detector_type':DeepModel.DETECTOR},
+                   'tasks':[{'operation': 'perform_detector_import',
+                             'arguments': {'path': response['path'],
+                                           'detector_pk' : '__pk__'
+                                           },
+                             },]}
+                  ]
         }
-        p.create_from_json(j=query, user=user)
-        p.launch()
-    elif response.get('aws_key',False) and response.get('aws_bucket',False):
-        raise NotImplementedError
-    else:
-        raise NotImplementedError
+    p.create_from_json(j=query, user=user)
+    p.launch()
 
 
 def create_detector_dataset(object_names, labels):

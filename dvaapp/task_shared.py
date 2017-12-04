@@ -135,7 +135,7 @@ def import_remote(start,dv):
         importer.import_video()
 
 
-def import_vdn_url(dv,download_url):
+def import_url(dv,download_url):
     dv.create_directory(create_subdirs=False)
     if 'www.dropbox.com' in download_url and not download_url.endswith('?dl=1'):
         r = requests.get(download_url + '?dl=1')

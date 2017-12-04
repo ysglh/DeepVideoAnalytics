@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 import subprocess, os, time, logging, requests, zipfile, io, sys, json, tempfile
+from urlparse import urlparse
 from collections import defaultdict
 from PIL import Image
 from django.conf import settings
@@ -257,7 +258,7 @@ def perform_video_decode(task_id):
         raise NotImplementedError("Cannot decode target:{}".format(target))
     task_shared.ensure_files(queryset,target)
     for ds in queryset:
-        v.decode_segment(ds=ds,denominator=args['rate'],event_id=task_id)
+        v.decode_segment(ds=ds,denominator=args.get('rate',30),event_id=task_id)
     process_next(task_id)
     mark_as_completed(start)
     return task_id
@@ -521,10 +522,10 @@ def perform_detector_import(task_id):
     args = start.arguments
     dd = DeepModel.objects.get(pk=start.arguments['detector_pk'],detector_type=DeepModel.DETECTOR)
     dd.create_directory(create_subdirs=False)
-    if 'www.dropbox.com' in args['download_url'] and not args['download_url'].endswith('?dl=1'):
-        r = requests.get(args['download_url'] + '?dl=1')
+    if 'www.dropbox.com' in args['path'] and not args['path'].endswith('?dl=1'):
+        r = requests.get(args['path'] + '?dl=1')
     else:
-        r = requests.get(args['download_url'])
+        r = requests.get(args['path'])
     output_filename = "{}/detectors/{}.zip".format(settings.MEDIA_ROOT, dd.pk)
     with open(output_filename, 'wb') as f:
         for chunk in r.iter_content(chunk_size=1024):
@@ -569,16 +570,16 @@ def perform_import(event_id):
     source = start.arguments['source']
     dv = start.video
     if source == 'URL':
-        if start.video is None:
-            start.video = task_shared.handle_video_url(start.arguments['name'], start.arguments['url'])
-            start.save()
-        task_shared.retrieve_video_via_url(start.video, settings.MEDIA_ROOT)
+        u = urlparse(start.arguments['url'])
+        if u.hostname == 'www.youtube.com' or start.arguments.get('force_youtube_dl',False):
+            if start.video is None:
+                start.video = task_shared.handle_video_url(start.arguments['name'], start.arguments['url'])
+                start.save()
+            task_shared.retrieve_video_via_url(start.video, settings.MEDIA_ROOT)
+        else:
+            task_shared.import_url(dv,start.arguments['url'])
     elif source == 'REMOTE':
         task_shared.import_remote(start, dv)
-    elif source == 'VDN_URL':
-        task_shared.import_vdn_url(dv, start.arguments['url'])
-    elif source == 'VDN_S3':
-        task_shared.import_vdn_s3(dv, start.arguments['key'], start.arguments['bucket'])
     elif source == 'LOCAL':
         task_shared.import_local(dv)
     elif source == 'MASSIVE':

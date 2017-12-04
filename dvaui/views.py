@@ -580,6 +580,7 @@ def yt(request):
                 'tasks': [{'video_id': video.pk,
                           'operation': 'perform_import',
                           'arguments': {'source': "URL",
+                                        'force_youtube_dl': True,
                                         'next_tasks':[{'video_id': video.pk,
                                                        'operation': 'perform_video_segmentation',
                                                        'arguments': {

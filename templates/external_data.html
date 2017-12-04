@@ -51,8 +51,7 @@
                     <tr>
                         <th>Name</th>
                         <th>Server</th>
-                        <th>AWS Region/Bucket/ Key</th>
-                        <th>Direct download</th>
+                        <th>Path</th>
                         <th>Import</th>
                     </tr>
                     </thead>
@@ -62,9 +61,8 @@
                             <tr>
                                 <td>{{ dataset.name }}</td>
                                 <td>{{ server.name }}</td>
-                                <td>{% if dataset.aws_requester_pays %} {{ dataset.aws_region }} /{{ dataset.aws_bucket }} / {{ dataset.aws_key }}{% endif %}</td>
-                                <td><a href="{{ dataset.download_url }}">{{ dataset.download_url }}</a></td>
-                                {% if dataset.aws_requester_pays %}
+                                <td>{{ dataset.path }}</td>
+                                {% if dataset.requester_pays %}
                                 <td class="text-center">
                                     <form action="/import_dataset" method="post">
                                     {% csrf_token %}
@@ -107,8 +105,7 @@
                     <tr>
                         <th>Name</th>
                         <th>Server</th>
-                        <th>AWS Region/Bucket/ Key</th>
-                        <th>Direct download</th>
+                        <th>Path </th>
                         <th>Import</th>
                     </tr>
                     </thead>
@@ -118,9 +115,8 @@
                             <tr>
                                 <td>{{ detector.name }}</td>
                                 <td>{{ server.name }}</td>
-                                <td>{% if detector.aws_requester_pays %} {{ detector.aws_region }} /{{ detector.aws_bucket }} / {{ detector.aws_key }}{% endif %}</td>
-                                <td><a href="{{ detector.download_url }}">{{ detector.download_url }}</a></td>
-                                {% if detector.aws_requester_pays %}
+                                <td>{{ detector.path }}</td>
+                                {% if detector.requester_pays %}
                                 <td class="text-center"><form action="/import_detector" method="post">
                                     {% csrf_token %}
                                     <input type="hidden" name="detector_url" value="{{ detector.url }}"/>

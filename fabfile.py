@@ -168,6 +168,7 @@ def ci():
             f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
             handle_uploaded_file(f, name)
     for i, v in enumerate(Video.objects.all()):
+        perform_import(TEvent.objects.get(video=v,operation='perform_import').pk)
         if v.dataset:
             arguments = {'sync': True}
             perform_dataset_extraction(TEvent.objects.create(video=v, arguments=arguments).pk)
@@ -206,7 +207,7 @@ def ci():
         f = SimpleUploadedFile(fname, file("{}/exports/{}".format(settings.MEDIA_ROOT, fname)).read(),
                                content_type="application/zip")
         vimported = handle_uploaded_file(f, fname)
-        perform_import(TEvent.objects.create(video=vimported, arguments={"source": "LOCAL"}).pk)
+        perform_import(TEvent.objects.get(video=vimported,operation='perform_import').pk)
     dc = Retriever()
     args = {}
     args['components'] = 32

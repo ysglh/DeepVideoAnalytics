@@ -46,7 +46,7 @@ def handle_downloaded_file(downloaded, video, name):
         os.rename(downloaded, '{}/{}/{}.{}'.format(settings.MEDIA_ROOT, video.pk, video.pk, filename.split('.')[-1]))
         video.uploaded = True
         video.save()
-        import_local(video)
+        load_dva_export_file(video)
     elif filename.endswith('.mp4') or filename.endswith('.flv') or filename.endswith('.zip'):
         video.create_directory(create_subdirs=True)
         os.rename(downloaded,
@@ -168,7 +168,7 @@ def import_url(dv,download_url):
     dv.save()
 
 
-def import_local(dv):
+def load_dva_export_file(dv):
     video_id = dv.pk
     video_obj = Video.objects.get(pk=video_id)
     if settings.DISABLE_NFS:

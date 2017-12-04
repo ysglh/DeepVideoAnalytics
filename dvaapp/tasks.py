@@ -568,6 +568,7 @@ def perform_import(event_id):
         start.started = True
         start.save()
     source = start.arguments['source']
+    path = start.arguments.get('path',None)
     dv = start.video
     if source == 'URL':
         u = urlparse(start.arguments['url'])
@@ -581,7 +582,12 @@ def perform_import(event_id):
     elif source == 'REMOTE':
         task_shared.import_remote(start, dv)
     elif source == 'LOCAL':
-        task_shared.import_local(dv)
+        if path:
+            fs.ingest_path(dv,path)
+            if path.endswith('.dva_export.zip'):
+                task_shared.load_dva_export_file(dv)
+        else:
+            task_shared.load_dva_export_file(dv)
     elif source == 'MASSIVE':
         task_shared.import_external(start.arguments)
     else:

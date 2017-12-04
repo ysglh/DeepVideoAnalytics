@@ -1,6 +1,7 @@
 from django.conf import settings
 import os
 import boto3
+import shutil
 import errno
 import logging, subprocess
 try:
@@ -30,6 +31,38 @@ def mkdir_safe(dlpath):
     except OSError as e:
         if e.errno != errno.EEXIST:
             raise
+
+
+def ingest_path(dv,path):
+    extension = path.split('.')[-1]
+    if path.endswith('.dva_export.zip'):
+        if settings.DISABLE_NFS:
+            if S3_MODE:
+                dest = '{}/{}.{}'.format(settings.MEDIA_BUCKET,dv.pk,dv.pk,extension)
+                S3.Object(settings.MEDIA_BUCKET,dest).copy_from(CopySource='{}/{}'.format(settings.MEDIA_BUCKET, path))
+                S3.Object(settings.MEDIA_BUCKET,path).delete()
+            elif GS_MODE:
+                raise NotImplementedError
+            else:
+                raise ValueError("NFS disabled and unknown cloud storage prefix")
+        else:
+            dv.create_directory()
+            shutil.move(os.path.join(settings.MEDIA_ROOT,path.strip('/')),
+                        '{}/{}/{}.{}'.format(settings.MEDIA_ROOT,dv.pk,dv.pk,extension))
+    else:
+        if settings.DISABLE_NFS:
+            if S3_MODE:
+                dest = '{}/video/{}/{}.{}'.format(settings.MEDIA_BUCKET,dv.pk,dv.pk,extension)
+                S3.Object(settings.MEDIA_BUCKET,dest).copy_from(CopySource='{}/{}'.format(settings.MEDIA_BUCKET, path))
+                S3.Object(settings.MEDIA_BUCKET,path).delete()
+            elif GS_MODE:
+                raise NotImplementedError
+            else:
+                raise ValueError("NFS disabled and unknown cloud storage prefix")
+        else:
+            dv.create_directory(create_subdirs=True)
+            shutil.move(os.path.join(settings.MEDIA_ROOT,path.strip('/')),
+                        '{}/{}/video/{}.{}'.format(settings.MEDIA_ROOT,dv.pk,dv.pk,extension))
 
 
 def ensure(path, dirnames=None, media_root=None):

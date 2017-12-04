@@ -180,6 +180,7 @@ class DVAPQLProcess(object):
         self.process = process
         self.media_dir = media_dir
         self.task_results = {}
+        self.created_objects = []
 
     def store(self):
         query_path = "{}/queries/{}.png".format(settings.MEDIA_ROOT, self.process.pk)
@@ -225,6 +226,7 @@ class DVAPQLProcess(object):
                     if v == '__timezone.now__':
                         c['spec'][k] = timezone.now()
                 instance = m.objects.create(**c['spec'])
+                self.created_objects.append(instance)
                 for t in copy.deepcopy(c.get('tasks',[])):
                     self.launch_task(t,instance.pk)
             for t in self.process.script.get('tasks',[]):

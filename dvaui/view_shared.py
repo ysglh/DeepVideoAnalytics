@@ -1,4 +1,4 @@
-import os, json, requests, shutil, zipfile, cStringIO, base64
+import os, json, requests, shutil, zipfile, cStringIO, base64, uuid
 from dvaapp.models import Video, TEvent,  VDNServer, Label, RegionLabel, DeepModel, Retriever, DVAPQL, Region, Frame, \
     QueryRegion, QueryRegionResults,QueryResults
 from django.conf import settings
@@ -41,90 +41,108 @@ def delete_video_object(video_pk,deleter):
 def handle_uploaded_file(f, name, extract=True, user=None, rate=None):
     if rate is None:
         rate = defaults.DEFAULT_RATE
-    video = Video()
-    if user:
-        video.uploader = user
-    video.name = name
-    video.save()
     filename = f.name
     filename = filename.lower()
+    vuid = str(uuid.uuid1()).replace('-', '_')
     if filename.endswith('.dva_export.zip'):
-        video.create_directory(create_subdirs=False)
-        with open('{}/{}/{}.{}'.format(settings.MEDIA_ROOT, video.pk, video.pk, filename.split('.')[-1]),
-                  'wb+') as destination:
+        local_fname = '{}/ingest/{}.{}'.format(settings.MEDIA_ROOT, vuid, filename.split('.')[-1])
+        fpath = '/ingest/{}.{}'.format(vuid, filename.split('.')[-1])
+        with open(local_fname,'wb+') as destination:
             for chunk in f.chunks():
                 destination.write(chunk)
         if settings.DISABLE_NFS or settings.DEPLOY_ON_HEROKU:
-            fpath = '/{}/{}.{}'.format( video.pk, video.pk, filename.split('.')[-1])
             fs.upload_file_to_remote(fpath)
-            os.remove('{}/{}/{}.{}'.format(settings.MEDIA_ROOT, video.pk, video.pk, filename.split('.')[-1]))
-        video.uploaded = True
-        video.save()
+            os.remove(local_fname)
         p = processing.DVAPQLProcess()
         query = {
             'process_type': DVAPQL.PROCESS,
-            'tasks': [
-                {
-                    'arguments': {'source':'LOCAL'},
-                    'video_id': video.pk,
-                    'operation': 'perform_import',
-                }
-            ]
+            'create':[
+                {'spec':{
+                    'name' : name,
+                    'uploader_id': user.pk if user else None,
+                    'created': '__timezone.now__'
+                },
+                 'MODEL':'Video',
+                 'tasks':[
+                     {'arguments': {'source':'LOCAL','path':fpath},'video_id': '__pk__','operation': 'perform_import',}
+                 ]
+                 },
+            ],
         }
         p.create_from_json(j=query, user=user)
         p.launch()
     elif filename.endswith('.mp4') or filename.endswith('.flv') or filename.endswith('.zip'):
-        video.create_directory(create_subdirs=True)
-        with open('{}/{}/video/{}.{}'.format(settings.MEDIA_ROOT, video.pk, video.pk, filename.split('.')[-1]),
-                  'wb+') as destination:
+        local_fname = '{}/ingest/{}.{}'.format(settings.MEDIA_ROOT, vuid, filename.split('.')[-1])
+        fpath = '/ingest/{}.{}'.format(vuid, filename.split('.')[-1])
+        with open(local_fname,'wb+') as destination:
             for chunk in f.chunks():
                 destination.write(chunk)
         if settings.DISABLE_NFS or settings.DEPLOY_ON_HEROKU:
-            fpath = '/{}/video/{}.{}'.format(video.pk, video.pk, filename.split('.')[-1])
             fs.upload_file_to_remote(fpath)
-            os.remove('{}/{}/video/{}.{}'.format(settings.MEDIA_ROOT, video.pk, video.pk, filename.split('.')[-1]))
-        video.uploaded = True
-        if filename.endswith('.zip'):
-            video.dataset = True
-        video.save()
+            os.remove(local_fname)
         if extract:
             p = processing.DVAPQLProcess()
-            if video.dataset:
+            if filename.endswith('.zip'):
                 query = {
                     'process_type':DVAPQL.PROCESS,
-                    'tasks':[
+                    'create': [
                         {
-                            'arguments':{'next_tasks':defaults.DEFAULT_PROCESSING_PLAN_DATASET},
-                            'video_id':video.pk,
-                            'operation': 'perform_dataset_extraction',
-                        }
-                    ]
+                            'spec': {
+                                'name': name,
+                                'dataset': True,
+                                'uploader_id': user.pk if user else None,
+                                'created': '__timezone.now__'},
+                            'MODEL': 'Video',
+                            'tasks': [
+                                {'arguments': {'source': 'LOCAL', 'path': fpath}, 'video_id': '__pk__',
+                                 'operation': 'perform_import', 'next_tasks':[
+                                    {
+                                        'arguments': {'next_tasks': defaults.DEFAULT_PROCESSING_PLAN_DATASET},
+                                        'operation': 'perform_dataset_extraction',
+                                    }
+                                ]}
+                            ]
+                        },
+                    ],
                 }
             else:
                 query = {
                     'process_type':DVAPQL.PROCESS,
-                    'tasks':[
-                        {
-                            'arguments':{
-                                'next_tasks':[
-                                             {'operation':'perform_video_decode',
-                                               'arguments':{
-                                                   'segments_batch_size': defaults.DEFAULT_SEGMENTS_BATCH_SIZE,
-                                                   'rate': rate,
-                                                   'next_tasks':defaults.DEFAULT_PROCESSING_PLAN_VIDEO
-                                               }
-                                              }
-                                            ]},
-                            'video_id':video.pk,
-                            'operation': 'perform_video_segmentation',
-                        }
-                    ]
+                    'create': [
+                        {'spec': {
+                            'name': name,
+                            'uploader_id': user.pk if user else None,
+                            'created': '__timezone.now__'
+                        },
+                            'MODEL': 'Video',
+                            'tasks': [
+                                {'arguments': {'source': 'LOCAL', 'path': fpath}, 'video_id': '__pk__',
+                                 'operation': 'perform_import',
+                                 'next_tasks': [
+                                     {
+                                         'arguments': {
+                                             'next_tasks': [
+                                                 {'operation': 'perform_video_decode',
+                                                  'arguments': {
+                                                      'segments_batch_size': defaults.DEFAULT_SEGMENTS_BATCH_SIZE,
+                                                      'rate': rate,
+                                                      'next_tasks': defaults.DEFAULT_PROCESSING_PLAN_VIDEO
+                                                  }
+                                                  }
+                                             ]},
+                                         'operation': 'perform_video_segmentation',
+                                     }
+                                 ]
+                                 }
+                            ]
+                        },
+                    ],
                 }
             p.create_from_json(j=query,user=user)
             p.launch()
     else:
         raise ValueError, "Extension {} not allowed".format(filename.split('.')[-1])
-    return video
+    return p.created_objects[0]
 
 
 def create_annotation(form, object_name, labels, frame):

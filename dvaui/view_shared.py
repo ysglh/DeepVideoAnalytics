@@ -230,42 +230,36 @@ def import_vdn_dataset_url(server, url, user, cached_response):
         pass
     if not response:
         response = cached_response
-    video = Video()
-    video.description = "import from {} : {} ".format(server.url,response['description'])
-    if user:
-        video.uploader = user
-    video.name = response['name']
-    video.save()
     if response['path'].startswith('http'):
-        p = processing.DVAPQLProcess()
-        query = {
-            'process_type': DVAPQL.PROCESS,
-            'tasks': [
-                {
-                    'arguments': {'source':'URL','url':response['path']},
-                    'video_id': video.pk,
-                    'operation': 'perform_import',
-                }
-            ]
-        }
-        p.create_from_json(j=query, user=user)
-        p.launch()
+        args = {'source':'URL','url':response['path']}
     elif response['path'].startswith('gs://') or response['path'].startswith('s3://'):
-        p = processing.DVAPQLProcess()
-        query = {
-            'process_type': DVAPQL.PROCESS,
-            'tasks': [
-                {
-                    'arguments': {'source':'REMOTE','path':response['path']},
-                    'video_id': video.pk,
-                    'operation': 'perform_import',
-                }
-            ]
-        }
-        p.create_from_json(j=query, user=user)
-        p.launch()
+        args = {'source': 'REMOTE', 'path': response['path']}
     else:
         raise NotImplementedError("Unknown prefix {}".format(response['path']))
+    p = processing.DVAPQLProcess()
+    query = {
+        'process_type': DVAPQL.PROCESS,
+        'create': [
+            {
+                'spec': {
+                    'name': response['name'],
+                    'uploader_id': user.pk if user else None,
+                    'created': '__timezone.now__',
+                    'description':"import from {} : {} ".format(server.url,response['description'])
+                },
+                'MODEL': 'Video',
+                'tasks': [
+                    {
+                        'arguments': args,
+                        'video_id': '__pk__',
+                        'operation': 'perform_import',
+                    }
+                ]
+            },
+        ],
+    }
+    p.create_from_json(j=query, user=user)
+    p.launch()
 
 
 def import_vdn_detector_url(server, url, user, cached_response):

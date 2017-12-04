@@ -93,13 +93,18 @@ def handle_uploaded_file(f, name, user=None, rate=None):
                             'created': '__timezone.now__'},
                         'MODEL': 'Video',
                         'tasks': [
-                            {'arguments': {'source': 'LOCAL', 'path': fpath}, 'video_id': '__pk__',
-                             'operation': 'perform_import', 'next_tasks':[
-                                {
-                                    'arguments': {'next_tasks': defaults.DEFAULT_PROCESSING_PLAN_DATASET},
-                                    'operation': 'perform_dataset_extraction',
-                                }
-                            ]}
+                            {'arguments': {'source': 'LOCAL',
+                                           'path': fpath,
+                                           'next_tasks':[
+                                               {
+                                                    'arguments': {'next_tasks': defaults.DEFAULT_PROCESSING_PLAN_DATASET},
+                                                    'operation': 'perform_dataset_extraction',
+                                               }
+                                           ]
+                                           },
+                             'video_id': '__pk__',
+                             'operation': 'perform_import'
+                             }
                         ]
                     },
                 ],
@@ -115,23 +120,24 @@ def handle_uploaded_file(f, name, user=None, rate=None):
                     },
                         'MODEL': 'Video',
                         'tasks': [
-                            {'arguments': {'source': 'LOCAL', 'path': fpath}, 'video_id': '__pk__',
+                            {'arguments': {'source': 'LOCAL', 'path': fpath,
+                                           'next_tasks': [
+                                               {
+                                                   'arguments': {
+                                                       'next_tasks': [
+                                                           {'operation': 'perform_video_decode',
+                                                            'arguments': {
+                                                                'segments_batch_size': defaults.DEFAULT_SEGMENTS_BATCH_SIZE,
+                                                                'rate': rate,
+                                                                'next_tasks': defaults.DEFAULT_PROCESSING_PLAN_VIDEO
+                                                            }
+                                                            }
+                                                       ]},
+                                                   'operation': 'perform_video_segmentation',
+                                               }
+                                           ]
+                                           }, 'video_id': '__pk__',
                              'operation': 'perform_import',
-                             'next_tasks': [
-                                 {
-                                     'arguments': {
-                                         'next_tasks': [
-                                             {'operation': 'perform_video_decode',
-                                              'arguments': {
-                                                  'segments_batch_size': defaults.DEFAULT_SEGMENTS_BATCH_SIZE,
-                                                  'rate': rate,
-                                                  'next_tasks': defaults.DEFAULT_PROCESSING_PLAN_VIDEO
-                                              }
-                                              }
-                                         ]},
-                                     'operation': 'perform_video_segmentation',
-                                 }
-                             ]
                              }
                         ]
                     },

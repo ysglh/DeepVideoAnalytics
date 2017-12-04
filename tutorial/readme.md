@@ -1,3 +1,8 @@
 # Deep Video Analytics tutorial
 
-To run tutorials start a jupyter notebook and run the tutorial notebook.
+To run tutorials start DVA containers and run notebooks using jupyter.
+
+```bash
+docker-compose up -d
+jupyter notebook
+```

@@ -36,8 +36,8 @@ def mkdir_safe(dlpath):
 def ingest_path(dv,path):
     extension = path.split('.')[-1]
     if path.endswith('dva_export.zip'):
+        dv.create_directory(create_subdirs=False)
         if settings.DISABLE_NFS:
-            dv.create_directory(create_subdirs=False)
             if S3_MODE:
                 source = '{}/{}'.format(settings.MEDIA_BUCKET, path.strip('/'))
                 dest = '{}/{}.{}'.format(dv.pk,dv.pk,extension)

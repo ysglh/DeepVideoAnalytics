@@ -38,9 +38,13 @@ def ingest_path(dv,path):
     if path.endswith('dva_export.zip'):
         if settings.DISABLE_NFS:
             if S3_MODE:
-                dest = '{}/{}.{}'.format(settings.MEDIA_BUCKET,dv.pk,dv.pk,extension)
-                S3.Object(settings.MEDIA_BUCKET,dest).copy_from(CopySource='{}/{}'.format(settings.MEDIA_BUCKET, path))
-                S3.Object(settings.MEDIA_BUCKET,path).delete()
+                source = '{}/{}'.format(settings.MEDIA_BUCKET, path.strip('/'))
+                dest = '{}/{}.{}'.format(dv.pk,dv.pk,extension)
+                try:
+                    BUCKET.Object(dest).copy({'Bucket': settings.MEDIA_BUCKET, 'Key': path.strip('/')})
+                except:
+                    raise ValueError("Could not copy from {} to {}".format(source,dest))
+                S3.Object(settings.MEDIA_BUCKET, path.strip('/')).delete()
             elif GS_MODE:
                 raise NotImplementedError
             else:
@@ -52,9 +56,13 @@ def ingest_path(dv,path):
     else:
         if settings.DISABLE_NFS:
             if S3_MODE:
-                dest = '{}/video/{}/{}.{}'.format(settings.MEDIA_BUCKET,dv.pk,dv.pk,extension)
-                S3.Object(settings.MEDIA_BUCKET,dest).copy_from(CopySource='{}/{}'.format(settings.MEDIA_BUCKET, path))
-                S3.Object(settings.MEDIA_BUCKET,path).delete()
+                source = '{}/{}'.format(settings.MEDIA_BUCKET, path.strip('/'))
+                dest = 'video/{}/{}.{}'.format(dv.pk,dv.pk,extension)
+                try:
+                    BUCKET.Object(dest).copy({'Bucket': settings.MEDIA_BUCKET, 'Key': path.strip('/')})
+                except:
+                    raise ValueError("Could not copy from {} to {}".format(source, dest))
+                S3.Object(settings.MEDIA_BUCKET, path.strip('/')).delete()
             elif GS_MODE:
                 raise NotImplementedError
             else:

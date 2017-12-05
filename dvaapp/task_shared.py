@@ -1,9 +1,9 @@
-import os, json, requests, copy, time, subprocess, logging, shutil, zipfile, random, calendar, shlex, sys, tempfile
+import os, json, requests, copy, time, subprocess, logging, shutil, zipfile, uuid, calendar, shlex, sys, tempfile
 from models import Video, QueryRegion, QueryRegionIndexVector, DVAPQL, Region, Frame, Segment, IndexEntries, TEvent
 from django.conf import settings
 from PIL import Image
 from . import serializers
-from .fs import ensure, upload_file_to_remote, upload_video_to_remote, download_s3_dir
+from .fs import ensure, upload_file_to_remote, upload_video_to_remote, download_s3_dir, get_remote_path_to_file
 
 
 def pid_exists(pid):
@@ -37,29 +37,6 @@ def launch_worker(queue_name, worker_name):
     return message
 
 
-def handle_downloaded_file(downloaded, video, name):
-    video.name = name
-    video.save()
-    filename = downloaded.split('/')[-1]
-    if filename.endswith('.dva_export.zip'):
-        video.create_directory(create_subdirs=False)
-        os.rename(downloaded, '{}/{}/{}.{}'.format(settings.MEDIA_ROOT, video.pk, video.pk, filename.split('.')[-1]))
-        video.uploaded = True
-        video.save()
-        load_dva_export_file(video)
-    elif filename.endswith('.mp4') or filename.endswith('.flv') or filename.endswith('.zip'):
-        video.create_directory(create_subdirs=True)
-        os.rename(downloaded,
-                  '{}/{}/video/{}.{}'.format(settings.MEDIA_ROOT, video.pk, video.pk, filename.split('.')[-1]))
-        video.uploaded = True
-        if filename.endswith('.zip'):
-            video.dataset = True
-        video.save()
-    else:
-        raise ValueError, "Extension {} not allowed".format(filename.split('.')[-1])
-    return video
-
-
 def retrieve_video_via_url(dv,media_dir):
     dv.create_directory(create_subdirs=True)
     output_dir = "{}/{}/{}/".format(media_dir, dv.pk, 'video')
@@ -89,79 +66,68 @@ def perform_s3_export(dv,path,export_event_pk=None):
         raise NotImplementedError
 
 
-def import_remote(start,dv):
-    remote_path = start.arguments['path']
+def import_remote(dv,remote_path):
     logging.info("processing key {} ".format(remote_path))
-    if dv is None:
-        dv = Video()
-        dv.name = "pending {}".format(remote_path)
+    extension = remote_path.split('.')[-1]
+    if remote_path.strip() and '.' in remote_path:
+        fname = "{}/ingest/{}.{}".format(settings.MEDIA_ROOT, str(uuid.uuid1()).replace('-','_'), extension)
+        get_remote_path_to_file(remote_path,fname)
+        if not dv.name:
+            dv.name = remote_path
+        if remote_path.endswith('.dva_export.zip'):
+            dv.create_directory(create_subdirs=False)
+            os.rename(fname, '{}/{}/{}.{}'.format(settings.MEDIA_ROOT, dv.pk, dv.pk, extension))
+            dv.uploaded = True
+        elif remote_path.endswith('.mp4') or remote_path.endswith('.flv') or remote_path.endswith('.zip'):
+            dv.create_directory(create_subdirs=True)
+            os.rename(fname, '{}/{}/video/{}.{}'.format(settings.MEDIA_ROOT, dv.pk, dv.pk, extension))
+            dv.uploaded = True
+            if remote_path.endswith('.zip'):
+                dv.dataset = True
+        elif remote_path.endswith('json') or remote_path.endswith('.gz'):
+            dv.create_directory(create_subdirs=True)
+            os.rename(fname, '{}/{}/framelist.{}'.format(settings.MEDIA_ROOT, dv.pk, dv.pk, extension))
+            dv.dataset = True
+        else:
+            raise ValueError, "Extension {} not allowed".format(remote_path)
         dv.save()
-        start.video = dv
-        start.save()
-    path = "{}/{}/".format(settings.MEDIA_ROOT, start.video.pk)
-    if remote_path.strip() and (remote_path.endswith('.zip') or remote_path.endswith('.mp4')):
-        fname = 'temp_' + str(time.time()).replace('.', '_') + '_' + str(random.randint(0, 100)) + '.' + \
-                remote_path.split('.')[-1]
-        command = ["aws", "s3", "cp", '--quiet', remote_path, fname]
-        path = "{}/".format(settings.MEDIA_ROOT)
-        download = subprocess.Popen(args=command, cwd=path)
-        download.communicate()
-        download.wait()
-        if download.returncode != 0:
-            start.errored = True
-            start.error_message = "return code for '{}' was {}".format(" ".join(command), download.returncode)
-            start.save()
-            raise ValueError, start.error_message
-        handle_downloaded_file("{}/{}".format(settings.MEDIA_ROOT, fname), start.video, remote_path)
     else:
-        start.video.create_directory(create_subdirs=False)
-        command = ["aws", "s3", "cp", '--quiet', remote_path, '.', '--recursive']
-        command_exec = " ".join(command)
-        download = subprocess.Popen(args=command, cwd=path)
-        download.communicate()
-        download.wait()
-        if download.returncode != 0:
-            start.errored = True
-            start.error_message = "return code for '{}' was {}".format(command_exec, download.returncode)
-            start.save()
-            raise ValueError, start.error_message
-        with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, start.video.pk)) as input_json:
-            video_json = json.load(input_json)
-        importer = serializers.VideoImporter(video=start.video, json=video_json, root_dir=path)
-        importer.import_video()
+        # dv.create_directory(create_subdirs=False)
+        # video_root_dir = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
+        # path = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
+        # download_s3_dir(key, path, bucket)
+        # for filename in os.listdir(os.path.join(path, key)):
+        #     shutil.move(os.path.join(path, key, filename), os.path.join(path, filename))
+        # os.rmdir(os.path.join(path, key))
+        # with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, dv.pk)) as input_json:
+        #     video_json = json.load(input_json)
+        # importer = serializers.VideoImporter(video=dv, json=video_json, root_dir=video_root_dir)
+        # importer.import_video()
+        # dv.uploaded = True
+        # dv.save()
+        raise NotImplementedError("Ability to import S3/GCS directories disabled")
 
 
 def import_url(dv,download_url):
-    dv.create_directory(create_subdirs=False)
+    if download_url.split('?')[0].endswith('dva_export.zip'):
+        dv.create_directory(create_subdirs=False)
+        output_filename = "{}/{}/{}.zip".format(settings.MEDIA_ROOT, dv.pk, dv.pk)
+    else:
+        dv.create_directory(create_subdirs=True)
+        extension = download_url.split('?')[0].split('.')[-1]
+        if extension == '.json' or extension == '.gz':
+            output_filename = "{}/{}/framelist.{}".format(settings.MEDIA_ROOT, dv.pk, extension)
+        else:
+            output_filename = "{}/{}/video/{}.{}".format(settings.MEDIA_ROOT, dv.pk, dv.pk, extension)
     if 'www.dropbox.com' in download_url and not download_url.endswith('?dl=1'):
         r = requests.get(download_url + '?dl=1')
     else:
         r = requests.get(download_url)
-    output_filename = "{}/{}/{}.zip".format(settings.MEDIA_ROOT, dv.pk, dv.pk)
     with open(output_filename, 'wb') as f:
         for chunk in r.iter_content(chunk_size=1024):
             if chunk:
                 f.write(chunk)
     r.close()
-    zipf = zipfile.ZipFile("{}/{}/{}.zip".format(settings.MEDIA_ROOT, dv.pk, dv.pk), 'r')
-    zipf.extractall("{}/{}/".format(settings.MEDIA_ROOT, dv.pk))
-    zipf.close()
-    video_root_dir = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
-    for k in os.listdir(video_root_dir):
-        unzipped_dir = "{}{}".format(video_root_dir, k)
-        if os.path.isdir(unzipped_dir):
-            for subdir in os.listdir(unzipped_dir):
-                shutil.move("{}/{}".format(unzipped_dir, subdir), "{}".format(video_root_dir))
-            shutil.rmtree(unzipped_dir)
-            break
-    with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, dv.pk)) as input_json:
-        video_json = json.load(input_json)
-    importer = serializers.VideoImporter(video=dv, json=video_json, root_dir=video_root_dir)
-    importer.import_video()
-    source_zip = "{}/{}.zip".format(video_root_dir, dv.pk)
-    os.remove(source_zip)
-    dv.uploaded = True
-    dv.save()
 
 
 def load_dva_export_file(dv):
@@ -189,40 +155,6 @@ def load_dva_export_file(dv):
     importer.import_video()
     source_zip = "{}/{}.zip".format(video_root_dir, video_obj.pk)
     os.remove(source_zip)
-
-
-def import_vdn_s3(dv,key,bucket):
-    dv.create_directory(create_subdirs=False)
-    if key.endswith('.dva_export.zip'):
-        ofname = "{}/{}/{}.zip".format(settings.MEDIA_ROOT, dv.pk, dv.pk)
-        raise NotImplementedError
-        # resource.meta.client.download_file(bucket, key, ofname, ExtraArgs={'RequestPayer': 'requester'})
-        zipf = zipfile.ZipFile(ofname, 'r')
-        zipf.extractall("{}/{}/".format(settings.MEDIA_ROOT, dv.pk))
-        zipf.close()
-        video_root_dir = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
-        for k in os.listdir(video_root_dir):
-            unzipped_dir = "{}{}".format(video_root_dir, k)
-            if os.path.isdir(unzipped_dir):
-                for subdir in os.listdir(unzipped_dir):
-                    shutil.move("{}/{}".format(unzipped_dir, subdir), "{}".format(video_root_dir))
-                shutil.rmtree(unzipped_dir)
-                break
-        source_zip = "{}/{}.zip".format(video_root_dir, dv.pk)
-        os.remove(source_zip)
-    else:
-        video_root_dir = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
-        path = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
-        download_s3_dir(key, path, bucket)
-        for filename in os.listdir(os.path.join(path, key)):
-            shutil.move(os.path.join(path, key, filename), os.path.join(path, filename))
-        os.rmdir(os.path.join(path, key))
-    with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, dv.pk)) as input_json:
-        video_json = json.load(input_json)
-    importer = serializers.VideoImporter(video=dv, json=video_json, root_dir=video_root_dir)
-    importer.import_video()
-    dv.uploaded = True
-    dv.save()
 
 
 def export_file(video_obj,export_event_pk=None):

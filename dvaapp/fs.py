@@ -99,6 +99,27 @@ def ensure(path, dirnames=None, media_root=None):
                 raise ValueError("path:{} dlpath:{}".format(path,dlpath))
 
 
+def get_remote_path_to_file(remote_path,local_path):
+    """
+    # resource.meta.client.download_file(bucket, key, ofname, ExtraArgs={'RequestPayer': 'requester'})
+    :param remote_path: e.g. s3://bucket/asd/asdsad/key.zip or gs:/bucket_name/key ..
+    :param local_path:
+    :return:
+    """
+    fs_type = remote_path[:2]
+    bucket_name = remote_path[5:].split('/')[0]
+    key = '/'.join(remote_path[5:].split('/')[1:])
+    if fs_type == 's3':
+        remote_bucket = S3.Bucket(bucket_name)
+        remote_bucket.download_file(key, local_path)
+    elif remote_path.starswith('gs'):
+        remote_bucket = GS.get_bucket(settings.MEDIA_BUCKET)
+        with open(local_path) as fout:
+            remote_bucket.get_blob(key).download_to_file(fout)
+    else:
+        raise NotImplementedError("Unknown remote file system {}".format(remote_path))
+
+
 def upload_file_to_remote(fpath):
     with open('{}{}'.format(settings.MEDIA_ROOT,fpath),'rb') as body:
         S3.Object(settings.MEDIA_BUCKET,fpath.strip('/')).put(Body=body)

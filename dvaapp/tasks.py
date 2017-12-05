@@ -581,7 +581,6 @@ def perform_model_import(task_id):
 
 @app.task(track_started=True, name="perform_import")
 def perform_import(event_id):
-    sync = True
     start = TEvent.objects.get(pk=event_id)
     if start.started:
         return 0  # to handle celery bug with ACK in SOLO mode
@@ -597,18 +596,15 @@ def perform_import(event_id):
         else:
             task_shared.import_url(dv,start.arguments['path'])
     elif path.startswith('gs://') or path.startswith('s3://'):
-        task_shared.import_remote(start, dv)
+        task_shared.import_remote(dv,path)
     elif path.startswith('/'):
-        if path:
-            fs.ingest_path(dv,path)
-            if path.endswith('.dva_export.zip'):
-                task_shared.load_dva_export_file(dv)
-            elif path.endswith('.json'):
-                task_shared.load_frame_list(dv)
-        else:
-            task_shared.load_dva_export_file(dv)
+        fs.ingest_path(dv,path)
     else:
         raise NotImplementedError('Unknown prefix {} must be one of  http, s3, gs or /'.format(path))
+    if path.endswith('.json') or path.endswith('gz'):
+        task_shared.load_frame_list(dv)
+    elif path.endswith('.dva_export.zip') or path is None:
+        task_shared.load_dva_export_file(dv)
     dv.uploaded = True
     dv.save()
     process_next(start.pk)

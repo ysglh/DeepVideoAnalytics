@@ -572,8 +572,8 @@ def yt(request):
         form = YTVideoForm(request.POST, request.FILES)
         user = request.user if request.user.is_authenticated else None
         if form.is_valid():
-            name = form.cleaned_data['url']
-            path = form.cleaned_data['name']
+            name = form.cleaned_data['name']
+            path = form.cleaned_data['url']
             process_spec = {
                 'process_type': DVAPQL.PROCESS,
                 'create': [

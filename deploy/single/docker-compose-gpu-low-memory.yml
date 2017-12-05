@@ -30,10 +30,11 @@
        - DB_USER=pgdbuser
        - DB_PASS=pgdbpass
        - LAUNCH_SERVER_NGINX=1
-       - GPU_MEMORY=0.45
+       - GPU_MEMORY=0.30
        - LAUNCH_SCHEDULER=1
        - LAUNCH_BY_NAME_detector_coco=1
        - LAUNCH_BY_NAME_detector_face=1
+       - LAUNCH_BY_NAME_detector_textbox=1
        - TEST=1
        - AUTH_DISABLED=1
      command: bash -c "youtube-dl -U && git pull && sleep 10 && fab migrate && fab start_container:server"
@@ -68,28 +69,6 @@
        - TEST=1
        - AUTH_DISABLED=1
      command: bash -c "youtube-dl -U && git pull && sleep 70 && fab start_container:worker"
-     depends_on:
-       - db
-       - rabbit
-     volumes:
-       - dvadata:/root/DVA/dva/media
-   dva-ocr:
-     image: akshayubhat/dva-auto:caffe
-     container_name: dva-ocr
-     environment:
-       - DOCKER_MODE=true
-       - RABBIT_HOST=rabbit
-       - RABBIT_USER=dvauser
-       - RABBIT_PASS=localpass
-       - GPU_AVAILABLE=1
-       - DB_HOST=db
-       - DB_NAME=postgres
-       - DB_USER=pgdbuser
-       - DB_PASS=pgdbpass
-       - LAUNCH_BY_NAME_detector_textbox=1
-       - AUTH_DISABLED=1
-       - CAFFE_MODE=1
-     command: bash -c "sleep 60 && git pull && fab start_container:worker"
      depends_on:
        - db
        - rabbit

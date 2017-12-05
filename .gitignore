@@ -89,10 +89,10 @@ creds.json
 /deploy/cloud/host
 /deploy/cloud/connect.sh
 /deploy/cloud/heroku.env
-/deploy/aws_example/config.py
-/deploy/aws_example/host
-/deploy/aws_example/connect.sh
-/deploy/aws_example/heroku.env
+/deploy/aws/config.py
+/deploy/aws/host
+/deploy/aws/connect.sh
+/deploy/aws/heroku.env
 /dva/media/
 !/dva/media/gitkeep
 !/dva/media/queries/gitkeep
@@ -108,4 +108,4 @@ scripts/coco_annotations/*.json
 /repos/tf_ctpn_cpu/data/demo/test.jpg
 /repos/tf_ctpn_cpu/data/results/
 /client/build/
-/deploy/google_kube_example/secrets.yml
+/deploy/gcp/secrets.yml

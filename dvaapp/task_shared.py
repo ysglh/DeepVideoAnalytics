@@ -71,10 +71,6 @@ def retrieve_video_via_url(dv,media_dir):
         raise ValueError,"Could not download the video"
 
 
-def handle_video_url(name, url, user = None):
-    return Video.objects.create(name=name,url=url,youtube_video=True,uploader=user)
-
-
 def perform_s3_export(dv,path,export_event_pk=None):
     cwd_path = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
     a = serializers.VideoExportSerializer(instance=dv)
@@ -281,27 +277,14 @@ def build_queryset(args,video_id=None,query_id=None):
     return queryset,target
 
 
-def import_external(args):
-    dataset = args['dataset']
-    if dataset == 'YFCC':
-        bucket = args.get('bucket','yahoo-webscope')
-        prefix = args.get('prefix','I3set14')
-        force_download = args.get('force_download', False)
-        fnames = args.get('files',['yfcc100m_autotags.bz2','yfcc100m_dataset.bz2','yfcc100m_places.bz2'])
-        for fname in fnames:
-            outfile = "{}/external/{}".format(settings.MEDIA_ROOT,fname)
-            if (not os.path.isfile(outfile)) or force_download:
-                command = ['aws','s3','cp',
-                           's3://{}/{}/{}'.format(bucket,prefix,fname),
-                           outfile]
-                sp = subprocess.Popen(command)
-                sp.wait()
-                if sp.returncode != 0:
-                    raise ValueError,"Returncode {} for command {}".format(sp.returncode," ".join(command))
-    elif dataset == 'AMOS':
-        raise NotImplementedError
-    else:
-        raise ValueError,"dataset:{} not configured".format(dataset)
+def load_frame_list(dv):
+    """
+    Add ability load frames & regions specified in a JSON file and then automatically
+    retrieve them in a distributed manner them through CPU workers.
+    :param dv:
+    :return:
+    """
+    raise NotImplementedError
 
 
 def download_and_get_query_path(start):

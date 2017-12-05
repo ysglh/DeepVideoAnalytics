@@ -568,31 +568,30 @@ def perform_import(event_id):
     else:
         start.started = True
         start.save()
-    source = start.arguments['source']
     path = start.arguments.get('path',None)
     dv = start.video
-    if source == 'URL':
-        u = urlparse(start.arguments['url'])
+    if path.startswith('http'):
+        u = urlparse(path)
         if u.hostname == 'www.youtube.com' or start.arguments.get('force_youtube_dl',False):
             if start.video is None:
-                start.video = task_shared.handle_video_url(start.arguments['name'], start.arguments['url'])
+                start.video = task_shared.handle_video_url(start.arguments['name'], path)
                 start.save()
             task_shared.retrieve_video_via_url(start.video, settings.MEDIA_ROOT)
         else:
-            task_shared.import_url(dv,start.arguments['url'])
-    elif source == 'REMOTE':
+            task_shared.import_url(dv,start.arguments['path'])
+    elif path.startswith('gs://') or path.startswith('s3://'):
         task_shared.import_remote(start, dv)
-    elif source == 'LOCAL':
+    elif path.startswith('/'):
         if path:
             fs.ingest_path(dv,path)
             if path.endswith('.dva_export.zip'):
                 task_shared.load_dva_export_file(dv)
+            elif path.endswith('.json'):
+                task_shared.load_frame_list(dv)
         else:
             task_shared.load_dva_export_file(dv)
-    elif source == 'MASSIVE':
-        task_shared.import_external(start.arguments)
     else:
-        raise NotImplementedError
+        raise NotImplementedError('Unknown prefix {} must be one of  http, s3, gs or /'.format(path))
     process_next(start.pk)
     mark_as_completed(start)
 

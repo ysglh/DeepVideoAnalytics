@@ -572,31 +572,44 @@ def yt(request):
         form = YTVideoForm(request.POST, request.FILES)
         user = request.user if request.user.is_authenticated else None
         if form.is_valid():
-            rate = form.cleaned_data['nth']
-            rescale = form.cleaned_data['rescale'] if 'rescale' in form.cleaned_data else 0
-            video = view_shared.handle_video_url(form.cleaned_data['name'], form.cleaned_data['url'], user=user)
+            name = form.cleaned_data['url']
+            path = form.cleaned_data['name']
             process_spec = {
                 'process_type': DVAPQL.PROCESS,
-                'tasks': [{'video_id': video.pk,
-                          'operation': 'perform_import',
-                          'arguments': {'source': "URL",
-                                        'force_youtube_dl': True,
-                                        'next_tasks':[{'video_id': video.pk,
-                                                       'operation': 'perform_video_segmentation',
-                                                       'arguments': {
-                                                           'next_tasks': [
-                                                               {'operation': 'perform_video_decode',
-                                                                'arguments': {
-                                                                    'rate': rate, 'rescale': rescale,
-                                                                    'segments_batch_size': defaults.DEFAULT_SEGMENTS_BATCH_SIZE,
-                                                                    'next_tasks': defaults.DEFAULT_PROCESSING_PLAN_VIDEO
-                                                                }
-                                                                }
-                                                           ]},
-                                                       },]
-                                        }
-                          },]
-                }
+                'create': [
+                    {'spec':
+                        {
+                            'name': name,
+                            'uploader_id': user.pk if user else None,
+                            'url': path,
+                            'youtube_video': True,
+                            'created': '__timezone.now__'
+                        },
+                        'MODEL': 'Video',
+                        'tasks': [
+                            {'video_id': '__pk__',
+                             'operation': 'perform_import',
+                             'arguments': {'path': path,
+                                           'force_youtube_dl': True,
+                                           'next_tasks': [{
+                                               'operation': 'perform_video_segmentation',
+                                               'arguments': {
+                                                   'next_tasks': [
+                                                       {'operation': 'perform_video_decode',
+                                                        'arguments': {
+                                                            'rate': defaults.DEFAULT_RATE,
+                                                            'segments_batch_size': defaults.DEFAULT_SEGMENTS_BATCH_SIZE,
+                                                            'next_tasks': defaults.DEFAULT_PROCESSING_PLAN_VIDEO
+                                                        }
+                                                        }
+                                                   ]},
+                                           }, ]
+                                           }
+                             },
+                        ]
+                    },
+                ],
+            }
             p = DVAPQLProcess()
             p.create_from_json(process_spec, user)
             p.launch()

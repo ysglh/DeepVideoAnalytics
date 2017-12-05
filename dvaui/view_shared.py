@@ -64,7 +64,7 @@ def handle_uploaded_file(f, name, user=None, rate=None):
                 },
                  'MODEL':'Video',
                  'tasks':[
-                     {'arguments': {'source':'LOCAL','path':fpath},'video_id': '__pk__','operation': 'perform_import',}
+                     {'arguments': {'path':fpath},'video_id': '__pk__','operation': 'perform_import',}
                  ]
                  },
             ],
@@ -93,8 +93,7 @@ def handle_uploaded_file(f, name, user=None, rate=None):
                             'created': '__timezone.now__'},
                         'MODEL': 'Video',
                         'tasks': [
-                            {'arguments': {'source': 'LOCAL',
-                                           'path': fpath,
+                            {'arguments': {'path': fpath,
                                            'next_tasks':[
                                                {
                                                     'arguments': {'next_tasks': defaults.DEFAULT_PROCESSING_PLAN_DATASET},
@@ -120,7 +119,7 @@ def handle_uploaded_file(f, name, user=None, rate=None):
                     },
                         'MODEL': 'Video',
                         'tasks': [
-                            {'arguments': {'source': 'LOCAL', 'path': fpath,
+                            {'arguments': {'path': fpath,
                                            'next_tasks': [
                                                {
                                                    'arguments': {
@@ -182,10 +181,6 @@ def create_annotation(form, object_name, labels, frame):
             rl.save()
 
 
-def handle_video_url(name, url, user = None):
-    return Video.objects.create(name=name,url=url,youtube_video=True,uploader=user)
-
-
 def pull_vdn_list(pk):
     """
     Pull list of datasets and models from configured VDN servers.
@@ -230,12 +225,6 @@ def import_vdn_dataset_url(server, url, user, cached_response):
         pass
     if not response:
         response = cached_response
-    if response['path'].startswith('http'):
-        args = {'source':'URL','url':response['path']}
-    elif response['path'].startswith('gs://') or response['path'].startswith('s3://'):
-        args = {'source': 'REMOTE', 'path': response['path']}
-    else:
-        raise NotImplementedError("Unknown prefix {}".format(response['path']))
     p = processing.DVAPQLProcess()
     query = {
         'process_type': DVAPQL.PROCESS,
@@ -244,13 +233,14 @@ def import_vdn_dataset_url(server, url, user, cached_response):
                 'spec': {
                     'name': response['name'],
                     'uploader_id': user.pk if user else None,
+                    'url': response['path'],
                     'created': '__timezone.now__',
                     'description':"import from {} : {} ".format(server.url,response['description'])
                 },
                 'MODEL': 'Video',
                 'tasks': [
                     {
-                        'arguments': args,
+                        'arguments': {'path':response['path']},
                         'video_id': '__pk__',
                         'operation': 'perform_import',
                     }

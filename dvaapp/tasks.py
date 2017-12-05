@@ -573,9 +573,6 @@ def perform_import(event_id):
     if path.startswith('http'):
         u = urlparse(path)
         if u.hostname == 'www.youtube.com' or start.arguments.get('force_youtube_dl',False):
-            if start.video is None:
-                start.video = task_shared.handle_video_url(start.arguments['name'], path)
-                start.save()
             task_shared.retrieve_video_via_url(start.video, settings.MEDIA_ROOT)
         else:
             task_shared.import_url(dv,start.arguments['path'])
@@ -592,6 +589,8 @@ def perform_import(event_id):
             task_shared.load_dva_export_file(dv)
     else:
         raise NotImplementedError('Unknown prefix {} must be one of  http, s3, gs or /'.format(path))
+    dv.uploaded = True
+    dv.save()
     process_next(start.pk)
     mark_as_completed(start)
 

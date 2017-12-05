@@ -639,7 +639,7 @@ def test():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from django.core.files.uploadedfile import SimpleUploadedFile
-    from dvaui.view_shared import handle_uploaded_file, handle_video_url
+    from dvaui.view_shared import handle_uploaded_file
     for fname in glob.glob('tests/ci/*.mp4'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")

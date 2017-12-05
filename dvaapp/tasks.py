@@ -15,6 +15,7 @@ from .operations.detection import DetectorTask
 from .operations.segmentation import SegmentorTask
 from .operations.analysis import AnalyzerTask
 from .operations.decoding import VideoDecoder
+from .operations.dataset import DatasetCreator
 from .processing import process_next, mark_as_completed
 from dvalib import retriever
 from django.utils import timezone
@@ -59,6 +60,26 @@ def perform_map(task_id):
     :return:
     """
     raise NotImplementedError
+
+
+@app.task(track_started=True, name="perform_image_download")
+def perform_image_download(task_id):
+    """
+    Download images from remote path such as a url or an S3 bucket
+    :param task_id:
+    :return:
+    """
+    start = TEvent.objects.get(pk=task_id)
+    if start.started:
+        return 0  # to handle celery bug with ACK in SOLO mode
+    else:
+        start.started = True
+        start.save()
+    args = start.arguments
+    frame_list_json = args['frame_list_json']
+    start_index = args['start_index']
+    process_next(task_id)
+    mark_as_completed(start)
 
 
 @app.task(track_started=True, name="perform_indexing", base=IndexerTask)
@@ -197,10 +218,9 @@ def perform_dataset_extraction(task_id):
     dv = Video.objects.get(id=video_id)
     task_shared.ensure('/{}/video/{}.zip'.format(video_id,video_id))
     dv.create_directory(create_subdirs=True)
-    v = VideoDecoder(dvideo=dv, media_dir=settings.MEDIA_ROOT)
-    v.extract(args=args,start=start)
+    v = DatasetCreator(dvideo=dv, media_dir=settings.MEDIA_ROOT)
+    v.extract(start)
     process_next(task_id)
-    os.remove("{}/{}/video/{}.zip".format(settings.MEDIA_ROOT, dv.pk, dv.pk))
     mark_as_completed(start)
     return 0
 

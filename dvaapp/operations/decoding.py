@@ -1,18 +1,8 @@
 import time
 import shlex,json,os,zipfile,logging
 import subprocess as sp
-try:
-    from dvalib import indexer, clustering, retriever
-    import numpy as np
-except ImportError:
-    np = None
-    logging.warning("Could not import indexer / clustering assuming running in front-end mode / Heroku")
-
 from PIL import Image
-
-
-from ..models import Frame, Segment, Label, FrameLabel
-from collections import defaultdict
+from ..models import Frame, Segment
 
 
 class VideoDecoder(object):
@@ -89,9 +79,6 @@ class VideoDecoder(object):
         self.dvideo.height = self.height
         self.dvideo.width = self.width
         self.dvideo.save()
-
-    def extract(self,args,start):
-        self.extract_zip_dataset(start)
 
     def decode_segment(self,ds,denominator,event_id=None):
         output_dir = "{}/{}/{}/".format(self.media_dir, self.primary_key, 'frames')
@@ -178,60 +165,3 @@ class VideoDecoder(object):
         self.dvideo.save()
         self.detect_csv_segment_format() # detect and save
 
-    def extract_zip_dataset(self,event):
-        zipf = zipfile.ZipFile("{}/{}/video/{}.zip".format(self.media_dir, self.primary_key, self.primary_key), 'r')
-        zipf.extractall("{}/{}/frames/".format(self.media_dir, self.primary_key))
-        zipf.close()
-        i = 0
-        df_list = []
-        root_length = len("{}/{}/frames/".format(self.media_dir, self.primary_key))
-        for subdir, dirs, files in os.walk("{}/{}/frames/".format(self.media_dir, self.primary_key)):
-            if '__MACOSX' not in subdir:
-                for fname in files:
-                    fname = os.path.join(subdir, fname)
-                    if fname.endswith('jpg') or fname.endswith('jpeg'):
-                        i += 1
-                        try:
-                            im = Image.open(fname)
-                            w, h = im.size
-                        except IOError:
-                            logging.info("Could not open {} skipping".format(fname))
-                        else:
-                            dst = "{}/{}/frames/{}.jpg".format(self.media_dir, self.primary_key, i)
-                            os.rename(fname, dst)
-                            df = Frame()
-                            df.frame_index = i
-                            df.video_id = self.dvideo.pk
-                            df.h = h
-                            df.w = w
-                            df.event_id = event.pk
-                            df.name = fname.split('/')[-1][:150]
-                            s = "/{}/".format(subdir[root_length:]).replace('//','/')
-                            df.subdir = s
-                            df_list.append(df)
-
-                    else:
-                        logging.warning("skipping {} not a jpeg file".format(fname))
-            else:
-                logging.warning("skipping {} ".format(subdir))
-        self.dvideo.frames = len(df_list)
-        self.dvideo.save()
-        df_ids = Frame.objects.bulk_create(df_list,batch_size=1000)
-        labels_to_frame = defaultdict(set)
-        for i,f in enumerate(df_list):
-            if f.name:
-                for l in f.subdir.split('/')[1:]:
-                    if l.strip():
-                        labels_to_frame[l].add((df_ids[i].id,f.frame_index))
-        label_list = []
-        for l in labels_to_frame:
-            dl, _ = Label.objects.get_or_create(name=l,set="Directory")
-            for fpk,frame_index in labels_to_frame[l]:
-                a = FrameLabel()
-                a.video_id = self.dvideo.pk
-                a.frame_id = fpk
-                a.frame_index = frame_index
-                a.label_id = dl.pk
-                a.event_id = event.pk
-                label_list.append(a)
-        FrameLabel.objects.bulk_create(label_list, batch_size=1000)

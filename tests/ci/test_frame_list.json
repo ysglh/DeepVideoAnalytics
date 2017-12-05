@@ -1,0 +1,22 @@
+{
+  "frames":[
+    {
+      "path":"http://akshaybhat.com/static/img/akshay.jpg"
+    },
+    {
+      "path":"s3://visualdatanetwork/exampleaws/frames/1.jpg",
+      "regions":[
+        {
+          "object_name":"dog",
+          "x":123,
+          "y":226,
+          "w":214,
+          "h":321,
+          "metadata": {"key":"value"},
+          "text": "a dog",
+          "full_frame": false
+        }
+      ]
+    }
+  ]
+}

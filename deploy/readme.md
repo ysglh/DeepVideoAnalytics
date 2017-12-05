@@ -1,8 +1,7 @@
-# Deep Video Analytics deployment instructions
+# Deep Video Analytics deployment configurations
 
-
-- /dockerfiles contains all Dockerfiles required for building containers
-- /demo contains a docker-compose file for quick single machine deployment
-- /cloud contains files used for launching DVA in a scalable Heroku + ECS/EC2 + S3/EFS setup
-- /single contains docker-compose files for single machine deployments on Linode, AWS, GCP etc.
+- /dockerfiles contains Dockerfiles required for building containers
+- /aws contains files used for launching DVA in a scalable Heroku + ECS/EC2 + S3 setup
+- /gcp contains files used for launching DVA in a scalable GKE + GCS setup
+- /single contains docker-compose files for non-GPU and GPU single machine deployments on Linode, AWS, GCP etc.
 - /dev contains a docker-compose file to run postgres/rabbitmq locally for development

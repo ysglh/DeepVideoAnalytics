@@ -96,9 +96,9 @@ def get_path_to_file(path,local_path):
     :return:
     """
     fs_type = path[:2]
-    if path.starswith('/ingest') and '..' not in path: # avoid relative imports outside media root
+    if path.startswith('/ingest') and '..' not in path: # avoid relative imports outside media root
         shutil.move(os.path.join(settings.MEDIA_ROOT, path.strip('/')),local_path)
-    elif path.starswith('http'):
+    elif path.startswith('http'):
         u = urlparse.urlparse(path)
         if u.hostname == 'www.dropbox.com' and not path.endswith('?dl=1'):
             r = requests.get(path + '?dl=1')
@@ -114,7 +114,7 @@ def get_path_to_file(path,local_path):
         key = '/'.join(path[5:].split('/')[1:])
         remote_bucket = S3.Bucket(bucket_name)
         remote_bucket.download_file(key, local_path)
-    elif path.starswith('gs') and not path.endswith('/'):
+    elif path.startswith('gs') and not path.endswith('/'):
         bucket_name = path[5:].split('/')[0]
         key = '/'.join(path[5:].split('/')[1:])
         remote_bucket = GS.get_bucket(bucket_name)

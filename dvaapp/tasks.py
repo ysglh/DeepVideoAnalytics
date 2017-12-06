@@ -531,38 +531,6 @@ def perform_export(task_id):
     mark_as_completed(start)
 
 
-@app.task(track_started=True, name="perform_detector_import")
-def perform_detector_import(task_id):
-    start = TEvent.objects.get(pk=task_id)
-    if start.started:
-        return 0  # to handle celery bug with ACK in SOLO mode
-    else:
-        start.started = True
-        start.save()
-    args = start.arguments
-    dd = DeepModel.objects.get(pk=start.arguments['detector_pk'],detector_type=DeepModel.DETECTOR)
-    dd.create_directory(create_subdirs=False)
-    if 'www.dropbox.com' in args['path'] and not args['path'].endswith('?dl=1'):
-        r = requests.get(args['path'] + '?dl=1')
-    else:
-        r = requests.get(args['path'])
-    output_filename = "{}/detectors/{}.zip".format(settings.MEDIA_ROOT, dd.pk)
-    with open(output_filename, 'wb') as f:
-        for chunk in r.iter_content(chunk_size=1024):
-            if chunk:
-                f.write(chunk)
-    r.close()
-    source_zip = "{}/detectors/{}.zip".format(settings.MEDIA_ROOT, dd.pk)
-    zipf = zipfile.ZipFile(source_zip, 'r')
-    zipf.extractall("{}/detectors/{}/".format(settings.MEDIA_ROOT, dd.pk))
-    zipf.close()
-    serializers.import_detector(dd)
-    dd.save()
-    os.remove(source_zip)
-    process_next(task_id)
-    mark_as_completed(start)
-
-
 @app.task(track_started=True, name="perform_model_import")
 def perform_model_import(task_id):
     start = TEvent.objects.get(pk=task_id)
@@ -573,8 +541,13 @@ def perform_model_import(task_id):
         start.save()
     args = start.arguments
     dm = DeepModel.objects.get(pk=args['pk'])
+    path = args.get('path',None)
     dirname = 'models'
-    task_shared.download_model(settings.MEDIA_ROOT,dirname, dm)
+    if dm.model_type == DeepModel.YOLO:
+        fs.download_yolo_detector(dm,path)
+        serializers.import_detector(dm)
+    else:
+        fs.download_model(settings.MEDIA_ROOT,dirname, dm)
     process_next(task_id)
     mark_as_completed(start)
 

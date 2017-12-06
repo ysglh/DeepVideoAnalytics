@@ -4,9 +4,7 @@
     {
       "operation": "perform_import",
       "arguments": {
-        "source": "S3",
-        "key": "1.mp4",
-        "bucket": "aub3temp",
+        "path": "s3://aub3temp/1.mp4",
         "next_tasks": [
           {
             "operation": "perform_video_segmentation",

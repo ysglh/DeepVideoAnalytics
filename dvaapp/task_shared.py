@@ -209,34 +209,6 @@ def get_query_dimensions(start):
     return width, height
 
 
-def download_model(root_dir, model_type_dir_name, dm):
-    """
-    Download model to filesystem
-    """
-    model_type_dir = "{}/{}/".format(root_dir, model_type_dir_name)
-    if not os.path.isdir(model_type_dir):
-        os.mkdir(model_type_dir)
-    model_dir = "{}/{}/{}".format(root_dir, model_type_dir_name, dm.pk)
-    if not os.path.isdir(model_dir):
-        os.mkdir(model_dir)
-        if settings.DEV_ENV:
-            p = subprocess.Popen(['cp','/users/aub3/shared/{}'.format(dm.model_filename),'.'],cwd=model_dir)
-            p.wait()
-        else:
-            p = subprocess.Popen(['wget','--quiet',dm.url],cwd=model_dir)
-            p.wait()
-        if dm.additional_files:
-            for m in dm.additional_files:
-                url = m['url']
-                filename = m['filename']
-                if settings.DEV_ENV:
-                    p = subprocess.Popen(['cp', '/users/aub3/shared/{}'.format(filename), '.'],cwd=model_dir)
-                    p.wait()
-                else:
-                    p = subprocess.Popen(['wget', '--quiet', url], cwd=model_dir)
-                    p.wait()
-
-
 def crop_and_get_region_path(df,images,temp_root):
     if not df.materialized:
         frame_path = df.frame_path()

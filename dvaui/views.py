@@ -906,7 +906,7 @@ def import_s3(request):
                                   })
                     create.append({'MODEL': 'Video',
                                    'spec': {'uploader_id': user.pk if user else None,
-                                            'name': "pending import {} ".format(key)},
+                                            'name': key},
                                    'tasks': tasks
                                    })
             else:

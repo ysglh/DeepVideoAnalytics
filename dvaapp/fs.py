@@ -4,7 +4,7 @@ import uuid
 import boto3
 import shutil
 import errno
-import logging, subprocess
+import logging, subprocess, requests, zipfile
 try:
     from google.cloud import storage
 except:
@@ -49,14 +49,12 @@ def ingest_remote(dv,remote_path):
         elif remote_path.endswith('.mp4') or remote_path.endswith('.zip'):
             dv.create_directory(create_subdirs=True)
             os.rename(fname, '{}/{}/video/{}.{}'.format(settings.MEDIA_ROOT, dv.pk, dv.pk, extension))
-            upload_file_to_remote('/{}/video/{}.{}'.format(dv.pk, dv.pk, extension))
             dv.uploaded = True
             if remote_path.endswith('.zip'):
                 dv.dataset = True
         elif remote_path.endswith('json') or remote_path.endswith('.gz'):
             dv.create_directory(create_subdirs=True)
             os.rename(fname, '{}/{}/framelist.{}'.format(settings.MEDIA_ROOT, dv.pk, dv.pk, extension))
-            upload_file_to_remote('/{}/framelist.{}'.format( dv.pk, dv.pk, extension))
             dv.dataset = True
         else:
             raise ValueError, "Extension {} not allowed".format(remote_path)
@@ -188,12 +186,17 @@ def download_video_from_remote_to_local(dv):
 def upload_video_to_remote(video_id):
     logging.info("Syncing entire directory for {}".format(video_id))
     src = '{}/{}/'.format(settings.MEDIA_ROOT, video_id)
-    dest = 's3://{}/{}/'.format(settings.MEDIA_BUCKET, video_id)
-    command = " ".join(['aws', 's3', 'sync', '--quiet', src, dest])
-    syncer = subprocess.Popen(['aws', 's3', 'sync', '--quiet', '--size-only', src, dest])
-    syncer.wait()
-    if syncer.returncode != 0:
-        raise ValueError, "Error while executing : {}".format(command)
+    if S3_MODE:
+        dest = 's3://{}/{}/'.format(settings.MEDIA_BUCKET, video_id)
+        command = " ".join(['aws', 's3', 'sync', '--quiet', src, dest])
+        syncer = subprocess.Popen(['aws', 's3', 'sync', '--quiet', '--size-only', src, dest])
+        syncer.wait()
+        if syncer.returncode != 0:
+            raise ValueError, "Error while executing : {}".format(command)
+    elif GS_MODE:
+        raise NotImplementedError("Google Storage CLI sync directory not implemented")
+    else:
+        raise ValueError
 
 
 def download_s3_dir(dist, local, bucket, client = None, resource = None):
@@ -220,3 +223,50 @@ def download_s3_dir(dist, local, bucket, client = None, resource = None):
                     os.makedirs(os.path.dirname(local + os.sep + ffile.get('Key')))
                 resource.meta.client.download_file(bucket, ffile.get('Key'), local + os.sep + ffile.get('Key'),
                                                    ExtraArgs={'RequestPayer': 'requester'})
+
+
+def download_model(root_dir, model_type_dir_name, dm):
+    """
+    Download model to filesystem
+    """
+    model_type_dir = "{}/{}/".format(root_dir, model_type_dir_name)
+    if not os.path.isdir(model_type_dir):
+        os.mkdir(model_type_dir)
+    model_dir = "{}/{}/{}".format(root_dir, model_type_dir_name, dm.pk)
+    if not os.path.isdir(model_dir):
+        os.mkdir(model_dir)
+        if settings.DEV_ENV:
+            p = subprocess.Popen(['cp','/users/aub3/shared/{}'.format(dm.model_filename),'.'],cwd=model_dir)
+            p.wait()
+        else:
+            p = subprocess.Popen(['wget','--quiet',dm.url],cwd=model_dir)
+            p.wait()
+        if dm.additional_files:
+            for m in dm.additional_files:
+                url = m['url']
+                filename = m['filename']
+                if settings.DEV_ENV:
+                    p = subprocess.Popen(['cp', '/users/aub3/shared/{}'.format(filename), '.'],cwd=model_dir)
+                    p.wait()
+                else:
+                    p = subprocess.Popen(['wget', '--quiet', url], cwd=model_dir)
+                    p.wait()
+
+
+def download_yolo_detector(dm,path):
+    dm.create_directory(create_subdirs=False)
+    if 'www.dropbox.com' in path and not path.endswith('?dl=1'):
+        r = requests.get(path + '?dl=1')
+    else:
+        r = requests.get(path)
+    output_filename = "{}/models/{}.zip".format(settings.MEDIA_ROOT, dm.pk)
+    with open(output_filename, 'wb') as f:
+        for chunk in r.iter_content(chunk_size=1024):
+            if chunk:
+                f.write(chunk)
+    r.close()
+    source_zip = "{}/models/{}.zip".format(settings.MEDIA_ROOT, dm.pk)
+    zipf = zipfile.ZipFile(source_zip, 'r')
+    zipf.extractall("{}/models/{}/".format(settings.MEDIA_ROOT, dm.pk))
+    zipf.close()
+    os.remove(source_zip)

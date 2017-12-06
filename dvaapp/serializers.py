@@ -370,14 +370,14 @@ def serialize_video_labels(v):
 def import_detector(dd):
     dd.phase_1_log = file("{}/detectors/{}/phase_1.log".format(settings.MEDIA_ROOT, dd.pk)).read()
     dd.phase_2_log = file("{}/detectors/{}/phase_2.log".format(settings.MEDIA_ROOT, dd.pk)).read()
-    with open("{}/detectors/{}/input.json".format(settings.MEDIA_ROOT, dd.pk)) as fh:
+    with open("{}/models/{}/input.json".format(settings.MEDIA_ROOT, dd.pk)) as fh:
         metadata = json.load(fh)
     if 'class_distribution' in metadata:
         dd.class_distribution = json.dumps(metadata['class_distribution'])
     else:
         dd.class_distribution = json.dumps(metadata['class_names'])
     dd.class_names = json.dumps(metadata['class_names'])
-
+    dd.save()
 
 def create_event(e, v):
     de = TEvent()

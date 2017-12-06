@@ -468,18 +468,19 @@ def perform_analysis(task_id):
             else:
                 raise NotImplementedError
         object_name, text, metadata, labels = analyzer.apply(path)
-        for l in labels:
-            if (l,analyzer.label_set) not in labels_pk:
-                labels_pk[(l,analyzer.label_set)] = Label.objects.get_or_create(name=l,set=analyzer.label_set)[0].pk
-            if target == 'regions':
-                regions_to_labels.append(RegionLabel(label_id=labels_pk[(l,analyzer.label_set)],region_id=f.pk,
-                                                     frame_id=f.frame.pk, frame_index=f.frame_index,
-                                                     segment_index=f.segment_index,video_id=f.video_id,
-                                                     event_id=task_id))
-            elif target == 'frames':
-                frames_to_labels.append(FrameLabel(label_id=labels_pk[(l, analyzer.label_set)],frame_id=f.pk,
-                                                   frame_index=f.frame_index, segment_index=f.segment_index,
-                                                   video_id=f.video_id, event_id=task_id))
+        if labels:
+            for l in labels:
+                if (l,analyzer.label_set) not in labels_pk:
+                    labels_pk[(l,analyzer.label_set)] = Label.objects.get_or_create(name=l,set=analyzer.label_set)[0].pk
+                if target == 'regions':
+                    regions_to_labels.append(RegionLabel(label_id=labels_pk[(l,analyzer.label_set)],region_id=f.pk,
+                                                         frame_id=f.frame.pk, frame_index=f.frame_index,
+                                                         segment_index=f.segment_index,video_id=f.video_id,
+                                                         event_id=task_id))
+                elif target == 'frames':
+                    frames_to_labels.append(FrameLabel(label_id=labels_pk[(l, analyzer.label_set)],frame_id=f.pk,
+                                                       frame_index=f.frame_index, segment_index=f.segment_index,
+                                                       video_id=f.video_id, event_id=task_id))
         a.region_type = Region.ANNOTATION
         a.object_name = object_name
         a.text = text

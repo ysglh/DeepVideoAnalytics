@@ -11,7 +11,7 @@
           "operation": "perform_import",
           "video_id": "__pk__",
           "arguments": {
-            "path": "s3://visualdatanetwork/1_1496105253.dva_export.zip"
+            "path": "s3://visualdatanetwork/coco_sample.dva_export.zip"
           }
         }
       ]

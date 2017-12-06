@@ -4,7 +4,7 @@
     {
       "MODEL": "Video",
       "spec": {
-        "name": "url_export_test"
+        "name": "url_export"
       },
       "tasks": [
         {

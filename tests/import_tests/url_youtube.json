@@ -4,14 +4,15 @@
     {
       "MODEL": "Video",
       "spec": {
-        "name": "video_youtube_test"
+        "name": "url_youtube",
+        "url": "https://www.youtube.com/watch?v=z4UDNzXD3qA"
       },
       "tasks": [
         {
           "operation": "perform_import",
           "video_id": "__pk__",
           "arguments": {
-            "path": "https://www.youtube.com/watch?v=gYtz5sw98Bc",
+            "path": "https://www.youtube.com/watch?v=z4UDNzXD3qA",
             "next_tasks": [
               {
                 "operation": "perform_video_segmentation",

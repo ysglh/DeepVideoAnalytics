@@ -4,7 +4,7 @@
     {
       "MODEL": "Video",
       "spec": {
-        "name": "aws_video_test"
+        "name": "aws_video"
       },
       "tasks": [
         {

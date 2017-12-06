@@ -596,7 +596,7 @@ def perform_import(event_id):
         else:
             task_shared.import_url(dv,start.arguments['path'])
     elif path.startswith('gs://') or path.startswith('s3://'):
-        task_shared.import_remote(dv,path)
+        fs.ingest_remote(dv,path)
     elif path.startswith('/'):
         fs.ingest_path(dv,path)
     else:

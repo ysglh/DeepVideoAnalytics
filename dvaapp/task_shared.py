@@ -66,48 +66,6 @@ def perform_s3_export(dv,path,export_event_pk=None):
         raise NotImplementedError
 
 
-def import_remote(dv,remote_path):
-    logging.info("processing key {} ".format(remote_path))
-    extension = remote_path.split('.')[-1]
-    if remote_path.strip() and '.' in remote_path:
-        fname = "{}/ingest/{}.{}".format(settings.MEDIA_ROOT, str(uuid.uuid1()).replace('-','_'), extension)
-        get_remote_path_to_file(remote_path,fname)
-        if not dv.name:
-            dv.name = remote_path
-        if remote_path.endswith('.dva_export.zip'):
-            dv.create_directory(create_subdirs=False)
-            os.rename(fname, '{}/{}/{}.{}'.format(settings.MEDIA_ROOT, dv.pk, dv.pk, extension))
-            dv.uploaded = True
-        elif remote_path.endswith('.mp4') or remote_path.endswith('.flv') or remote_path.endswith('.zip'):
-            dv.create_directory(create_subdirs=True)
-            os.rename(fname, '{}/{}/video/{}.{}'.format(settings.MEDIA_ROOT, dv.pk, dv.pk, extension))
-            dv.uploaded = True
-            if remote_path.endswith('.zip'):
-                dv.dataset = True
-        elif remote_path.endswith('json') or remote_path.endswith('.gz'):
-            dv.create_directory(create_subdirs=True)
-            os.rename(fname, '{}/{}/framelist.{}'.format(settings.MEDIA_ROOT, dv.pk, dv.pk, extension))
-            dv.dataset = True
-        else:
-            raise ValueError, "Extension {} not allowed".format(remote_path)
-        dv.save()
-    else:
-        # dv.create_directory(create_subdirs=False)
-        # video_root_dir = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
-        # path = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
-        # download_s3_dir(key, path, bucket)
-        # for filename in os.listdir(os.path.join(path, key)):
-        #     shutil.move(os.path.join(path, key, filename), os.path.join(path, filename))
-        # os.rmdir(os.path.join(path, key))
-        # with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, dv.pk)) as input_json:
-        #     video_json = json.load(input_json)
-        # importer = serializers.VideoImporter(video=dv, json=video_json, root_dir=video_root_dir)
-        # importer.import_video()
-        # dv.uploaded = True
-        # dv.save()
-        raise NotImplementedError("Ability to import S3/GCS directories disabled")
-
-
 def import_url(dv,download_url):
     if download_url.split('?')[0].endswith('dva_export.zip'):
         dv.create_directory(create_subdirs=False)

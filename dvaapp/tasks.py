@@ -563,22 +563,26 @@ def perform_import(event_id):
         start.save()
     path = start.arguments.get('path',None)
     dv = start.video
+    youtube_dl_download = False
     if path.startswith('http'):
         u = urlparse(path)
         if u.hostname == 'www.youtube.com' or start.arguments.get('force_youtube_dl',False):
-            task_shared.retrieve_video_via_url(start.video, settings.MEDIA_ROOT)
-        else:
-            task_shared.import_url(dv,start.arguments['path'])
-    elif path.startswith('gs://') or path.startswith('s3://'):
-        fs.ingest_remote(dv,path)
-    elif path.startswith('/'):
-        fs.ingest_path(dv,path)
-    else:
-        raise NotImplementedError('Unknown prefix {} must be one of  http, s3, gs or /'.format(path))
-    if path.endswith('.json') or path.endswith('gz'):
+            youtube_dl_download = True
+    export_file = path.split('?')[0].endswith('.dva_export.zip')
+    framelist_file = path.split('?')[0].endswith('.json') or path.split('?')[0].endswith('.gz')
+    if youtube_dl_download:
+        fs.retrieve_video_via_url(dv,path)
+    elif framelist_file:
+        task_shared.import_path(dv, start.arguments['path'],framelist=True)
         task_shared.load_frame_list(dv)
-    elif path.endswith('.dva_export.zip') or path is None:
+    elif export_file:
+        task_shared.import_path(dv, start.arguments['path'],export=True)
         task_shared.load_dva_export_file(dv)
+    elif path.startswith('/') and settings.DISABLE_NFS and not (export_file or framelist_file):
+        # TODO handle case when going from s3 ---> gs and gs ---> s3
+        fs.copy_remote(dv,path)
+    else:
+        task_shared.import_path(dv,start.arguments['path'])
     dv.uploaded = True
     dv.save()
     process_next(start.pk)

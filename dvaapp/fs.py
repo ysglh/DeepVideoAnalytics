@@ -1,10 +1,11 @@
 from django.conf import settings
 import os
+import shlex
 import uuid
 import boto3
 import shutil
 import errno
-import logging, subprocess, requests, zipfile
+import logging, subprocess, requests, zipfile, urlparse
 try:
     from google.cloud import storage
 except:
@@ -34,86 +35,31 @@ def mkdir_safe(dlpath):
             raise
 
 
-def ingest_remote(dv,remote_path):
-    logging.info("processing key {} ".format(remote_path))
-    extension = remote_path.split('.')[-1]
-    if remote_path.strip() and '.' in remote_path:
-        fname = "{}/ingest/{}.{}".format(settings.MEDIA_ROOT, str(uuid.uuid1()).replace('-','_'), extension)
-        get_remote_path_to_file(remote_path,fname)
-        if not dv.name:
-            dv.name = remote_path
-        if remote_path.endswith('.dva_export.zip'):
-            dv.create_directory(create_subdirs=False)
-            os.rename(fname, '{}/{}/{}.{}'.format(settings.MEDIA_ROOT, dv.pk, dv.pk, extension))
-            dv.uploaded = True
-        elif remote_path.endswith('.mp4') or remote_path.endswith('.zip'):
-            dv.create_directory(create_subdirs=True)
-            os.rename(fname, '{}/{}/video/{}.{}'.format(settings.MEDIA_ROOT, dv.pk, dv.pk, extension))
-            dv.uploaded = True
-            if remote_path.endswith('.zip'):
-                dv.dataset = True
-        elif remote_path.endswith('json') or remote_path.endswith('.gz'):
-            dv.create_directory(create_subdirs=True)
-            os.rename(fname, '{}/{}/framelist.{}'.format(settings.MEDIA_ROOT, dv.pk, dv.pk, extension))
-            dv.dataset = True
-        else:
-            raise ValueError, "Extension {} not allowed".format(remote_path)
-        dv.save()
-    else:
-        # dv.create_directory(create_subdirs=False)
-        # video_root_dir = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
-        # path = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
-        # download_s3_dir(key, path, bucket)
-        # for filename in os.listdir(os.path.join(path, key)):
-        #     shutil.move(os.path.join(path, key, filename), os.path.join(path, filename))
-        # os.rmdir(os.path.join(path, key))
-        # with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, dv.pk)) as input_json:
-        #     video_json = json.load(input_json)
-        # importer = serializers.VideoImporter(video=dv, json=video_json, root_dir=video_root_dir)
-        # importer.import_video()
-        # dv.uploaded = True
-        # dv.save()
-        raise NotImplementedError("Ability to import S3/GCS directories disabled")
+def retrieve_video_via_url(dv,url):
+    dv.create_directory(create_subdirs=True)
+    output_dir = "{}/{}/{}/".format(settings.MEDIA_ROOT, dv.pk, 'video')
+    command = "youtube-dl -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4'  \"{}\" -o {}.mp4".format(url,dv.pk)
+    logging.info(command)
+    download = subprocess.Popen(shlex.split(command), cwd=output_dir)
+    download.wait()
+    if download.returncode != 0:
+        raise ValueError,"Could not download the video"
 
 
-def ingest_path(dv,path):
+def copy_remote(dv,path):
     extension = path.split('.')[-1]
-    if path.endswith('dva_export.zip'):
-        dv.create_directory(create_subdirs=False)
-        if settings.DISABLE_NFS:
-            if S3_MODE:
-                source = '{}/{}'.format(settings.MEDIA_BUCKET, path.strip('/'))
-                dest = '{}/{}.{}'.format(dv.pk,dv.pk,extension)
-                try:
-                    BUCKET.Object(dest).copy({'Bucket': settings.MEDIA_BUCKET, 'Key': path.strip('/')})
-                except:
-                    raise ValueError("Could not copy from {} to {}".format(source,dest))
-                S3.Object(settings.MEDIA_BUCKET, path.strip('/')).delete()
-            elif GS_MODE:
-                raise NotImplementedError
-            else:
-                raise ValueError("NFS disabled and unknown cloud storage prefix")
-        else:
-            shutil.move(os.path.join(settings.MEDIA_ROOT,path.strip('/')),
-                        '{}/{}/{}.{}'.format(settings.MEDIA_ROOT,dv.pk,dv.pk,extension))
+    source = '{}/{}'.format(settings.MEDIA_BUCKET, path.strip('/'))
+    dest = '{}/video/{}.{}'.format(dv.pk,dv.pk,extension)
+    if S3_MODE:
+        try:
+            BUCKET.Object(dest).copy({'Bucket': settings.MEDIA_BUCKET, 'Key': path.strip('/')})
+        except:
+            raise ValueError("Could not copy from {} to {}".format(source,dest))
+        S3.Object(settings.MEDIA_BUCKET, path.strip('/')).delete()
+    elif GS_MODE:
+        raise NotImplementedError
     else:
-        dv.create_directory(create_subdirs=True)
-        if settings.DISABLE_NFS:
-            if S3_MODE:
-                source = '{}/{}'.format(settings.MEDIA_BUCKET, path.strip('/'))
-                dest = '{}/video/{}.{}'.format(dv.pk,dv.pk,extension)
-                try:
-                    BUCKET.Object(dest).copy({'Bucket': settings.MEDIA_BUCKET, 'Key': path.strip('/')})
-                except:
-                    raise ValueError("Could not copy from {} to {}".format(source, dest))
-                S3.Object(settings.MEDIA_BUCKET, path.strip('/')).delete()
-            elif GS_MODE:
-                raise NotImplementedError
-            else:
-                raise ValueError("NFS disabled and unknown cloud storage prefix")
-        else:
-            shutil.move(os.path.join(settings.MEDIA_ROOT,path.strip('/')),
-                        '{}/{}/video/{}.{}'.format(settings.MEDIA_ROOT,dv.pk,dv.pk,extension))
+        raise ValueError("NFS disabled and unknown cloud storage prefix")
 
 
 def ensure(path, dirnames=None, media_root=None):
@@ -142,25 +88,53 @@ def ensure(path, dirnames=None, media_root=None):
                 raise ValueError("path:{} dlpath:{}".format(path,dlpath))
 
 
-def get_remote_path_to_file(remote_path,local_path):
+def get_path_to_file(path,local_path):
     """
     # resource.meta.client.download_file(bucket, key, ofname, ExtraArgs={'RequestPayer': 'requester'})
-    :param remote_path: e.g. s3://bucket/asd/asdsad/key.zip or gs:/bucket_name/key ..
+    :param remote_path: e.g. s3://bucket/asd/asdsad/key.zip or gs:/bucket_name/key .. or /
     :param local_path:
     :return:
     """
-    fs_type = remote_path[:2]
-    bucket_name = remote_path[5:].split('/')[0]
-    key = '/'.join(remote_path[5:].split('/')[1:])
-    if fs_type == 's3':
+    fs_type = path[:2]
+    if path.starswith('/ingest') and '..' not in path: # avoid relative imports outside media root
+        shutil.move(os.path.join(settings.MEDIA_ROOT, path.strip('/')),local_path)
+    elif path.starswith('http'):
+        u = urlparse.urlparse(path)
+        if u.hostname == 'www.dropbox.com' and not path.endswith('?dl=1'):
+            r = requests.get(path + '?dl=1')
+        else:
+            r = requests.get(path)
+        with open(local_path, 'wb') as f:
+            for chunk in r.iter_content(chunk_size=1024):
+                if chunk:
+                    f.write(chunk)
+        r.close()
+    elif fs_type == 's3' and not path.endswith('/'):
+        bucket_name = path[5:].split('/')[0]
+        key = '/'.join(path[5:].split('/')[1:])
         remote_bucket = S3.Bucket(bucket_name)
         remote_bucket.download_file(key, local_path)
-    elif remote_path.starswith('gs'):
-        remote_bucket = GS.get_bucket(settings.MEDIA_BUCKET)
+    elif path.starswith('gs') and not path.endswith('/'):
+        bucket_name = path[5:].split('/')[0]
+        key = '/'.join(path[5:].split('/')[1:])
+        remote_bucket = GS.get_bucket(bucket_name)
         with open(local_path) as fout:
             remote_bucket.get_blob(key).download_to_file(fout)
     else:
-        raise NotImplementedError("Unknown remote file system {}".format(remote_path))
+        # dv.create_directory(create_subdirs=False)
+        # video_root_dir = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
+        # path = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
+        # download_s3_dir(key, path, bucket)
+        # for filename in os.listdir(os.path.join(path, key)):
+        #     shutil.move(os.path.join(path, key, filename), os.path.join(path, filename))
+        # os.rmdir(os.path.join(path, key))
+        # with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, dv.pk)) as input_json:
+        #     video_json = json.load(input_json)
+        # importer = serializers.VideoImporter(video=dv, json=video_json, root_dir=video_root_dir)
+        # importer.import_video()
+        # dv.uploaded = True
+        # dv.save()
+        raise NotImplementedError("import S3/GCS directories disabled or Unknown file system {}".format(path))
 
 
 def upload_file_to_remote(fpath):

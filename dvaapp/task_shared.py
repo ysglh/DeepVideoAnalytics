@@ -3,7 +3,7 @@ from models import Video, QueryRegion, QueryRegionIndexVector, DVAPQL, Region, F
 from django.conf import settings
 from PIL import Image
 from . import serializers
-from .fs import ensure, upload_file_to_remote, upload_video_to_remote, download_s3_dir, get_remote_path_to_file
+from .fs import ensure, upload_file_to_remote, upload_video_to_remote, get_path_to_file
 
 
 def pid_exists(pid):
@@ -37,17 +37,6 @@ def launch_worker(queue_name, worker_name):
     return message
 
 
-def retrieve_video_via_url(dv,media_dir):
-    dv.create_directory(create_subdirs=True)
-    output_dir = "{}/{}/{}/".format(media_dir, dv.pk, 'video')
-    command = "youtube-dl -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4'  \"{}\" -o {}.mp4".format(dv.url,dv.pk)
-    logging.info(command)
-    download = subprocess.Popen(shlex.split(command), cwd=output_dir)
-    download.wait()
-    if download.returncode != 0:
-        raise ValueError,"Could not download the video"
-
-
 def perform_s3_export(dv,path,export_event_pk=None):
     cwd_path = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
     a = serializers.VideoExportSerializer(instance=dv)
@@ -66,26 +55,18 @@ def perform_s3_export(dv,path,export_event_pk=None):
         raise NotImplementedError
 
 
-def import_url(dv,download_url):
-    if download_url.split('?')[0].endswith('dva_export.zip'):
+def import_path(dv,path,export=False,framelist=False):
+    if export:
         dv.create_directory(create_subdirs=False)
         output_filename = "{}/{}/{}.zip".format(settings.MEDIA_ROOT, dv.pk, dv.pk)
     else:
         dv.create_directory(create_subdirs=True)
-        extension = download_url.split('?')[0].split('.')[-1]
-        if extension == '.json' or extension == '.gz':
+        extension = path.split('?')[0].split('.')[-1]
+        if framelist:
             output_filename = "{}/{}/framelist.{}".format(settings.MEDIA_ROOT, dv.pk, extension)
         else:
             output_filename = "{}/{}/video/{}.{}".format(settings.MEDIA_ROOT, dv.pk, dv.pk, extension)
-    if 'www.dropbox.com' in download_url and not download_url.endswith('?dl=1'):
-        r = requests.get(download_url + '?dl=1')
-    else:
-        r = requests.get(download_url)
-    with open(output_filename, 'wb') as f:
-        for chunk in r.iter_content(chunk_size=1024):
-            if chunk:
-                f.write(chunk)
-    r.close()
+    get_path_to_file(path,output_filename)
 
 
 def load_dva_export_file(dv):
@@ -307,7 +288,14 @@ def get_sync_paths(dirname,task_id):
             f.append(k.path(media_root=""))
             f.append(k.framelist_path(media_root=""))
     elif dirname == 'regions':
-        f = [k.path(media_root="") for k in Region.objects.filter(event_id=task_id) if k.materialized]
+        e = TEvent.objects.get(pk=task_id)
+        if e.operation == 'perform_transformation': # TODO: transformation events merely materialize, fix this
+            fargs = copy.deepcopy(e.arguments['filters'])
+            fargs['materialized'] = True
+            fargs['video_id'] = e.video_id
+            f = [k.path(media_root="") for k in Region.objects.filter(**fargs)]
+        else:
+            f = [k.path(media_root="") for k in Region.objects.filter(event_id=task_id) if k.materialized]
     else:
         raise NotImplementedError,"dirname : {} not configured".format(dirname)
     return f

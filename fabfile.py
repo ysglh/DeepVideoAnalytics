@@ -957,7 +957,7 @@ def run_import_tests(port=80):
     for fname in glob.glob("tests/import_tests/*.json"):
         r = requests.post("http://localhost:{}/api/queries/".format(port), data={'script': file(fname).read()},
                           headers=headers)
-        print r.status_code
+        print fname,r.status_code
 
 
 @task

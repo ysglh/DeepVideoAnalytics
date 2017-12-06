@@ -1,0 +1,60 @@
+{
+  "process_type": "V",
+  "create": [
+    {
+      "MODEL": "Video",
+      "spec": {
+        "name": "aws_video_test"
+      },
+      "tasks": [
+        {
+          "operation": "perform_import",
+          "video_id": "__pk__",
+          "arguments": {
+            "path": "s3://aub3temp/1.mp4",
+            "next_tasks": [
+              {
+                "operation": "perform_video_segmentation",
+                "arguments": {
+                  "next_tasks": [
+                    {
+                      "operation": "perform_video_decode",
+                      "arguments": {
+                        "segments_batch_size": 10,
+                        "rate": 30,
+                        "rescale": 0,
+                        "next_tasks": [
+                          {
+                            "operation": "perform_detection",
+                            "arguments": {
+                              "filters": "__parent__",
+                              "detector": "coco",
+                              "next_tasks": [
+                                {
+                                  "operation": "perform_indexing",
+                                  "arguments": {
+                                    "index": "inception",
+                                    "target": "regions",
+                                    "filters": {
+                                      "event_id": "__parent_event__",
+                                      "w__gte": 50,
+                                      "h__gte": 50
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

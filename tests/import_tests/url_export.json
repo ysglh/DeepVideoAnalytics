@@ -1,0 +1,20 @@
+{
+  "process_type": "V",
+  "create": [
+    {
+      "MODEL": "Video",
+      "spec": {
+        "name": "url_export_test"
+      },
+      "tasks": [
+        {
+          "operation": "perform_import",
+          "video_id": "__pk__",
+          "arguments": {
+            "path": "https://www.dropbox.com/s/qhzl9ig7yhems6j/MSCOCO_Sample.dva_export.zip"
+          }
+        }
+      ]
+    }
+  ]
+}

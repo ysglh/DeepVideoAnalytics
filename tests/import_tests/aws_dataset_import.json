@@ -1,0 +1,50 @@
+{
+  "process_type": "V",
+  "create": [
+    {
+      "MODEL": "Video",
+      "spec": {
+        "name": "aws_dataset_test"
+      },
+      "tasks": [
+        {
+          "operation": "perform_import",
+          "video_id": "__pk__",
+          "arguments": {
+            "path": "s3://aub3temp/exampledataset.zip",
+            "next_tasks": [
+              {
+                "operation": "perform_dataset_extraction",
+                "arguments": {
+                  "next_tasks": [
+                    {
+                      "operation": "perform_detection",
+                      "arguments": {
+                        "frames_batch_size": 500,
+                        "detector": "coco",
+                        "next_tasks": [
+                          {
+                            "operation": "perform_indexing",
+                            "arguments": {
+                              "index": "inception",
+                              "target": "regions",
+                              "filters": {
+                                "event_id": "__parent_event__",
+                                "w__gte": 50,
+                                "h__gte": 50
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    },
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

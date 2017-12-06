@@ -945,6 +945,22 @@ def test_api(port=80):
 
 
 @task
+def run_import_tests(port=80):
+    """
+    Test import pipeline
+    """
+    import requests
+    if not os.path.isfile('creds.json'):
+        store_token_for_testing()
+    token = json.loads(file('creds.json').read())['token']
+    headers = {'Authorization': 'Token {}'.format(token)}
+    for fname in glob.glob("tests/import_tests/*.json"):
+        r = requests.post("http://localhost:{}/api/queries/".format(port), data={'script': file(fname).read()},
+                          headers=headers)
+        print r.status_code
+
+
+@task
 def capture_stream(url="https://www.youtube.com/watch?v=vpm16w3ik0g"):
     """
     Test capturing live video feed (experimental)

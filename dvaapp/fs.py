@@ -50,6 +50,7 @@ def copy_remote(dv,path):
     extension = path.split('.')[-1]
     source = '{}/{}'.format(settings.MEDIA_BUCKET, path.strip('/'))
     dest = '{}/video/{}.{}'.format(dv.pk,dv.pk,extension)
+    dv.create_directory() # for compatibility and to ensure that it sync does not fails.
     if S3_MODE:
         try:
             BUCKET.Object(dest).copy({'Bucket': settings.MEDIA_BUCKET, 'Key': path.strip('/')})

@@ -8,3 +8,4 @@ This directory contains repos for third party projects.
 - Tensorflow models/research/object_detection
 - Tensorflow models/research/delf
 - Text Detection CTPN 
+- YouTube8M Feature Extractor 

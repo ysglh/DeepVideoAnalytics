@@ -43,6 +43,7 @@ For a quick overview we reocmmend going through the [presentation in readme.pdf]
 | TF Object detection API  | [Apache 2.0](https://github.com/tensorflow/models/tree/master/research/object_detection) |
 | TF models/slim  | [Apache 2.0](https://github.com/tensorflow/models/tree/master/research/slim) |
 | TF models/delf  | [Apache 2.0](https://github.com/tensorflow/models/tree/master/research/delf) |
+| Youtube 8M feature extractor  | [Apache 2.0](https://github.com/google/youtube-8m) |
 | CROW   |  [Apache 2.0](https://github.com/yahoo/crow/blob/master/LICENSE)  | 
 | LOPQ   |  [Apache 2.0](https://github.com/yahoo/lopq/blob/master/LICENSE)  | 
 | Open Images Pre-trained network  |  [Apache 2.0](https://github.com/openimages/dataset/blob/master/LICENSE) |

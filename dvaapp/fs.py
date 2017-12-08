@@ -29,7 +29,6 @@ elif settings.MEDIA_BUCKET and settings.CLOUD_FS_PREFIX == 'gs':
 else:
     S3_MODE = False
     GS_MODE = False
-    S3 = None
     BUCKET = None
 
 

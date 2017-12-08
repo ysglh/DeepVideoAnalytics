@@ -1,4 +1,4 @@
-import os, json, requests, copy, time, subprocess, logging, shutil, zipfile, uuid, calendar, shlex, sys, tempfile
+import os, json, requests, copy, time, subprocess, logging, shutil, zipfile, uuid, calendar, shlex, sys, tempfile, uuid
 from models import Video, QueryRegion, QueryRegionIndexVector, DVAPQL, Region, Frame, Segment, IndexEntries, TEvent
 from django.conf import settings
 from PIL import Image
@@ -148,14 +148,35 @@ def build_queryset(args,video_id=None,query_id=None):
     return queryset,target
 
 
-def load_frame_list(dv):
+def load_frame_list(dv,event_id):
     """
     Add ability load frames & regions specified in a JSON file and then automatically
     retrieve them in a distributed manner them through CPU workers.
     :param dv:
     :return:
     """
-    raise NotImplementedError
+    frame_list = dv.get_frame_list()
+    temp_path = "{}.jpg".format(uuid.uuid1()).replace('-', '_')
+    frame_index = 0
+    frames = []
+    for i, f in enumerate(frame_list['frames']):
+        try:
+            get_path_to_file(f['path'],temp_path)
+        except:
+            logging.exception("Failed to get {}".format(f['path']))
+            pass
+        else:
+            df = Frame()
+            df.video_id = dv.pk
+            df.event_id = event_id
+            df.frame_index = frame_index
+            df.name = f['path']
+            frames.append(df)
+            os.rename(temp_path,df.path())
+            frame_index += 1
+    Frame.objects.bulk_create(frames,1000)
+    dv.uploaded = True
+    dv.frames = frame_index
 
 
 def download_and_get_query_path(start):

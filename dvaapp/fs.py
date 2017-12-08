@@ -10,15 +10,21 @@ try:
     from google.cloud import storage
 except:
     pass
+try:
+    S3 = boto3.resource('s3')
+except:
+    pass
+try:
+    GS = storage.Client()
+except:
+    pass
 if settings.MEDIA_BUCKET and settings.CLOUD_FS_PREFIX == 's3':
     S3_MODE = True
     GS_MODE = False
-    S3 = boto3.resource('s3')
     BUCKET = S3.Bucket(settings.MEDIA_BUCKET)
 elif settings.MEDIA_BUCKET and settings.CLOUD_FS_PREFIX == 'gs':
     S3_MODE = False
     GS_MODE = True
-    GS = storage.Client()
     BUCKET = GS.get_bucket(settings.MEDIA_BUCKET)
 else:
     S3_MODE = False

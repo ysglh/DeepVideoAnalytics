@@ -574,7 +574,7 @@ def perform_import(event_id):
         fs.retrieve_video_via_url(dv,path)
     elif framelist_file:
         task_shared.import_path(dv, start.arguments['path'],framelist=True)
-        task_shared.load_frame_list(dv)
+        task_shared.load_frame_list(dv,start.pk)
     elif export_file:
         task_shared.import_path(dv, start.arguments['path'],export=True)
         task_shared.load_dva_export_file(dv)

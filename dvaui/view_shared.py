@@ -44,6 +44,7 @@ def handle_uploaded_file(f, name, user=None, rate=None):
     filename = f.name
     filename = filename.lower()
     vuid = str(uuid.uuid1()).replace('-', '_')
+    extension = filename.split('.')[-1]
     if filename.endswith('.dva_export.zip'):
         local_fname = '{}/ingest/{}.dva_export.zip'.format(settings.MEDIA_ROOT, vuid)
         fpath = '/ingest/{}.dva_export.zip'.format(vuid)
@@ -71,7 +72,7 @@ def handle_uploaded_file(f, name, user=None, rate=None):
         }
         p.create_from_json(j=query, user=user)
         p.launch()
-    elif filename.endswith('.mp4') or filename.endswith('.flv') or filename.endswith('.zip'):
+    elif extension in ['zip','gz','json','mp4']:
         local_fname = '{}/ingest/{}.{}'.format(settings.MEDIA_ROOT, vuid, filename.split('.')[-1])
         fpath = '/ingest/{}.{}'.format(vuid, filename.split('.')[-1])
         with open(local_fname,'wb+') as destination:
@@ -81,7 +82,7 @@ def handle_uploaded_file(f, name, user=None, rate=None):
             fs.upload_file_to_remote(fpath)
             os.remove(local_fname)
         p = processing.DVAPQLProcess()
-        if filename.endswith('.zip'):
+        if extension == 'zip':
             query = {
                 'process_type':DVAPQL.PROCESS,
                 'create': [
@@ -101,6 +102,27 @@ def handle_uploaded_file(f, name, user=None, rate=None):
                                                }
                                            ]
                                            },
+                             'video_id': '__pk__',
+                             'operation': 'perform_import'
+                             }
+                        ]
+                    },
+                ],
+            }
+        elif extension == 'json' or extension == 'gz':
+            query = {
+                'process_type':DVAPQL.PROCESS,
+                'create': [
+                    {
+                        'spec': {
+                            'name': name,
+                            'dataset': True,
+                            'uploader_id': user.pk if user else None,
+                            'created': '__timezone.now__'},
+                        'MODEL': 'Video',
+                        'tasks': [
+                            {'arguments': {'path': fpath,
+                                           'next_tasks': defaults.DEFAULT_PROCESSING_PLAN_DATASET},
                              'video_id': '__pk__',
                              'operation': 'perform_import'
                              }

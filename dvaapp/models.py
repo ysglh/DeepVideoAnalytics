@@ -1,5 +1,5 @@
 from __future__ import unicode_literals
-import os, json
+import os, json, gzip
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.postgres.fields import ArrayField, JSONField
@@ -73,6 +73,17 @@ class Video(models.Model):
             return "{}/{}/video/{}.mp4".format(media_root, self.pk, self.pk)
         else:
             return "{}/{}/video/{}.mp4".format(settings.MEDIA_ROOT,self.pk,self.pk)
+
+    def get_frame_list(self,media_root=None):
+        if media_root is None:
+            media_root = settings.MEDIA_ROOT
+        framelist_path = "{}/{}/framelist".format(media_root, self.pk)
+        if os.path.isfile('{}.json'.format(framelist_path)):
+            return json.load(file('{}.json'.format(framelist_path)))
+        elif os.path.isfile('{}.gz'.format(framelist_path)):
+            return json.load(gzip.GzipFile('{}.json'.format(framelist_path)))
+        else:
+            raise ValueError("Frame list could not be found at {}".format(framelist_path))
 
     def create_directory(self, create_subdirs=True):
         d = '{}/{}'.format(settings.MEDIA_ROOT, self.pk)

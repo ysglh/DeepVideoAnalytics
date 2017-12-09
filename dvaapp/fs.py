@@ -101,6 +101,13 @@ def get_path_to_file(path,local_path):
     :param local_path:
     :return:
     """
+    if settings.DISABLE_NFS and path.startswith('/ingest/'):
+        if S3_MODE:
+            path = "s3://{}{}".format(BUCKET,path)
+        elif GS_MODE:
+            path = "gs://{}{}".format(BUCKET,path)
+        else:
+            raise ValueError("NFS disabled but neither GS or S3 enabled.")
     fs_type = path[:2]
     if path.startswith('/ingest') and '..' not in path: # avoid relative imports outside media root
         shutil.move(os.path.join(settings.MEDIA_ROOT, path.strip('/')),local_path)

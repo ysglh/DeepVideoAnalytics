@@ -158,6 +158,8 @@ def load_frame_list(dv,event_id):
     frame_list = dv.get_frame_list()
     temp_path = "{}.jpg".format(uuid.uuid1()).replace('-', '_')
     frame_index = 0
+    video_id = dv.pk
+    frame_index_to_regions = {}
     frames = []
     for i, f in enumerate(frame_list['frames']):
         try:
@@ -166,15 +168,21 @@ def load_frame_list(dv,event_id):
             logging.exception("Failed to get {}".format(f['path']))
             pass
         else:
-            df = Frame()
-            df.video_id = dv.pk
-            df.event_id = event_id
-            df.frame_index = frame_index
-            df.name = f['path']
+            df, drs = serializers.import_frame_json(f,frame_index,event_id,video_id)
+            frame_index_to_regions[frame_index] = drs
             frames.append(df)
             shutil.move(temp_path,df.path())
             frame_index += 1
-    Frame.objects.bulk_create(frames,1000)
+    fids = Frame.objects.bulk_create(frames,1000)
+    regions = []
+    for i,f in enumerate(fids):
+        region_list = frame_index_to_regions[i]
+        logging.info(region_list)
+        logging.info(len(region_list))
+        for dr in region_list:
+            dr.frame_id = f.id
+            regions.append(dr)
+    Region.objects.bulk_create(regions,1000)
     dv.uploaded = True
     dv.frames = frame_index
 

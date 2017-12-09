@@ -81,7 +81,7 @@ class Video(models.Model):
         if os.path.isfile('{}.json'.format(framelist_path)):
             return json.load(file('{}.json'.format(framelist_path)))
         elif os.path.isfile('{}.gz'.format(framelist_path)):
-            return json.load(gzip.GzipFile('{}.json'.format(framelist_path)))
+            return json.load(gzip.GzipFile('{}.gz'.format(framelist_path)))
         else:
             raise ValueError("Frame list could not be found at {}".format(framelist_path))
 

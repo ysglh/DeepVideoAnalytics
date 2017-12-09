@@ -109,3 +109,5 @@ scripts/coco_annotations/*.json
 /repos/tf_ctpn_cpu/data/results/
 /client/build/
 /deploy/gcp/secrets.yml
+/scripts/nyc.txt
+/scripts/prep.py

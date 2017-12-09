@@ -103,9 +103,9 @@ def get_path_to_file(path,local_path):
     """
     if settings.DISABLE_NFS and path.startswith('/ingest/'):
         if S3_MODE:
-            path = "s3://{}{}".format(BUCKET,path)
+            path = "s3://{}{}".format(settings.MEDIA_BUCKET,path)
         elif GS_MODE:
-            path = "gs://{}{}".format(BUCKET,path)
+            path = "gs://{}{}".format(settings.MEDIA_BUCKET,path)
         else:
             raise ValueError("NFS disabled but neither GS or S3 enabled.")
     fs_type = path[:2]

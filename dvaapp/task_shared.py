@@ -172,7 +172,7 @@ def load_frame_list(dv,event_id):
             df.frame_index = frame_index
             df.name = f['path']
             frames.append(df)
-            os.rename(temp_path,df.path())
+            shutil.move(temp_path,df.path())
             frame_index += 1
     Frame.objects.bulk_create(frames,1000)
     dv.uploaded = True

@@ -69,6 +69,11 @@ def import_path(dv,path,export=False,framelist=False):
     get_path_to_file(path,output_filename)
 
 
+def count_framelist(dv):
+    frame_list = dv.get_frame_list()
+    return (frame_list['frames'])
+
+
 def load_dva_export_file(dv):
     video_id = dv.pk
     video_obj = Video.objects.get(pk=video_id)
@@ -148,43 +153,40 @@ def build_queryset(args,video_id=None,query_id=None):
     return queryset,target
 
 
-def load_frame_list(dv,event_id):
+def load_frame_list(dv,event_id,min_frame_index=0,frame_count=0):
     """
     Add ability load frames & regions specified in a JSON file and then automatically
     retrieve them in a distributed manner them through CPU workers.
-    :param dv:
-    :return:
     """
     frame_list = dv.get_frame_list()
     temp_path = "{}.jpg".format(uuid.uuid1()).replace('-', '_')
-    frame_index = 0
     video_id = dv.pk
     frame_index_to_regions = {}
     frames = []
     for i, f in enumerate(frame_list['frames']):
-        try:
-            get_path_to_file(f['path'],temp_path)
-        except:
-            logging.exception("Failed to get {}".format(f['path']))
-            pass
-        else:
-            df, drs = serializers.import_frame_json(f,frame_index,event_id,video_id)
-            frame_index_to_regions[frame_index] = drs
-            frames.append(df)
-            shutil.move(temp_path,df.path())
-            frame_index += 1
+        if i >= min_frame_index:
+            try:
+                get_path_to_file(f['path'],temp_path)
+            except:
+                logging.exception("Failed to get {}".format(f['path']))
+                pass
+            else:
+                df, drs = serializers.import_frame_json(f,i,event_id,video_id)
+                frame_index_to_regions[i] = drs
+                frames.append(df)
+                shutil.move(temp_path,df.path())
+        if i+1 == frame_count:
+            break
     fids = Frame.objects.bulk_create(frames,1000)
     regions = []
-    for i,f in enumerate(fids):
-        region_list = frame_index_to_regions[i]
+    for f in fids:
+        region_list = frame_index_to_regions[f.frame_index]
         logging.info(region_list)
         logging.info(len(region_list))
         for dr in region_list:
             dr.frame_id = f.id
             regions.append(dr)
     Region.objects.bulk_create(regions,1000)
-    dv.uploaded = True
-    dv.frames = frame_index
 
 
 def download_and_get_query_path(start):

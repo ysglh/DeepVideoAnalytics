@@ -122,7 +122,16 @@ def handle_uploaded_file(f, name, user=None, rate=None):
                         'MODEL': 'Video',
                         'tasks': [
                             {'arguments': {'path': fpath,
-                                           'next_tasks': defaults.DEFAULT_PROCESSING_PLAN_DATASET},
+                                           'next_tasks':[
+                                               {
+                                                   'operation': 'perform_frame_download',
+                                                   'arguments': {
+                                                       'frames_batch_size': defaults.DEFAULT_FRAMES_BATCH_SIZE,
+                                                       'next_tasks': defaults.DEFAULT_PROCESSING_PLAN_DATASET
+                                                   },
+                                               }
+                                           ]
+                                           },
                              'video_id': '__pk__',
                              'operation': 'perform_import'
                              }

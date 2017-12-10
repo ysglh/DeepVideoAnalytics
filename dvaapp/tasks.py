@@ -570,21 +570,45 @@ def perform_import(event_id):
             youtube_dl_download = True
     export_file = path.split('?')[0].endswith('.dva_export.zip')
     framelist_file = path.split('?')[0].endswith('.json') or path.split('?')[0].endswith('.gz')
+    dv.uploaded = True
+    # Donwload videos via youtube-dl
     if youtube_dl_download:
         fs.retrieve_video_via_url(dv,path)
+    # Download list frames in JSON format
     elif framelist_file:
         task_shared.import_path(dv, start.arguments['path'],framelist=True)
-        task_shared.load_frame_list(dv,start.pk)
+        dv.frames = task_shared.count_framelist(dv)
+        dv.uploaded = False
+    # Download and import previously exported file from DVA
     elif export_file:
         task_shared.import_path(dv, start.arguments['path'],export=True)
         task_shared.load_dva_export_file(dv)
+    # Download and import .mp4 and .zip files which contain raw video / images.
     elif path.startswith('/') and settings.DISABLE_NFS and not (export_file or framelist_file):
         # TODO handle case when going from s3 ---> gs and gs ---> s3
         fs.copy_remote(dv,path)
     else:
         task_shared.import_path(dv,start.arguments['path'])
-    dv.uploaded = True
     dv.save()
+    process_next(start.pk)
+    mark_as_completed(start)
+
+
+@app.task(track_started=True, name="perform_frame_download")
+def perform_frame_download(event_id):
+    start = TEvent.objects.get(pk=event_id)
+    if start.started:
+        return 0  # to handle celery bug with ACK in SOLO mode
+    else:
+        start.started = True
+        start.save()
+    dv = start.video
+    min_frame_index = start.arguments['frame_index_gte']
+    if 'frame_index_lt' in start.arguments:
+        frame_count = start.arguments['frame_index_lt'] - start.arguments['frame_index_gte'] - 1  # verify for off by 1
+    else:
+        frame_count = 0
+    task_shared.load_frame_list(dv, start.pk, min_frame_index=min_frame_index,frame_count=frame_count)
     process_next(start.pk)
     mark_as_completed(start)
 

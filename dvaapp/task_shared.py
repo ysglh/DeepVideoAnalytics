@@ -71,7 +71,7 @@ def import_path(dv,path,export=False,framelist=False):
 
 def count_framelist(dv):
     frame_list = dv.get_frame_list()
-    return (frame_list['frames'])
+    return len(frame_list['frames'])
 
 
 def load_dva_export_file(dv):

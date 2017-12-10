@@ -23,6 +23,7 @@ SYNC_TASKS = {
     "perform_dataset_extraction":[{'operation':'perform_sync','arguments':{'dirname':'frames'}},],
     "perform_video_segmentation":[{'operation':'perform_sync','arguments':{'dirname':'segments'}},],
     "perform_video_decode":[{'operation': 'perform_sync', 'arguments': {'dirname': 'frames'}},],
+    "perform_frame_download":[{'operation': 'perform_sync', 'arguments': {'dirname': 'frames'}},],
     'perform_detection':[],
     'perform_transformation':[{'operation': 'perform_sync', 'arguments': {'dirname': 'regions'}},],
     'perform_indexing':[{'operation': 'perform_sync', 'arguments': {'dirname': 'indexes'}},],

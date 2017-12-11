@@ -153,7 +153,7 @@ def build_queryset(args,video_id=None,query_id=None):
     return queryset,target
 
 
-def load_frame_list(dv,event_id,min_frame_index=0,frame_count=0):
+def load_frame_list(dv,event_id,frame_index__gte=0,frame_index__lt=-1):
     """
     Add ability load frames & regions specified in a JSON file and then automatically
     retrieve them in a distributed manner them through CPU workers.
@@ -164,7 +164,9 @@ def load_frame_list(dv,event_id,min_frame_index=0,frame_count=0):
     frame_index_to_regions = {}
     frames = []
     for i, f in enumerate(frame_list['frames']):
-        if i >= min_frame_index:
+        if i == frame_index__lt:
+            break
+        elif i >= frame_index__gte:
             try:
                 get_path_to_file(f['path'],temp_path)
             except:
@@ -175,8 +177,6 @@ def load_frame_list(dv,event_id,min_frame_index=0,frame_count=0):
                 frame_index_to_regions[i] = drs
                 frames.append(df)
                 shutil.move(temp_path,df.path())
-        if i+1 == frame_count:
-            break
     fids = Frame.objects.bulk_create(frames,1000)
     regions = []
     for f in fids:

@@ -609,12 +609,8 @@ def perform_frame_download(event_id):
     else:
         fs.ensure('/{}/framelist.json')
     filters = start.arguments['filters']
-    min_frame_index = filters['frame_index__gte']
-    if 'frame_index_lt' in filters:
-        frame_count = filters['frame_index__lt'] - filters['frame_index__gte'] # verify for off by 1
-    else:
-        frame_count = 0
-    task_shared.load_frame_list(dv, start.pk, min_frame_index=min_frame_index,frame_count=frame_count)
+    task_shared.load_frame_list(dv, start.pk, frame_index__gte=filters['frame_index__gte'],
+                                frame_index__lt=filters.get('frame_index__lt',-1))
     process_next(start.pk)
     mark_as_completed(start)
 

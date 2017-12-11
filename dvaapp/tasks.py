@@ -603,9 +603,10 @@ def perform_frame_download(event_id):
         start.started = True
         start.save()
     dv = start.video
-    min_frame_index = start.arguments['frame_index_gte']
-    if 'frame_index_lt' in start.arguments:
-        frame_count = start.arguments['frame_index_lt'] - start.arguments['frame_index_gte'] - 1  # verify for off by 1
+    filters = start.arguments['filters']
+    min_frame_index = filters['frame_index_gte']
+    if 'frame_index_lt' in filters:
+        frame_count = filters['frame_index_lt'] - filters['frame_index_gte'] # verify for off by 1
     else:
         frame_count = 0
     task_shared.load_frame_list(dv, start.pk, min_frame_index=min_frame_index,frame_count=frame_count)

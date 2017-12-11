@@ -605,9 +605,9 @@ def perform_frame_download(event_id):
         start.save()
     dv = start.video
     if dv.metadata.endswith('.gz'):
-        fs.ensure('/{}/framelist.gz')
+        fs.ensure('/{}/framelist.gz'.format(dv.pk))
     else:
-        fs.ensure('/{}/framelist.json')
+        fs.ensure('/{}/framelist.json'.format(dv.pk))
     filters = start.arguments['filters']
     task_shared.load_frame_list(dv, start.pk, frame_index__gte=filters['frame_index__gte'],
                                 frame_index__lt=filters.get('frame_index__lt',-1))

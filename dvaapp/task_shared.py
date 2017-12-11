@@ -338,5 +338,7 @@ def upload(dirname,event_id,video_id):
         logging.info("Syncing {} containing {} files".format(dirname, len(fnames)))
         for fp in fnames:
             upload_file_to_remote(fp)
+        if fnames:  # if files are uploaded, sleep three seconds to ensure that files are available before launching
+            time.sleep(3)
     else:
         upload_video_to_remote(video_id)

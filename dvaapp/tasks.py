@@ -577,6 +577,7 @@ def perform_import(event_id):
     # Download list frames in JSON format
     elif framelist_file:
         task_shared.import_path(dv, start.arguments['path'],framelist=True)
+        dv.metadata = start.arguments['path']
         dv.frames = task_shared.count_framelist(dv)
         dv.uploaded = False
     # Download and import previously exported file from DVA
@@ -603,6 +604,10 @@ def perform_frame_download(event_id):
         start.started = True
         start.save()
     dv = start.video
+    if dv.metadata.endswith('.gz'):
+        fs.ensure('/{}/framelist.gz')
+    else:
+        fs.ensure('/{}/framelist.json')
     filters = start.arguments['filters']
     min_frame_index = filters['frame_index__gte']
     if 'frame_index_lt' in filters:

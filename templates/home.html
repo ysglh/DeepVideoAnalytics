@@ -291,15 +291,27 @@ nvidia-docker-compose -f docker-compose-gpu.yml up
     </div>
     <div class="row">
         <div class="col-md-6">
-            <h2>Creating and using DVA context</h2>
+            <h4>Creating and using DVA context</h4>
             <p>The Deep Video Analytics client is a thin wrapper around the DVA REST & DVAPQL API.</p>
+            <h4>Tutorials using DVA Client</h4>
+            <ol>
+               <li><a href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/tutorial/0_quick_intro.ipynb" target="_blank">Quick introduction</a></li>
+               <li><a href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/tutorial/1_filesystem_and_database.ipynb" target="_blank">Filesystem & Database</a></li>
+               <li><a href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/tutorial/2_execution_processes_and_tasks.ipynb" target="_blank">Processes & Tasks</a></li>
+               <li><a href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/tutorial/3_DVAPQL_explained.ipynb" target="_blank">DVAPQL explained</a></li>
+               <li><a href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/tutorial/4_processing_a_video_a_walkthrough.ipynb" target="_blank">Processing a video</a></li>
+               <li><a href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/tutorial/6_processing_dataset_of_images.ipynb" target="_blank">Processing a dataset of images</a></li>
+               <li><a href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/tutorial/7_retrievers_and_performing_visual_search.ipynb" target="_blank">Creating retrievers and performing visual search</a></li>
+               <li><a href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/tutorial/8_map_tasks_on_arbitary_subsets_of_videos_datasets.ipynb" target="_blank">Running arbitrary processing pipelines</a></li>
+               <li><a href="https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/tutorial/9_monitoring_management_testing_and_benchmarking.ipynb" target="_blank">Monitoring, management, testing & benchmarking DVA</a></li>
+            </ol>
         </div>
         <div class="col-md-6 ">
-        <h5>Install python client</h5>
+        <h4>Install python client</h4>
         <pre class="m-t"  style="padding:0"><code class="bash">git clone https://github.com/AKSHAYUBHAT/DeepVideoAnalytics
 cd client && python setup.py install
 </code></pre>
-        <h5>Using python client with an existing DVA Server</h5>
+        <h4>Using python client with an existing DVA Server</h4>
         <pre class="m-t"  style="padding:0"><code class="python">import dvaclient
 ctx = dvaclient.context.DVAContext(server='http://localhost:8000/',token="f431d4853e1db36aced775599854cd5d77a621b6")
 for v in ctx.list_videos():

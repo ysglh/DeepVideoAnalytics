@@ -13,8 +13,8 @@
 
 #### Documentation
 
-Documentation along with presentation and blogpost is being written in [/notebooks](/notebooks) directory.
-For a quick overview we reocmmend going through the [presentation in readme.pdf](readme.pdf)
+Documentation along with a tutorial are being written in [/tutorial](/tutorial) directory.
+For a quick overview we recommend going through the [presentation in readme.pdf](readme.pdf)
 
 #### Architecture, data & processing model
 ![Architecture](notebooks/distributed_intelligence/figures/system.png "architecture")

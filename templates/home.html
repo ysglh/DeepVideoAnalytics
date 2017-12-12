@@ -281,6 +281,33 @@ nvidia-docker-compose -f docker-compose-gpu.yml up
         </div>
     </div>
 </section>
+<section  class="container features" id="tutorial">
+    <div class="row">
+        <div class="col-lg-12 text-center">
+            <div class="navy-line"></div>
+            <h1 style="margin-bottom:15px">Tutorial, REST API & Python client</h1>
+            <h4>In addition to the Web UI, complete functionality of Deep Video Analytics can be used via the REST API.</h4>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <h2>Creating and using DVA context</h2>
+            <p>The Deep Video Analytics client is a thin wrapper around the DVA REST & DVAPQL API.</p>
+        </div>
+        <div class="col-md-6 ">
+        <h5>Install python client</h5>
+        <pre class="m-t"  style="padding:0"><code class="bash">git clone https://github.com/AKSHAYUBHAT/DeepVideoAnalytics
+cd client && python setup.py install
+</code></pre>
+        <h5>Using python client with an existing DVA Server</h5>
+        <pre class="m-t"  style="padding:0"><code class="python">import dvaclient
+ctx = dvaclient.context.DVAContext(server='http://localhost:8000/',token="f431d4853e1db36aced775599854cd5d77a621b6")
+for v in ctx.list_videos():
+    print "{name} with ID: {vid}".format(name=v['name'],vid=v['id'])
+</code></pre>
+        </div>
+    </div>
+</section>
 <section  class="container features">
 <div class="navy-line"></div>
 <div class="row m-t" style="margin-top:40px">

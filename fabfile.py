@@ -487,15 +487,15 @@ def init_server():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from dvaapp.models import Video, VDNServer, StoredDVAPQL
-    if StoredDVAPQL.objects.count() == 0:
-        for fname in glob.glob('configs/templates/*.json'):
-            StoredDVAPQL.objects.create(name=fname,
-                                        process_type=StoredDVAPQL.PROCESS,
-                                        script=json.loads(file(fname).read()))
+    from dvaui.defaults import DEFAULT_VDN_RESPONSE
+    # if StoredDVAPQL.objects.count() == 0:
+    #     for fname in glob.glob('configs/templates/*.json'):
+    #         StoredDVAPQL.objects.create(name=fname,
+    #                                     process_type=StoredDVAPQL.PROCESS,
+    #                                     script=json.loads(file(fname).read()))
     if not ('DISABLE_VDN' in os.environ):
         if VDNServer.objects.count() == 0:
-            servers = json.loads(file('configs/vdn_servers.json').read())
-            for s in servers:
+            for s in DEFAULT_VDN_RESPONSE:
                 server = VDNServer()
                 server.url = s['url']
                 server.name = s['name']
@@ -550,9 +550,8 @@ def init_models():
     from django.conf import settings
     from django.utils import timezone
     from dvaapp.models import DeepModel, Retriever
-    with open("configs/models.json") as modelfile:
-        models = json.load(modelfile)
-    for m in models:
+    from dvaui.defaults import DEFAULT_MODELS
+    for m in DEFAULT_MODELS:
         if m['model_type'] == "detector":
             dm, _ = DeepModel.objects.get_or_create(name=m['name'],
                                                    algorithm=m['algorithm'],

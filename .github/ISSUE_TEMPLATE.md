@@ -1,4 +1,4 @@
-# Checklist for submitting issue 
+# Checklist for submitting an issue 
 
 - Have you verified that docker is installed correctly and e.g. GFW is not preventing downloads?
 

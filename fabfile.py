@@ -478,7 +478,7 @@ def init_scheduler():
 @task
 def init_server():
     """
-    Initialize server database by adding default VDN server and DVAPQL templates
+    Initialize server database by adding default DVAPQL templates
  
     """
     import django
@@ -572,13 +572,18 @@ def init_fs():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from django.conf import settings
+    from dvaui.defaults import EXTERNAL_SERVERS
     for create_dirname in ['queries', 'exports', 'external', 'retrievers', 'ingest']:
         if not os.path.isdir("{}/{}".format(settings.MEDIA_ROOT, create_dirname)):
             try:
                 os.mkdir("{}/{}".format(settings.MEDIA_ROOT, create_dirname))
             except:
                 pass
-
+        if create_dirname == 'external':
+            cwd = "{}/{}".format(settings.MEDIA_ROOT, create_dirname)
+            for e in EXTERNAL_SERVERS:
+                gitpull = subprocess.Popen(['git','clone',e['url'],e['name']],cwd=cwd)
+                gitpull.wait()
 
 @task
 def startq(queue_name, conc=3):
@@ -588,7 +593,7 @@ def startq(queue_name, conc=3):
     :param conc:conccurency only for extractor
 
     """
-    import django, os
+    import django, os, shlex, subprocess
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
@@ -608,7 +613,8 @@ def startq(queue_name, conc=3):
                                                                                                        queue_name,
                                                                                                        queue_name)
     logging.info(command)
-    os.system(command)
+    c = subprocess.Popen(args=shlex.split(command))
+    c.wait()
 
 
 @task

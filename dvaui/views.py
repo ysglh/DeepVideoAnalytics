@@ -9,8 +9,9 @@ from django.utils import timezone
 from .forms import UploadFileForm, YTVideoForm, AnnotationForm
 from dvaapp.models import Video, Frame, DVAPQL, QueryResults, TEvent, IndexEntries, Region, \
     LOPQCodes, Tube,  Segment, FrameLabel, SegmentLabel, \
-    VideoLabel, RegionLabel, TubeLabel, Label, ManagementAction, StoredDVAPQL, \
+    VideoLabel, RegionLabel, TubeLabel, Label, ManagementAction, \
     DeepModel, Retriever, SystemState, QueryRegion, QueryRegionResults, Worker
+from .models import StoredDVAPQL
 from dva.celery import app
 from rest_framework import viewsets, mixins
 from django.contrib.auth.models import User
@@ -921,6 +922,7 @@ def import_s3(request):
 @user_passes_test(user_check)
 def external(request):
     context = {
+        'servers':defaults.EXTERNAL_SERVERS,
         'available_datasets': {},
         'available_detectors': {},
     }

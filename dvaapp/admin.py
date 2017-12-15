@@ -2,7 +2,7 @@ from django.contrib import admin
 from .models import Video, Frame, TEvent, IndexEntries, QueryResults, DVAPQL, \
     LOPQCodes, Region, Tube, Segment, DeletedVideo, \
     VideoLabel, FrameLabel, RegionLabel, TubeLabel, SegmentLabel, Label, ManagementAction, \
-    StoredDVAPQL, DeepModel, Retriever, SystemState, Worker, QueryRegion, QueryRegionIndexVector, \
+    DeepModel, Retriever, SystemState, Worker, QueryRegion, QueryRegionIndexVector, \
     QueryRegionResults
 
 
@@ -112,11 +112,6 @@ class RetrieverAdmin(admin.ModelAdmin):
 
 @admin.register(ManagementAction)
 class ManagementActionAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(StoredDVAPQL)
-class StoredDVAPQLAdmin(admin.ModelAdmin):
     pass
 
 

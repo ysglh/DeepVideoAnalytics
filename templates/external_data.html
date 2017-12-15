@@ -7,7 +7,7 @@
 <div class="row">
     <div class="box box-info">
         <div class="box-header">
-            <h2>List of configured visual data network servers, datasets & detectors</h2>
+            <h2>List of configured external servers, datasets, models & scripts</h2>
         </div>
     </div>
 </div>
@@ -56,8 +56,7 @@
                     </tr>
                     </thead>
                     <tbody>
-                        {% for server,datasets in available_datasets.iteritems %}
-                            {% for dataset in datasets %}
+                        {% for dataset in datasets %}
                             <tr>
                                 <td>{{ dataset.name }}</td>
                                 <td>{{ server.name }}</td>
@@ -85,7 +84,6 @@
                                 </td>
                                 {% endif %}
                             </tr>
-                            {% endfor %}
                         {% endfor %}
                     </tbody>
                 </table>
@@ -97,24 +95,21 @@
         <div class="col-lg-12">
             <div class="box box-primary">
                 <div class="box-header with-border">
-                    <h4>Available Detectors</h4>
+                    <h4>Available Models</h4>
                 </div>
             <div class="box-body">
                 <table class="table dataTables" width="100%">
                     <thead>
                     <tr>
                         <th>Name</th>
-                        <th>Server</th>
                         <th>Path </th>
                         <th>Import</th>
                     </tr>
                     </thead>
                     <tbody>
-                        {% for server,detectors in available_detectors.iteritems %}
                             {% for detector in detectors %}
                             <tr>
                                 <td>{{ detector.name }}</td>
-                                <td>{{ server.name }}</td>
                                 <td>{{ detector.path }}</td>
                                 {% if detector.requester_pays %}
                                 <td class="text-center"><form action="/import_detector" method="post">
@@ -135,7 +130,51 @@
                                 {% endif %}
                             </tr>
                             {% endfor %}
-                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h4>Available scripts & process templates</h4>
+                </div>
+            <div class="box-body">
+                <table class="table dataTables" width="100%">
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Path </th>
+                        <th>Import</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                            {% for template in templates %}
+                            <tr>
+                                <td>{{ template.name }}</td>
+                                <td>{{ template.path }}</td>
+                                {% if template.requester_pays %}
+                                <td class="text-center"><form action="/import_detector" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="detector_url" value="{{ detector.url }}"/>
+                                    <p class="text-danger">AWS account will be charged for bandwidth.</p>
+                                    <input type="hidden" name="server_pk" value="{{ server.pk }}"/>
+                                    <input type="hidden" name="dindex" value="{{ forloop.counter0 }}"/>
+                                    <button type="submit" class="btn btn-danger"> Pull </button></form>
+                                </td>
+                                {% else %}
+                                <td class="text-center"><form action="/import_detector" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="detector_url" value="{{ detector.url }}"/>
+                                    <input type="hidden" name="server_pk" value="{{ server.pk }}"/>
+                                    <input type="hidden" name="dindex" value="{{ forloop.counter0 }}"/>
+                                    <button type="submit" class="btn btn-primary"> Pull </button></form></td>
+                                {% endif %}
+                            </tr>
+                            {% endfor %}
                     </tbody>
                 </table>
             </div>

@@ -460,6 +460,7 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
     context['video_count'] = Video.objects.count()
     context['index_entries'] = IndexEntries.objects.all()
     context['region_count'] = Region.objects.all().count()
+    context['worker_count'] = Worker.objects.all().count()
     context['tube_count'] = Tube.objects.all().count()
     context["videos"] = Video.objects.all().filter()
     context['detector_count'] = DeepModel.objects.filter(model_type=DeepModel.DETECTOR).count()

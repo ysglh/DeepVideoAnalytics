@@ -19,10 +19,19 @@ using following command and open the url show in terminal.
 
 ````bash
 # If you have an NVidia GPU with NVidia-docker and Docker
-nvidia-docker run -p 8888:8888 -it akshayubhat/dva-auto:latest
+nvidia-docker run -p 8888:8888 -it akshayubhat/dva-auto:gpu
+````
 
-# If you do not have a GPU run following docker command
+````bash
+# If you DONT have a GPU run following docker command
 docker run -p 8888:8888 -it akshayubhat/dva-auto:latest
+# This will start shell inside the container
+pip install --upgrade jupyter
+cd notebooks/OCR
+jupyter notebook --ip=0.0.0.0 --no-browser --allow-root
+# Above command will give you a url in form of http://0.0.0.0:8888/?token=824231234fbb231231231d438465f
+# REPLACE 0.0.0.0 with localhost (e.g. http://localhost:8888/?token=824231234fbb231231231d438465f ) 
+# Open above URL in your favorite browser
 ````
 
 

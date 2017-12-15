@@ -1,5 +1,5 @@
 import os, json, requests, shutil, zipfile, cStringIO, base64, uuid
-from dvaapp.models import Video, TEvent,  VDNServer, Label, RegionLabel, DeepModel, Retriever, DVAPQL, Region, Frame, \
+from dvaapp.models import Video, TEvent,  Label, RegionLabel, DeepModel, Retriever, DVAPQL, Region, Frame, \
     QueryRegion, QueryRegionResults,QueryResults
 from django.conf import settings
 from django_celery_results.models import TaskResult
@@ -210,41 +210,6 @@ def create_annotation(form, object_name, labels, frame):
             rl.region = annotation
             rl.label = dl
             rl.save()
-
-
-def pull_vdn_list(pk):
-    """
-    Pull list of datasets and models from configured VDN servers.
-    Currently just uses default response since the VDN is disabled.
-    """
-    server = VDNServer.objects.get(pk=pk)
-    datasets = server.last_response_datasets
-    detectors = server.last_response_detectors
-    try:
-        r = requests.get("{}vdn/api/vdn_datasets/".format(server.url))
-        response = r.json()
-        for d in response['results']:
-            datasets.append(d)
-        while response['next']:
-            r = requests.get(response['next'])
-            response = r.json()
-            for d in response['results']:
-                datasets.append(d)
-        r = requests.get("{}vdn/api/vdn_detectors/".format(server.url))
-        response = r.json()
-        for d in response['results']:
-            detectors.append(d)
-        while response['next']:
-            r = requests.get(response['next'])
-            response = r.json()
-            for d in response['results']:
-                detectors.append(d)
-        server.last_response_datasets = datasets
-        server.last_response_detectors = detectors
-        server.save()
-    except:
-        pass
-    return server, datasets, detectors
 
 
 def import_vdn_dataset_url(server, url, user, cached_response):

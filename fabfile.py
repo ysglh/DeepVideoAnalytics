@@ -150,9 +150,8 @@ def ci():
     django.setup()
     import base64
     from django.core.files.uploadedfile import SimpleUploadedFile
-    from dvaui.view_shared import handle_uploaded_file, pull_vdn_list \
-        , import_vdn_dataset_url
-    from dvaapp.models import Video, TEvent, VDNServer, DVAPQL, Retriever, DeepModel
+    from dvaui.view_shared import handle_uploaded_file
+    from dvaapp.models import Video, TEvent, DVAPQL, Retriever, DeepModel
     from django.conf import settings
     from dvaapp.processing import DVAPQLProcess
     from dvaapp.tasks import perform_dataset_extraction, perform_indexing, perform_export, perform_import, \
@@ -249,11 +248,11 @@ def ci():
     qp.create_from_json(query_dict)
     qp.launch()
     qp.wait()
-    server, datasets, detectors = pull_vdn_list(1)
-    for k in datasets:
-        if k['name'] == 'MSCOCO_Sample_500':
-            print 'FOUND MSCOCO SAMPLE'
-            import_vdn_dataset_url(VDNServer.objects.get(pk=1), k['url'], None, k)
+    # server, datasets, detectors = pull_vdn_list(1)
+    # for k in datasets:
+    #     if k['name'] == 'MSCOCO_Sample_500':
+    #         print 'FOUND MSCOCO SAMPLE'
+    #         import_vdn_dataset_url(VDNServer.objects.get(pk=1), k['url'], None, k)
 
 
 @task
@@ -486,22 +485,7 @@ def init_server():
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
-    from dvaapp.models import Video, VDNServer, StoredDVAPQL
-    from dvaui.defaults import DEFAULT_VDN_RESPONSE
-    # if StoredDVAPQL.objects.count() == 0:
-    #     for fname in glob.glob('configs/templates/*.json'):
-    #         StoredDVAPQL.objects.create(name=fname,
-    #                                     process_type=StoredDVAPQL.PROCESS,
-    #                                     script=json.loads(file(fname).read()))
-    if not ('DISABLE_VDN' in os.environ):
-        if VDNServer.objects.count() == 0:
-            for s in DEFAULT_VDN_RESPONSE:
-                server = VDNServer()
-                server.url = s['url']
-                server.name = s['name']
-                server.last_response_datasets = s['last_response_datasets']
-                server.last_response_detectors = s['last_response_detectors']
-                server.save()
+    from dvaapp.models import Video
     if 'TEST' in os.environ and Video.objects.count() == 0:
         test()
 

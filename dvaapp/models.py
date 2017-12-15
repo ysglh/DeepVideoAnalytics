@@ -19,17 +19,6 @@ class Worker(models.Model):
     created = models.DateTimeField('date created', auto_now_add=True)
 
 
-class VDNServer(models.Model):
-    """
-    A VDN server
-    """
-    url = models.URLField()
-    name = models.CharField(max_length=200)
-    last_response_datasets = JSONField(blank=True,null=True)
-    last_response_detectors = JSONField(blank=True,null=True)
-    last_token = models.CharField(max_length=300, default="")
-
-
 class DVAPQL(models.Model):
     """
     A query object with image_data, can have multiple children subspecies

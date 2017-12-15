@@ -1,6 +1,6 @@
 from django.conf import settings
 import json
-from .models import Video, Frame, DVAPQL, QueryResults, TEvent, IndexEntries, Region, VDNServer, \
+from .models import Video, Frame, DVAPQL, QueryResults, TEvent, IndexEntries, Region, \
     LOPQCodes, Tube,  Segment, FrameLabel, SegmentLabel, \
     VideoLabel, RegionLabel, TubeLabel, Label, \
     Retriever, SystemState, QueryRegion, QueryRegionResults, DeepModel, Worker
@@ -188,12 +188,6 @@ class LabelViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
     queryset = Label.objects.all()
     serializer_class = serializers.LabelSerializer
-
-
-class VDNServerViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
-    queryset = VDNServer.objects.all()
-    serializer_class = serializers.VDNServerSerializer
 
 
 class TubeViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):

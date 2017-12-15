@@ -7,7 +7,7 @@ import json
 from django.views.generic import ListView, DetailView
 from django.utils import timezone
 from .forms import UploadFileForm, YTVideoForm, AnnotationForm
-from dvaapp.models import Video, Frame, DVAPQL, QueryResults, TEvent, IndexEntries, Region, VDNServer, \
+from dvaapp.models import Video, Frame, DVAPQL, QueryResults, TEvent, IndexEntries, Region, \
     LOPQCodes, Tube,  Segment, FrameLabel, SegmentLabel, \
     VideoLabel, RegionLabel, TubeLabel, Label, ManagementAction, StoredDVAPQL, \
     DeepModel, Retriever, SystemState, QueryRegion, QueryRegionResults, Worker
@@ -452,7 +452,6 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
     context['query_count'] = DVAPQL.objects.filter(process_type=DVAPQL.QUERY).count()
     context['process_count'] = DVAPQL.objects.filter(process_type=DVAPQL.PROCESS).count()
     context['index_entries_count'] = IndexEntries.objects.count()
-    context['external_servers_count'] = VDNServer.objects.count()
     context['task_events_count'] = TEvent.objects.count()
     context['pending_tasks'] = TEvent.objects.all().filter(started=False, errored=False).count()
     context['running_tasks'] = TEvent.objects.all().filter(started=True, completed=False, errored=False).count()
@@ -846,10 +845,8 @@ def expire_token(request):
 def import_dataset(request):
     if request.method == 'POST':
         url = request.POST.get('dataset_url')
-        server = VDNServer.objects.get(pk=request.POST.get('server_pk'))
         user = request.user if request.user.is_authenticated else None
-        cached_response = server.last_response_datasets[int(request.POST.get('dindex'))]
-        view_shared.import_vdn_dataset_url(server, url, user, cached_response)
+        view_shared.import_vdn_dataset_url(None, url, user, None)
     else:
         raise NotImplementedError
     return redirect('video_list')
@@ -859,10 +856,9 @@ def import_dataset(request):
 def import_detector(request):
     if request.method == 'POST':
         url = request.POST.get('detector_url')
-        server = VDNServer.objects.get(pk=request.POST.get('server_pk'))
         user = request.user if request.user.is_authenticated else None
-        cached_response = server.last_response_detectors[int(request.POST.get('dindex'))]
-        view_shared.import_vdn_detector_url(server, url, user, cached_response)
+        cached_response = None # last_response_detectors[int(request.POST.get('dindex'))]
+        view_shared.import_vdn_detector_url(None, url, user, None)
     else:
         raise NotImplementedError
     return redirect('models')
@@ -923,16 +919,9 @@ def import_s3(request):
 
 @user_passes_test(user_check)
 def external(request):
-    if request.method == 'POST':
-        pk = request.POST.get('server_pk')
-        try:
-            view_shared.pull_vdn_list(pk)
-        except:
-            pass
     context = {
-        'servers': VDNServer.objects.all(),
-        'available_datasets': {server: server.last_response_datasets for server in VDNServer.objects.all()},
-        'available_detectors': {server: server.last_response_detectors for server in VDNServer.objects.all()},
+        'available_datasets': {},
+        'available_detectors': {},
     }
     return render(request, 'external_data.html', context)
 

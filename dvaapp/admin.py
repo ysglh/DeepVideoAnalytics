@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Video, Frame, TEvent, IndexEntries, QueryResults, DVAPQL, VDNServer,\
+from .models import Video, Frame, TEvent, IndexEntries, QueryResults, DVAPQL, \
     LOPQCodes, Region, Tube, Segment, DeletedVideo, \
     VideoLabel, FrameLabel, RegionLabel, TubeLabel, SegmentLabel, Label, ManagementAction, \
     StoredDVAPQL, DeepModel, Retriever, SystemState, Worker, QueryRegion, QueryRegionIndexVector, \
@@ -82,11 +82,6 @@ class FrameAdmin(admin.ModelAdmin):
 
 @admin.register(IndexEntries)
 class IndexEntriesAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(VDNServer)
-class VDNServerAdmin(admin.ModelAdmin):
     pass
 
 

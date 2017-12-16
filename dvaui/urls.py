@@ -29,6 +29,7 @@ urlpatterns = [
     url(r'^retrievers/$', views.retrievers, name='retrievers'),
     url(r'^create_retriever/$', views.create_retriever, name='create_retriever'),
     url(r'^external', views.external, name='external'),
+    url(r'^pull_external', views.pull_external, name='pull_external'),
     url(r'^youtube$', views.yt, name='youtube'),
     url(r'^process/$', views.ProcessList.as_view(), name='process_list'),
     url(r'^process/(?P<pk>\d+)/$', views.ProcessDetail.as_view(), name='process_detail'),

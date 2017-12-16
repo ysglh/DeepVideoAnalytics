@@ -572,6 +572,7 @@ def init_fs():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from django.conf import settings
+    from dvaui.models import ExternalServer
     from dvaui.defaults import EXTERNAL_SERVERS
     for create_dirname in ['queries', 'exports', 'external', 'retrievers', 'ingest']:
         if not os.path.isdir("{}/{}".format(settings.MEDIA_ROOT, create_dirname)):
@@ -580,10 +581,9 @@ def init_fs():
             except:
                 pass
         if create_dirname == 'external':
-            cwd = "{}/{}".format(settings.MEDIA_ROOT, create_dirname)
             for e in EXTERNAL_SERVERS:
-                gitpull = subprocess.Popen(['git','clone',e['url'],e['name']],cwd=cwd)
-                gitpull.wait()
+                ExternalServer.objects.get_or_create(name=e['name'],url=e['url'])
+
 
 @task
 def startq(queue_name, conc=3):

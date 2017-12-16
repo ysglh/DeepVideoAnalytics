@@ -30,7 +30,7 @@
                                 <tr>
                                     <td>{{ server.name }}</td>
                                     <td><a target="_blank" href="{{ server.url }}" >{{ server.url }}</a></td>
-                                    <td class="text-center"><form action="/external" method="post">{% csrf_token %}<input type="hidden" name="server_pk" value="{{ server.pk }}"/><button type="submit" class="btn btn-primary"> Load / Refresh </button></form></td>
+                                    <td class="text-center"><form action="/pull_external" method="post">{% csrf_token %}<input type="hidden" name="server_pk" value="{{ server.pk }}"/><button type="submit" class="btn btn-primary"> Load / Refresh </button></form></td>
                                 </tr>
                             {% endfor %}
                         </tbody>
@@ -43,7 +43,7 @@
         <div class="col-lg-12">
             <div class="box box-primary">
                 <div class="box-header with-border">
-                    <h4>Available datasets</h4>
+                    <h4>Available models, datasets and tempaltes</h4>
                 </div>
             <div class="box-body">
                 <table class="table dataTables" width="100%">
@@ -51,130 +51,19 @@
                     <tr>
                         <th>Name</th>
                         <th>Server</th>
-                        <th>Path</th>
-                        <th>Import</th>
+                        <th>Description</th>
+                        <th>Run script</th>
                     </tr>
                     </thead>
                     <tbody>
-                        {% for dataset in datasets %}
+                        {% for s in scripts %}
                             <tr>
-                                <td>{{ dataset.name }}</td>
-                                <td>{{ server.name }}</td>
-                                <td>{{ dataset.path }}</td>
-                                {% if dataset.requester_pays %}
-                                <td class="text-center">
-                                    <form action="/import_dataset" method="post">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="dataset_url" value="{{ dataset.url }}"/>
-                                    <p class="text-danger">AWS account will be charged for bandwidth.</p>
-                                    <input type="hidden" name="server_pk" value="{{ server.pk }}"/>
-                                    <input type="hidden" name="dindex" value="{{ forloop.counter0 }}"/>
-                                    <button type="submit" class="btn btn-danger"> Pull </button>
-                                </form>
-                                </td>
-
-                                {% else %}
-                                <td class="text-center"><form action="/import_dataset" method="post">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="dataset_url" value="{{ dataset.url }}"/>
-                                    <input type="hidden" name="server_pk" value="{{ server.pk }}"/>
-                                    <input type="hidden" name="dindex" value="{{ forloop.counter0 }}"/>
-                                    <button type="submit" class="btn btn-primary"> Pull </button>
-                                </form>
-                                </td>
-                                {% endif %}
+                                <td>{{ s.name }}</td>
+                                <td><a target="_blank" href="{{ s.server.url }}">{{ s.server.name }}</a></td>
+                                <td>{{ s.description }}</td>
+                                <td><a href={% url 'stored_process_detail' s.pk %}>Edit & Run</a></td>
                             </tr>
                         {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-lg-12">
-            <div class="box box-primary">
-                <div class="box-header with-border">
-                    <h4>Available Models</h4>
-                </div>
-            <div class="box-body">
-                <table class="table dataTables" width="100%">
-                    <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Path </th>
-                        <th>Import</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                            {% for detector in detectors %}
-                            <tr>
-                                <td>{{ detector.name }}</td>
-                                <td>{{ detector.path }}</td>
-                                {% if detector.requester_pays %}
-                                <td class="text-center"><form action="/import_detector" method="post">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="detector_url" value="{{ detector.url }}"/>
-                                    <p class="text-danger">AWS account will be charged for bandwidth.</p>
-                                    <input type="hidden" name="server_pk" value="{{ server.pk }}"/>
-                                    <input type="hidden" name="dindex" value="{{ forloop.counter0 }}"/>
-                                    <button type="submit" class="btn btn-danger"> Pull </button></form>
-                                </td>
-                                {% else %}
-                                <td class="text-center"><form action="/import_detector" method="post">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="detector_url" value="{{ detector.url }}"/>
-                                    <input type="hidden" name="server_pk" value="{{ server.pk }}"/>
-                                    <input type="hidden" name="dindex" value="{{ forloop.counter0 }}"/>
-                                    <button type="submit" class="btn btn-primary"> Pull </button></form></td>
-                                {% endif %}
-                            </tr>
-                            {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-lg-12">
-            <div class="box box-primary">
-                <div class="box-header with-border">
-                    <h4>Available scripts & process templates</h4>
-                </div>
-            <div class="box-body">
-                <table class="table dataTables" width="100%">
-                    <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Path </th>
-                        <th>Import</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                            {% for template in templates %}
-                            <tr>
-                                <td>{{ template.name }}</td>
-                                <td>{{ template.path }}</td>
-                                {% if template.requester_pays %}
-                                <td class="text-center"><form action="/import_detector" method="post">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="detector_url" value="{{ detector.url }}"/>
-                                    <p class="text-danger">AWS account will be charged for bandwidth.</p>
-                                    <input type="hidden" name="server_pk" value="{{ server.pk }}"/>
-                                    <input type="hidden" name="dindex" value="{{ forloop.counter0 }}"/>
-                                    <button type="submit" class="btn btn-danger"> Pull </button></form>
-                                </td>
-                                {% else %}
-                                <td class="text-center"><form action="/import_detector" method="post">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="detector_url" value="{{ detector.url }}"/>
-                                    <input type="hidden" name="server_pk" value="{{ server.pk }}"/>
-                                    <input type="hidden" name="dindex" value="{{ forloop.counter0 }}"/>
-                                    <button type="submit" class="btn btn-primary"> Pull </button></form></td>
-                                {% endif %}
-                            </tr>
-                            {% endfor %}
                     </tbody>
                 </table>
             </div>

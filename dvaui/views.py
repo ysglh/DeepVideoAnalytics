@@ -11,7 +11,7 @@ from dvaapp.models import Video, Frame, DVAPQL, QueryResults, TEvent, IndexEntri
     LOPQCodes, Tube,  Segment, FrameLabel, SegmentLabel, \
     VideoLabel, RegionLabel, TubeLabel, Label, ManagementAction, \
     DeepModel, Retriever, SystemState, QueryRegion, QueryRegionResults, Worker
-from .models import StoredDVAPQL
+from .models import StoredDVAPQL, ExternalServer
 from dva.celery import app
 from rest_framework import viewsets, mixins
 from django.contrib.auth.models import User
@@ -461,6 +461,7 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
     context['video_count'] = Video.objects.count()
     context['index_entries'] = IndexEntries.objects.all()
     context['region_count'] = Region.objects.all().count()
+    context['models_count'] = DeepModel.objects.all().count()
     context['worker_count'] = Worker.objects.all().count()
     context['tube_count'] = Tube.objects.all().count()
     context["videos"] = Video.objects.all().filter()
@@ -920,11 +921,19 @@ def import_s3(request):
 
 
 @user_passes_test(user_check)
+def pull_external(request):
+    if request.method == 'POST':
+        server_pk = request.POST.get('server_pk',None)
+        s = ExternalServer.objects.get(pk=server_pk)
+        s.pull()
+    return redirect('external')
+
+
+@user_passes_test(user_check)
 def external(request):
     context = {
-        'servers':defaults.EXTERNAL_SERVERS,
-        'available_datasets': {},
-        'available_detectors': {},
+        'servers':ExternalServer.objects.all(),
+        'scripts': StoredDVAPQL.objects.all(),
     }
     return render(request, 'external_data.html', context)
 

@@ -7,6 +7,7 @@ def create_region_json(filename, object_name, x, y, w, h, metadata, text, region
         'y': y,
         'w': w,
         'h': h,
+        'full_frame':full_frame,
         'metadata': metadata,
         'text': text,
         'object_name': object_name,

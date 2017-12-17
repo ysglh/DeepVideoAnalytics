@@ -35,8 +35,8 @@ class DatasetCreator(object):
         root_length = len("{}/{}/frames/".format(self.media_dir, self.primary_key))
         for subdir, dirs, files in os.walk("{}/{}/frames/".format(self.media_dir, self.primary_key)):
             if '__MACOSX' not in subdir:
-                for fname in files:
-                    fname = os.path.join(subdir, fname)
+                for ofname in files:
+                    fname = os.path.join(subdir, ofname)
                     if fname.endswith('jpg') or fname.endswith('jpeg'):
                         i += 1
                         try:
@@ -53,7 +53,7 @@ class DatasetCreator(object):
                             df.h = h
                             df.w = w
                             df.event_id = event.pk
-                            df.name = os.path.join(subdir[root_length:], fname)
+                            df.name = os.path.join(subdir[root_length:], ofname)
                             s = "/{}/".format(subdir[root_length:]).replace('//','/')
                             df.subdir = s
                             df_list.append(df)

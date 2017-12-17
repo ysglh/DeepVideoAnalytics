@@ -595,6 +595,25 @@ def perform_import(event_id):
     mark_as_completed(start)
 
 
+@app.task(track_started=True, name="perform_region_import")
+def perform_region_import(event_id):
+    start = TEvent.objects.get(pk=event_id)
+    if start.started:
+        return 0  # to handle celery bug with ACK in SOLO mode
+    else:
+        start.started = True
+        start.save()
+    path = start.arguments.get('path',None)
+    dv = start.video
+    tempdirname = tempfile.gettempdir()
+    temp_file = "{}/temp.json".format(tempdirname)
+    fs.get_path_to_file(path,tempfile)
+    task_shared.import_frame_regions_json(json.load(file(temp_file)),dv,event_id)
+    dv.save()
+    process_next(start.pk)
+    mark_as_completed(start)
+
+
 @app.task(track_started=True, name="perform_frame_download")
 def perform_frame_download(event_id):
     start = TEvent.objects.get(pk=event_id)

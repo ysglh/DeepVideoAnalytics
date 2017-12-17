@@ -58,10 +58,14 @@ def convert_keypoints(fname,prefix,subset=None):
     return regions_json
 
 if __name__ == '__main__':
-    subset = {int(k) for k in ['000000100500','000000108500','000000110500','000000111500','000000114500']}
-    regions = []
-    regions += convert_instances("coco_annotations/instances_train2017.json",prefix="train2017/",subset=subset)
-    regions += convert_captions("coco_annotations/captions_train2017.json",prefix="train2017/",subset=subset)
-    regions += convert_keypoints("coco_annotations/person_keypoints_train2017.json",prefix="train2017/",subset=subset)
-    with gzip.open('coco_ci_regions.gz','w') as output:
+    # subset = {int(k) for k in ['000000100500','000000108500','000000110500','000000111500','000000114500']}
+    subset = None
+    with gzip.open('coco_train2017_instances_regions.gz','w') as output:
+        regions = convert_instances("coco_annotations/instances_train2017.json", prefix="train2017/", subset=subset)
+        output.write(json.dumps(regions))
+    with gzip.open('coco_train2017_captions_regions.gz','w') as output:
+        regions = convert_captions("coco_annotations/captions_train2017.json", prefix="train2017/", subset=subset)
+        output.write(json.dumps(regions))
+    with gzip.open('coco_train2017_keypoints_regions.gz','w') as output:
+        regions = convert_keypoints("coco_annotations/person_keypoints_train2017.json", prefix="train2017/", subset=subset)
         output.write(json.dumps(regions))

@@ -1,6 +1,6 @@
 from dvaclient import utils
 from collections import defaultdict
-import json
+import json, gzip
 
 
 def convert_instances(fname,prefix,subset=None):
@@ -13,7 +13,7 @@ def convert_instances(fname,prefix,subset=None):
         if subset is None or entry['id'] in subset:
             entry['license'] = id_to_license[entry['license']]
             data[entry['id']]['image'] = entry
-            fname = "{}.jpg".format(prefix,str(entry['id']).zfill(12))
+            fname = "{}{}.jpg".format(prefix,str(entry['id']).zfill(12))
             regions_json.append(utils.create_region_json(fname,"info",0,0,0,0,entry,None,full_frame=True))
     for a in train_data['annotations']:
         if subset is None or a['image_id'] in subset:
@@ -35,7 +35,7 @@ def convert_captions(fname,prefix,subset=None):
     for annotation in captions_train_data['annotations']:
         if subset is None or annotation['id'] in subset:
             fname = "{}{}.jpg".format(prefix,str(annotation['id']).zfill(12))
-            regions_json.append(utils.create_region_json(fname,"caption",0,0,0,0,None,annotation,full_frame=True))
+            regions_json.append(utils.create_region_json(fname,"caption",0,0,0,0,None,annotation['caption'],full_frame=True))
     return regions_json
 
 
@@ -51,7 +51,9 @@ def convert_keypoints(fname,prefix,subset=None):
                 w = annotation['bbox'][2]
                 h = annotation['bbox'][3]
                 fname = "{}{}.jpg".format(prefix,str(annotation['image_id']).zfill(12))
-                regions_json.append(utils.create_region_json(fname,x=x,y=y,w=w,h=h,object_name=annotation['category'],
+                a = annotation
+                object_name = 'coco_keypoints/{}/{}'.format(a[u'category'][u'supercategory'],a[u'category'][u'name'])
+                regions_json.append(utils.create_region_json(fname,x=x,y=y,w=w,h=h,object_name=object_name,
                                                              metadata=annotation,text=None))
     return regions_json
 
@@ -61,5 +63,5 @@ if __name__ == '__main__':
     regions += convert_instances("coco_annotations/instances_train2017.json",prefix="train2017/",subset=subset)
     regions += convert_captions("coco_annotations/captions_train2017.json",prefix="train2017/",subset=subset)
     regions += convert_keypoints("coco_annotations/person_keypoints_train2017.json",prefix="train2017/",subset=subset)
-    with open('coco_ci_regions.json','w') as output:
+    with gzip.open('coco_ci_regions.gz','w') as output:
         output.write(json.dumps(regions))

@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-import subprocess, os, time, logging, requests, zipfile, io, sys, json, tempfile
+import subprocess, os, time, logging, requests, zipfile, io, sys, json, tempfile, gzip
 from urlparse import urlparse
 from collections import defaultdict
 from PIL import Image
@@ -606,11 +606,21 @@ def perform_region_import(event_id):
     path = start.arguments.get('path',None)
     dv = start.video
     tempdirname = tempfile.gettempdir()
-    temp_file = "{}/temp.json".format(tempdirname)
-    fs.get_path_to_file(path,tempfile)
-    task_shared.import_frame_regions_json(json.load(file(temp_file)),dv,event_id)
+    try:
+        if path.endswith('.json'):
+            temp_filename = "{}/temp.json".format(tempdirname)
+            fs.get_path_to_file(path,temp_filename)
+            j = json.load(file(temp_filename))
+        else:
+            temp_filename = "{}/temp.gz".format(tempdirname)
+            fs.get_path_to_file(path,temp_filename)
+            j = json.load(gzip.GzipFile(temp_filename))
+    except:
+        raise ValueError("{}".format(temp_filename))
+    task_shared.import_frame_regions_json(j, dv, event_id)
     dv.save()
     process_next(start.pk)
+    os.remove(temp_filename)
     mark_as_completed(start)
 
 

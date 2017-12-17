@@ -403,7 +403,10 @@ def import_region_json(r,frame_index,video_id,event_id,segment_index=None,frame_
     dr.w = r.get('w', 0)
     dr.h = r.get('h', 0)
     dr.confidence = r.get('confidence', 0.0)
-    dr.text = r.get('text', None)
+    if r.get('text', None):
+        dr.text = r['text']
+    else:
+        dr.text = ""
     dr.metadata = r.get('metadata', None)
     return dr
 

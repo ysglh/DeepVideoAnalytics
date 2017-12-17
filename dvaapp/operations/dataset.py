@@ -53,7 +53,7 @@ class DatasetCreator(object):
                             df.h = h
                             df.w = w
                             df.event_id = event.pk
-                            df.name = fname.split('/')[-1][:150]
+                            df.name = os.path.join(subdir[root_length:], fname)
                             s = "/{}/".format(subdir[root_length:]).replace('//','/')
                             df.subdir = s
                             df_list.append(df)

@@ -259,7 +259,7 @@ def ensure_files(queryset, target):
 
 def import_frame_regions_json(regions_json,video,event_id):
     """
-    Import regions from a JSON with frames identified by immuntable identifiers such as filename/path
+    Import regions from a JSON with frames identified by immutable identifiers such as filename/path
     :param regions_json:
     :param video:
     :param event_id:
@@ -278,32 +278,20 @@ def import_frame_regions_json(regions_json,video,event_id):
                         Frame.objects.filter(video_id=video_id)}
     regions = []
     for k in regions_json:
-        r = Region()
         if k['target'] == 'filename':
             fname = k['filename']
             if not fname.startswith('/'):
                 fname = '/{}'.format(fname)
             pk,findx = filename_to_pk[fname]
-            r.frame_id = pk
-            r.frame_index = findx
+            regions.append(serializers.import_region_json(k,frame_index=findx, frame_id=pk, video_id=video_id,
+                                                          event_id=event_id))
         elif k['target'] == 'index':
-            pk,sindx = frame_index_to_pk[k['frame_index']]
-            r.frame_id = pk
-            r.frame_index = k['frame_index']
-            r.segment_index = sindx
+            findx = k['frame_index']
+            pk,sindx = frame_index_to_pk[findx]
+            regions.append(serializers.import_region_json(k, frame_index=findx, frame_id=pk, video_id=video_id,
+                                                          event_id=event_id))
         else:
             raise ValueError('invalid target: {}'.format(k['target']))
-        r.video_id = video_id
-        r.event_id = event_id
-        r.region_type = k['region_type']
-        r.materialized = k.get('materialized',False)
-        r.full_frame = k.get('full_frame',False)
-        r.x = k['x']
-        r.y = k['y']
-        r.w = k['w']
-        r.h = k['h']
-        r.metadata = k['metadata']
-        r.text = k['text']
     Region.objects.bulk_create(regions,1000)
 
 

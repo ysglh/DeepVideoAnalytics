@@ -382,22 +382,30 @@ def import_frame_json(f,frame_index,event_id,video_id):
     df.frame_index = frame_index
     df.name = f['path']
     for r in f.get('regions',[]):
-        dr = Region()
-        dr.frame_index = frame_index
-        dr.video_id = video_id
-        dr.event_id = event_id
-        dr.object_name = r['object_name']
-        dr.region_type = r.get('region_type',Region.ANNOTATION)
-        dr.full_frame = r.get('full_frame',False)
-        dr.x = r.get('x',0)
-        dr.y = r.get('y',0)
-        dr.w = r.get('w',0)
-        dr.h = r.get('h',0)
-        dr.confidence = r.get('confidence',0.0)
-        dr.text = r.get('text',None)
-        dr.metadata = r.get('metadata',None)
-        regions.append(dr)
+        regions.append(import_region_json(r,frame_index,video_id,event_id))
     return df,regions
+
+
+def import_region_json(r,frame_index,video_id,event_id,segment_index=None,frame_id=None):
+    dr = Region()
+    dr.frame_index = frame_index
+    dr.video_id = video_id
+    dr.event_id = event_id
+    dr.object_name = r['object_name']
+    dr.region_type = r.get('region_type', Region.ANNOTATION)
+    dr.full_frame = r.get('full_frame', False)
+    if segment_index:
+        dr.segment_index = segment_index
+    if frame_id:
+        dr.frame_id = frame_id
+    dr.x = r.get('x', 0)
+    dr.y = r.get('y', 0)
+    dr.w = r.get('w', 0)
+    dr.h = r.get('h', 0)
+    dr.confidence = r.get('confidence', 0.0)
+    dr.text = r.get('text', None)
+    dr.metadata = r.get('metadata', None)
+    return dr
 
 
 def create_event(e, v):

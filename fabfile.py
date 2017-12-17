@@ -993,7 +993,8 @@ def test_coco():
         dt = TEvent(video=v,operation='perform_dataset_extraction')
         dt.save()
         perform_dataset_extraction(dt.pk)
-        args = { "path":"https://www.dropbox.com/s/0swl3rnjshydpdb/coco_ci_regions.json" }
+        shutil.copy("tests/ci/coco_regions/coco_ci_regions.json","dva/media/ingest/coco_ci_regions.json")
+        args = { "path":"/ingest/coco_ci_regions.json"}
         dt = TEvent(video=v,operation='perform_region_import',arguments=args)
         dt.save()
         perform_region_import(dt.pk)

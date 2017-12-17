@@ -277,14 +277,18 @@ def import_frame_regions_json(regions_json,video,event_id):
         frame_index_to_pk = { df.frame_index: (df.pk, df.segment_index) for df in
                         Frame.objects.filter(video_id=video_id)}
     regions = []
+    not_found = 0
     for k in regions_json:
         if k['target'] == 'filename':
             fname = k['filename']
             if not fname.startswith('/'):
                 fname = '/{}'.format(fname)
-            pk,findx = filename_to_pk[fname]
-            regions.append(serializers.import_region_json(k,frame_index=findx, frame_id=pk, video_id=video_id,
-                                                          event_id=event_id))
+            if fname in filename_to_pk:
+                pk,findx = filename_to_pk[fname]
+                regions.append(serializers.import_region_json(k,frame_index=findx, frame_id=pk, video_id=video_id,
+                                                              event_id=event_id))
+            else:
+                not_found += 1
         elif k['target'] == 'index':
             findx = k['frame_index']
             pk,sindx = frame_index_to_pk[findx]
@@ -292,6 +296,7 @@ def import_frame_regions_json(regions_json,video,event_id):
                                                           event_id=event_id))
         else:
             raise ValueError('invalid target: {}'.format(k['target']))
+    logging.info("{} filenames not found in the dataset".format(not_found))
     Region.objects.bulk_create(regions,1000)
 
 

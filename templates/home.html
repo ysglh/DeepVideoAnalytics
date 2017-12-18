@@ -263,12 +263,13 @@ cd DeepVideoAnalytics/tutorial && docker-compose up
             <p>You need to have latest version of Docker and nvidia-docker installed. The GPU Dockerfile is slightly different from the CPU version dockerfile.</p>
         </div>
         <div class="col-md-6 ">
-<pre class="m-t"  style="padding:0"><code class="bash">pip install --upgrade nvidia-docker-compose
+<pre class="m-t"  style="padding:0"><code class="bash"># Ensure latest nvidia-docker2 is installed correctly
+# And nvidia-docker is default runtime https://github.com/NVIDIA/nvidia-docker/issues/568
 git clone https://github.com/AKSHAYUBHAT/DeepVideoAnalytics
-cd DeepVideoAnalytics/deploy/single
-nvidia-docker-compose -f docker-compose-gpu.yml up
+cd DeepVideoAnalytics/deploy/gpu
+docker-compose -f docker-compose-gpu.yml up
 # Above command will automatically pull container images from docker-hub
-# You can visit Web UI on localhost:8000
+# You can visit Web UI on localhost:8600
 </code></pre>
         </div>
     </div>

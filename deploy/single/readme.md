@@ -1,6 +1,6 @@
 # Single Machine deployment
 
-The docker-compose files in this repo are intended for single instance deployment. 
+The docker-compose files in this repo are intended for single instance non-GPU deployment. 
 E.g. A single EC2 or a GCP instance. For several type of workloads this is good enough.
 
 - docker-compose-linode.yml : for single node deployments on VPS servers with port attacked to loopback interface and

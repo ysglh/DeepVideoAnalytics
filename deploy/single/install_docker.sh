@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# AMI: Deep Learning AMI Ubuntu Linux - 2.4_Oct2017 (ami-37bb714d)
 sudo apt-get update
 sudo apt-get -y install \
     apt-transport-https \

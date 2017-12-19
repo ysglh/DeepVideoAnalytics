@@ -29,6 +29,9 @@
        - DB_NAME=postgres
        - DB_USER=pgdbuser
        - DB_PASS=pgdbpass
+       - SUPERUSER=akshay
+       - SUPERPASS=super
+       - SUPEREMAIL=akshay@deepvideoanalytics.com
        - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
        - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
        - LAUNCH_SERVER_NGINX=1

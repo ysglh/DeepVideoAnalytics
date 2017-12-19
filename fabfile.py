@@ -113,11 +113,12 @@ def clean():
             local("ps auxww | grep 'celery -A dva' | awk '{print $2}' | xargs kill -9")
         except:
             pass
+        os.environ['SUPERUSER'] = 'akshay'
+        os.environ['SUPERPASS'] = 'super'
+        os.environ['SUPEREMAIL'] = 'test@deepvideoanalytics.com'
     init_fs()
     init_server()
     init_models()
-    if settings.DEV_ENV:
-        superu()
 
 
 @task
@@ -332,22 +333,8 @@ def quick():
 
     """
     clean()
-    superu()
     test()
     launch()
-
-
-@task
-def superu(username="akshay", email="akshay@test.com", password="super"):
-    """
-    Create a superuser
-    :param username: 
-    :param email: 
-    :param password: 
-    """
-    local(
-        'echo "from django.contrib.auth.models import User; User.objects.create_superuser(\'{}\', \'{}\', \'{}\')" | python manage.py shell'.format(
-            username, email, password))
 
 
 @task
@@ -574,15 +561,18 @@ def init_fs():
     from django.conf import settings
     from dvaui.models import ExternalServer
     from dvaui.defaults import EXTERNAL_SERVERS
+    from django.contrib.auth.models import User
+    if not User.objects.filter(is_superuser=True).exists() and 'SUPERUSER' in os.environ:
+        User.objects.create_superuser(username=os.environ['SUPERUSER'], password=os.environ['SUPERPASS'],
+                                      email=os.environ['SUPEREMAIL'])
     for create_dirname in ['queries', 'exports', 'external', 'retrievers', 'ingest']:
         if not os.path.isdir("{}/{}".format(settings.MEDIA_ROOT, create_dirname)):
             try:
                 os.mkdir("{}/{}".format(settings.MEDIA_ROOT, create_dirname))
             except:
                 pass
-        if create_dirname == 'external':
-            for e in EXTERNAL_SERVERS:
-                ExternalServer.objects.get_or_create(name=e['name'],url=e['url'])
+    for e in EXTERNAL_SERVERS:
+        ExternalServer.objects.get_or_create(name=e['name'],url=e['url'])
 
 
 @task
@@ -901,18 +891,16 @@ def store_token_for_testing():
     """
     Generate & store authentication token for superuser (akshay) to test REST API.
     """
-    import django
+    import django, uuid
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from django.contrib.auth.models import User
     from rest_framework.authtoken.models import Token
-    try:
-        u = User.objects.get(username="akshay")
-    except:
-        superu()
-        u = User.objects.get(username="akshay")
-    token, _ = Token.objects.get_or_create(user=User.objects.get(username=u))
+    u = User.objects.all().first()
+    if u is None:
+        u = User.objects.create_user("test_token_user",email="test@test.com",password=str(uuid.uuid1()))
+    token, _ = Token.objects.get_or_create(user=u)
     with open('creds.json', 'w') as creds:
         creds.write(json.dumps({'token': token.key}))
 

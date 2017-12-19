@@ -32,6 +32,9 @@
        - LAUNCH_SERVER_NGINX=1
        - GPU_MEMORY=0.30
        - LAUNCH_SCHEDULER=1
+       - SUPERUSER=akshay
+       - SUPERPASS=super
+       - SUPEREMAIL=akshay@deepvideoanalytics.com
        - LAUNCH_BY_NAME_detector_coco=1
        - LAUNCH_BY_NAME_detector_face=1
        - LAUNCH_BY_NAME_detector_textbox=1

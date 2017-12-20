@@ -5,7 +5,7 @@ Deployment with Kubernetes on Google Cloud Engine (Ongoing)
 
 0. Ensure that GKE cluster is setup and auth by following instructions from GCP console.
  
-1. Create config.py (fill & rename config_example.py) with values for secrets_template.yml
+1. Create config.py (fill & rename config_example.py) which contains values for secrets_template.yml
 
 2. Run "create_bucket.py" to create and make Google Cloud storage bucket public (used for storing media assets.)
 

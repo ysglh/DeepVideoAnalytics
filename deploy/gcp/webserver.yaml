@@ -103,7 +103,7 @@ spec:
         args:
           - bash
           - -c
-          - youtube-dl -U && git pull && sleep 10 && fab migrate  && pip install --upgrade google-cloud-storage && fab start_container:server
+          - youtube-dl -U && git pull && sleep 10 && pip install --upgrade google-cloud-storage && fab migrate && fab start_container:server
 ---
 apiVersion: v1
 kind: Service

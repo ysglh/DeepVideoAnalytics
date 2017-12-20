@@ -20,7 +20,7 @@ spec:
         name: dvawebserver
         env:
         - name: LAUNCH_Q_qextract
-          value: 1
+          value: "4"
         - name: AWS_ACCESS_KEY_ID
           valueFrom:
             secretKeyRef:
@@ -78,7 +78,12 @@ spec:
             secretKeyRef:
               name: postgres-secret
               key: dbpassword
+        - name: CLOUD_FS_PREFIX
+          valueFrom:
+            secretKeyRef:
+              name: app-secret
+              key: cloudfsprefix
         args:
           - bash
           - -c
-          - youtube-dl -U && git pull && sleep 15 && fab start_container:worker
+          - youtube-dl -U && git pull  && sleep 15  && pip install --upgrade google-cloud-storage && fab start_container:worker

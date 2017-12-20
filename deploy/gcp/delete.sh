@@ -4,4 +4,4 @@ kubectl delete -f secrets.yml
 kubectl delete -f postgres.yaml
 kubectl delete -f rabbitmq.yaml
 kubectl delete -f webserver.yaml
-
+kubectl delete -f extractor.yaml

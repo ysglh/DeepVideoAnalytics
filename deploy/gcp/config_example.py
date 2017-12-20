@@ -1,0 +1,14 @@
+region='' # GCP region e.g. us-central1 etc,
+dbusername=''
+dbpassword=''
+rabbithost=''
+rabbitusername=''
+rabbitpassword=''
+awskey='' # if you intend to import data from S3
+awssecret='' # if you intend to import data from S3
+mediabucket=''
+secretkey=''
+superuser=''
+superpass=''
+superemail=''
+cloudfsprefix='gs'

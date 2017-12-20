@@ -85,14 +85,18 @@ def ensure(path, dirnames=None, media_root=None):
         else:
             if dirname not in dirnames and not os.path.exists(dirname):
                 mkdir_safe(dlpath)
-            try:
-                if S3_MODE:
-                    BUCKET.download_file(path.strip('/'),dlpath)
-                else:
+            src = path.strip('/')
+            if S3_MODE:
+                try:
+                    BUCKET.download_file(src,dlpath)
+                except:
+                    raise ValueError("{} to {}".format(path, dlpath))
+            else:
+                try:
                     with open(dlpath) as fout:
-                        BUCKET.get_blob(path.strip('/')).download_to_file(fout)
-            except:
-                raise ValueError("path:{} dlpath:{}".format(path,dlpath))
+                        BUCKET.get_blob(src).download_to_file(fout)
+                except:
+                    raise ValueError("{} to {}".format(src, dlpath))
 
 
 def get_path_to_file(path,local_path):

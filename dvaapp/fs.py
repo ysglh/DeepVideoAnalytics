@@ -136,23 +136,10 @@ def get_path_to_file(path,local_path):
         bucket_name = path[5:].split('/')[0]
         key = '/'.join(path[5:].split('/')[1:])
         remote_bucket = GS.get_bucket(bucket_name)
-        with open(local_path) as fout:
+        with open(local_path,'w') as fout:
             remote_bucket.get_blob(key).download_to_file(fout)
     else:
-        # dv.create_directory(create_subdirs=False)
-        # video_root_dir = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
-        # path = "{}/{}/".format(settings.MEDIA_ROOT, dv.pk)
-        # download_s3_dir(key, path, bucket)
-        # for filename in os.listdir(os.path.join(path, key)):
-        #     shutil.move(os.path.join(path, key, filename), os.path.join(path, filename))
-        # os.rmdir(os.path.join(path, key))
-        # with open("{}/{}/table_data.json".format(settings.MEDIA_ROOT, dv.pk)) as input_json:
-        #     video_json = json.load(input_json)
-        # importer = serializers.VideoImporter(video=dv, json=video_json, root_dir=video_root_dir)
-        # importer.import_video()
-        # dv.uploaded = True
-        # dv.save()
-        raise NotImplementedError("import S3/GCS directories disabled or Unknown file system {}".format(path))
+        raise NotImplementedError("importing S3/GCS directories disabled or Unknown file system {}".format(path))
 
 
 def upload_file_to_remote(fpath):

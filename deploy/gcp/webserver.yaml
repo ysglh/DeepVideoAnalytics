@@ -51,6 +51,11 @@ spec:
             secretKeyRef:
               name: app-secret
               key: mediaurl
+        - name: CLOUD_FS_PREFIX
+          valueFrom:
+            secretKeyRef:
+              name: app-secret
+              key: cloudfsprefix
         - name: RABBIT_HOST
           value: rabbitmq-master
         - name: RABBIT_USER
@@ -68,6 +73,21 @@ spec:
             secretKeyRef:
               name: app-secret
               key: secretkey
+        - name: SUPERUSER
+          valueFrom:
+            secretKeyRef:
+              name: app-secret
+              key: superuser
+        - name: SUPERPASS
+          valueFrom:
+            secretKeyRef:
+              name: app-secret
+              key: superpass
+        - name: SUPEREMAIL
+          valueFrom:
+            secretKeyRef:
+              name: app-secret
+              key: superemail
         - name: DB_USER
           valueFrom:
             secretKeyRef:
@@ -78,14 +98,12 @@ spec:
             secretKeyRef:
               name: postgres-secret
               key: dbpassword
-        - name: TEST
-          value: "1"
         ports:
         - containerPort: 80
         args:
           - bash
           - -c
-          - youtube-dl -U && git pull && sleep 10 && fab migrate && fab start_container:server
+          - youtube-dl -U && git pull && sleep 10 && fab migrate  && pip install --upgrade google-cloud-storage && fab start_container:server
 ---
 apiVersion: v1
 kind: Service

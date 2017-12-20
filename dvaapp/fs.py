@@ -175,18 +175,7 @@ def download_video_from_remote_to_local(dv):
         if syncer.returncode != 0:
             raise ValueError, "Error while executing : {}".format(command)
     else:
-        dest = '{}/{}/'.format(settings.MEDIA_ROOT, dv.pk)
-        src = 'gs://{}/{}/'.format(settings.MEDIA_BUCKET, dv.pk)
-        try:
-            os.mkdir(dest)
-        except:
-            pass
-        args = ['gsutil', '-m', 'cp', '-r', src, dest]
-        command = " ".join(args)
-        syncer = subprocess.Popen(args)
-        syncer.wait()
-        if syncer.returncode != 0:
-            raise ValueError, "Error while executing : {}".format(command)
+        raise NotImplementedError
 
 
 def upload_video_to_remote(video_id):
@@ -200,7 +189,11 @@ def upload_video_to_remote(video_id):
         if syncer.returncode != 0:
             raise ValueError, "Error while executing : {}".format(command)
     elif GS_MODE:
-        raise NotImplementedError("Google Storage CLI sync directory not implemented")
+        root_length = len(settings.MEDIA_ROOT)
+        for root, directories, filenames in os.walk(src):
+            for filename in filenames:
+                path = os.path.join(root,filename)
+                upload_file_to_remote(path[root_length:])
     else:
         raise ValueError
 

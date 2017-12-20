@@ -17,7 +17,7 @@ spec:
       containers:
       - image: akshayubhat/dva-auto:latest
         imagePullPolicy: "IfNotPresent"
-        name: dvawebserver
+        name: dvaextractor
         env:
         - name: LAUNCH_Q_qextract
           value: "4"

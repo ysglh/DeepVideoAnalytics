@@ -1,0 +1,89 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: retfacenet
+  labels:
+    name: retfacenet
+spec:
+  replicas: 1
+  progressDeadlineSeconds: 600
+  minReadySeconds: 15
+  revisionHistoryLimit: 5
+  template:
+    metadata:
+      labels:
+        name: retfacenet
+    spec:
+      containers:
+      - image: akshayubhat/dva-auto:latest
+        imagePullPolicy: "IfNotPresent"
+        name: retfacenet
+        env:
+        - name: LAUNCH_BY_NAME_retriever_facenet
+          value: "1"
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: app-secret
+              key: awskey
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: app-secret
+              key: awssecret
+        - name: DB_HOST
+          value: postgres-master
+        - name: DB_NAME
+          value: postgres
+        - name: DISABLE_DEBUG
+          value: "1"
+        - name: DISABLE_NFS
+          value: "1"
+        - name: DOCKER_MODE
+          value: "true"
+        - name: MEDIA_BUCKET
+          valueFrom:
+            secretKeyRef:
+              name: app-secret
+              key: mediabucket
+        - name: MEDIA_URL
+          valueFrom:
+            secretKeyRef:
+              name: app-secret
+              key: mediaurl
+        - name: RABBIT_HOST
+          value: rabbitmq-master
+        - name: RABBIT_USER
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-secret
+              key: rabbitusername
+        - name: RABBIT_PASS
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-secret
+              key: rabbitpassword
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: app-secret
+              key: secretkey
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: dbusername
+        - name: DB_PASS
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: dbpassword
+        - name: CLOUD_FS_PREFIX
+          valueFrom:
+            secretKeyRef:
+              name: app-secret
+              key: cloudfsprefix
+        args:
+          - bash
+          - -c
+          - youtube-dl -U && git pull  && sleep 15  && pip install --upgrade google-cloud-storage && fab start_container:worker

@@ -63,7 +63,8 @@ def copy_remote(dv,path):
             raise ValueError("Could not copy from {} to {}".format(source,dest))
         S3.Object(settings.MEDIA_BUCKET, path.strip('/')).delete()
     elif GS_MODE:
-        raise NotImplementedError
+        BUCKET.copy_blob(BUCKET.get_blob(path.strip('/')),BUCKET,new_name=dest)
+        BUCKET.delete_blob(path.strip('/'))
     else:
         raise ValueError("NFS disabled and unknown cloud storage prefix")
 

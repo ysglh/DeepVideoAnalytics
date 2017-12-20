@@ -11,3 +11,6 @@ kubectl create -f deployments/postgres.yaml
 kubectl create -f deployments/rabbitmq.yaml
 kubectl create -f deployments/textbox.yaml
 kubectl create -f deployments/webserver.yaml
+kubectl create -f deployments/scheduler.yaml
+kubectl create -f deployments/crnn.yaml
+kubectl create -f deployments/tagger.yaml

@@ -11,3 +11,6 @@ kubectl delete -f deployments/postgres.yaml
 kubectl delete -f deployments/rabbitmq.yaml
 kubectl delete -f deployments/textbox.yaml
 kubectl delete -f deployments/webserver.yaml
+kubectl delete -f deployments/scheduler.yaml
+kubectl delete -f deployments/crnn.yaml
+kubectl delete -f deployments/tagger.yaml

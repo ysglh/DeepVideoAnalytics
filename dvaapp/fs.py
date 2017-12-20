@@ -151,23 +151,41 @@ def get_path_to_file(path,local_path):
 
 
 def upload_file_to_remote(fpath):
-    with open('{}{}'.format(settings.MEDIA_ROOT,fpath),'rb') as body:
-        S3.Object(settings.MEDIA_BUCKET,fpath.strip('/')).put(Body=body)
+    if S3_MODE:
+        with open('{}{}'.format(settings.MEDIA_ROOT,fpath),'rb') as body:
+            S3.Object(settings.MEDIA_BUCKET,fpath.strip('/')).put(Body=body)
+    else:
+        fblob = BUCKET.blob(fpath.strip('/'))
+        fblob.upload_from_filename(filename='{}{}'.format(settings.MEDIA_ROOT,fpath))
 
 
 def download_video_from_remote_to_local(dv):
     logging.info("Syncing entire directory for {}".format(dv.pk))
-    dest = '{}/{}/'.format(settings.MEDIA_ROOT, dv.pk)
-    src = 's3://{}/{}/'.format(settings.MEDIA_BUCKET, dv.pk)
-    try:
-        os.mkdir(dest)
-    except:
-        pass
-    command = " ".join(['aws', 's3', 'sync', '--quiet', src, dest])
-    syncer = subprocess.Popen(['aws', 's3', 'sync', '--quiet', '--size-only', src, dest])
-    syncer.wait()
-    if syncer.returncode != 0:
-        raise ValueError, "Error while executing : {}".format(command)
+    if S3_MODE:
+        dest = '{}/{}/'.format(settings.MEDIA_ROOT, dv.pk)
+        src = 's3://{}/{}/'.format(settings.MEDIA_BUCKET, dv.pk)
+        try:
+            os.mkdir(dest)
+        except:
+            pass
+        command = " ".join(['aws', 's3', 'sync', '--quiet', src, dest])
+        syncer = subprocess.Popen(['aws', 's3', 'sync', '--quiet', '--size-only', src, dest])
+        syncer.wait()
+        if syncer.returncode != 0:
+            raise ValueError, "Error while executing : {}".format(command)
+    else:
+        dest = '{}/{}/'.format(settings.MEDIA_ROOT, dv.pk)
+        src = 'gs://{}/{}/'.format(settings.MEDIA_BUCKET, dv.pk)
+        try:
+            os.mkdir(dest)
+        except:
+            pass
+        args = ['gsutil', '-m', 'cp', '-r', src, dest]
+        command = " ".join(args)
+        syncer = subprocess.Popen(args)
+        syncer.wait()
+        if syncer.returncode != 0:
+            raise ValueError, "Error while executing : {}".format(command)
 
 
 def upload_video_to_remote(video_id):

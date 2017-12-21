@@ -69,7 +69,8 @@ def copy_remote(dv,path):
         raise ValueError("NFS disabled and unknown cloud storage prefix")
 
 
-def ensure(path, dirnames=None, media_root=None):
+def ensure(path, dirnames=None, media_root=None, safe=False, event_id=None):
+    original_path = None
     if BUCKET is not None:
         if media_root is None:
             media_root = settings.MEDIA_ROOT
@@ -79,6 +80,12 @@ def ensure(path, dirnames=None, media_root=None):
             dlpath = "{}{}".format(media_root,path)
         else:
             dlpath = "{}/{}".format(media_root, path)
+        if safe:
+            if not event_id is None:
+                original_path = dlpath
+                dlpath = "{}.{}".format(dlpath,event_id)
+            else:
+                raise ValueError("Safe ensure must be used with event id instead got {}".format(event_id))
         dirname = os.path.dirname(dlpath)
         if os.path.isfile(dlpath):
             return True
@@ -94,7 +101,8 @@ def ensure(path, dirnames=None, media_root=None):
             else:
                 with open(dlpath,'w') as fout:
                     BUCKET.get_blob(src).download_to_file(fout)
-
+        if safe:
+            os.rename(dlpath,original_path)
 
 def get_path_to_file(path,local_path):
     """

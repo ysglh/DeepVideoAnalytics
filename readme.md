@@ -11,10 +11,22 @@
 #### Deep Video Analytics is a platform for indexing and extracting information from videos and images. For installation instructions & demo go to [https://www.deepvideoanalytics.com](https://www.deepvideoanalytics.com)
 
 
-#### Documentation
+#### Documentation & tutorial
 
-Documentation along with a tutorial are being written in [/tutorial](/tutorial) directory.
-For a quick overview we recommend going through the [presentation in readme.pdf](readme.pdf)
+- For a quick overview we recommend going through the [presentation in readme.pdf](readme.pdf)
+
+- Documentation along with a tutorial is being written in [/tutorial](/tutorial) directory.
+
+#### Deployment 
+
+We provide instructions for deploying DVA in three scenarios.
+
+1. [deploy/cpu](/deploy/cpu) contains docker-compose files for non-GPU single machine deployments on Linode, AWS, GCP etc.
+
+2. [deploy/gpu](/deploy/gpu) contains docker-compose files for GPU single machine deployments on AWS etc.
+
+3. [deploy/gcp](/deploy/gcp) contains files used for launching DVA in a scalable GKE + GCS setup
+
 
 #### Architecture, data & processing model
 ![Architecture](notebooks/distributed_intelligence/figures/system.png "architecture")

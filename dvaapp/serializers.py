@@ -374,11 +374,13 @@ def import_detector(dd):
     dd.save()
 
 
-def import_frame_json(f,frame_index,event_id,video_id):
+def import_frame_json(f,frame_index,event_id,video_id,w,h):
     regions = []
     df = Frame()
     df.video_id = video_id
     df.event_id = event_id
+    df.w = w
+    df.h = h
     df.frame_index = frame_index
     df.name = f['path']
     for r in f.get('regions',[]):

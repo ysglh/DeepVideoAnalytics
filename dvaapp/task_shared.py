@@ -169,11 +169,14 @@ def load_frame_list(dv,event_id,frame_index__gte=0,frame_index__lt=-1):
         elif i >= frame_index__gte:
             try:
                 get_path_to_file(f['path'],temp_path)
+                im = Image.open(temp_path)
+                w, h = im.size
+                im.close()
             except:
                 logging.exception("Failed to get {}".format(f['path']))
                 pass
             else:
-                df, drs = serializers.import_frame_json(f,i,event_id,video_id)
+                df, drs = serializers.import_frame_json(f,i,event_id,video_id,w,h)
                 frame_index_to_regions[i] = drs
                 frames.append(df)
                 shutil.move(temp_path,df.path())

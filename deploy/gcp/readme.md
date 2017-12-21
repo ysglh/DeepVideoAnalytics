@@ -13,7 +13,12 @@ Deployment with Kubernetes on Google Cloud Engine (Ongoing)
 
 4. Run "launch.sh" to launch containers.
 
-5. Open kubeproxy and visit external IP in services.
+5. Open kubeproxy and visit external IP in services or visit external IP listed in kubectl get svc.
+
+
+
+
+
 
 
 ### Remaining tasks:    

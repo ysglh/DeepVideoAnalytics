@@ -1,3 +1,0 @@
-Flask>=0.12
-zappa>=0.17.6
-boto3

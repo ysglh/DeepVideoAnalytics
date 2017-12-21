@@ -112,3 +112,4 @@ scripts/coco_annotations/*.json
 /deploy/gcp/config.py
 /scripts/nyc.txt
 /scripts/prep.py
+/deploy/static/

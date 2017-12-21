@@ -638,6 +638,7 @@ def perform_frame_download(event_id):
     else:
         fs.ensure('/{}/framelist.json'.format(dv.pk))
     filters = start.arguments['filters']
+    dv.create_directory(create_subdirs=True)
     task_shared.load_frame_list(dv, start.pk, frame_index__gte=filters['frame_index__gte'],
                                 frame_index__lt=filters.get('frame_index__lt',-1))
     process_next(start.pk)

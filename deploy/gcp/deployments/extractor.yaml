@@ -5,7 +5,7 @@ metadata:
   labels:
     name: extractor
 spec:
-  replicas: 1
+  replicas: 3
   progressDeadlineSeconds: 600
   minReadySeconds: 15
   revisionHistoryLimit: 5
@@ -20,7 +20,7 @@ spec:
         name: dvaextractor
         env:
         - name: LAUNCH_Q_qextract
-          value: "4"
+          value: "2"
         - name: AWS_ACCESS_KEY_ID
           valueFrom:
             secretKeyRef:

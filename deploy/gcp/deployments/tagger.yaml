@@ -86,4 +86,4 @@ spec:
         args:
           - bash
           - -c
-          - youtube-dl -U && git pull  && sleep 15  && pip install --upgrade google-cloud-storage && fab start_container:worker
+          - youtube-dl -U && git pull  && sleep 15 && fab start_container:worker

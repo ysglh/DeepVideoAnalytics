@@ -184,8 +184,6 @@ def load_frame_list(dv,event_id,frame_index__gte=0,frame_index__lt=-1):
     regions = []
     for f in fids:
         region_list = frame_index_to_regions[f.frame_index]
-        logging.info(region_list)
-        logging.info(len(region_list))
         for dr in region_list:
             dr.frame_id = f.id
             regions.append(dr)

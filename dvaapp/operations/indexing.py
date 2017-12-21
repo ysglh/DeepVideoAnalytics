@@ -57,7 +57,7 @@ class IndexerTask(celery.Task):
                          'index': i,
                          'type': 'frame'}
                 if cloud_paths:
-                    paths.append(df.path('{}://{}/'.format(settings.CLOUD_FS_PREFIX,settings.MEDIA_BUCKET)))
+                    paths.append(df.path('{}://{}'.format(settings.CLOUD_FS_PREFIX,settings.MEDIA_BUCKET)))
                 else:
                     paths.append(df.path())
             elif target == 'regions':

@@ -15,9 +15,9 @@ repo and go to deploy/gcp.
 
 #### 1. Create [config.py](config_example.py) (copy & edit config_example.py) which contains values for secrets_template.yml
 
-#### 2. Run "[create_bucket.py](create_bucket.py)" to create and make Google Cloud storage bucket public (used for storing media assets.)
+#### 2. Run "[create_bucket.py](create_bucket.py)" to create and make Google Cloud storage bucket public.
 
-Above command creates bucket to store media and **makes it public**. You might encounter error
+Above command creates bucket to store media files (images, videos, indexes etc.) and **makes it public**. You might encounter error
 if the bucket name is already taken.
 
 #### 3. Run "[create_secrets.py](create_secrets.py)" to create secrets.yml

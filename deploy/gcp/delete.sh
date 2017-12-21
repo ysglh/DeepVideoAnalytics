@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 kubectl delete -f secrets.yml
+kubectl delete -f deployments/gce-pd.yml
 kubectl delete -f deployments/coco.yaml
 kubectl delete -f deployments/extractor.yaml
 kubectl delete -f deployments/face.yaml

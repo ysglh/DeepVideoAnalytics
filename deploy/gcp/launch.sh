@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 kubectl create -f secrets.yml
+kubectl create -f deployments/gce-pd.yml
 kubectl create -f deployments/coco.yaml
 kubectl create -f deployments/extractor.yaml
 kubectl create -f deployments/face.yaml

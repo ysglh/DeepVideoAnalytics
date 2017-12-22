@@ -27,7 +27,7 @@ env.key_filename = KEY_FILE
 
 
 @task
-def launch():
+def launch_spot():
     """
     Launch Spot fleet with instances using ECS AMI into an ECS cluster.
     The cluster can be then used to run task definitions.
@@ -38,25 +38,19 @@ def launch():
                        KeyName=KeyName,
                        SecurityGroups=[{'GroupId': SecurityGroupId},],
                        InstanceType="p2.xlarge",
-                       UserData=base64.b64encode(file('initdata/ecs_bootstrap_gpu.txt').read().format(GPU_CLUSTER_NAME)),
-                       WeightedCapacity=float(gpu_count),
+                       WeightedCapacity=float(1.0),
                        Placement={
                            "AvailabilityZone":"us-east-1a,us-east-1b,us-east-1c,us-east-1d,us-east-1e,us-east-1f"
                        },
                        IamInstanceProfile=ECS_ROLE)
-    for count,spec,price,itype in [(cpu_count,ec2spec_cpu,cpu_price,'CPU'),
-                                   (gpu_count,ec2spec_gpu,gpu_price,'GPU')]:
-        if count and int(count):
-            launch_spec = [spec,]
-            SpotFleetRequestConfig = dict(AllocationStrategy='lowestPrice',
-                                          SpotPrice=str(price),
-                                          TargetCapacity=int(count),
-                                          IamFleetRole=FLEET_ROLE,
-                                          InstanceInterruptionBehavior='stop',
-                                          LaunchSpecifications=launch_spec)
-            output = ec2.request_spot_fleet(DryRun=False, SpotFleetRequestConfig=SpotFleetRequestConfig)
-            fleet_request_id = output[u'SpotFleetRequestId']
-            print "Lauched fleet request with id {} for {} {} instances at {} price".format(fleet_request_id,count,itype,price)
+    count,spec,price,itype = 1,ec2spec_gpu,1.0,'GPU'
+    launch_spec = [spec,]
+    SpotFleetRequestConfig = dict(AllocationStrategy='lowestPrice', SpotPrice=str(price), TargetCapacity=int(count),
+                                  IamFleetRole=FLEET_ROLE, InstanceInterruptionBehavior='stop',
+                                  LaunchSpecifications=launch_spec)
+    output = ec2.request_spot_fleet(DryRun=False, SpotFleetRequestConfig=SpotFleetRequestConfig)
+    fleet_request_id = output[u'SpotFleetRequestId']
+    print "Lauched fleet request with id {} for {} {} instances at {} price".format(fleet_request_id,count,itype,price)
 
 
 

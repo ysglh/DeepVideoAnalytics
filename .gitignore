@@ -10,6 +10,7 @@ Icon?
 Thumbs.db
 *.swp
 experiments/private
+experiments/coco/coco_annotations
 /backups/
 vdn_repo
 /dva/staticfiles/
@@ -35,6 +36,4 @@ scripts/coco_annotations/*.json
 /client/build/
 /deploy/gcp/secrets.yml
 /deploy/gcp/config.py
-/scripts/nyc.txt
-/scripts/prep.py
 /deploy/static/

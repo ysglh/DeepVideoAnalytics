@@ -221,21 +221,3 @@ def download_s3_dir(dist, local, bucket, client = None, resource = None):
                                                    ExtraArgs={'RequestPayer': 'requester'})
 
 
-def download_yolo_detector(dm):
-    path = dm.files[0]['url']
-    dm.create_directory(create_subdirs=False)
-    if 'www.dropbox.com' in path and not path.endswith('?dl=1'):
-        r = requests.get(path + '?dl=1')
-    else:
-        r = requests.get(path)
-    output_filename = "{}/models/{}.zip".format(settings.MEDIA_ROOT, dm.pk)
-    with open(output_filename, 'wb') as f:
-        for chunk in r.iter_content(chunk_size=1024):
-            if chunk:
-                f.write(chunk)
-    r.close()
-    source_zip = "{}/models/{}.zip".format(settings.MEDIA_ROOT, dm.pk)
-    zipf = zipfile.ZipFile(source_zip, 'r')
-    zipf.extractall("{}/models/{}/".format(settings.MEDIA_ROOT, dm.pk))
-    zipf.close()
-    os.remove(source_zip)

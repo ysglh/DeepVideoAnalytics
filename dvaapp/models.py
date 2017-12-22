@@ -1,5 +1,5 @@
 from __future__ import unicode_literals
-import os, json, gzip, sys, shutil
+import os, json, gzip, sys, shutil, zipfile
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.postgres.fields import ArrayField, JSONField
@@ -214,10 +214,6 @@ class DeepModel(models.Model):
         return json.loads(self.class_distribution) if self.class_distribution.strip() else {}
 
     def download(self):
-        if self.model_type == DeepModel.YOLO:
-            # fs.download_yolo_detector(self)
-            # serializers.import_detector(dm)
-            raise NotImplementedError
         root_dir = settings.MEDIA_ROOT
         model_type_dir = "{}/models/".format(root_dir)
         if not os.path.isdir(model_type_dir):
@@ -236,6 +232,22 @@ class DeepModel(models.Model):
                 fs.get_path_to_file(m['url'],dlpath)
             if settings.DISABLE_NFS and sys.platform != 'darwin':
                 fs.upload_file_to_remote("/models/{}/{}".format(self.pk,m['filename']))
+        if self.model_type == DeepModel.YOLO:
+            source_zip = "{}/models/{}/model.zip".format(settings.MEDIA_ROOT, self.pk)
+            zipf = zipfile.ZipFile(source_zip, 'r')
+            zipf.extractall("{}/models/{}/".format(settings.MEDIA_ROOT, self.pk))
+            zipf.close()
+            os.remove(source_zip)
+            self.phase_1_log = file("{}/models/{}/phase_1.log".format(settings.MEDIA_ROOT, self.pk)).read()
+            self.phase_2_log = file("{}/models/{}/phase_2.log".format(settings.MEDIA_ROOT, self.pk)).read()
+            with open("{}/models/{}/input.json".format(settings.MEDIA_ROOT, self.pk)) as fh:
+                metadata = json.load(fh)
+            if 'class_distribution' in metadata:
+                self.class_distribution = json.dumps(metadata['class_distribution'])
+            else:
+                self.class_distribution = json.dumps(metadata['class_names'])
+                self.class_names = json.dumps(metadata['class_names'])
+            self.save()
 
     def ensure(self):
         for m in self.files:

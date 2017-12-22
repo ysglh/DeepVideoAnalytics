@@ -155,7 +155,7 @@ def process_next(task_id,inject_filters=None,custom_next_tasks=None,sync=True,la
     dt = TEvent.objects.get(pk=task_id)
     launched = []
     logging.info("next tasks for {}".format(dt.operation))
-    next_tasks = dt.arguments.get('next_tasks',[]) if dt.arguments and launch_next else []
+    next_tasks = dt.arguments.get('map',[]) if dt.arguments and launch_next else []
     if sync and settings.MEDIA_BUCKET:
         for k in SYNC_TASKS.get(dt.operation,[]):
             if settings.DISABLE_NFS:
@@ -165,7 +165,7 @@ def process_next(task_id,inject_filters=None,custom_next_tasks=None,sync=True,la
                 launched += launch_tasks(k,dt,inject_filters,None,'sync')
     for k in next_tasks+custom_next_tasks:
         map_filters = get_map_filters(k,dt.video)
-        launched += launch_tasks(k, dt, inject_filters,map_filters,'next_tasks')
+        launched += launch_tasks(k, dt, inject_filters,map_filters,'map')
     return launched
 
 

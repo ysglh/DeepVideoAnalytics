@@ -12,24 +12,24 @@
           "video_id": "__pk__",
           "arguments": {
             "path": "https://www.dropbox.com/s/hvblde37d90rks3/citest.mp4",
-            "next_tasks": [
+            "map": [
               {
                 "operation": "perform_video_segmentation",
                 "arguments": {
-                  "next_tasks": [
+                  "map": [
                     {
                       "operation": "perform_video_decode",
                       "arguments": {
                         "segments_batch_size": 10,
                         "rate": 30,
                         "rescale": 0,
-                        "next_tasks": [
+                        "map": [
                           {
                             "operation": "perform_detection",
                             "arguments": {
                               "filters": "__parent__",
                               "detector": "face",
-                              "next_tasks": [
+                              "map": [
                                 {
                                   "operation": "perform_indexing",
                                   "arguments": {

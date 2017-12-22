@@ -66,18 +66,18 @@ class ProcessVideoURL(DVAQuery):
                         "source": "URL",
                         "url": self.url,
                         "name": self.name,
-                        "next_tasks": [
+                        "map": [
                             {
                                 "operation": "perform_video_segmentation",
                                 "arguments": {
-                                    "next_tasks": [
+                                    "map": [
                                         {
                                             "operation": "perform_video_decode",
                                             "arguments": {
                                                 "segments_batch_size": 10,
                                                 "rate": 30,
                                                 "rescale": 0,
-                                                "next_tasks": [
+                                                "map": [
                                                     {
                                                         "operation": "perform_indexing",
                                                         "arguments": {
@@ -91,7 +91,7 @@ class ProcessVideoURL(DVAQuery):
                                                         "arguments": {
                                                             "filters": "__parent__",
                                                             "detector": "coco",
-                                                            "next_tasks": [
+                                                            "map": [
                                                                 {
                                                                     "operation": "perform_indexing",
                                                                     "arguments": {
@@ -112,7 +112,7 @@ class ProcessVideoURL(DVAQuery):
                                                         "arguments": {
                                                             "filters": "__parent__",
                                                             "detector": "face",
-                                                            "next_tasks": [
+                                                            "map": [
                                                                 {
                                                                     "operation": "perform_indexing",
                                                                     "arguments": {
@@ -152,7 +152,7 @@ class FindSimilarImages(DVAQuery):
                     'arguments': {
                         'indexer_pk': indexer_pk,
                         'target': 'query',
-                        'next_tasks': [
+                        'map': [
                             {'operation': 'perform_retrieval',
                              'arguments': {'count': n, 'retriever_pk': retriever_pk}
                              }
@@ -177,12 +177,12 @@ class DetectAndFindSimilarImages(DVAQuery):
                  'arguments': {
                      'target': 'query',
                      'detector_pk': detector_pk,
-                     'next_tasks': [
+                     'map': [
                          {'operation': 'perform_indexing',
                           'arguments': {
                               'indexer_pk': indexer_pk,
                               'target': 'query',
-                              'next_tasks': [
+                              'map': [
                                   {'operation': 'perform_retrieval',
                                    'arguments': {'count': n, 'retriever_pk': retriever_pk}
                                    }

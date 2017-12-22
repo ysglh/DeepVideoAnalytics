@@ -593,15 +593,15 @@ def yt(request):
                              'operation': 'perform_import',
                              'arguments': {'path': path,
                                            'force_youtube_dl': True,
-                                           'next_tasks': [{
+                                           'map': [{
                                                'operation': 'perform_video_segmentation',
                                                'arguments': {
-                                                   'next_tasks': [
+                                                   'map': [
                                                        {'operation': 'perform_video_decode',
                                                         'arguments': {
                                                             'rate': defaults.DEFAULT_RATE,
                                                             'segments_batch_size': defaults.DEFAULT_SEGMENTS_BATCH_SIZE,
-                                                            'next_tasks': defaults.DEFAULT_PROCESSING_PLAN_VIDEO
+                                                            'map': defaults.DEFAULT_PROCESSING_PLAN_VIDEO
                                                         }
                                                         }
                                                    ]},
@@ -878,15 +878,15 @@ def import_s3(request):
                 tasks =[]
                 key = key.strip()
                 if key:
-                    extract_task = {'arguments': {'next_tasks': defaults.DEFAULT_PROCESSING_PLAN_DATASET},
+                    extract_task = {'arguments': {'map': defaults.DEFAULT_PROCESSING_PLAN_DATASET},
                                      'operation': 'perform_dataset_extraction'}
                     segment_decode_task = {'operation': 'perform_video_segmentation',
                                             'arguments': {
-                                                'next_tasks': [
+                                                'map': [
                                                     {'operation': 'perform_video_decode',
                                                      'arguments': {
                                                          'segments_batch_size':defaults.DEFAULT_SEGMENTS_BATCH_SIZE,
-                                                         'next_tasks': defaults.DEFAULT_PROCESSING_PLAN_VIDEO
+                                                         'map': defaults.DEFAULT_PROCESSING_PLAN_VIDEO
                                                     }
                                                 }
                                                 ]},
@@ -901,7 +901,7 @@ def import_s3(request):
                                   'operation':'perform_import',
                                   'arguments':{'path':key,
                                                'source':'REMOTE',
-                                               'next_tasks':next_tasks}
+                                               'map':next_tasks}
                                   })
                     create.append({'MODEL': 'Video',
                                    'spec': {'uploader_id': user.pk if user else None,

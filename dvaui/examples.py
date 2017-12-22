@@ -8,18 +8,18 @@ EXAMPLES = {
                     "source": "S3",
                     "key": "007/video/1.mp4",
                     "bucket": "visualdatanetwork",
-                    "next_tasks": [
+                    "map": [
                         {
                             "operation": "perform_video_segmentation",
                             "arguments": {
-                                "next_tasks": [
+                                "map": [
                                     {
                                         "operation": "perform_video_decode",
                                         "arguments": {
                                             "segments_batch_size": 10,
                                             "rate": 30,
                                             "rescale": 0,
-                                            "next_tasks": [
+                                            "map": [
                                                 {"operation": "perform_indexing", "arguments":
                                                     {"index": "inception",
                                                      "target": "frames",
@@ -29,7 +29,7 @@ EXAMPLES = {
                                                 {"operation": "perform_detection", "arguments": {
                                                     "filters": "__parent__",
                                                     "detector": "coco",
-                                                    "next_tasks": [
+                                                    "map": [
                                                         {"operation": "perform_indexing",
                                                          "arguments": {
                                                              "index": "inception",
@@ -44,7 +44,7 @@ EXAMPLES = {
                                                 {"operation": "perform_detection", "arguments": {
                                                     "filters": "__parent__",
                                                     "detector": "face",
-                                                    "next_tasks": [
+                                                    "map": [
                                                         {"operation": "perform_indexing",
                                                          "arguments": {
                                                              "index": "facenet",

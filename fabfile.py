@@ -233,7 +233,7 @@ def ci():
                 'arguments': {
                     'index': 'inception',
                     'target': 'query',
-                    'next_tasks': [
+                    'map': [
                         {'operation': 'perform_retrieval',
                          'arguments': {'count': 20, 'retriever_pk': Retriever.objects.get(name='inception').pk}
                          }
@@ -278,7 +278,7 @@ def ci_search():
                 'arguments': {
                     'index': 'inception',
                     'target': 'query',
-                    'next_tasks': [
+                    'map': [
                         {'operation': 'perform_retrieval',
                          'arguments': {'count': 15, 'retriever_pk': Retriever.objects.get(name='inception',
                                                                                           algorithm=Retriever.EXACT).pk}

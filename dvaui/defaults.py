@@ -6,7 +6,7 @@ DEFAULT_PROCESSING_PLAN_VIDEO = [
     {'operation': 'perform_detection', 'arguments': {
         'filters': '__parent__',
         'detector': 'coco',
-        'next_tasks': [
+        'map': [
             {'operation': 'perform_indexing',
              'arguments': {
                  'index': 'inception',
@@ -19,7 +19,7 @@ DEFAULT_PROCESSING_PLAN_VIDEO = [
     {'operation': 'perform_detection', 'arguments': {
         'filters': '__parent__',
         'detector': 'face',
-        'next_tasks': [
+        'map': [
             {'operation': 'perform_indexing',
              'arguments': {
                  'index': 'facenet',
@@ -44,7 +44,7 @@ DEFAULT_PROCESSING_PLAN_DATASET = [
     {'operation': 'perform_detection', 'arguments': {
         'frames_batch_size': DEFAULT_FRAMES_BATCH_SIZE,
         'detector': 'coco',
-        'next_tasks': [
+        'map': [
             {'operation': 'perform_indexing',
              'arguments': {
                  'index': 'inception',
@@ -57,7 +57,7 @@ DEFAULT_PROCESSING_PLAN_DATASET = [
     {'operation': 'perform_detection', 'arguments': {
         'detector': 'face',
         'frames_batch_size': DEFAULT_FRAMES_BATCH_SIZE,
-        'next_tasks': [
+        'map': [
             {'operation': 'perform_indexing',
              'arguments': {
                  'index': 'facenet',
@@ -83,7 +83,7 @@ DEFAULT_PROCESSING_PLAN_FRAMELIST = [
     {'operation': 'perform_detection', 'arguments': {
         'filters': {'event_id': '__parent_event__'},
         'detector': 'coco',
-        'next_tasks': [
+        'map': [
             {'operation': 'perform_indexing',
              'arguments': {
                  'index': 'inception',
@@ -96,7 +96,7 @@ DEFAULT_PROCESSING_PLAN_FRAMELIST = [
     {'operation': 'perform_detection', 'arguments': {
         'detector': 'face',
         'filters': {'event_id': '__parent_event__'},
-        'next_tasks': [
+        'map': [
             {'operation': 'perform_indexing',
              'arguments': {
                  'index': 'facenet',

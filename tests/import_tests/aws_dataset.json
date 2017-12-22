@@ -12,17 +12,17 @@
           "video_id": "__pk__",
           "arguments": {
             "path": "s3://aub3temp/exampledataset.zip",
-            "next_tasks": [
+            "map": [
               {
                 "operation": "perform_dataset_extraction",
                 "arguments": {
-                  "next_tasks": [
+                  "map": [
                     {
                       "operation": "perform_detection",
                       "arguments": {
                         "frames_batch_size": 500,
                         "detector": "coco",
-                        "next_tasks": [
+                        "map": [
                           {
                             "operation": "perform_indexing",
                             "arguments": {

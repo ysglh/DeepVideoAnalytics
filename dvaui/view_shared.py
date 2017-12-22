@@ -95,9 +95,9 @@ def handle_uploaded_file(f, name, user=None, rate=None):
                         'MODEL': 'Video',
                         'tasks': [
                             {'arguments': {'path': fpath,
-                                           'next_tasks':[
+                                           'map':[
                                                {
-                                                    'arguments': {'next_tasks': defaults.DEFAULT_PROCESSING_PLAN_DATASET},
+                                                    'arguments': {'map': defaults.DEFAULT_PROCESSING_PLAN_DATASET},
                                                     'operation': 'perform_dataset_extraction',
                                                }
                                            ]
@@ -122,12 +122,12 @@ def handle_uploaded_file(f, name, user=None, rate=None):
                         'MODEL': 'Video',
                         'tasks': [
                             {'arguments': {'path': fpath,
-                                           'next_tasks':[
+                                           'map':[
                                                {
                                                    'operation': 'perform_frame_download',
                                                    'arguments': {
                                                        'frames_batch_size': defaults.DEFAULT_FRAMES_BATCH_SIZE,
-                                                       'next_tasks': defaults.DEFAULT_PROCESSING_PLAN_FRAMELIST
+                                                       'map': defaults.DEFAULT_PROCESSING_PLAN_FRAMELIST
                                                    },
                                                }
                                            ]
@@ -151,15 +151,15 @@ def handle_uploaded_file(f, name, user=None, rate=None):
                         'MODEL': 'Video',
                         'tasks': [
                             {'arguments': {'path': fpath,
-                                           'next_tasks': [
+                                           'map': [
                                                {
                                                    'arguments': {
-                                                       'next_tasks': [
+                                                       'map': [
                                                            {'operation': 'perform_video_decode',
                                                             'arguments': {
                                                                 'segments_batch_size': defaults.DEFAULT_SEGMENTS_BATCH_SIZE,
                                                                 'rate': rate,
-                                                                'next_tasks': defaults.DEFAULT_PROCESSING_PLAN_VIDEO
+                                                                'map': defaults.DEFAULT_PROCESSING_PLAN_VIDEO
                                                             }
                                                             }
                                                        ]},
@@ -356,7 +356,7 @@ def create_query_from_request(p, request):
                 'arguments': {
                     'index': di.name,
                     'target': 'query',
-                    'next_tasks': rtasks
+                    'map': rtasks
                 }
 
             }
@@ -368,7 +368,7 @@ def create_query_from_request(p, request):
                 query_json['tasks'].append({'operation': 'perform_detection',
                                             'arguments': {'detector_pk': int(d),
                                                           'target': 'query',
-                                                          'next_tasks': [{
+                                                          'map': [{
                                                               'operation': 'perform_analysis',
                                                               'arguments': {'target': 'query_regions',
                                                                             'analyzer': 'crnn',
@@ -382,12 +382,12 @@ def create_query_from_request(p, request):
                 query_json['tasks'].append({'operation': 'perform_detection',
                                             'arguments': {'detector_pk': int(d),
                                                           'target': 'query',
-                                                          'next_tasks': [{
+                                                          'map': [{
                                                               'operation': 'perform_indexing',
                                                               'arguments': {'target': 'query_regions',
                                                                             'index': 'facenet',
                                                                             'filters': {'event_id': '__parent_event__'},
-                                                                            'next_tasks':[{
+                                                                            'map':[{
                                                                                 'operation':'perform_retrieval',
                                                                                 'arguments':{'retriever_pk':dr.pk,
                                                                                              'filters':{'event_id': '__parent_event__'},

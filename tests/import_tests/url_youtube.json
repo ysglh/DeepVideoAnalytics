@@ -13,18 +13,18 @@
           "video_id": "__pk__",
           "arguments": {
             "path": "https://www.youtube.com/watch?v=z4UDNzXD3qA",
-            "next_tasks": [
+            "map": [
               {
                 "operation": "perform_video_segmentation",
                 "arguments": {
-                  "next_tasks": [
+                  "map": [
                     {
                       "operation": "perform_video_decode",
                       "arguments": {
                         "segments_batch_size": 10,
                         "rate": 30,
                         "rescale": 0,
-                        "next_tasks": [
+                        "map": [
                           {
                             "operation": "perform_indexing",
                             "arguments": {
@@ -38,14 +38,14 @@
                             "arguments": {
                               "filters": "__parent__",
                               "detector": "coco",
-                              "next_tasks": [
+                              "map": [
                                 {
                                   "operation": "perform_transformation",
                                   "arguments": {
                                     "filters": {
                                       "event_id": "__parent_event__"
                                     },
-                                    "next_tasks": [
+                                    "map": [
                                       {
                                         "operation": "perform_indexing",
                                         "arguments": {
@@ -69,7 +69,7 @@
                             "arguments": {
                               "filters": "__parent__",
                               "detector": "face",
-                              "next_tasks": [
+                              "map": [
                                 {
                                   "operation": "perform_transformation",
                                   "arguments": {
@@ -80,7 +80,7 @@
                                     "filters": {
                                       "event_id": "__parent_event__"
                                     },
-                                    "next_tasks": [
+                                    "map": [
                                       {
                                         "operation": "perform_indexing",
                                         "arguments": {

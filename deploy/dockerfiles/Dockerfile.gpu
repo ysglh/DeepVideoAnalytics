@@ -33,5 +33,5 @@ RUN python setup.py install
 WORKDIR "/root/DVA/repos/tf_ctpn_cpu/lib/utils/"
 RUN ./make.sh
 WORKDIR "/root/DVA"
-VOLUME ["/root/DVA/dva/media"]
+VOLUME ["/root/DVA/dva/media","/root/DVA/configs/custom_defaults"]
 EXPOSE 80

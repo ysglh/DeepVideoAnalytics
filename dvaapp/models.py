@@ -1,10 +1,10 @@
 from __future__ import unicode_literals
-import os, json, gzip
+import os, json, gzip, sys, shutil
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.postgres.fields import ArrayField, JSONField
 from django.conf import settings
-from .fs import ensure
+from . import fs
 try:
     import numpy as np
 except ImportError:
@@ -178,11 +178,11 @@ class DeepModel(models.Model):
     trained = models.BooleanField(default=False)
     class_index_to_string = JSONField(null=True,blank=True)
     url = models.CharField(max_length=200,default="")
-    additional_files = JSONField(null=True,blank=True)
+    files = JSONField(null=True,blank=True)
     produces_labels = models.BooleanField(default=False)
     produces_json = models.BooleanField(default=False)
     produces_text = models.BooleanField(default=False)
-    # Following allows us to have a hierarchy of models (E.g. inception pretrined -> inception finetuned)
+    # Following allows us to have a hierarchy of models (E.g. inception pretrained -> inception fine tuned)
     parent = models.ForeignKey('self', null=True)
 
     def create_directory(self,create_subdirs=True):
@@ -207,6 +207,32 @@ class DeepModel(models.Model):
 
     def get_class_dist(self):
         return json.loads(self.class_distribution) if self.class_distribution.strip() else {}
+
+    def download(self):
+        root_dir = settings.MEDIA_ROOT
+        model_type_dir = "{}/models/".format(root_dir)
+        if not os.path.isdir(model_type_dir):
+            os.mkdir(model_type_dir)
+        model_dir = "{}/models/{}".format(root_dir, self.pk)
+        if not os.path.isdir(model_dir):
+            try:
+                os.mkdir(model_dir)
+            except:
+                pass
+        for m in self.files:
+            dlpath = "{}/{}".format(model_dir,m['filename'])
+            if m['url'].startswith('/'):
+                shutil.copy(m['url'], dlpath)
+            else:
+                fs.get_path_to_file(m['url'],dlpath)
+            if settings.DISABLE_NFS and sys.platform != 'darwin':
+                fs.upload_file_to_remote("/models/{}/{}".format(self.pk,m['filename']))
+
+    def ensure(self):
+        for m in self.files:
+            dlpath = "{}/models/{}/{}".format(settings.MEDIA_ROOT, self.pk, m['filename'])
+            if not os.path.isfile(dlpath):
+                fs.ensure("/models/{}/{}".format(self.pk,m['filename']))
 
 
 class Retriever(models.Model):
@@ -494,8 +520,8 @@ class IndexEntries(models.Model):
         if not os.path.isdir(index_dir):
             os.mkdir(index_dir)
         dirnames = {}
-        ensure(self.entries_path(media_root=''),dirnames,media_root)
-        ensure(self.npy_path(media_root=''),dirnames,media_root)
+        fs.ensure(self.entries_path(media_root=''),dirnames,media_root)
+        fs.ensure(self.npy_path(media_root=''),dirnames,media_root)
         vectors = np.load(self.npy_path(media_root))
         vector_entries = json.load(file(self.entries_path(media_root)))
         return vectors,vector_entries

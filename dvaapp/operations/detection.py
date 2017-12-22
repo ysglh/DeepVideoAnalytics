@@ -17,6 +17,7 @@ class DetectorTask(celery.Task):
         return DetectorTask._detectors
 
     def load_detector(self,cd):
+        cd.ensure()
         if cd.pk not in DetectorTask._detectors:
             if cd.detector_type == DeepModel.TFD:
                 DetectorTask._detectors[cd.pk] = detector.TFDetector(model_path=cd.get_model_path(),

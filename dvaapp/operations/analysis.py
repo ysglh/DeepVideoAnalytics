@@ -16,6 +16,7 @@ class AnalyzerTask(celery.Task):
         return AnalyzerTask._analyzers
 
     def load_analyzer(self,da):
+        da.ensure()
         if da.name not in AnalyzerTask._analyzers:
             aroot = "{}/models/".format(settings.MEDIA_ROOT)
             if da.name == 'crnn':

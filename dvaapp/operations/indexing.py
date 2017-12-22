@@ -33,6 +33,7 @@ class IndexerTask(celery.Task):
         return self.get_index(di),di
 
     def get_index(self,di):
+        di.ensure()
         if di.pk not in IndexerTask._visual_indexer:
             iroot = "{}/models/".format(settings.MEDIA_ROOT)
             if di.name == 'inception':

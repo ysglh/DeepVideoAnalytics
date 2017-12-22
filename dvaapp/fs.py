@@ -104,6 +104,7 @@ def ensure(path, dirnames=None, media_root=None, safe=False, event_id=None):
         if safe:
             os.rename(dlpath,original_path)
 
+
 def get_path_to_file(path,local_path):
     """
     # resource.meta.client.download_file(bucket, key, ofname, ExtraArgs={'RequestPayer': 'requester'})

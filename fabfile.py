@@ -67,6 +67,12 @@ def start_container(container_type):
     """
     Start container with queues launched as specified in environment
     """
+    if sys.platform == 'darwin':
+        shutil.copy("configs/custom_defaults/defaults_mac.py", 'dvaui/defaults.py')
+    elif os.path.isfile("configs/custom_defaults/defaults.py"):
+        shutil.copy("configs/custom_defaults/defaults.py",'dvaui/defaults.py')
+    else:
+        raise ValueError("defaults.py not found, if you have mounted a custom_config volume")
     if container_type == 'worker':
         time.sleep(30)  # To avoid race condition where worker starts before migration is finished
         init_fs()
@@ -349,9 +355,9 @@ def launch():
               'LAUNCH_Q_qclusterer', 'LAUNCH_Q_qextract','LAUNCH_SCHEDULER']
     for k in envars:
         os.environ[k] = "1"
-    if sys.platform == 'darwin':
-        os.environ['MEDIA_BUCKET'] = 'aub3dvatest'
-        os.environ['DISABLE_NFS'] = '1'
+    # if sys.platform == 'darwin':
+    #     os.environ['MEDIA_BUCKET'] = 'aub3dvatest'
+    #     os.environ['DISABLE_NFS'] = '1'
 
     launch_workers_and_scheduler_from_environment(False)
 
@@ -477,35 +483,6 @@ def init_server():
         test()
 
 
-def download_model(root_dir, model_type_dir_name, model_dir_name, model_json):
-    """
-    Download model to filesystem
-    """
-    filename, url = model_json['filename'], model_json['url']
-    model_type_dir = "{}/{}/".format(root_dir, model_type_dir_name)
-    if not os.path.isdir(model_type_dir):
-        os.mkdir(model_type_dir)
-    model_dir = "{}/{}/{}".format(root_dir, model_type_dir_name, model_dir_name)
-    with lcd(model_type_dir):
-        if not os.path.isdir(model_dir):
-            try:
-                os.mkdir(model_dir)
-            except:
-                pass
-            else: # On the shared FS the which creates the DIR gets to download
-                if sys.platform == 'darwin':
-                    local("cd {} && cp /users/aub3/DeepVideoAnalytics/shared/{} .".format(model_dir_name, filename))
-                else:
-                    local("cd {} && wget --quiet {}".format(model_dir_name, url))
-                if 'additional_files' in model_json:
-                    for m in model_json["additional_files"]:
-                        url = m['url']
-                        filename = m['filename']
-                        if sys.platform == 'darwin':
-                            local("cd {} && cp /users/aub3/DeepVideoAnalytics/shared/{} .".format(model_dir_name,filename))
-                        else:
-                            local("cd {} && wget --quiet {}".format(model_dir_name, url))
-
 
 @task
 def init_models():
@@ -518,35 +495,34 @@ def init_models():
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
-    from django.conf import settings
     from django.utils import timezone
     from dvaapp.models import DeepModel, Retriever
     from dvaui.defaults import DEFAULT_MODELS
     for m in DEFAULT_MODELS:
         if m['model_type'] == "detector":
-            dm, _ = DeepModel.objects.get_or_create(name=m['name'],
-                                                   algorithm=m['algorithm'],
-                                                   mode=m['mode'],
-                                                   model_filename=m.get("filename", ""),
-                                                   detector_type=m.get("detector_type", ""),
-                                                   class_index_to_string=m.get("class_index_to_string", {}),
-                                                   model_type=DeepModel.DETECTOR
-                                                   )
-            if m['url']:
-                download_model(settings.MEDIA_ROOT, "models", dm.pk, m)
-        if m['model_type'] == "indexer":
-            dm, created = DeepModel.objects.get_or_create(name=m['name'], mode=m['mode'], shasum=m['shasum'],model_type=DeepModel.INDEXER)
+            dm, created = DeepModel.objects.get_or_create(name=m['name'],algorithm=m['algorithm'],mode=m['mode'],
+                                                          files=m.get('files',[]), model_filename=m.get("filename", ""),
+                                                          detector_type=m.get("detector_type", ""),
+                                                          class_index_to_string=m.get("class_index_to_string", {}),
+                                                          model_type=DeepModel.DETECTOR,)
             if created:
-                dr, dcreated = Retriever.objects.get_or_create(name=m['name'], source_filters={'indexer_shasum': dm.shasum})
+                dm.download()
+        if m['model_type'] == "indexer":
+            dm, created = DeepModel.objects.get_or_create(name=m['name'], mode=m['mode'], files=m.get('files',[]),
+                                                          shasum=m['shasum'],model_type=DeepModel.INDEXER)
+            if created:
+                dr, dcreated = Retriever.objects.get_or_create(name=m['name'],
+                                                               source_filters={'indexer_shasum': dm.shasum})
                 if dcreated:
                     dr.last_built = timezone.now()
                     dr.save()
-            if m['url']:
-                download_model(settings.MEDIA_ROOT, "models", dm.pk, m)
+            if created:
+                dm.download()
         if m['model_type'] == "analyzer":
-            dm, _ = DeepModel.objects.get_or_create(name=m['name'], mode=m['mode'],model_type=DeepModel.ANALYZER)
-            if m['url']:
-                download_model(settings.MEDIA_ROOT, "models", dm.pk, m)
+            dm, created = DeepModel.objects.get_or_create(name=m['name'], files=m.get('files',[]), mode=m['mode'],
+                                                          model_type=DeepModel.ANALYZER)
+            if created:
+                dm.download()
 
 
 @task

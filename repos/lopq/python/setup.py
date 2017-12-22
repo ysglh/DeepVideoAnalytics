@@ -83,7 +83,7 @@ setup_arguments = {
     },
     'platforms': 'Windows,Linux,Solaris,Mac OS-X,Unix',
     'include_package_data': True,
-    'install_requires': ['scikit-learn>=0.15', 'lmdb>=0.87']
+    'install_requires': ['scikit-learn>=0.18', 'lmdb>=0.87']
 }
 
 

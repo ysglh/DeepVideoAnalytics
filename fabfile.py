@@ -215,51 +215,46 @@ def ci():
         print fname
         vimported = handle_uploaded_file(f, fname)
         perform_import(TEvent.objects.get(video=vimported,operation='perform_import').pk)
-    dc = Retriever()
-    args = {}
-    args['components'] = 32
-    args['m'] = 8
-    args['v'] = 8
-    args['sub'] = 64
-    dc.algorithm = Retriever.LOPQ
-    dc.source_filters = {'indexer_shasum': DeepModel.objects.get(name="inception",model_type=DeepModel.INDEXER).shasum}
-    dc.arguments = args
-    dc.save()
-    clustering_task = TEvent()
-    clustering_task.arguments = {'retriever_pk': dc.pk}
-    clustering_task.operation = 'perform_retriever_creation'
-    clustering_task.save()
-    perform_retriever_creation(clustering_task.pk)
-    query_dict = {
-        'process_type': DVAPQL.QUERY,
-        'image_data_b64': base64.encodestring(file('tests/queries/query.png').read()),
-        'tasks': [
-            {
-                'operation': 'perform_indexing',
-                'arguments': {
-                    'index': 'inception',
-                    'target': 'query',
-                    'map': [
-                        {'operation': 'perform_retrieval',
-                         'arguments': {'count': 20, 'retriever_pk': Retriever.objects.get(name='inception').pk}
-                         }
-                    ]
-                }
-
-            }
-
-        ]
-    }
-    launch_workers_and_scheduler_from_environment()
-    qp = DVAPQLProcess()
-    qp.create_from_json(query_dict)
-    qp.launch()
-    qp.wait()
-    # server, datasets, detectors = pull_vdn_list(1)
-    # for k in datasets:
-    #     if k['name'] == 'MSCOCO_Sample_500':
-    #         print 'FOUND MSCOCO SAMPLE'
-    #         import_vdn_dataset_url(VDNServer.objects.get(pk=1), k['url'], None, k)
+    # dc = Retriever()
+    # args = {}
+    # args['components'] = 32
+    # args['m'] = 8
+    # args['v'] = 8
+    # args['sub'] = 64
+    # dc.algorithm = Retriever.LOPQ
+    # dc.source_filters = {'indexer_shasum': DeepModel.objects.get(name="inception",model_type=DeepModel.INDEXER).shasum}
+    # dc.arguments = args
+    # dc.save()
+    # clustering_task = TEvent()
+    # clustering_task.arguments = {'retriever_pk': dc.pk}
+    # clustering_task.operation = 'perform_retriever_creation'
+    # clustering_task.save()
+    # perform_retriever_creation(clustering_task.pk)
+    # query_dict = {
+    #     'process_type': DVAPQL.QUERY,
+    #     'image_data_b64': base64.encodestring(file('tests/queries/query.png').read()),
+    #     'tasks': [
+    #         {
+    #             'operation': 'perform_indexing',
+    #             'arguments': {
+    #                 'index': 'inception',
+    #                 'target': 'query',
+    #                 'map': [
+    #                     {'operation': 'perform_retrieval',
+    #                      'arguments': {'count': 20, 'retriever_pk': Retriever.objects.get(name='inception').pk}
+    #                      }
+    #                 ]
+    #             }
+    #
+    #         }
+    #
+    #     ]
+    # }
+    # launch_workers_and_scheduler_from_environment()
+    # qp = DVAPQLProcess()
+    # qp.create_from_json(query_dict)
+    # qp.launch()
+    # qp.wait()
 
 
 @task

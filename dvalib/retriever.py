@@ -58,31 +58,12 @@ class BaseRetriever(object):
 
 class LOPQRetriever(BaseRetriever):
 
-    def __init__(self,name,args):
-        data = []
+    def __init__(self,name,proto_filename,args,test_mode=False):
+        super(BaseRetriever, self).__init__()
         self.name = name
-        self.fnames = args.get('fnames',[])
+        self.proto_filename = proto_filename
         self.entries = []
-        for fname in self.fnames:
-            nmat = np.load(fname)
-            if nmat.ndim > 2:
-                logging.info("squeezing  shape {} with dimensions {}".format(nmat.shape,nmat.ndim))
-                nmat = nmat.squeeze(axis=1)
-            elif nmat.ndim == 1:
-                logging.info("expanding  shape {} with dimensions {}".format(nmat.shape, nmat.ndim))
-                nmat = np.expand_dims(nmat, axis=0)
-            else:
-                logging.info("keeping same  shape {} with dimensions {}".format(nmat.shape, nmat.ndim))
-            data.append(nmat)
-            for e in json.load(file(fname.replace('npy','json'))):
-                self.entries.append(e)
-        if data:
-            if len(data) > 1:
-                self.data = np.concatenate(data)
-            else:
-                self.data = data[0]
-            logging.info(self.data.shape)
-        self.test_mode = args.get('test_mode',False)
+        self.test_mode = test_mode
         self.n_components = int(args['components'])
         self.m = int(args['m'])
         self.v = int(args['v'])
@@ -92,19 +73,20 @@ class LOPQRetriever(BaseRetriever):
         self.pca_reduction = None
         self.P = None
         self.mu = None
-        self.model_proto_filename = args['proto_filename']
-        self.P_filename = args['proto_filename'].replace('.proto','.P.npy')
-        self.mu_filename = args['proto_filename'].replace('.proto','.mu.npy')
-        self.pca_filename = args['proto_filename'].replace('.proto', '.pca.pkl')
-        self.model_lmdb_filename = args['proto_filename'].replace('.proto', '_lmdb')
-        self.permuted_inds_filename = args['proto_filename'].replace('.proto', '.permuted_inds.pkl')
         self.permuted_inds = None
+        self.model_proto_filename = proto_filename
+        self.P_filename = proto_filename.replace('.proto','.P.npy')
+        self.entries_filename = proto_filename.replace('.proto','.json')
+        self.mu_filename = proto_filename.replace('.proto','.mu.npy')
+        self.pca_filename = proto_filename.replace('.proto', '.pca.pkl')
+        self.model_lmdb_filename = proto_filename.replace('.proto', '_lmdb')
+        self.permuted_inds_filename = proto_filename.replace('.proto', '.permuted_inds.pkl')
 
     def pca(self):
         """
         A simple PCA implementation that demonstrates how eigenvalue allocation
         is used to permute dimensions in order to balance the variance across
-        subvectors. There are plenty of PCA implementations elsewhere. What is
+        sub vectors. There are plenty of PCA implementations elsewhere. What is
         important is that the eigenvalues can be used to compute a variance-balancing
         dimension permutation.
         """
@@ -118,13 +100,13 @@ class LOPQRetriever(BaseRetriever):
         return P, mu
 
     def cluster(self):
+        self.data = self.index
         self.pca_reduction = PCA(n_components=self.n_components)
         self.pca_reduction.fit(self.data)
         self.data = self.pca_reduction.transform(self.data)
         self.P, self.mu = self.pca()
         self.data = self.data - self.mu
         self.data = np.dot(self.data,self.P)
-        # train, test = train_test_split(self.data, test_size=0.2)
         self.model = LOPQModel(V=self.v, M=self.m, subquantizer_clusters=self.sub)
         self.model.fit(self.data, n_init=1) # replace self.data by train
         for i,e in enumerate(self.entries): # avoid doing this twice again in searcher
@@ -133,13 +115,22 @@ class LOPQRetriever(BaseRetriever):
             e['fine'] = r.fine
             e['index'] = i
         self.searcher = LOPQSearcherLMDB(self.model,self.model_lmdb_filename)
-        # if self.test_mode:
-        #     self.searcher.add_data(train)
-        #     nns = compute_all_neighbors(test, train)
-        #     recall, _ = get_recall(self.searcher, test, nns)
-        #     print 'Recall (V=%d, M=%d, subquants=%d): %s' % (self.model.V, self.model.M, self.model.subquantizer_clusters, str(recall))
-        # else:
         self.searcher.add_data(self.data)
+        # cluster_codes = []
+        # for e in c.entries:
+        #     cc.video_id = e['video_primary_key']
+        #     if 'detection_primary_key' in e:
+        #         cc.detection_id = e['detection_primary_key']
+        #         cc.frame_id = Region.objects.get(pk=cc.detection_id).frame_id
+        #     else:
+        #         cc.frame_id = e['frame_primary_key']
+        #     cc.clusters = dc
+        #     cc.coarse = e['coarse']
+        #     cc.fine = e['fine']
+        #     cc.coarse_text = " ".join(map(str, e['coarse']))
+        #     cc.fine_text = " ".join(map(str, e['fine']))
+        #     cc.searcher_index = e['index']
+        #     cluster_codes.append(cc)
 
     def find(self):
         i,selected = random.choice([k for k in enumerate(self.entries)])
@@ -156,6 +147,8 @@ class LOPQRetriever(BaseRetriever):
                 np.save(out,self.P)
             with open(self.mu_filename, 'w') as out:
                 np.save(out,self.mu)
+            with open(self.entries_filename, 'w') as out:
+                json.dump(out, self.entries)
             with open(self.permuted_inds_filename, 'w') as out:
                 pickle.dump(self.permuted_inds,out)
             self.searcher.env.close()

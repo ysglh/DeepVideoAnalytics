@@ -655,27 +655,12 @@ def perform_retriever_creation(cluster_task_id, test=False):
         start.save()
     dc = Retriever.objects.get(pk=start.arguments['retriever_pk'])
     dc.create_directory()
-    dc.arguments['fnames'] = [ i.npy_path() for i in IndexEntries.objects.filter(**dc.source_filters) ]
-    dc.arguments['proto_filename'] = dc.proto_filename()
-    c = retriever.LOPQRetriever(name=dc.name,args=dc.arguments)
+    c = retriever.LOPQRetriever(name=dc.name,args=dc.arguments, proto_filename=dc.proto_filename())
+    for i in IndexEntries.objects.filter(**dc.source_filters):
+        c.load_index(np.load(i.npy_path()),i.entries_path())
     c.cluster()
-    # cluster_codes = []
-    # for e in c.entries:
-    #     cc.video_id = e['video_primary_key']
-    #     if 'detection_primary_key' in e:
-    #         cc.detection_id = e['detection_primary_key']
-    #         cc.frame_id = Region.objects.get(pk=cc.detection_id).frame_id
-    #     else:
-    #         cc.frame_id = e['frame_primary_key']
-    #     cc.clusters = dc
-    #     cc.coarse = e['coarse']
-    #     cc.fine = e['fine']
-    #     cc.coarse_text = " ".join(map(str, e['coarse']))
-    #     cc.fine_text = " ".join(map(str, e['fine']))
-    #     cc.searcher_index = e['index']
-    #     cluster_codes.append(cc)
-    dc.last_built = timezone.now()
     c.save()
+    dc.last_built = timezone.now()
     dc.completed = True
     dc.save()
     mark_as_completed(start)

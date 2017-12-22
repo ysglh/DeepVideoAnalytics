@@ -1,6 +1,6 @@
 .idea/
 logs/*.log
-/db.sqlite3
+*.sqlite3
 *.o
 *.dSYM
 # OS Generated #

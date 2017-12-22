@@ -194,7 +194,13 @@ class DeepModel(models.Model):
     def get_model_path(self,root_dir=None):
         if root_dir is None:
             root_dir = settings.MEDIA_ROOT
-        return "{}/models/{}/{}".format(root_dir,self.pk,self.model_filename)
+        if self.model_filename:
+            return "{}/models/{}/{}".format(root_dir,self.pk,self.model_filename)
+        elif self.files:
+            return "{}/models/{}/{}".format(root_dir, self.pk, self.files[0]['filename'])
+        else:
+            return None
+
 
     def get_yolo_args(self):
         model_dir = "{}/models/{}/".format(settings.MEDIA_ROOT, self.pk)

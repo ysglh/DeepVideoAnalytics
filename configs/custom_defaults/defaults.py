@@ -124,6 +124,7 @@ DEFAULT_MODELS = [
         "name": "coco",
         "detector_type": "T",
         "algorithm": "mobilenet_ssd",
+        "filename": "coco_mobilenet.pb",
         "files":[
             {
                 "url": "https://www.dropbox.com/s/nzz26b2p4wxygg3/coco_mobilenet.pb",
@@ -250,6 +251,7 @@ DEFAULT_MODELS = [
     {
         "model_type": "indexer",
         "name": "inception",
+        "filename": "network.pb",
         "files":[
             {
                 "url": "https://www.dropbox.com/s/fc7li2vwn8lvsyu/network.pb",

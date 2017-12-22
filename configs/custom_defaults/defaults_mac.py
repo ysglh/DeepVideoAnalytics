@@ -124,6 +124,7 @@ DEFAULT_MODELS = [
         "name": "coco",
         "detector_type": "T",
         "algorithm": "mobilenet_ssd",
+        "filename": "coco_mobilenet.pb",
         "files":[
             {
                 "url": "/users/aub3/DeepVideoAnalytics/shared/coco_mobilenet.pb",

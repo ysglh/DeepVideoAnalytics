@@ -9,7 +9,7 @@ except ImportError:
     logging.warning("Could not import indexer / clustering assuming running in front-end mode / Heroku")
 
 
-from ..models import IndexEntries,QueryResults,Region,Retriever,LOPQCodes, QueryRegionResults
+from ..models import IndexEntries,QueryResults,Region,Retriever, QueryRegionResults
 import io
 
 
@@ -98,4 +98,4 @@ class RetrieverTask(celery.Task):
         return 0
 
 def entry_getter(kid,retriever_pk):
-    return LOPQCodes.objects.get(searcher_index=kid, retriever_id=retriever_pk)
+    return None

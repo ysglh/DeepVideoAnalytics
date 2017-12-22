@@ -8,7 +8,7 @@ from django.views.generic import ListView, DetailView
 from django.utils import timezone
 from .forms import UploadFileForm, YTVideoForm, AnnotationForm
 from dvaapp.models import Video, Frame, DVAPQL, QueryResults, TEvent, IndexEntries, Region, \
-    LOPQCodes, Tube,  Segment, FrameLabel, SegmentLabel, \
+    Tube,  Segment, FrameLabel, SegmentLabel, \
     VideoLabel, RegionLabel, TubeLabel, Label, ManagementAction, \
     DeepModel, Retriever, SystemState, QueryRegion, QueryRegionResults, Worker
 from .models import StoredDVAPQL, ExternalServer
@@ -661,16 +661,6 @@ def export_video(request):
         return redirect('video_list')
     else:
         raise NotImplementedError
-
-
-@user_passes_test(user_check)
-def coarse_code_detail(request, pk, coarse_code):
-    coarse_code = coarse_code.replace('_', ' ')
-    context = {
-        'code': coarse_code,
-        'objects': LOPQCodes.objects.all().filter(coarse_text=coarse_code, clusters_id=pk)
-    }
-    return render(request, 'coarse_code_details.html', context)
 
 
 @user_passes_test(user_check)

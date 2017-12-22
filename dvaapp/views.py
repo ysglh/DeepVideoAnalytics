@@ -1,7 +1,7 @@
 from django.conf import settings
 import json
 from .models import Video, Frame, DVAPQL, QueryResults, TEvent, IndexEntries, Region, \
-    LOPQCodes, Tube,  Segment, FrameLabel, SegmentLabel, \
+    Tube,  Segment, FrameLabel, SegmentLabel, \
     VideoLabel, RegionLabel, TubeLabel, Label, \
     Retriever, SystemState, QueryRegion, QueryRegionResults, DeepModel, Worker
 import serializers
@@ -194,9 +194,3 @@ class TubeViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Creat
     permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
     queryset = Tube.objects.all()
     serializer_class = serializers.TubeSerializer
-
-
-class LOPQCodesViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
-    queryset = LOPQCodes.objects.all()
-    serializer_class = serializers.LOPQCodesSerializer

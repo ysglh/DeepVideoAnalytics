@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import Video, Frame, TEvent, IndexEntries, QueryResults, DVAPQL, \
-    LOPQCodes, Region, Tube, Segment, DeletedVideo, \
+    Region, Tube, Segment, DeletedVideo, \
     VideoLabel, FrameLabel, RegionLabel, TubeLabel, SegmentLabel, Label, ManagementAction, \
     DeepModel, Retriever, SystemState, Worker, QueryRegion, QueryRegionIndexVector, \
     QueryRegionResults
@@ -87,11 +87,6 @@ class IndexEntriesAdmin(admin.ModelAdmin):
 
 @admin.register(TEvent)
 class TEventAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(LOPQCodes)
-class LOPQCodesAdmin(admin.ModelAdmin):
     pass
 
 

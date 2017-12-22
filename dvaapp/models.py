@@ -467,22 +467,6 @@ class QueryRegionResults(models.Model):
     distance = models.FloatField(default=0.0)
 
 
-class LOPQCodes(models.Model):
-    retriever = models.ForeignKey(Retriever)
-    video = models.ForeignKey(Video)
-    frame = models.ForeignKey(Frame)
-    detection = models.ForeignKey(Region,null=True)
-    fine = ArrayField(models.IntegerField(), default=[])
-    coarse = ArrayField(models.IntegerField(), default=[])
-    coarse_text = models.TextField(default="") # check if postgres built in text search
-    fine_text = models.TextField(default="") # check if postgres built in text search can be used
-    searcher_index = models.IntegerField()
-
-    class Meta:
-        unique_together = ('searcher_index', 'retriever')
-        index_together = [["retriever", "searcher_index"],] # Very important manually verify in Postgres
-
-
 class IndexEntries(models.Model):
     video = models.ForeignKey(Video)
     features_file_name = models.CharField(max_length=100)

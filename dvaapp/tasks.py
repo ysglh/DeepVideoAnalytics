@@ -5,7 +5,7 @@ from collections import defaultdict
 from PIL import Image
 from django.conf import settings
 from dva.celery import app
-from .models import Video, Frame, TEvent,  IndexEntries, LOPQCodes, Region, Tube, \
+from .models import Video, Frame, TEvent,  IndexEntries, Region, Tube, \
     Retriever, Segment, QueryIndexVector, DeletedVideo, ManagementAction, SystemState, DVAPQL, \
     Worker, QueryRegion, QueryRegionIndexVector, DeepModel, RegionLabel, FrameLabel, Label
 
@@ -659,24 +659,21 @@ def perform_retriever_creation(cluster_task_id, test=False):
     dc.arguments['proto_filename'] = dc.proto_filename()
     c = retriever.LOPQRetriever(name=dc.name,args=dc.arguments)
     c.cluster()
-    cluster_codes = []
-    for e in c.entries:
-        cc = LOPQCodes()
-        cc.retriever_id = dc.pk
-        cc.video_id = e['video_primary_key']
-        if 'detection_primary_key' in e:
-            cc.detection_id = e['detection_primary_key']
-            cc.frame_id = Region.objects.get(pk=cc.detection_id).frame_id
-        else:
-            cc.frame_id = e['frame_primary_key']
-        cc.clusters = dc
-        cc.coarse = e['coarse']
-        cc.fine = e['fine']
-        cc.coarse_text = " ".join(map(str, e['coarse']))
-        cc.fine_text = " ".join(map(str, e['fine']))
-        cc.searcher_index = e['index']
-        cluster_codes.append(cc)
-    LOPQCodes.objects.bulk_create(cluster_codes)
+    # cluster_codes = []
+    # for e in c.entries:
+    #     cc.video_id = e['video_primary_key']
+    #     if 'detection_primary_key' in e:
+    #         cc.detection_id = e['detection_primary_key']
+    #         cc.frame_id = Region.objects.get(pk=cc.detection_id).frame_id
+    #     else:
+    #         cc.frame_id = e['frame_primary_key']
+    #     cc.clusters = dc
+    #     cc.coarse = e['coarse']
+    #     cc.fine = e['fine']
+    #     cc.coarse_text = " ".join(map(str, e['coarse']))
+    #     cc.fine_text = " ".join(map(str, e['fine']))
+    #     cc.searcher_index = e['index']
+    #     cluster_codes.append(cc)
     dc.last_built = timezone.now()
     c.save()
     dc.completed = True

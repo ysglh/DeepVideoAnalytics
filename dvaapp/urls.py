@@ -24,7 +24,6 @@ router.register(r'queryregions', views.QueryRegionViewSet)
 router.register(r'indexentries', views.IndexEntriesViewSet)
 router.register(r'events', views.TEventViewSet)
 router.register(r'workers', views.WorkerViewSet)
-router.register(r'lopqcodes', views.LOPQCodesViewSet)
 router.register(r'system_state', views.SystemStateViewSet)
 
 urlpatterns = [url(r'', include(router.urls)),]

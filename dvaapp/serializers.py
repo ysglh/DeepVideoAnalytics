@@ -1,7 +1,7 @@
 from rest_framework import serializers, viewsets
 from django.contrib.auth.models import User
 from models import Video, Frame, Region, DVAPQL, QueryResults, TEvent, IndexEntries, \
-    Tube, LOPQCodes, Segment, Label, VideoLabel, FrameLabel, RegionLabel, \
+    Tube, Segment, Label, VideoLabel, FrameLabel, RegionLabel, \
     SegmentLabel, TubeLabel, DeepModel, Retriever, SystemState, QueryRegion,\
     QueryRegionResults, Worker
 import os, json, logging, glob
@@ -200,12 +200,6 @@ class QueryRegionSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = QueryRegion
-        fields = '__all__'
-
-
-class LOPQCodesSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = LOPQCodes
         fields = '__all__'
 
 

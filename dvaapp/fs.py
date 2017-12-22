@@ -221,35 +221,8 @@ def download_s3_dir(dist, local, bucket, client = None, resource = None):
                                                    ExtraArgs={'RequestPayer': 'requester'})
 
 
-def download_model(root_dir, model_type_dir_name, dm):
-    """
-    Download model to filesystem
-    """
-    model_type_dir = "{}/{}/".format(root_dir, model_type_dir_name)
-    if not os.path.isdir(model_type_dir):
-        os.mkdir(model_type_dir)
-    model_dir = "{}/{}/{}".format(root_dir, model_type_dir_name, dm.pk)
-    if not os.path.isdir(model_dir):
-        os.mkdir(model_dir)
-        if settings.DEV_ENV:
-            p = subprocess.Popen(['cp','/users/aub3/shared/{}'.format(dm.model_filename),'.'],cwd=model_dir)
-            p.wait()
-        else:
-            p = subprocess.Popen(['wget','--quiet',dm.url],cwd=model_dir)
-            p.wait()
-        if dm.additional_files:
-            for m in dm.additional_files:
-                url = m['url']
-                filename = m['filename']
-                if settings.DEV_ENV:
-                    p = subprocess.Popen(['cp', '/users/aub3/shared/{}'.format(filename), '.'],cwd=model_dir)
-                    p.wait()
-                else:
-                    p = subprocess.Popen(['wget', '--quiet', url], cwd=model_dir)
-                    p.wait()
-
-
-def download_yolo_detector(dm,path):
+def download_yolo_detector(dm):
+    path = dm.files[0]['url']
     dm.create_directory(create_subdirs=False)
     if 'www.dropbox.com' in path and not path.endswith('?dl=1'):
         r = requests.get(path + '?dl=1')

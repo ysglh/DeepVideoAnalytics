@@ -201,7 +201,6 @@ class DeepModel(models.Model):
         else:
             return None
 
-
     def get_yolo_args(self):
         model_dir = "{}/models/{}/".format(settings.MEDIA_ROOT, self.pk)
         class_names = {k: v for k, v in json.loads(self.class_names)}
@@ -215,6 +214,10 @@ class DeepModel(models.Model):
         return json.loads(self.class_distribution) if self.class_distribution.strip() else {}
 
     def download(self):
+        if self.model_type == DeepModel.YOLO:
+            # fs.download_yolo_detector(self)
+            # serializers.import_detector(dm)
+            raise NotImplementedError
         root_dir = settings.MEDIA_ROOT
         model_type_dir = "{}/models/".format(root_dir)
         if not os.path.isdir(model_type_dir):

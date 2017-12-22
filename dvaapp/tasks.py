@@ -542,13 +542,7 @@ def perform_model_import(task_id):
         start.save()
     args = start.arguments
     dm = DeepModel.objects.get(pk=args['pk'])
-    path = args.get('path',None)
-    dirname = 'models'
-    if dm.model_type == DeepModel.YOLO:
-        fs.download_yolo_detector(dm,path)
-        serializers.import_detector(dm)
-    else:
-        fs.download_model(settings.MEDIA_ROOT,dirname, dm)
+    dm.download()
     process_next(task_id)
     mark_as_completed(start)
 

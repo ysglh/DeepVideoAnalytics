@@ -232,7 +232,7 @@ class DeepModel(models.Model):
                 fs.get_path_to_file(m['url'],dlpath)
             if settings.DISABLE_NFS and sys.platform != 'darwin':
                 fs.upload_file_to_remote("/models/{}/{}".format(self.pk,m['filename']))
-        if self.model_type == DeepModel.YOLO:
+        if self.model_type == DeepModel.DETECTOR and self.detector_type == DeepModel.YOLO:
             source_zip = "{}/models/{}/model.zip".format(settings.MEDIA_ROOT, self.pk)
             zipf = zipfile.ZipFile(source_zip, 'r')
             zipf.extractall("{}/models/{}/".format(settings.MEDIA_ROOT, self.pk))

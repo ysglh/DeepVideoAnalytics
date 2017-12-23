@@ -124,9 +124,10 @@ DEFAULT_MODELS = [
         "name": "coco",
         "detector_type": "T",
         "algorithm": "mobilenet_ssd",
+        "filename": "coco_mobilenet.pb",
         "files":[
             {
-                "url": "https://www.dropbox.com/s/nzz26b2p4wxygg3/coco_mobilenet.pb",
+                "url": "/users/aub3/DeepVideoAnalytics/shared/coco_mobilenet.pb",
                 "filename": "coco_mobilenet.pb",
 
             },
@@ -220,19 +221,19 @@ DEFAULT_MODELS = [
         "name": "textbox",
         "files": [
             {
-                "url": "https://www.dropbox.com/s/ghxowdua65r82d6/checkpoint",
+                "url": "/users/aub3/DeepVideoAnalytics/shared/checkpoint",
                 "filename": "checkpoint",
             },
             {
-                "url": "https://www.dropbox.com/s/v9w4mhcks7a719k/VGGnet_fast_rcnn_iter_50000.ckpt.data-00000-of-00001",
+                "url": "/users/aub3/DeepVideoAnalytics/shared/VGGnet_fast_rcnn_iter_50000.ckpt.data-00000-of-00001",
                 "filename": "VGGnet_fast_rcnn_iter_50000.ckpt.data-00000-of-00001"
             },
             {
-                "url": "https://www.dropbox.com/s/2d0licy8npype6r/VGGnet_fast_rcnn_iter_50000.ckpt.index",
+                "url": "/users/aub3/DeepVideoAnalytics/shared/VGGnet_fast_rcnn_iter_50000.ckpt.index",
                 "filename": "VGGnet_fast_rcnn_iter_50000.ckpt.index"
             },
             {
-                "url": "https://www.dropbox.com/s/vwmz2ra9jovlxjd/VGGnet_fast_rcnn_iter_50000.ckpt.meta",
+                "url": "/users/aub3/DeepVideoAnalytics/shared/VGGnet_fast_rcnn_iter_50000.ckpt.meta",
                 "filename": "VGGnet_fast_rcnn_iter_50000.ckpt.meta"
             }
         ],
@@ -252,7 +253,7 @@ DEFAULT_MODELS = [
         "name": "inception",
         "files":[
             {
-                "url": "https://www.dropbox.com/s/fc7li2vwn8lvsyu/network.pb",
+                "url": "/users/aub3/DeepVideoAnalytics/shared/network.pb",
                 "filename": "network.pb"
             }
         ],
@@ -264,7 +265,7 @@ DEFAULT_MODELS = [
         "name": "facenet",
         "files": [
             {
-                "url": "https://www.dropbox.com/s/jytpgw8et09ede9/facenet.pb",
+                "url": "/users/aub3/DeepVideoAnalytics/shared/facenet.pb",
                 "filename": "facenet.pb"
             }
         ],
@@ -276,7 +277,7 @@ DEFAULT_MODELS = [
         "name": "crnn",
         "files": [
             {
-                "url": "https://www.dropbox.com/s/l0vo83hmvv2aipn/crnn.pth",
+                "url": "/users/aub3/DeepVideoAnalytics/shared/crnn.pth",
                 "filename": "crnn.pth",
             }
         ],
@@ -288,19 +289,19 @@ DEFAULT_MODELS = [
         "name": "tagger",
         "files": [
             {
-                "url": "https://www.dropbox.com/s/umo0xtljm9an90x/open_images.ckpt",
+                "url": "/users/aub3/DeepVideoAnalytics/shared/open_images.ckpt",
                 "filename": "open_images.ckpt",
             },
             {
-                "url": "https://www.dropbox.com/s/f93axdtlb3ltj40/open_images.ckpt.meta",
+                "url": "/users/aub3/DeepVideoAnalytics/shared/open_images.ckpt.meta",
                 "filename": "open_images.ckpt.meta"
             },
             {
-                "url": "https://www.dropbox.com/s/2sd5nzpyhsj10w5/open_images_labelmap.txt",
+                "url": "/users/aub3/DeepVideoAnalytics/shared/open_images_labelmap.txt",
                 "filename": "open_images_labelmap.txt"
             },
             {
-                "url": "https://www.dropbox.com/s/yboqv4leem6oy01/open_images_dict.csv",
+                "url": "/users/aub3/DeepVideoAnalytics/shared/open_images_dict.csv",
                 "filename": "open_images_dict.csv"
             }
         ],

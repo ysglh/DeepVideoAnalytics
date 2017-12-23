@@ -29,6 +29,7 @@ env:
     - LAUNCH_BY_NAME_retriever_inception=1
     - LAUNCH_BY_NAME_detector_coco=1
     - LAUNCH_Q_qclusterer=1
+    - TRAVISTEST=1
 
 before_install:
   - sudo apt-get -qq update
@@ -49,22 +50,23 @@ install: "pip install -q -r requirements.txt > /dev/null"
 
 
 before_script:
+  - mkdir ~/media
   - cd repos/lopq/python && python setup.py install && cd ../../..
   - cd repos/tf_ctpn_cpu/lib/utils && ./make.sh && cd ../../../..
-  - python manage.py migrate
-  - python manage.py runserver 8000 &
-  - cd tests/ci && wget --quiet https://www.dropbox.com/s/t4bgkh2w2ow8o10/WorldIsNotEnough.mp4 && cd ../..
+  - cd server && python manage.py migrate && cd ..
+  - cd server && python manage.py runserver 8000 &
+  - cd ../tests/ci && wget --quiet https://www.dropbox.com/s/t4bgkh2w2ow8o10/WorldIsNotEnough.mp4 && cd ../..
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
   - sleep 3 # give xvfb some time to start
 
 script:
-  - fab init_fs
-  - fab init_server
-  - fab init_models
-  - fab ci
-  - fab ci_face
-  - fab ci_search
+  - cd server && fab init_fs && cd ..
+  - cd server && fab init_server && cd ..
+  - cd server && fab init_models && cd ..
+  - cd server && fab ci && cd ..
+  - cd server && fab ci_face && cd ..
+  - cd server && fab ci_search && cd ..
   - wget --quiet localhost:8000
   - wget --quiet localhost:8000/videos/
   - wget --quiet localhost:8000/videos/1/

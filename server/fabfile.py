@@ -12,7 +12,7 @@ import shutil
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                     datefmt='%m-%d %H:%M',
-                    filename='logs/fab.log',
+                    filename='../logs/fab.log',
                     filemode='a')
 
 
@@ -68,9 +68,9 @@ def start_container(container_type):
     Start container with queues launched as specified in environment
     """
     if sys.platform == 'darwin':
-        shutil.copy("configs/custom_defaults/defaults_mac.py", 'dvaui/defaults.py')
-    elif os.path.isfile("configs/custom_defaults/defaults.py"):
-        shutil.copy("configs/custom_defaults/defaults.py",'dvaui/defaults.py')
+        shutil.copy("../configs/custom_defaults/defaults_mac.py", 'dvaui/defaults.py')
+    elif os.path.isfile("../configs/custom_defaults/defaults.py"):
+        shutil.copy("../configs/custom_defaults/defaults.py",'dvaui/defaults.py')
     else:
         raise ValueError("defaults.py not found, if you have mounted a custom_config volume")
     if container_type == 'worker':
@@ -110,11 +110,12 @@ def clean():
     migrate()
     local('python manage.py flush --no-input')
     migrate()
+    shutil.copy("../configs/custom_defaults/defaults_mac.py", 'dvaui/defaults.py')
     for dirname in os.listdir(settings.MEDIA_ROOT):
         if dirname != 'gitkeep':
             local("rm -rf {}/{}".format(settings.MEDIA_ROOT,dirname))
     if settings.DEV_ENV:
-        local("rm logs/*.log")
+        local("rm ../logs/*.log")
         try:
             local("ps auxww | grep 'celery -A dva' | awk '{print $2}' | xargs kill -9")
         except:
@@ -561,15 +562,15 @@ def startq(queue_name, conc=3):
     from dvaapp import queuing
     mute = '--without-gossip --without-mingle --without-heartbeat' if 'CELERY_MUTE' in os.environ else ''
     if queue_name == queuing.Q_MANAGER:
-        command = 'celery -A dva worker -l info {} -c 1 -Q qmanager -n manager.%h -f logs/qmanager.log'.format(mute)
+        command = 'celery -A dva worker -l info {} -c 1 -Q qmanager -n manager.%h -f ../logs/qmanager.log'.format(mute)
     elif queue_name == queuing.Q_EXTRACTOR:
-        command = 'celery -A dva worker -l info {} -c {} -Q {} -n {}.%h -f logs/{}.log'.format(mute, max(int(conc), 2),
+        command = 'celery -A dva worker -l info {} -c {} -Q {} -n {}.%h -f ../logs/{}.log'.format(mute, max(int(conc), 2),
                                                                                                queue_name, queue_name,
                                                                                                queue_name)
         # TODO: worker fails due to
         # https://github.com/celery/celery/issues/3620
     else:
-        command = 'celery -A dva worker -l info {} -P solo -c {} -Q {} -n {}.%h -f logs/{}.log'.format(mute, 1,
+        command = 'celery -A dva worker -l info {} -P solo -c {} -Q {} -n {}.%h -f ../logs/{}.log'.format(mute, 1,
                                                                                                        queue_name,
                                                                                                        queue_name,
                                                                                                        queue_name)
@@ -854,7 +855,7 @@ def start_scheduler():
     """
     init_scheduler()
     local('fab startq:qscheduler &')
-    local("celery -A dva beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler -f logs/beat.log")
+    local("celery -A dva beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler -f ../logs/beat.log")
 
 
 @task

@@ -32,6 +32,8 @@ WORKDIR "/root/DVA/repos/lopq/python"
 RUN python setup.py install
 WORKDIR "/root/DVA/repos/tf_ctpn_cpu/lib/utils/"
 RUN ./make.sh
-WORKDIR "/root/DVA"
-VOLUME ["/root/DVA/dva/media","/root/DVA/configs/custom_defaults"]
+WORKDIR "/root/"
+RUN mkdir media
+WORKDIR "/root/DVA/server/"
+VOLUME ["/root/media","/root/DVA/configs/custom_defaults"]
 EXPOSE 80

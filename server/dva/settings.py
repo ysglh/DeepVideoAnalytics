@@ -223,7 +223,7 @@ USE_TZ = True
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
-MEDIA_ROOT = os.path.join(PROJECT_ROOT, 'media')
+MEDIA_ROOT = os.path.expanduser('~/media/') if sys.platform == 'darwin' or os.environ.get('TRAVISTEST',False) else "/root/media/"
 
 if DEPLOY_ON_HEROKU and ('MEDIA_URL' not in os.environ or 'STATIC_URL' not in os.environ):
     raise EnvironmentError('Please set STATIC_URL and MEDIA_URL')

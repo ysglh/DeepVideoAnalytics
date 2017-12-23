@@ -7,6 +7,7 @@ import sys
 
 
 urlpatterns = [
+    url(r'^$', views.index, name='app_home'),
     url(r'^app$', views.index, name='app'),
     url(r'^data_centric$', views.paper, name='paper'),
     url(r'^status$', views.status, name='status'),
@@ -70,8 +71,3 @@ urlpatterns = [
     url(r'^password_reset/$', auth_views.password_reset, name='password_reset'),
     url(r'^accounts/profile/$', views.index, name='profile'),
 ]
-
-if settings.DVA_PRIVATE_ENABLE and not settings.DEV_ENV:
-    urlpatterns.append(url(r'^$', views.home, name='home'))
-else:
-    urlpatterns.append(url(r'^$', views.index, name='app_home'))

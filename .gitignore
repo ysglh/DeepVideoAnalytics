@@ -33,3 +33,4 @@ docs/experiments/yolo/yolo_test.zip
 /deploy/gcp/secrets.yml
 /deploy/gcp/config.py
 /deploy/static/
+/docs/marketing/

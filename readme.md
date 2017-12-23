@@ -1,7 +1,8 @@
-# Deep Video Analytics  •  [![Build Status](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics.svg?branch=master)](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics)
+<center><h1> Deep Video Analytics</h1></center>
+<center><p>[![Build Status](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics.svg?branch=master)](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics)</p></center>
 
-![UI Screenshot](notebooks/figures/emma.png "Emma Watson, from poster of her latest subject appropriate movie The Circle")
-![Banner](notebooks/figures/banner_small.png "banner")
+![UI Screenshot](docs/figures/emma.png "Emma Watson, from poster of her latest subject appropriate movie The Circle")
+![Banner](docs/figures/banner_small.png "banner")
 
 
 **Don't be worried by complexity of this banner, with latest version of docker installed correctly, you can run Deep Video Analytics in minutes locally (even without a GPU) using a single command.** 
@@ -15,7 +16,7 @@
 
 - For a quick overview we recommend going through the [presentation in readme.pdf](readme.pdf)
 
-- Documentation along with a tutorial is being written in [/tutorial](/tutorial) directory.
+- Documentation along with a tutorial is being written in [/docs/tutorial](/docs/tutorial) directory.
 
 #### Deployment 
 
@@ -30,8 +31,8 @@ We provide instructions for deploying DVA in three scenarios.
 
 #### Architecture, data & processing model
 ![Architecture](notebooks/distributed_intelligence/figures/system.png "architecture")
-![Data model](notebooks/figures/data_model_2.png "data model")
-![Processing model](notebooks/figures/task_model_2.png "processing model")
+![Data model](docs/figures/data_model_2.png "data model")
+![Processing model](docs/figures/task_model_2.png "processing model")
 
 
 #### Libraries used/modified in code and their licenses

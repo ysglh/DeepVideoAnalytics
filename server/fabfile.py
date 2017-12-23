@@ -165,12 +165,12 @@ def ci():
     from dvaapp.tasks import perform_dataset_extraction, perform_indexing, perform_export, perform_import, \
         perform_retriever_creation, perform_detection, \
         perform_video_segmentation, perform_transformation
-    for fname in glob.glob('tests/ci/*.mp4'):
+    for fname in glob.glob('../tests/ci/*.mp4'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")
         handle_uploaded_file(f, name)
     if settings.DEV_ENV:
-        for fname in glob.glob('tests/ci/*.zip'):
+        for fname in glob.glob('../tests/ci/*.zip'):
             name = fname.split('/')[-1].split('.')[0]
             f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
             handle_uploaded_file(f, name)
@@ -591,11 +591,11 @@ def test():
     django.setup()
     from django.core.files.uploadedfile import SimpleUploadedFile
     from dvaui.view_shared import handle_uploaded_file
-    for fname in glob.glob('tests/ci/*.mp4'):
+    for fname in glob.glob('../tests/ci/*.mp4'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")
         handle_uploaded_file(f, name)
-    for fname in glob.glob('tests/ci/*.zip'):
+    for fname in glob.glob('../tests/ci/*.zip'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
         handle_uploaded_file(f, name)
@@ -786,12 +786,12 @@ def qt():
     django.setup()
     from django.core.files.uploadedfile import SimpleUploadedFile
     from dvaui.view_shared import handle_uploaded_file
-    for fname in glob.glob('tests/ci/*.mp4'):
+    for fname in glob.glob('../tests/ci/*.mp4'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/mp4")
         _ = handle_uploaded_file(f, name)
         break
-    for fname in glob.glob('tests/ci/example*.zip'):
+    for fname in glob.glob('../tests/ci/example*.zip'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
         _ = handle_uploaded_file(f, name)
@@ -903,7 +903,7 @@ def test_import_pipelines(port=80):
         store_token_for_testing()
     token = json.loads(file('creds.json').read())['token']
     headers = {'Authorization': 'Token {}'.format(token)}
-    for fname in glob.glob("tests/import_tests/*.json"):
+    for fname in glob.glob("../tests/import_tests/*.json"):
         r = requests.post("http://localhost:{}/api/queries/".format(port), data={'script': file(fname).read()},
                           headers=headers)
         print fname,r.status_code
@@ -924,7 +924,7 @@ def test_framelist():
     from dvaapp.tasks import perform_import, perform_frame_download
     from django.core.files.uploadedfile import SimpleUploadedFile
     from dvaapp.models import TEvent
-    for fname in glob.glob('tests/ci/framelist.*'):
+    for fname in glob.glob('../tests/ci/framelist.*'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/json")
         v = handle_uploaded_file(f, name)
@@ -944,7 +944,7 @@ def test_coco():
     from dvaapp.tasks import perform_import, perform_region_import, perform_dataset_extraction
     from django.core.files.uploadedfile import SimpleUploadedFile
     from dvaapp.models import TEvent
-    for fname in glob.glob('tests/ci/coco*.zip'):
+    for fname in glob.glob('../tests/ci/coco*.zip'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
         v = handle_uploaded_file(f, name)
@@ -953,7 +953,7 @@ def test_coco():
         dt = TEvent(video=v,operation='perform_dataset_extraction')
         dt.save()
         perform_dataset_extraction(dt.pk)
-        shutil.copy("tests/ci/coco_regions/coco_ci_regions.json","dva/media/ingest/coco_ci_regions.json")
+        shutil.copy("../tests/ci/coco_regions/coco_ci_regions.json","dva/media/ingest/coco_ci_regions.json")
         args = { "path":"/ingest/coco_ci_regions.json"}
         dt = TEvent(video=v,operation='perform_region_import',arguments=args)
         dt.save()

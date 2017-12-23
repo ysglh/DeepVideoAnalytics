@@ -9,9 +9,9 @@ ehthumbs.db
 Icon?
 Thumbs.db
 *.swp
-experiments/private
-experiments/coco/coco_annotations
-experiments/yolo/yolo_test.zip
+docs/experiments/private
+docs/experiments/coco/coco_annotations
+docs/experiments/yolo/yolo_test.zip
 /backups/
 /repos/vdn
 /server/dva/staticfiles/

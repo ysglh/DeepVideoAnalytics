@@ -61,11 +61,11 @@ def pull_private():
     with lcd('dvap'):
         local('./setup_private.sh')
 
-
 @task
-def start_container(container_type):
+def copy_defaults():
     """
-    Start container with queues launched as specified in environment
+    Copy defaults from config volume
+    :return:
     """
     if sys.platform == 'darwin':
         shutil.copy("../configs/custom_defaults/defaults_mac.py", 'dvaui/defaults.py')
@@ -73,6 +73,14 @@ def start_container(container_type):
         shutil.copy("../configs/custom_defaults/defaults.py",'dvaui/defaults.py')
     else:
         raise ValueError("defaults.py not found, if you have mounted a custom_config volume")
+
+
+@task
+def start_container(container_type):
+    """
+    Start container with queues launched as specified in environment
+    """
+    copy_defaults()
     if container_type == 'worker':
         time.sleep(30)  # To avoid race condition where worker starts before migration is finished
         init_fs()

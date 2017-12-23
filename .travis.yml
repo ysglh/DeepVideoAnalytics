@@ -61,6 +61,7 @@ before_script:
   - cd server && python manage.py runserver 8000 &
 
 script:
+  - cd server && fab copy_defaults && cd ..
   - cd server && fab init_fs && cd ..
   - cd server && fab init_server && cd ..
   - cd server && fab init_models && cd ..

@@ -1,6 +1,6 @@
-# Deep Video Analytics
-by [Akshay Bhat, Cornell University.](http://www.akshaybhat.com)
-Travis CI: [![Build Status](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics.svg?branch=master)](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics)
+# Deep Video Analytics &nbsp; &nbsp; [![Build Status](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics.svg?branch=master)](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics)
+#### by [Akshay Bhat, Cornell University.](http://www.akshaybhat.com)  
+#### For installation instructions & demo please visit [https://www.deepvideoanalytics.com](https://www.deepvideoanalytics.com)
 
 ![UI Screenshot](docs/figures/emma.png "Emma Watson, from poster of her latest subject appropriate movie The Circle")
 ![Banner](docs/figures/banner_small.png "banner")
@@ -8,20 +8,19 @@ Travis CI: [![Build Status](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics
 Deep Video Analytics is a platform for indexing and extracting information from videos and images.
 Don't be worried by complexity of this banner, with latest version of docker installed correctly,
 you can run Deep Video Analytics in minutes locally (even without a GPU) using a single command.
-For installation instructions & demo please visit [https://www.deepvideoanalytics.com](https://www.deepvideoanalytics.com)
 
-#### Documentation & tutorial
+### Documentation & tutorial
 
 - For a quick overview we **strongly recommend** going through the [presentation in readme.pdf](/docs/readme.pdf)
 
 - Documentation along with a tutorial is being written in [/docs/tutorial](/docs/tutorial) directory.
 
-#### Experiments
+### Experiments
 
 - **OCR example has been moved to [/docs/experiments/ocr](/docs/experiments/ocr) directory**.
 - More experiments coming soon!
 
-#### Deployment
+### Deployment
 
 We provide instructions for deploying DVA in three scenarios.
 
@@ -31,18 +30,18 @@ We provide instructions for deploying DVA in three scenarios.
 
 3. [deploy/gcp](/deploy/gcp) contains files used for launching DVA in a scalable GKE + GCS setup
 
-#### Code organization
+### Code organization
 
 - /client : Python client using DVA REST API
 - /configs : ngnix config + defaults.py defining models + processing pipelines (can be replaced by mounting a volume)
-- /deploy : Dockerfiles, compose files for single machine CPU/GPU deployment, scalable deployment with GCS & Kubernetes on GCP
+- /deploy : Dockerfiles + Instructions for single machine deployment or scalable deployment with Kubernetes
 - /docs : Documentation, tutorial and experiments
 - /tests : Files required for testing
 - /repos : Code copied from third party repos, e.g. Yahoo LOPQ, TF-CTPN etc.
 - /server : dvalib + django server contains contains bulk of the code for UI, App and models.
 - /logs : Empty dir for storing logs
 
-#### Libraries modified in code and their licenses
+### Libraries modified in code and their licenses
 
 | Library  | Link to the license | 
 | -------- | ------------------- |
@@ -69,7 +68,7 @@ We provide instructions for deploying DVA in three scenarios.
 | Open Images Pre-trained network  |  [Apache 2.0](https://github.com/openimages/dataset/blob/master/LICENSE) |
 
 
-#### Additional libraries & frameworks
+### Additional libraries & frameworks
 
 * FFmpeg (not linked, called via a Subprocess)
 * Tensorflow 

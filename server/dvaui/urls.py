@@ -9,7 +9,6 @@ import sys
 urlpatterns = [
     url(r'^$', views.index, name='app_home'),
     url(r'^app$', views.index, name='app'),
-    url(r'^data_centric$', views.paper, name='paper'),
     url(r'^status$', views.status, name='status'),
     url(r'^tasks/$', views.TEventList.as_view(), name='tasks'),
     url(r'^task_detail/(?P<pk>\d+)/$', views.TEventDetail.as_view(), name='task_detail'),

@@ -48,7 +48,7 @@
        - db
        - rabbit
      volumes:
-       - dvadata:/root/DVA/dva/media
+       - dvadata:/root/media
    dva-cpu-worker:
      image: akshayubhat/dva-auto:latest
      container_name: dva-cpu-worker
@@ -76,7 +76,7 @@
        - db
        - rabbit
      volumes:
-       - dvadata:/root/DVA/dva/media
+       - dvadata:/root/media
  volumes:
   dvapgdata:
   dvadata:

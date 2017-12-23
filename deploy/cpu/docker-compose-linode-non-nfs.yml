@@ -48,7 +48,7 @@
        - db
        - rabbit
      volumes:
-       - dvadata_webserver:/root/DVA/dva/media
+       - dvadata_webserver:/root/media
    extractor:
      image: akshayubhat/dva-auto:latest
      container_name: extractor
@@ -75,7 +75,7 @@
        - db
        - rabbit
      volumes:
-       - dvadata_extractor:/root/DVA/dva/media
+       - dvadata_extractor:/root/media
    scheduler:
      image: akshayubhat/dva-auto:latest
      container_name: scheduler
@@ -101,7 +101,7 @@
        - db
        - rabbit
      volumes:
-       - dvadata_scheduler:/root/DVA/dva/media
+       - dvadata_scheduler:/root/media
    inception:
      image: akshayubhat/dva-auto:latest
      container_name: inception
@@ -127,7 +127,7 @@
        - db
        - rabbit
      volumes:
-       - dvadata_inception:/root/DVA/dva/media
+       - dvadata_inception:/root/media
    facenet:
      image: akshayubhat/dva-auto:latest
      container_name: facenet
@@ -153,7 +153,7 @@
        - db
        - rabbit
      volumes:
-       - dvadata_facenet:/root/DVA/dva/media
+       - dvadata_facenet:/root/media
    coco:
      image: akshayubhat/dva-auto:latest
      container_name: coco
@@ -179,7 +179,7 @@
        - db
        - rabbit
      volumes:
-       - dvadata_coco:/root/DVA/dva/media
+       - dvadata_coco:/root/media
    crnn:
      image: akshayubhat/dva-auto:latest
      container_name: crnn
@@ -207,7 +207,7 @@
        - db
        - rabbit
      volumes:
-       - dvadata_crnn:/root/DVA/dva/media
+       - dvadata_crnn:/root/media
    tagger:
      image: akshayubhat/dva-auto:latest
      container_name: tagger
@@ -233,7 +233,7 @@
        - db
        - rabbit
      volumes:
-       - dvadata_tagger:/root/DVA/dva/media
+       - dvadata_tagger:/root/media
    face:
      image: akshayubhat/dva-auto:latest
      container_name: face
@@ -259,7 +259,7 @@
        - db
        - rabbit
      volumes:
-       - dvadata_face:/root/DVA/dva/media
+       - dvadata_face:/root/media
    retriever_exact_inception:
      image: akshayubhat/dva-auto:latest
      container_name: retriever_exact_inception
@@ -285,7 +285,7 @@
        - db
        - rabbit
      volumes:
-       - dvadata_exact_inception:/root/DVA/dva/media
+       - dvadata_exact_inception:/root/media
    retriever_exact_facenet:
      image: akshayubhat/dva-auto:latest
      container_name: retriever_exact_facenet
@@ -311,7 +311,7 @@
        - db
        - rabbit
      volumes:
-       - dvadata_exact_facenet:/root/DVA/dva/media
+       - dvadata_exact_facenet:/root/media
    textdetector:
      image: akshayubhat/dva-auto:latest
      container_name: textdetector
@@ -335,7 +335,7 @@
        - db
        - rabbit
      volumes:
-       - dvadata_textdetector:/root/DVA/dva/media
+       - dvadata_textdetector:/root/media
  volumes:
   dvapgdata:
   dvarabbit:

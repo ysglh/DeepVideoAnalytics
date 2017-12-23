@@ -54,7 +54,7 @@
        - db
        - rabbit
      volumes:
-       - dvadata:/root/DVA/dva/media
+       - dvadata:/root/media
  volumes:
   dvapgdata:
   dvadata:

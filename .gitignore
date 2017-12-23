@@ -17,11 +17,11 @@ experiments/yolo/yolo_test.zip
 /server/dva/staticfiles/
 /server/dvap/
 *.mov
-creds.json
+/server/creds.json
 /shared/
 /server/dvalib/crfasrnn/crfrnn_keras_model.h5
 /server/dvalib/crfasrnn/cpp/high_dim_filter.so
-/celerybeat.pid
+/server/celerybeat.pid
 /tests/debug/tensorflow_dataset.ipynb
 /repos/tf_ctpn_cpu/checkpoints/
 /repos/tf_ctpn_cpu/lib/utils/cython_nms.so

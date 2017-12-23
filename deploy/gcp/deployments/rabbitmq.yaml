@@ -47,6 +47,13 @@ spec:
       containers:
       - image: rabbitmq
         imagePullPolicy: "IfNotPresent"
+        resources:
+          requests:
+            memory: "1000Mi"
+            cpu: "2"
+          limits:
+            memory: "4000Mi"
+            cpu: "4"
         name: master
         env:
         - name: RABBIT_HOST

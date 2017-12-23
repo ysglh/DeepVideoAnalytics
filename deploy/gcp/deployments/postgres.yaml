@@ -25,18 +25,16 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 3Gi
+      storage: 10Gi
   storageClassName: slow
 ---
 apiVersion: apps/v1beta1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: postgres-master
 spec:
   replicas: 1
-  progressDeadlineSeconds: 600
-  minReadySeconds: 15
-  revisionHistoryLimit: 5
+  serviceName: "postgres-master"
   template:
     metadata:
       labels:
@@ -46,6 +44,13 @@ spec:
     spec:
       containers:
       - image: postgres:9.6-alpine
+        resources:
+          requests:
+            memory: "2000Mi"
+            cpu: "2"
+          limits:
+            memory: "4000Mi"
+            cpu: "4"
         imagePullPolicy: "IfNotPresent"
         name: master
         env:

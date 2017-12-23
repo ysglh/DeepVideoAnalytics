@@ -281,7 +281,7 @@ def ci_search():
     launch_workers_and_scheduler_from_environment()
     query_dict = {
         'process_type': DVAPQL.QUERY,
-        'image_data_b64': base64.encodestring(file('tests/queries/query.png').read()),
+        'image_data_b64': base64.encodestring(file('../tests/queries/query.png').read()),
         'tasks': [
             {
                 'operation': 'perform_indexing',

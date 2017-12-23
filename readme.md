@@ -1,16 +1,12 @@
 # Deep Video Analytics
-[![Build Status](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics.svg?branch=master)](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics)
+
+by [Akshay Bhat, Cornell University.](http://www.akshaybhat.com)  [![Build Status](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics.svg?branch=master)](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics)
 
 ![UI Screenshot](docs/figures/emma.png "Emma Watson, from poster of her latest subject appropriate movie The Circle")
 ![Banner](docs/figures/banner_small.png "banner")
 
-
-**Don't be worried by complexity of this banner, with latest version of docker installed correctly, you can run Deep Video Analytics in minutes locally (even without a GPU) using a single command.** 
-
-#### Author: [Akshay Bhat, Cornell University.](http://www.akshaybhat.com)
-
-#### Deep Video Analytics is a platform for indexing and extracting information from videos and images. For installation instructions & demo go to [https://www.deepvideoanalytics.com](https://www.deepvideoanalytics.com)
-
+Deep Video Analytics is a platform for indexing and extracting information from videos and images. For installation instructions & demo go to [https://www.deepvideoanalytics.com](https://www.deepvideoanalytics.com)
+**Don't be worried by complexity of this banner, with latest version of docker installed correctly, you can run Deep Video Analytics in minutes locally (even without a GPU) using a single command.**
 
 #### Documentation & tutorial
 
@@ -18,7 +14,11 @@
 
 - Documentation along with a tutorial is being written in [/docs/tutorial](/docs/tutorial) directory.
 
-#### Deployment 
+#### Experiments
+
+- ** OCR example has been moved to [/docs/experiments/ocr](/docs/experiments/ocr) directory**.
+
+#### Deployment
 
 We provide instructions for deploying DVA in three scenarios.
 
@@ -29,13 +29,24 @@ We provide instructions for deploying DVA in three scenarios.
 3. [deploy/gcp](/deploy/gcp) contains files used for launching DVA in a scalable GKE + GCS setup
 
 
-#### Architecture, data & processing model
-![Architecture](notebooks/distributed_intelligence/figures/system.png "architecture")
+#### Architecture, Data & Processing model
+
 ![Data model](docs/figures/data_model_2.png "data model")
+
 ![Processing model](docs/figures/task_model_2.png "processing model")
 
+#### Code organization
 
-#### Libraries used/modified in code and their licenses
+- /client : Python client using DVA REST API
+- /configs : ngnix config + defaults.py defining models + processing pipelines (can be replaced by mounting a volume)
+- /deploy : Dockerfiles, compose files for single machine CPU/GPU deployment, scalable deployment with GCS & Kubernetes on GCP
+- /docs : Documentation, tutorial and experiments
+- /tests : Files required for testing
+- /repos : Code copied from third party repos, e.g. Yahoo LOPQ, TF-CTPN etc.
+- /server : dvalib + django server contains contains bulk of the code for UI, App and models.
+- /logs : Empty dir for storing logs
+
+#### Libraries modified in code and their licenses
 
 | Library  | Link to the license | 
 | -------- | ------------------- |
@@ -62,7 +73,7 @@ We provide instructions for deploying DVA in three scenarios.
 | Open Images Pre-trained network  |  [Apache 2.0](https://github.com/openimages/dataset/blob/master/LICENSE) |
 
 
-#### Following libraries & frameworks are installed when building/running the container
+#### Additional libraries & frameworks
 
 * FFmpeg (not linked, called via a Subprocess)
 * Tensorflow 
@@ -72,7 +83,8 @@ We provide instructions for deploying DVA in three scenarios.
 * Docker
 * Nvidia-docker
 * Docker-compose
-* All packages in [requirements.txt](https://github.com/AKSHAYUBHAT/DeepVideoAnalytics/blob/master/requirements.txt) & used in Dockerfiles.
+* All packages in [requirements.txt](/requirements.txt)
+* All dependancies in [Dockerfile](/deploy/dockerfiles/Dockerfile)
 
 
 

@@ -54,11 +54,11 @@ before_script:
   - cd repos/lopq/python && python setup.py install && cd ../../..
   - cd repos/tf_ctpn_cpu/lib/utils && ./make.sh && cd ../../../..
   - cd server && python manage.py migrate && cd ..
-  - cd server && python manage.py runserver 8000 &
-  - cd ../tests/ci && wget --quiet https://www.dropbox.com/s/t4bgkh2w2ow8o10/WorldIsNotEnough.mp4 && cd ../..
+  - cd tests/ci && wget --quiet https://www.dropbox.com/s/t4bgkh2w2ow8o10/WorldIsNotEnough.mp4 && cd ../..
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
   - sleep 3 # give xvfb some time to start
+  - cd server && python manage.py runserver 8000 &
 
 script:
   - cd server && fab init_fs && cd ..

@@ -1,22 +1,25 @@
 # Deep Video Analytics
-
-by [Akshay Bhat, Cornell University.](http://www.akshaybhat.com)  [![Build Status](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics.svg?branch=master)](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics)
+by [Akshay Bhat, Cornell University.](http://www.akshaybhat.com)
+Travis CI: [![Build Status](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics.svg?branch=master)](https://travis-ci.org/AKSHAYUBHAT/DeepVideoAnalytics)
 
 ![UI Screenshot](docs/figures/emma.png "Emma Watson, from poster of her latest subject appropriate movie The Circle")
 ![Banner](docs/figures/banner_small.png "banner")
 
-Deep Video Analytics is a platform for indexing and extracting information from videos and images. For installation instructions & demo go to [https://www.deepvideoanalytics.com](https://www.deepvideoanalytics.com)
-**Don't be worried by complexity of this banner, with latest version of docker installed correctly, you can run Deep Video Analytics in minutes locally (even without a GPU) using a single command.**
+Deep Video Analytics is a platform for indexing and extracting information from videos and images.
+Don't be worried by complexity of this banner, with latest version of docker installed correctly,
+you can run Deep Video Analytics in minutes locally (even without a GPU) using a single command.
+For installation instructions & demo please visit [https://www.deepvideoanalytics.com](https://www.deepvideoanalytics.com)
 
 #### Documentation & tutorial
 
-- For a quick overview we recommend going through the [presentation in readme.pdf](readme.pdf)
+- For a quick overview we **strongly recommend** going through the [presentation in readme.pdf](/docs/readme.pdf)
 
 - Documentation along with a tutorial is being written in [/docs/tutorial](/docs/tutorial) directory.
 
 #### Experiments
 
-- ** OCR example has been moved to [/docs/experiments/ocr](/docs/experiments/ocr) directory**.
+- **OCR example has been moved to [/docs/experiments/ocr](/docs/experiments/ocr) directory**.
+- More experiments coming soon!
 
 #### Deployment
 
@@ -27,13 +30,6 @@ We provide instructions for deploying DVA in three scenarios.
 2. [deploy/gpu](/deploy/gpu) contains docker-compose files for GPU single machine deployments on AWS etc.
 
 3. [deploy/gcp](/deploy/gcp) contains files used for launching DVA in a scalable GKE + GCS setup
-
-
-#### Architecture, Data & Processing model
-
-![Data model](docs/figures/data_model_2.png "data model")
-
-![Processing model](docs/figures/task_model_2.png "processing model")
 
 #### Code organization
 

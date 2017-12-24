@@ -86,11 +86,9 @@
 {% endblock %}
 {% block page_js%}
 <script>
-    var examples = {{ examples|safe }};
     $(document).ready(function() {
         InitializeTables();
         var scripttext = document.getElementById("script");
-        scripttext.textContent = JSON.stringify(examples[0],null, 4);
         var editor = ace.edit("editor",{
             wrapBehavioursEnabled:true,
             autoScrollEditorIntoView:true});

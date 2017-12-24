@@ -1,6 +1,6 @@
 import logging, os, json
 import celery
-from ..models import DeepModel
+from ..models import TrainedModel
 try:
     from dvalib import detector
 except ImportError:
@@ -19,10 +19,10 @@ class DetectorTask(celery.Task):
     def load_detector(self,cd):
         cd.ensure()
         if cd.pk not in DetectorTask._detectors:
-            if cd.detector_type == DeepModel.TFD:
+            if cd.detector_type == TrainedModel.TFD:
                 DetectorTask._detectors[cd.pk] = detector.TFDetector(model_path=cd.get_model_path(),
                                                                      class_index_to_string=cd.class_index_to_string)
-            elif cd.detector_type == DeepModel.YOLO:
+            elif cd.detector_type == TrainedModel.YOLO:
                 DetectorTask._detectors[cd.pk] = detector.YOLODetector(cd.get_yolo_args())
             elif cd.name == 'face':
                 DetectorTask._detectors[cd.pk] = detector.FaceDetector()

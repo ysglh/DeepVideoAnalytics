@@ -5,7 +5,7 @@ from django.conf.urls import url,include
 router = routers.DefaultRouter()
 router.register(r'users', views.UserViewSet)
 router.register(r'videos', views.VideoViewSet)
-router.register(r'models', views.DeepModelViewSet)
+router.register(r'models', views.TrainedModelViewSet)
 router.register(r'retrievers', views.RetrieverViewSet)
 router.register(r'tubes', views.TubeViewSet)
 router.register(r'frames', views.FrameViewSet)

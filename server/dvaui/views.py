@@ -10,7 +10,7 @@ from .forms import UploadFileForm, YTVideoForm, AnnotationForm
 from dvaapp.models import Video, Frame, DVAPQL, QueryResults, TEvent, IndexEntries, Region, \
     Tube,  Segment, FrameLabel, SegmentLabel, \
     VideoLabel, RegionLabel, TubeLabel, Label, ManagementAction, \
-    DeepModel, Retriever, SystemState, QueryRegion, QueryRegionResults, Worker
+    TrainedModel, Retriever, SystemState, QueryRegion, QueryRegionResults, Worker
 from .models import StoredDVAPQL, ExternalServer
 from dva.celery import app
 from rest_framework import viewsets, mixins
@@ -228,7 +228,7 @@ class VideoDetail(UserPassesTestMixin, DetailView):
 
 
 class DetectionDetail(UserPassesTestMixin, DetailView):
-    model = DeepModel
+    model = TrainedModel
     template_name = "dvaui/customdetector_detail.html"
 
 
@@ -418,9 +418,9 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
     else:
         form = UploadFileForm()
     context = {'form': form}
-    context['detectors'] = DeepModel.objects.filter(model_type=DeepModel.DETECTOR)
+    context['detectors'] = TrainedModel.objects.filter(model_type=TrainedModel.DETECTOR)
     context['indexer_retrievers'] = []
-    for i in DeepModel.objects.filter(model_type=DeepModel.INDEXER):
+    for i in TrainedModel.objects.filter(model_type=TrainedModel.INDEXER):
         for r in Retriever.objects.all():
             if 'indexer_shasum' in r.source_filters and r.source_filters['indexer_shasum'] == i.shasum and r.last_built:
                 context['indexer_retrievers'].append(('{} > {} retriever {} (pk:{})'.format(i.name,
@@ -448,11 +448,11 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
     context['video_count'] = Video.objects.count()
     context['index_entries'] = IndexEntries.objects.all()
     context['region_count'] = Region.objects.all().count()
-    context['models_count'] = DeepModel.objects.all().count()
+    context['models_count'] = TrainedModel.objects.all().count()
     context['worker_count'] = Worker.objects.all().count()
     context['tube_count'] = Tube.objects.all().count()
     context["videos"] = Video.objects.all().filter()
-    context['detector_count'] = DeepModel.objects.filter(model_type=DeepModel.DETECTOR).count()
+    context['detector_count'] = TrainedModel.objects.filter(model_type=TrainedModel.DETECTOR).count()
     context['rate'] = defaults.DEFAULT_RATE
     return render(request, 'dashboard.html', context)
 
@@ -690,7 +690,7 @@ def management(request):
 def training(request):
     context = {}
     context["videos"] = Video.objects.all().filter()
-    context["detectors"] = DeepModel.objects.filter(model_type=DeepModel.DETECTOR)
+    context["detectors"] = TrainedModel.objects.filter(model_type=TrainedModel.DETECTOR)
     return render(request, 'training.html', context)
 
 
@@ -721,7 +721,7 @@ def textsearch(request):
 @user_passes_test(user_check)
 def retrievers(request):
     context = {}
-    context['algorithms'] = {k.name for k in DeepModel.objects.filter(model_type=DeepModel.INDEXER)}
+    context['algorithms'] = {k.name for k in TrainedModel.objects.filter(model_type=TrainedModel.INDEXER)}
     context['index_entries'] = IndexEntries.objects.all()
     context['retrievers'] = Retriever.objects.all()
     return render(request, 'retrievers.html', context)
@@ -747,8 +747,8 @@ def create_retriever(request):
             if request.POST.get('source_filters',None):
                 spec['source_filters'] = json.loads(request.POST.get('source_filter','{}'))
             else:
-                spec['source_filters'] = {'indexer_shasum':DeepModel.objects.get(name=request.POST.get('algorithm'),
-                                                                                 model_type=DeepModel.INDEXER).shasum}
+                spec['source_filters'] = {'indexer_shasum':TrainedModel.objects.get(name=request.POST.get('algorithm'),
+                                                                                 model_type=TrainedModel.INDEXER).shasum}
             next_tasks = [{'operation': "perform_retriever_creation",'arguments': {'retriever_pk':'__pk__'},},]
         elif request.POST.get('retriever_type') == Retriever.EXACT:
             spec['name'] = request.POST.get('name')
@@ -962,13 +962,13 @@ def rename_video(request):
 @user_passes_test(user_check)
 def models(request):
     context = {
-        'visual_index_list': DeepModel.objects.filter(model_type=DeepModel.INDEXER),
+        'visual_index_list': TrainedModel.objects.filter(model_type=TrainedModel.INDEXER),
         'index_entries': IndexEntries.objects.all(),
-        'analyzers': DeepModel.objects.filter(model_type=DeepModel.ANALYZER),
+        'analyzers': TrainedModel.objects.filter(model_type=TrainedModel.ANALYZER),
         "videos": Video.objects.all(),
         "region_types": Region.REGION_TYPES,
-        "detectors": DeepModel.objects.filter(model_type=DeepModel.DETECTOR),
-        "deep_models": DeepModel.objects.all()
+        "detectors": TrainedModel.objects.filter(model_type=TrainedModel.DETECTOR),
+        "deep_models": TrainedModel.objects.all()
     }
     return render(request, 'models.html', context)
 

@@ -1,5 +1,5 @@
 import os, json, requests, shutil, zipfile, cStringIO, base64, uuid
-from dvaapp.models import Video, TEvent,  Label, RegionLabel, DeepModel, Retriever, DVAPQL, Region, Frame, \
+from dvaapp.models import Video, TEvent,  Label, RegionLabel, TrainedModel, Retriever, DVAPQL, Region, Frame, \
     QueryRegion, QueryRegionResults,QueryResults
 from django.conf import settings
 from django_celery_results.models import TaskResult
@@ -260,8 +260,8 @@ def import_vdn_detector_url(server, url, user, cached_response):
     p = processing.DVAPQLProcess()
     query = {
         'process_type': DVAPQL.PROCESS,
-        'create':[{'MODEL': 'DeepModel',
-                   'spec':{'name': response['name'],'detector_type':DeepModel.DETECTOR},
+        'create':[{'MODEL': 'TrainedModel',
+                   'spec':{'name': response['name'],'detector_type':TrainedModel.DETECTOR},
                    'tasks':[{'operation': 'perform_detector_import',
                              'arguments': {'path': response['path'],
                                            'detector_pk' : '__pk__'
@@ -346,7 +346,7 @@ def create_query_from_request(p, request):
             indexer_pk, retriever_pk = k.split('_')
             indexer_tasks[int(indexer_pk)].append(int(retriever_pk))
     for i in indexer_tasks:
-        di = DeepModel.objects.get(pk=i,model_type=DeepModel.INDEXER)
+        di = TrainedModel.objects.get(pk=i,model_type=TrainedModel.INDEXER)
         rtasks = []
         for r in indexer_tasks[i]:
             rtasks.append({'operation': 'perform_retrieval', 'arguments': {'count': int(count), 'retriever_pk': r}})
@@ -363,7 +363,7 @@ def create_query_from_request(p, request):
         )
     if selected_detectors:
         for d in selected_detectors:
-            dd = DeepModel.objects.get(pk=int(d),model_type=DeepModel.DETECTOR)
+            dd = TrainedModel.objects.get(pk=int(d),model_type=TrainedModel.DETECTOR)
             if dd.name == 'textbox':
                 query_json['tasks'].append({'operation': 'perform_detection',
                                             'arguments': {'detector_pk': int(d),
@@ -475,9 +475,9 @@ def get_retrieval_event_name(r,rids_to_names):
     if r.retrieval_event_id not in rids_to_names:
         retriever = Retriever.objects.get(pk=r.retrieval_event.arguments['retriever_pk'])
         if 'index' in r.retrieval_event.parent.arguments:
-            indexer = DeepModel.objects.get(name=r.retrieval_event.parent.arguments['index'],
-                                            model_type=DeepModel.INDEXER)
+            indexer = TrainedModel.objects.get(name=r.retrieval_event.parent.arguments['index'],
+                                            model_type=TrainedModel.INDEXER)
         else:
-            indexer = DeepModel.objects.get(pk=r.retrieval_event.parent.arguments['indexer_pk'])
+            indexer = TrainedModel.objects.get(pk=r.retrieval_event.parent.arguments['indexer_pk'])
         rids_to_names[r.retrieval_event_id] = get_sequence_name(indexer, retriever)
     return rids_to_names[r.retrieval_event_id]

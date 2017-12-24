@@ -7,7 +7,7 @@ from django.conf import settings
 from dva.celery import app
 from .models import Video, Frame, TEvent,  IndexEntries, Region, Tube, \
     Retriever, Segment, QueryIndexVector, DeletedVideo, ManagementAction, SystemState, DVAPQL, \
-    Worker, QueryRegion, QueryRegionIndexVector, DeepModel, RegionLabel, FrameLabel, Label
+    Worker, QueryRegion, QueryRegionIndexVector, TrainedModel, RegionLabel, FrameLabel, Label
 
 from .operations.indexing import IndexerTask
 from .operations.retrieval import RetrieverTask
@@ -327,11 +327,11 @@ def perform_detection(task_id):
     query_flow = ('target' in args and args['target'] == 'query')
     if 'detector_pk' in args:
         detector_pk = int(args['detector_pk'])
-        cd = DeepModel.objects.get(pk=detector_pk,model_type=DeepModel.DETECTOR)
+        cd = TrainedModel.objects.get(pk=detector_pk,model_type=TrainedModel.DETECTOR)
         detector_name = cd.name
     else:
         detector_name = args['detector']
-        cd = DeepModel.objects.get(name=detector_name,model_type=DeepModel.DETECTOR)
+        cd = TrainedModel.objects.get(name=detector_name,model_type=TrainedModel.DETECTOR)
         detector_pk = cd.pk
     perform_detection.load_detector(cd)
     detector = perform_detection.get_static_detectors[cd.pk]
@@ -405,7 +405,7 @@ def perform_analysis(task_id):
     args = start.arguments
     analyzer_name = args['analyzer']
     if analyzer_name not in perform_analysis._analyzers:
-        da = DeepModel.objects.get(name=analyzer_name,model_type=DeepModel.ANALYZER)
+        da = TrainedModel.objects.get(name=analyzer_name,model_type=TrainedModel.ANALYZER)
         perform_analysis.load_analyzer(da)
     analyzer = perform_analysis.get_static_analyzers[analyzer_name]
     regions_batch = []
@@ -536,7 +536,7 @@ def perform_model_import(task_id):
         start.started = True
         start.save()
     args = start.arguments
-    dm = DeepModel.objects.get(pk=args['pk'])
+    dm = TrainedModel.objects.get(pk=args['pk'])
     dm.download()
     process_next(task_id)
     mark_as_completed(start)

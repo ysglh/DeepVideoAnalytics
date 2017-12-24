@@ -12,7 +12,7 @@ except ImportError:
     np = None
     logging.warning("Could not import indexer / clustering assuming running in front-end mode / Heroku")
 from django.apps import apps
-from models import Video,DVAPQL,TEvent,DeepModel,Retriever,Worker,WorkerRequest
+from models import Video,DVAPQL,TEvent,TrainedModel,Retriever,Worker,WorkerRequest
 from celery.result import AsyncResult
 import fs
 import task_shared
@@ -58,15 +58,15 @@ def get_model_specific_queue_name(operation,args):
         queue_name = 'q_retriever_{}'.format(RETRIEVER_NAME_TO_PK[args['retriever']])
     elif 'index' in args:
         if args['index'] not in INDEXER_NAME_TO_PK:
-            INDEXER_NAME_TO_PK[args['index']] = DeepModel.objects.get(name=args['index'],model_type=DeepModel.INDEXER).pk
+            INDEXER_NAME_TO_PK[args['index']] = TrainedModel.objects.get(name=args['index'],model_type=TrainedModel.INDEXER).pk
         queue_name = 'q_indexer_{}'.format(INDEXER_NAME_TO_PK[args['index']])
     elif 'analyzer' in args:
         if args['analyzer'] not in ANALYER_NAME_TO_PK:
-            ANALYER_NAME_TO_PK[args['analyzer']] = DeepModel.objects.get(name=args['analyzer'],model_type=DeepModel.ANALYZER).pk
+            ANALYER_NAME_TO_PK[args['analyzer']] = TrainedModel.objects.get(name=args['analyzer'],model_type=TrainedModel.ANALYZER).pk
         queue_name = 'q_analyzer_{}'.format(ANALYER_NAME_TO_PK[args['analyzer']])
     elif 'detector' in args:
         if args['detector'] not in DETECTOR_NAME_TO_PK:
-            DETECTOR_NAME_TO_PK[args['detector']] = DeepModel.objects.get(name=args['detector'],model_type=DeepModel.DETECTOR).pk
+            DETECTOR_NAME_TO_PK[args['detector']] = TrainedModel.objects.get(name=args['detector'],model_type=TrainedModel.DETECTOR).pk
         queue_name = 'q_detector_{}'.format(DETECTOR_NAME_TO_PK[args['detector']])
     else:
         raise NotImplementedError,"{}, {}".format(operation,args)

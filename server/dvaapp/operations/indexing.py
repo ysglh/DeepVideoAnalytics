@@ -10,7 +10,7 @@ except ImportError:
     np = None
     logging.warning("Could not import indexer / clustering assuming running in front-end mode / Heroku")
 
-from ..models import IndexEntries, DeepModel
+from ..models import IndexEntries, TrainedModel
 
 
 class IndexerTask(celery.Task):
@@ -20,15 +20,15 @@ class IndexerTask(celery.Task):
 
     def get_index_by_name(self,name):
         if name not in IndexerTask._name_to_index:
-            di = DeepModel.objects.get(name=name,model_type=DeepModel.INDEXER)
+            di = TrainedModel.objects.get(name=name,model_type=TrainedModel.INDEXER)
             IndexerTask._name_to_index[name] = di
         else:
             di = IndexerTask._name_to_index[name]
         return self.get_index(di),di
 
     def get_index_by_pk(self,pk):
-        di = DeepModel.objects.get(pk=pk)
-        if di.model_type != DeepModel.INDEXER:
+        di = TrainedModel.objects.get(pk=pk)
+        if di.model_type != TrainedModel.INDEXER:
             raise ValueError("Model {} id: {} is not an Indexer".format(di.name,di.pk))
         return self.get_index(di),di
 

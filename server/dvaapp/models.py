@@ -124,7 +124,7 @@ class TEvent(models.Model):
     imported = models.BooleanField(default=False)
 
 
-class DeepModel(models.Model):
+class TrainedModel(models.Model):
     """
     A model Model
     """
@@ -232,7 +232,7 @@ class DeepModel(models.Model):
                 fs.get_path_to_file(m['url'],dlpath)
             if settings.DISABLE_NFS and sys.platform != 'darwin':
                 fs.upload_file_to_remote("/models/{}/{}".format(self.pk,m['filename']))
-        if self.model_type == DeepModel.DETECTOR and self.detector_type == DeepModel.YOLO:
+        if self.model_type == TrainedModel.DETECTOR and self.detector_type == TrainedModel.YOLO:
             source_zip = "{}/models/{}/model.zip".format(settings.MEDIA_ROOT, self.pk)
             zipf = zipfile.ZipFile(source_zip, 'r')
             zipf.extractall("{}/models/{}/".format(settings.MEDIA_ROOT, self.pk))
@@ -487,7 +487,7 @@ class IndexEntries(models.Model):
     features_file_name = models.CharField(max_length=100)
     entries_file_name = models.CharField(max_length=100)
     algorithm = models.CharField(max_length=100)
-    indexer = models.ForeignKey(DeepModel, null=True)
+    indexer = models.ForeignKey(TrainedModel, null=True)
     indexer_shasum = models.CharField(max_length=40)
     detection_name = models.CharField(max_length=100)
     count = models.IntegerField()

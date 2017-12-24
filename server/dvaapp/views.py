@@ -3,7 +3,7 @@ import json
 from .models import Video, Frame, DVAPQL, QueryResults, TEvent, IndexEntries, Region, \
     Tube,  Segment, FrameLabel, SegmentLabel, \
     VideoLabel, RegionLabel, TubeLabel, Label, \
-    Retriever, SystemState, QueryRegion, QueryRegionResults, DeepModel, Worker
+    Retriever, SystemState, QueryRegion, QueryRegionResults, TrainedModel, Worker
 import serializers
 from rest_framework import viewsets, mixins
 from django.contrib.auth.models import User
@@ -52,10 +52,10 @@ class RetrieverViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.RetrieverSerializer
 
 
-class DeepModelViewSet(viewsets.ReadOnlyModelViewSet):
+class TrainedModelViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,) if settings.AUTH_DISABLED else (IsAuthenticated,)
-    queryset = DeepModel.objects.all()
-    serializer_class = serializers.DeepModelSerializer
+    queryset = TrainedModel.objects.all()
+    serializer_class = serializers.TrainedModelSerializer
 
 
 class FrameViewSet(viewsets.ReadOnlyModelViewSet):

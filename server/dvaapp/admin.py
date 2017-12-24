@@ -2,7 +2,7 @@ from django.contrib import admin
 from .models import Video, Frame, TEvent, IndexEntries, QueryResults, DVAPQL, \
     Region, Tube, Segment, DeletedVideo, \
     VideoLabel, FrameLabel, RegionLabel, TubeLabel, SegmentLabel, Label, ManagementAction, \
-    DeepModel, Retriever, SystemState, Worker, QueryRegion, QueryRegionIndexVector, \
+    TrainedModel, Retriever, SystemState, Worker, QueryRegion, QueryRegionIndexVector, \
     QueryRegionResults
 
 
@@ -95,8 +95,8 @@ class TubeAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(DeepModel)
-class DeepModelAdmin(admin.ModelAdmin):
+@admin.register(TrainedModel)
+class TrainedModelAdmin(admin.ModelAdmin):
     pass
 
 

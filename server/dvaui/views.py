@@ -851,6 +851,7 @@ def import_s3(request):
         user = request.user if request.user.is_authenticated else None
         create = []
         for key in keys.strip().split('\n'):
+            dataset_type = False
             if key.startswith('gs://') or key.startswith('s3://'):
                 tasks =[]
                 key = key.strip()
@@ -872,6 +873,7 @@ def import_s3(request):
                         next_tasks = []
                     elif key.endswith('.zip'):
                         next_tasks = [extract_task,]
+                        dataset_type = True
                     else:
                         next_tasks = [segment_decode_task,]
                     tasks.append({'video_id':'__pk__',
@@ -881,7 +883,7 @@ def import_s3(request):
                                                'map':next_tasks}
                                   })
                     create.append({'MODEL': 'Video',
-                                   'spec': {'uploader_id': user.pk if user else None,
+                                   'spec': {'uploader_id': user.pk if user else None, 'dataset': dataset_type,
                                             'name': key},
                                    'tasks': tasks
                                    })

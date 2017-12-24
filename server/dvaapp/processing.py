@@ -99,8 +99,7 @@ def get_queue_name_and_operation(operation,args):
                 if settings.GLOBAL_MODEL_QUEUE_ENABLED:
                     # send it to a  global queue which loads model at every execution
                     return settings.GLOBAL_MODEL, "apply_model_global"
-        else:
-            return queue_name, operation
+        return queue_name, operation
 
 
 def perform_substitution(args,parent_task,inject_filters,map_filters):

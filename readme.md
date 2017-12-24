@@ -21,6 +21,7 @@ you can run Deep Video Analytics in minutes locally (even without a GPU) using a
 - **OCR example has been moved to [/docs/experiments/ocr](/docs/experiments/ocr) directory**.
 - More experiments coming soon!
 
+
 ### Deployment
 
 We provide instructions for deploying DVA in three scenarios.
@@ -31,11 +32,17 @@ We provide instructions for deploying DVA in three scenarios.
 
 3. [deploy/gcp](/deploy/gcp) contains files used for launching DVA in a scalable GKE + GCS setup
 
+
+### Development
+
+1. [deploy/dev](/deploy/dev) contains docker-compose files for interactively developing DVA by using  host server directory mapped as a volume.
+
+
 ### Code organization
 
 - /client : Python client using DVA REST API
 - /configs : ngnix config + defaults.py defining models + processing pipelines (can be replaced by mounting a volume)
-- /deploy : Dockerfiles + Instructions for single machine deployment or scalable deployment with Kubernetes
+- /deploy : Dockerfiles + Instructions for development, single machine deployment abnd scalable deployment with Kubernetes
 - /docs : Documentation, tutorial and experiments
 - /tests : Files required for testing
 - /repos : Code copied from third party repos, e.g. Yahoo LOPQ, TF-CTPN etc.

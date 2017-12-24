@@ -12,11 +12,10 @@ except ImportError:
     np = None
     logging.warning("Could not import indexer / clustering assuming running in front-end mode / Heroku")
 from django.apps import apps
-from models import Video,DVAPQL,TEvent,DeepModel,Retriever,Worker
+from models import Video,DVAPQL,TEvent,DeepModel,Retriever,Worker,WorkerRequest
 from celery.result import AsyncResult
 import fs
 import task_shared
-import queuing
 
 
 SYNC_TASKS = {
@@ -37,19 +36,15 @@ ANALYER_NAME_TO_PK = {}
 INDEXER_NAME_TO_PK = {}
 RETRIEVER_NAME_TO_PK = {}
 DETECTOR_NAME_TO_PK = {}
-QUEUES = set()
+CURRENT_QUEUES = set()
 
 
 def refresh_queue_names():
     return {w.queue_name for w in Worker.objects.all().filter(alive=True)}
 
 
-def get_queue_name(operation,args):
-    global QUEUES
-    if operation in queuing.TASK_NAMES_TO_QUEUE:
-        # Here we return directly since queue name is not per model
-        return queuing.TASK_NAMES_TO_QUEUE[operation]
-    elif 'detector_pk' in args:
+def get_model_specific_queue_name(operation,args):
+    if 'detector_pk' in args:
         queue_name = "q_detector_{}".format(args['detector_pk'])
     elif 'indexer_pk' in args:
         queue_name = "q_indexer_{}".format(args['indexer_pk'])
@@ -75,14 +70,37 @@ def get_queue_name(operation,args):
         queue_name = 'q_detector_{}'.format(DETECTOR_NAME_TO_PK[args['detector']])
     else:
         raise NotImplementedError,"{}, {}".format(operation,args)
-    if queue_name not in QUEUES:
-        QUEUES = refresh_queue_names()
-    if queue_name not in QUEUES:
-        if queue_name.startswith('q_retriever'):
-            return 'q_slow_retriever_global'
-        else:
-            return 'q_slow_model_global'
     return queue_name
+
+
+def get_queue_name_and_operation(operation,args):
+    global CURRENT_QUEUES
+    if operation in settings.TASK_NAMES_TO_QUEUE:
+        # Here we return directly since queue name is not per model
+        return settings.TASK_NAMES_TO_QUEUE[operation], operation
+    else:
+        queue_name = get_model_specific_queue_name(operation,args)
+        if queue_name not in CURRENT_QUEUES:
+            CURRENT_QUEUES = refresh_queue_names()
+        if queue_name not in CURRENT_QUEUES:
+            if queue_name.startswith('q_retriever'):
+                # Global retriever queue process all retrieval operations
+                # If a worker processing the retriever queue does not exists send it to global
+                if settings.GLOBAL_RETRIEVER_QUEUE_ENABLED:
+                    return settings.GLOBAL_RETRIEVER, operation
+                else:
+                    return queue_name, operation
+            else:
+                # Create a request for worker to process the queue
+                rw = WorkerRequest()
+                rw.queue_name = queue_name
+                rw.save()
+                # Check if global queue is enabled
+                if settings.GLOBAL_MODEL_QUEUE_ENABLED:
+                    # send it to a  global queue which loads model at every execution
+                    return settings.GLOBAL_MODEL, "apply_model_global"
+        else:
+            return queue_name, operation
 
 
 def perform_substitution(args,parent_task,inject_filters,map_filters):
@@ -158,7 +176,7 @@ def launch_tasks(k, dt, inject_filters, map_filters = None, launch_type = ""):
     for f in map_filters:
         args = perform_substitution(k['arguments'], dt, inject_filters, f)
         logging.info("launching {} -> {} with args {} as specified in {}".format(dt.operation, op, args, launch_type))
-        q = get_queue_name(k['operation'], args)
+        q, op = get_queue_name_and_operation(k['operation'], args)
         next_task = TEvent.objects.create(video=v, operation=op, arguments=args, parent=dt, parent_process=p, queue=q)
         tids.append(app.send_task(k['operation'], args=[next_task.pk, ], queue=q).id)
     return tids
@@ -252,7 +270,7 @@ class DVAPQLProcess(object):
             for t in self.process.script['tasks']:
                 operation = t['operation']
                 arguments = t.get('arguments',{})
-                queue_name = get_queue_name(operation,arguments)
+                queue_name, operation = get_queue_name_and_operation(operation,arguments)
                 next_task = TEvent.objects.create(parent_process=self.process, operation=operation,arguments=arguments,queue=queue_name)
                 self.task_results[next_task.pk] = app.send_task(name=operation,args=[next_task.pk, ],queue=queue_name,priority=5)
         else:
@@ -292,9 +310,9 @@ class DVAPQLProcess(object):
             dt.parent_process = self.process
             if 'video_id' in t:
                 dt.video_id = t['video_id']
-            dt.operation = t['operation']
             dt.arguments = args
-            dt.queue = get_queue_name(t['operation'], t.get('arguments', {}))
+            dt.queue, op = get_queue_name_and_operation(t['operation'], t.get('arguments', {}))
+            dt.operation = op
             dt.save()
             self.task_results[dt.pk] = app.send_task(name=dt.operation, args=[dt.pk, ], queue=dt.queue)
 

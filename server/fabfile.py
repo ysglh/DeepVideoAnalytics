@@ -106,9 +106,8 @@ def clean():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from django.conf import settings
-    from dvaapp import queuing
     if settings.DEV_ENV:
-        for qname in set(queuing.TASK_NAMES_TO_QUEUE.values()):
+        for qname in set(settings.TASK_NAMES_TO_QUEUE.values()):
             try:
                 local('rabbitmqadmin purge queue name={}'.format(qname))
             except:

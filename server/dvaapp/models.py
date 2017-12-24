@@ -701,3 +701,9 @@ class TrainingSet(models.Model):
     count = models.IntegerField(null=True)
     name = models.CharField(max_length=500,default="")
     created = models.DateTimeField('date created', auto_now_add=True)
+
+
+class WorkerRequest(models.Model):
+    """ TODO(future): This model can be stored in Redis rather than DB """
+    queue_name = models.CharField(max_length=500, default="")
+    created = models.DateTimeField('date created', auto_now_add=True)

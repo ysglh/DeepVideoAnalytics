@@ -883,31 +883,6 @@ def manage_host(self,op,ping_index=None,worker_name=None,queue_name=None):
         ManagementAction.objects.create(op=op,parent_task=self.request.id,message=message,host=host_name)
 
 
-@app.task(track_started=True,name="perform_ingestion")
-def perform_ingestion(task_id):
-    """
-    Incrementally add segments/images to video/dataset.
-    Used for ingesting video from streaming sources such as
-    cameras, online livestreams,twitter feed of a developing event, etc.
-    :param task_id:
-    :return:
-    """
-    raise NotImplementedError
-
-
-@app.task(track_started=True,name="perform_stream_capture")
-def perform_stream_capture(task_id):
-    """
-    Capture camera or livestream
-    'livestreamer --player-continuous-http --player-no-close "{}" best -O --yes-run-as-root'.format(url)
-    'ffmpeg -re -i - -c:v libx264 -c:a aac -ac 1 -strict -2 -crf 18 -profile:v baseline -maxrate 3000k
-    -bufsize 1835k -pix_fmt yuv420p -flags -global_header -f segment -segment_time 0.1 "{}/%d.mp4"'.format(dirname)
-    :param task_id:
-    :return:
-    """
-    raise NotImplementedError
-
-
 @app.task(track_started=True,name="monitor_system")
 def monitor_system():
     """
@@ -932,3 +907,23 @@ def monitor_system():
     s.pending_tasks = TEvent.objects.filter(started=False).count()
     s.completed_tasks = TEvent.objects.filter(started=True,completed=True).count()
     s.save()
+
+
+# def apply_model_global():
+#         # Check if a worker has become available and if it can be re-routed
+#         model_specific_queue_name = processing.get_model_specific_queue_name(start.operation, start.arguments)
+#         if Worker.objects.all().filter(queue_name=model_specific_queue_name).exists():
+#             start.started = False
+#             start.queue_name = model_specific_queue_name
+#             start.start_ts = None
+#             start.save()
+#             app.send_task(start.task_name, args=[start.pk, ], queue=model_specific_queue_name)
+#         else:
+#             start.started = False
+#             start.queue_name = model_specific_queue_name
+#             start.start_ts = None
+#             s = subprocess.Popen(['python', 'run_task.py', start.operation, start.pk])
+#             s.wait()
+#             if s.returncode != 0:
+#                 raise ValueError("run_task.py failed logs in logs/global_tasks.log")
+#         return True

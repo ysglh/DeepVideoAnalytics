@@ -12,7 +12,7 @@ except ImportError:
     np = None
     logging.warning("Could not import indexer / clustering assuming running in front-end mode / Heroku")
 from django.apps import apps
-from models import Video,DVAPQL,TEvent,DeepModel,Retriever
+from models import Video,DVAPQL,TEvent,DeepModel,Retriever,Worker
 from celery.result import AsyncResult
 import fs
 import task_shared
@@ -37,37 +37,52 @@ ANALYER_NAME_TO_PK = {}
 INDEXER_NAME_TO_PK = {}
 RETRIEVER_NAME_TO_PK = {}
 DETECTOR_NAME_TO_PK = {}
+QUEUES = set()
+
+
+def refresh_queue_names():
+    return {w.queue_name for w in Worker.objects.all().filter(alive=True)}
 
 
 def get_queue_name(operation,args):
+    global QUEUES
     if operation in queuing.TASK_NAMES_TO_QUEUE:
+        # Here we return directly since queue name is not per model
         return queuing.TASK_NAMES_TO_QUEUE[operation]
     elif 'detector_pk' in args:
-        return "q_detector_{}".format(args['detector_pk'])
+        queue_name = "q_detector_{}".format(args['detector_pk'])
     elif 'indexer_pk' in args:
-        return "q_indexer_{}".format(args['indexer_pk'])
+        queue_name = "q_indexer_{}".format(args['indexer_pk'])
     elif 'retriever_pk' in args:
-        return "q_retriever_{}".format(args['retriever_pk'])
+        queue_name = "q_retriever_{}".format(args['retriever_pk'])
     elif 'analyzer_pk' in args:
-        return "q_analyzer_{}".format(args['analyzer_pk'])
+        queue_name = "q_analyzer_{}".format(args['analyzer_pk'])
     elif 'retriever' in args:
         if args['retriever'] not in RETRIEVER_NAME_TO_PK:
             RETRIEVER_NAME_TO_PK[args['retriever']] = Retriever.objects.get(name=args['retriever']).pk
-        return 'q_retriever_{}'.format(RETRIEVER_NAME_TO_PK[args['retriever']])
+        queue_name = 'q_retriever_{}'.format(RETRIEVER_NAME_TO_PK[args['retriever']])
     elif 'index' in args:
         if args['index'] not in INDEXER_NAME_TO_PK:
             INDEXER_NAME_TO_PK[args['index']] = DeepModel.objects.get(name=args['index'],model_type=DeepModel.INDEXER).pk
-        return 'q_indexer_{}'.format(INDEXER_NAME_TO_PK[args['index']])
+        queue_name = 'q_indexer_{}'.format(INDEXER_NAME_TO_PK[args['index']])
     elif 'analyzer' in args:
         if args['analyzer'] not in ANALYER_NAME_TO_PK:
             ANALYER_NAME_TO_PK[args['analyzer']] = DeepModel.objects.get(name=args['analyzer'],model_type=DeepModel.ANALYZER).pk
-        return 'q_analyzer_{}'.format(ANALYER_NAME_TO_PK[args['analyzer']])
+        queue_name = 'q_analyzer_{}'.format(ANALYER_NAME_TO_PK[args['analyzer']])
     elif 'detector' in args:
         if args['detector'] not in DETECTOR_NAME_TO_PK:
             DETECTOR_NAME_TO_PK[args['detector']] = DeepModel.objects.get(name=args['detector'],model_type=DeepModel.DETECTOR).pk
-        return 'q_detector_{}'.format(DETECTOR_NAME_TO_PK[args['detector']])
+        queue_name = 'q_detector_{}'.format(DETECTOR_NAME_TO_PK[args['detector']])
     else:
         raise NotImplementedError,"{}, {}".format(operation,args)
+    if queue_name not in QUEUES:
+        QUEUES = refresh_queue_names()
+    if queue_name not in QUEUES:
+        if queue_name.startswith('q_retriever'):
+            return 'q_slow_retriever_global'
+        else:
+            return 'q_slow_model_global'
+    return queue_name
 
 
 def perform_substitution(args,parent_task,inject_filters,map_filters):

@@ -355,7 +355,6 @@ def perform_detection(task_id):
             else:
                 raise NotImplementedError("Invalid target:{}".format(target))
             frame_detections_list.append((k, detector.detect(local_path)))
-    detector_type = cd.detector_type
     for df,detections in frame_detections_list:
         for d in detections:
             dd = QueryRegion() if query_flow else Region()
@@ -367,20 +366,15 @@ def perform_detection(task_id):
                 dd.frame_id = df.pk
                 dd.frame_index = df.frame_index
                 dd.segment_index = df.segment_index
-            if detector_type == cd.TFD:
-                dd.object_name = '{}'.format(d['object_name'])
-                dd.confidence = 100.0 * d['score']
-            elif detector_name == 'textbox':
+            if detector_name == 'textbox':
                 dd.object_name = 'TEXTBOX'
                 dd.confidence = 100.0 * d['score']
             elif detector_name == 'face':
                 dd.object_name = 'MTCNN_face'
                 dd.confidence = 100.0
-            elif detector_type == cd.YOLO:
-                dd.object_name = '{}_{}'.format(detector_pk, d['object_name'])
-                dd.confidence = 100.0 * d['score']
             else:
-                raise NotImplementedError
+                dd.object_name = d['object_name']
+                dd.confidence = 100.0 * d['score']
             dd.x = d['x']
             dd.y = d['y']
             dd.w = d['w']

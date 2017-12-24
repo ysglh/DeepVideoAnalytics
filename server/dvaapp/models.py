@@ -677,3 +677,27 @@ class QueryRegionIndexVector(models.Model):
     query_region = models.ForeignKey(QueryRegion)
     vector = models.BinaryField()
     created = models.DateTimeField('date created', auto_now_add=True)
+
+
+class TrainingSet(models.Model):
+    DETECTION = 'D'
+    INDEXING = 'I'
+    LOPQINDEX = 'A'
+    CLASSIFICATION = 'C'
+    TRAIN_TASK_TYPES = (
+        (DETECTION, 'Detection'),
+        (INDEXING, 'Indexing'),
+        (CLASSIFICATION, 'Classication')
+    )
+    IMAGES = 'I'
+    VIDEOS = 'V'
+    INSTANCE_TYPES = (
+        (IMAGES, 'images'),
+        (VIDEOS, 'videos'),
+    )
+    event = models.ForeignKey(TEvent)
+    training_task_type = models.CharField(max_length=1,choices=TRAIN_TASK_TYPES,db_index=True,default=DETECTION)
+    instance_type = models.CharField(max_length=1,choices=INSTANCE_TYPES,db_index=True,default=IMAGES)
+    count = models.IntegerField(null=True)
+    name = models.CharField(max_length=500,default="")
+    created = models.DateTimeField('date created', auto_now_add=True)

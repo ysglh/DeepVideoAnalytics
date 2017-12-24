@@ -376,7 +376,7 @@ def launch_workers_and_scheduler_from_environment(block_on_manager=False):
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from dvaapp.models import DeepModel, Retriever
-    from dvaapp import queuing
+    from django.conf import settings
     for k in os.environ:
         if k.startswith('LAUNCH_BY_NAME_'):
             qtype, model_name = k.split('_')[-2:]
@@ -407,7 +407,7 @@ def launch_workers_and_scheduler_from_environment(block_on_manager=False):
             command = '{}fab startq:{} &'.format(env_vars, queue_name)
             logging.info("'{}' for {}".format(command, k))
             local(command)
-        elif k.startswith('LAUNCH_Q_') and k != 'LAUNCH_Q_{}'.format(queuing.Q_MANAGER):
+        elif k.startswith('LAUNCH_Q_') and k != 'LAUNCH_Q_{}'.format(settings.Q_MANAGER):
             if k.strip() == 'LAUNCH_Q_qextract':
                 queue_name = k.split('_')[-1]
                 local('fab startq:{},{} &'.format(queue_name, os.environ['LAUNCH_Q_qextract']))
@@ -418,9 +418,9 @@ def launch_workers_and_scheduler_from_environment(block_on_manager=False):
         # Should be launched only once per deployment
         local('fab start_scheduler &')
     if block_on_manager:  # the container process waits on the manager
-        local('fab startq:{}'.format(queuing.Q_MANAGER))
+        local('fab startq:{}'.format(settings.Q_MANAGER))
     else:
-        local('fab startq:{} &'.format(queuing.Q_MANAGER))
+        local('fab startq:{} &'.format(settings.Q_MANAGER))
 
 
 def launch_server_from_environment():
@@ -566,11 +566,11 @@ def startq(queue_name, conc=3):
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
-    from dvaapp import queuing
+    from django.conf import settings
     mute = '--without-gossip --without-mingle --without-heartbeat' if 'CELERY_MUTE' in os.environ else ''
-    if queue_name == queuing.Q_MANAGER:
+    if queue_name == settings.Q_MANAGER:
         command = 'celery -A dva worker -l info {} -c 1 -Q qmanager -n manager.%h -f ../logs/qmanager.log'.format(mute)
-    elif queue_name == queuing.Q_EXTRACTOR:
+    elif queue_name == settings.Q_EXTRACTOR:
         command = 'celery -A dva worker -l info {} -c {} -Q {} -n {}.%h -f ../logs/{}.log'.format(mute, max(int(conc), 2),
                                                                                                queue_name, queue_name,
                                                                                                queue_name)

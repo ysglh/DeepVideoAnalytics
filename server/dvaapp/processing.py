@@ -1,10 +1,7 @@
-import base64, copy, os
+import base64, copy, os, subprocess, json, logging
 from django.utils import timezone
-import json,logging
-import boto3
 from django.conf import settings
 from dva.celery import app
-from . import fs
 try:
     from dvalib import indexer, clustering, retriever
     import numpy as np
@@ -345,3 +342,47 @@ class DVAPQLProcess(object):
         return json.dumps(json_query)
 
 
+def check_defer(start):
+    """
+    Check if a worker that processes model specific queue has become available.
+    :param start:
+    :return:
+    """
+    model_specific_queue_name = get_model_specific_queue_name(start.operation, start.arguments)
+    if Worker.objects.all().filter(queue_name=model_specific_queue_name).exists():
+        start.started = False
+        start.queue_name = model_specific_queue_name
+        start.start_ts = None
+        start.worker = None
+        start.save()
+        app.send_task(start.task_name, args=[start.pk, ], queue=model_specific_queue_name)
+
+
+def run_task_in_new_process(start):
+    """
+    Run in a new process,
+    TODO: Make sure that the new process has correct environment variable mode.
+    E.g. TF or PyTorch, otherwise it won't be able to import necessary library
+    :param start:
+    :return:
+    """
+    model_specific_queue_name = get_model_specific_queue_name(start.operation, start.arguments)
+    trained_model = TrainedModel.objects.get(pk=get_model_pk_from_args(start.operation,start.arguments))
+    start.started = False
+    start.queue_name = model_specific_queue_name
+    start.start_ts = None
+    new_envs = os.environ.copy()
+    for k in {'PYTORCH_MODE','CAFFE_MODE','MXNET_MODE'}:
+        if k in new_envs:
+            del new_envs[k]
+    if trained_model.mode == trained_model.PYTORCH:
+        new_envs['PYTORCH_MODE'] = '1'
+    elif trained_model.mode == trained_model.CAFFE:
+        new_envs['CAFFE_MODE'] = '1'
+    elif trained_model.mode == trained_model.MXNET_MODE:
+        new_envs['MXNET_MODE'] = '1'
+    s = subprocess.Popen(['python', 'run_task.py', start.operation, start.pk],env=new_envs)
+    s.wait()
+    if s.returncode != 0:
+        raise ValueError("run_task.py failed")
+    return True

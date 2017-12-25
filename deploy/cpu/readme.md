@@ -6,6 +6,10 @@ E.g. A desktop, linode, digital ocean droplet, aws ec2 instance or a gcp cloud v
                               
 - docker-compose-non-nfs.yml : for testing non-NFS setup where S3 or GCS is used instead of a shared volume.
 
+- shell.sh : For bash into a specific running container e.g. `./shell.sh inception`
+
+- webserver_logs.sh : Get uwsgi logs from webserver
+
 #### Security warning
 
 When deploying/running on remote Ubuntu machines on VPS services such as Linode etc. please be aware of the

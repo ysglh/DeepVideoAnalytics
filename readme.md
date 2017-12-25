@@ -2,11 +2,10 @@
 #### by [Akshay Bhat, Cornell University.](http://www.akshaybhat.com)  
 
 ![UI Screenshot](docs/figures/emma.png "Emma Watson, from poster of her latest subject appropriate movie The Circle")
-![Banner](docs/figures/banner_small.png "banner")
 
 Deep Video Analytics is a platform for indexing and extracting information from videos and images.
-Don't be worried by complexity of this banner, with latest version of docker installed correctly,
-you can run Deep Video Analytics in minutes locally (even without a GPU) using a single command.
+With latest version of docker installed correctly, you can run Deep Video Analytics in minutes
+locally (even without a GPU) using a single command.
 
 #### For installation instructions & demo please visit [https://www.deepvideoanalytics.com](https://www.deepvideoanalytics.com)
 
@@ -35,7 +34,7 @@ We provide instructions for deploying DVA in three scenarios.
 
 ### Development
 
-1. [deploy/dev](/deploy/dev) contains docker-compose files for interactively developing DVA by using  host server directory mapped as a volume.
+- [deploy/dev](/deploy/dev) contains docker-compose files for interactively developing DVA by using  host server directory mapped as a volume.
 
 
 ### Code organization

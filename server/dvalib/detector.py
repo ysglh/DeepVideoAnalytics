@@ -5,17 +5,11 @@ try:
     import numpy as np
 except:
     pass
+from .base_detector import BaseDetector
 
 if os.environ.get('PYTORCH_MODE',False):
     pass
 elif os.environ.get('CAFFE_MODE',False):
-    sys.path.append('/opt/ctpn/CTPN/tools/')
-    sys.path.append('/opt/ctpn/CTPN/src/')
-    from cfg import Config as cfg
-    from other import resize_im, CaffeModel
-    import cv2, caffe
-    from detectors import TextProposalDetector, TextDetector
-    tf = None
     logging.info("Using Caffe only mode")
 else:
     try:
@@ -92,16 +86,6 @@ def pil_to_array(pilImage):
     return x
 
 
-class BaseDetector(object):
-
-    def __init__(self):
-        pass
-
-    def detect(self,path):
-        pass
-
-    def load(self):
-        pass
 
 
 class TFDetector(BaseDetector):

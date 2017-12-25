@@ -7,6 +7,7 @@ import os.path
 from PIL import Image
 import logging
 import numpy as np
+from .base_analyzer import BaseAnnotator
 
 if os.environ.get('PYTORCH_MODE',False):
     import dvalib.crnn.utils as utils
@@ -24,14 +25,6 @@ else:
     slim = tf.contrib.slim
 
 
-class BaseAnnotator(object):
-
-    def __init__(self):
-        self.label_set = None
-        pass
-
-    def apply(self,image_path):
-        pass
 
 
 def inception_preprocess(image, central_fraction=0.875):

@@ -254,8 +254,8 @@ Q_EXTRACTOR = 'qextract'
 Q_CLUSTER = 'qclusterer'
 Q_TRAINER = 'qtrainer'
 Q_LAMBDA = 'qlambda'
-GLOBAL_MODEL = 'q_slow_global_model'  # if a model specific queue does not exists then this is where the task ends up
-GLOBAL_RETRIEVER = 'q_slow_global_retriever' # if a retriever specific queue does not exists then the task ends up here
+GLOBAL_MODEL = 'qglobal_model'  # if a model specific queue does not exists then this is where the task ends up
+GLOBAL_RETRIEVER = 'qglobal_retriever' # if a retriever specific queue does not exists then the task ends up here
 
 TASK_NAMES_TO_QUEUE = {
     "perform_region_import":Q_EXTRACTOR,

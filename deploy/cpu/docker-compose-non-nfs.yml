@@ -286,9 +286,9 @@
        - rabbit
      volumes:
        - dvadata_exact_inception:/root/media
-   retriever_exact_facenet:
+   global_retriever:
      image: akshayubhat/dva-auto:latest
-     container_name: retriever_exact_facenet
+     container_name: global_retriever
      environment:
        - DOCKER_MODE=true
        - RABBIT_HOST=rabbit
@@ -301,7 +301,7 @@
        - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
        - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
        - DISABLE_DEBUG=1
-       - LAUNCH_BY_NAME_retriever_facenet=1
+       - LAUNCH_Q_qglobal_retriever=1
        - MEDIA_BUCKET=${MEDIA_BUCKET}
        - MEDIA_URL=${MEDIA_URL}
        - DISABLE_NFS=1
@@ -311,7 +311,7 @@
        - db
        - rabbit
      volumes:
-       - dvadata_exact_facenet:/root/media
+       - dvadata_exact_global_retriever:/root/media
    textdetector:
      image: akshayubhat/dva-auto:latest
      container_name: textdetector
@@ -349,5 +349,5 @@
   dvadata_tagger:
   dvadata_face:
   dvadata_exact_inception:
-  dvadata_exact_facenet:
+  dvadata_exact_global_retriever:
   dvadata_textdetector:

@@ -93,6 +93,9 @@ def launch_workers_and_scheduler_from_environment(block_on_manager=False):
             if k.strip() == 'LAUNCH_Q_qextract':
                 queue_name = k.split('_')[-1]
                 local('fab startq:{},{} &'.format(queue_name, os.environ['LAUNCH_Q_qextract']))
+            elif k.startswith('LAUNCH_Q_qglobal'):
+                queue_name = k.strip('LAUNCH_Q_')
+                local('fab startq:{} &'.format(queue_name))
             else:
                 queue_name = k.split('_')[-1]
                 local('fab startq:{} &'.format(queue_name))

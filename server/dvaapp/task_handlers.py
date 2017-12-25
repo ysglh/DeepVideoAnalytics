@@ -21,7 +21,7 @@ def handle_perform_indexing(start):
         visual_index, di = indexing.Indexers.get_index_by_pk(json_args['indexer_pk'])
     sync = True
     if target == 'query':
-        local_path = indexing.Indexers.download_and_get_query_path(start)
+        local_path = task_shared.download_and_get_query_path(start)
         vector = visual_index.apply(local_path)
         # TODO: figure out a better way to store numpy arrays.
         s = io.BytesIO()

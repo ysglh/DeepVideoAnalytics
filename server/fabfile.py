@@ -17,14 +17,6 @@ logging.basicConfig(level=logging.INFO,
 
 
 @task
-def shell():
-    """
-    start a local django shell
-    """
-    local('python manage.py shell')
-
-
-@task
 def local_static():
     """
     Collect static
@@ -40,26 +32,6 @@ def migrate():
     local('python manage.py makemigrations')
     local('python manage.py migrate')
 
-
-@task
-def server():
-    """
-    Start server locally
-    """
-    local("python manage.py runserver")
-
-
-@task
-def pull_private():
-    """
-    Pull from private repo
-    """
-    local('aws s3 cp s3://aub3config/.netrc /root/.netrc')
-    local('git clone https://github.com/AKSHAYUBHAT/DeepVideoAnalyticsDemo')
-    local('mv DeepVideoAnalyticsDemo dvap')
-    local('rm /root/.netrc')
-    with lcd('dvap'):
-        local('./setup_private.sh')
 
 @task
 def copy_defaults():
@@ -151,188 +123,6 @@ def kill():
         local("ps auxww | grep 'celery -A dva * ' | awk '{print $2}' | xargs kill -9")
     except:
         pass
-
-
-@task
-def ci():
-    """
-    Perform Continuous Integration testing using Travis
-
-    """
-    import django
-    sys.path.append(os.path.dirname(__file__))
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
-    django.setup()
-    import base64
-    from django.core.files.uploadedfile import SimpleUploadedFile
-    from dvaui.view_shared import handle_uploaded_file
-    from dvaapp.models import Video, TEvent, DVAPQL, Retriever, TrainedModel
-    from django.conf import settings
-    from dvaapp.processing import DVAPQLProcess
-    from dvaapp.tasks import perform_dataset_extraction, perform_indexing, perform_export, perform_import, \
-        perform_retriever_creation, perform_detection, \
-        perform_video_segmentation, perform_transformation
-    for fname in glob.glob('../tests/ci/*.mp4'):
-        name = fname.split('/')[-1].split('.')[0]
-        f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")
-        handle_uploaded_file(f, name)
-    if settings.DEV_ENV:
-        for fname in glob.glob('../tests/ci/*.zip'):
-            name = fname.split('/')[-1].split('.')[0]
-            f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
-            handle_uploaded_file(f, name)
-    for i, v in enumerate(Video.objects.all()):
-        perform_import(TEvent.objects.get(video=v,operation='perform_import').pk)
-        if v.dataset:
-            arguments = {'sync': True}
-            perform_dataset_extraction(TEvent.objects.create(video=v, arguments=arguments).pk)
-        else:
-            arguments = {'sync': True}
-            perform_video_segmentation(TEvent.objects.create(video=v, arguments=arguments).pk)
-        arguments = {'index': 'inception', 'target': 'frames'}
-        perform_indexing(TEvent.objects.create(video=v, arguments=arguments).pk)
-        if i == 1:  # save travis time by just running detection on first video
-            # face_mtcnn
-            arguments = {'detector': 'face'}
-            dt = TEvent.objects.create(video=v, arguments=arguments)
-            perform_detection(dt.pk)
-            print "done perform_detection"
-            arguments = {'filters': {'event_id': dt.pk}, }
-            perform_transformation(TEvent.objects.create(video=v, arguments=arguments).pk)
-            print "done perform_transformation"
-            # coco_mobilenet
-            arguments = {'detector': 'coco'}
-            dt = TEvent.objects.create(video=v, arguments=arguments)
-            perform_detection(dt.pk)
-            print "done perform_detection"
-            arguments = {'filters': {'event_id': dt.pk}, }
-            perform_transformation(TEvent.objects.create(video=v, arguments=arguments).pk)
-            print "done perform_transformation"
-            # inception on crops from detector
-            arguments = {'index': 'inception', 'target': 'regions',
-                         'filters': {'event_id': dt.pk, 'w__gte': 50, 'h__gte': 50}}
-            perform_indexing(TEvent.objects.create(video=v, arguments=arguments).pk)
-            print "done perform_indexing"
-            # assign_open_images_text_tags_by_id(TEvent.objects.create(video=v).pk)
-        temp = TEvent.objects.create(video=v, arguments={'destination': "FILE"})
-        perform_export(temp.pk)
-        temp.refresh_from_db()
-        fname = temp.arguments['file_name']
-        f = SimpleUploadedFile(fname, file("{}/exports/{}".format(settings.MEDIA_ROOT, fname)).read(),
-                               content_type="application/zip")
-        print fname
-        vimported = handle_uploaded_file(f, fname)
-        perform_import(TEvent.objects.get(video=vimported,operation='perform_import').pk)
-    # dc = Retriever()
-    # args = {}
-    # args['components'] = 32
-    # args['m'] = 8
-    # args['v'] = 8
-    # args['sub'] = 64
-    # dc.algorithm = Retriever.LOPQ
-    # dc.source_filters = {'indexer_shasum': TrainedModel.objects.get(name="inception",model_type=TrainedModel.INDEXER).shasum}
-    # dc.arguments = args
-    # dc.save()
-    # clustering_task = TEvent()
-    # clustering_task.arguments = {'retriever_pk': dc.pk}
-    # clustering_task.operation = 'perform_retriever_creation'
-    # clustering_task.save()
-    # perform_retriever_creation(clustering_task.pk)
-    # query_dict = {
-    #     'process_type': DVAPQL.QUERY,
-    #     'image_data_b64': base64.encodestring(file('tests/queries/query.png').read()),
-    #     'tasks': [
-    #         {
-    #             'operation': 'perform_indexing',
-    #             'arguments': {
-    #                 'index': 'inception',
-    #                 'target': 'query',
-    #                 'map': [
-    #                     {'operation': 'perform_retrieval',
-    #                      'arguments': {'count': 20, 'retriever_pk': Retriever.objects.get(name='inception').pk}
-    #                      }
-    #                 ]
-    #             }
-    #
-    #         }
-    #
-    #     ]
-    # }
-    # launch_workers_and_scheduler_from_environment()
-    # qp = DVAPQLProcess()
-    # qp.create_from_json(query_dict)
-    # qp.launch()
-    # qp.wait()
-
-
-@task
-def ci_search():
-    """
-    Perform Continuous Integration testing using Travis for search queries
-    """
-    import django
-    sys.path.append(os.path.dirname(__file__))
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
-    django.setup()
-    import base64
-    from dvaapp.models import DVAPQL, Retriever, QueryResults
-    from dvaapp.processing import DVAPQLProcess
-    launch_workers_and_scheduler_from_environment()
-    query_dict = {
-        'process_type': DVAPQL.QUERY,
-        'image_data_b64': base64.encodestring(file('../tests/queries/query.png').read()),
-        'tasks': [
-            {
-                'operation': 'perform_indexing',
-                'arguments': {
-                    'index': 'inception',
-                    'target': 'query',
-                    'map': [
-                        {'operation': 'perform_retrieval',
-                         'arguments': {'count': 15, 'retriever_pk': Retriever.objects.get(name='inception',
-                                                                                          algorithm=Retriever.EXACT).pk}
-                         }
-                    ]
-                }
-
-            },
-            {
-                'operation': 'perform_detection',
-                'arguments': {
-                    'detector': 'coco',
-                    'target': 'query',
-                }
-
-            }
-
-        ]
-    }
-    qp = DVAPQLProcess()
-    qp.create_from_json(query_dict)
-    qp.launch()
-    qp.wait(timeout=360)
-    print QueryResults.objects.count()
-
-
-@task
-def ci_face():
-    """
-    Perform Continuous Integration testing using Travis for face detection / indexing
-
-    """
-    import django
-    sys.path.append(os.path.dirname(__file__))
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
-    django.setup()
-    from dvaapp.models import Video, TEvent
-    from dvaapp.tasks import perform_indexing
-    for i, v in enumerate(Video.objects.all()):
-        if i == 0:  # save travis time by just running detection on first video
-            args = {
-                'filter': {'object_name__startswith': 'MTCNN_face'},
-                'index': 'facenet',
-                'target': 'regions'}
-            perform_indexing(TEvent.objects.create(video=v, arguments=args).pk)
 
 
 @task
@@ -460,15 +250,6 @@ def launch_server_from_environment():
         local('supervisord -n')
 
 
-@task
-def init_scheduler():
-    import django
-    sys.path.append(os.path.dirname(__file__))
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
-    django.setup()
-    from django_celery_beat.models import PeriodicTask,IntervalSchedule
-    di,created = IntervalSchedule.objects.get_or_create(every=os.environ.get('REFRESH_MINUTES',3),period=IntervalSchedule.MINUTES)
-    _ = PeriodicTask.objects.get_or_create(name="monitoring",task="monitor_system",interval=di,queue='qscheduler')
 
 
 @task
@@ -672,116 +453,6 @@ def restore(path):
     print zipper.returncode
 
 
-def setup_django():
-    """
-    setup django
-    :return:
-    """
-    import django
-    sys.path.append(os.path.dirname(__file__))
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
-    django.setup()
-
-
-@task
-def train_yolo(start_pk):
-    """
-    Train a yolo model specified in a TaskEvent.
-    This is necessary to ensure that the Tensorflow process exits and releases the allocated GPU memory.
-    :param start_pk: TEvent PK with information about lauching the training task
-
-    """
-    setup_django()
-    from django.conf import settings
-    from dvaapp.models import Region, Frame, TrainedModel, TEvent
-    from dvaui.view_shared import create_detector_dataset
-    from dvalib.yolo import trainer
-    start = TEvent.objects.get(pk=start_pk)
-    args = start.arguments
-    labels = set(args['labels']) if 'labels' in args else set()
-    object_names = set(args['object_names']) if 'object_names' in args else set()
-    detector = TrainedModel.objects.get(pk=args['detector_pk'])
-    detector.create_directory()
-    args['root_dir'] = "{}/detectors/{}/".format(settings.MEDIA_ROOT, detector.pk)
-    args['base_model'] = "{}/detectors/yolo/yolo.h5"
-    class_distribution, class_names, rboxes, rboxes_set, frames, i_class_names = create_detector_dataset(object_names,
-                                                                                                         labels)
-    images, boxes = [], []
-    path_to_f = {}
-    for k, f in frames.iteritems():
-        path = "{}/{}/frames/{}.jpg".format(settings.MEDIA_ROOT, f.video_id, f.frame_index)
-        path_to_f[path] = f
-        images.append(path)
-        boxes.append(rboxes[k])
-        # print k,rboxes[k]
-    with open("{}/input.json".format(args['root_dir']), 'w') as input_data:
-        json.dump({'boxes': boxes,
-                   'images': images,
-                   'args': args,
-                   'class_names': class_names.items(),
-                   'class_distribution': class_distribution.items()},
-                  input_data)
-    detector.boxes_count = sum([len(k) for k in boxes])
-    detector.frames_count = len(images)
-    detector.classes_count = len(class_names)
-    detector.save()
-    args['class_names'] = i_class_names
-    train_task = trainer.YOLOTrainer(boxes=boxes, images=images, args=args)
-    train_task.train()
-    detector.phase_1_log = file("{}/phase_1.log".format(args['root_dir'])).read()
-    detector.phase_2_log = file("{}/phase_2.log".format(args['root_dir'])).read()
-    detector.class_distribution = json.dumps(class_distribution.items())
-    detector.class_names = json.dumps(class_names.items())
-    detector.trained = True
-    detector.save()
-    results = train_task.predict()
-    bulk_regions = []
-    for path, box_class, score, top, left, bottom, right in results:
-        r = Region()
-        r.region_type = r.ANNOTATION
-        r.confidence = int(100.0 * score)
-        r.object_name = "YOLO_{}_{}".format(detector.pk, box_class)
-        r.y = top
-        r.x = left
-        r.w = right - left
-        r.h = bottom - top
-        r.frame_id = path_to_f[path].pk
-        r.video_id = path_to_f[path].video_id
-        bulk_regions.append(r)
-    Region.objects.bulk_create(bulk_regions, batch_size=1000)
-    folder_name = "{}/detectors/{}".format(settings.MEDIA_ROOT, detector.pk)
-    file_name = '{}/exports/{}.dva_detector.zip'.format(settings.MEDIA_ROOT, detector.pk)
-    zipper = subprocess.Popen(['zip', file_name, '-r', '.'], cwd=folder_name)
-    zipper.wait()
-    return 0
-
-
-@task
-def temp_import_detector(path="/Users/aub3/tempd"):
-    """
-    Test importing detectors
-    """
-    setup_django()
-    import json
-    from django.conf import settings
-    from dvaapp.models import TrainedModel
-    d = TrainedModel()
-    with open("{}/input.json".format(path)) as infile:
-        data = json.load(infile)
-    d.name = "test detector"
-    d.class_names = json.dumps(data['class_names'])
-    d.phase_1_log = file("{}/phase_1.log".format(path)).read
-    d.phase_2_log = file("{}/phase_2.log".format(path)).read
-    d.frames_count = 500
-    d.boxes_count = 500
-    d.detector_type = d.YOLO
-    d.model_type = TrainedModel.DETECTOR
-    d.class_distribution = json.dumps(data['class_names'])
-    d.save()
-    d.create_directory()
-    shutil.copy("{}/phase_2_best.h5".format(path), "{}/detectors/{}/phase_2_best.h5".format(settings.MEDIA_ROOT, d.pk))
-
-
 @task
 def qt():
     """
@@ -804,35 +475,6 @@ def qt():
         _ = handle_uploaded_file(f, name)
         break
 
-@task
-def qt_lopq():
-    import django
-    sys.path.append(os.path.dirname(__file__))
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
-    django.setup()
-    from dvaapp.models import Retriever, TrainedModel,TEvent,DVAPQL
-    from dvaapp import processing
-    spec = {
-        'process_type':DVAPQL.PROCESS,
-        'create':[{
-            'MODEL':'Retriever',
-            'spec':{
-                'algorithm':Retriever.LOPQ,
-                'arguments':{'components': 32, 'm': 8, 'v': 8, 'sub': 128},
-                'source_filters':{'indexer_shasum': TrainedModel.objects.get(name="inception",model_type=TrainedModel.INDEXER).shasum}
-            },
-            'tasks':[
-                {
-                    'operation':'perform_retriever_creation',
-                    'arguments':{'retriever_pk': '__pk__'}
-                }
-            ]
-        },]
-    }
-    p = processing.DVAPQLProcess()
-    p.create_from_json(j=spec,user=None)
-    p.launch()
-    p.wait()
 
 
 @task
@@ -860,7 +502,13 @@ def start_scheduler():
     Start celery-beat scheduler using django database as source for tasks.
 
     """
-    init_scheduler()
+    import django
+    sys.path.append(os.path.dirname(__file__))
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
+    django.setup()
+    from django_celery_beat.models import PeriodicTask,IntervalSchedule
+    di,created = IntervalSchedule.objects.get_or_create(every=os.environ.get('REFRESH_MINUTES',3),period=IntervalSchedule.MINUTES)
+    _ = PeriodicTask.objects.get_or_create(name="monitoring",task="monitor_system",interval=di,queue='qscheduler')
     local('fab startq:qscheduler &')
     local("celery -A dva beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler -f ../logs/beat.log")
 
@@ -882,86 +530,3 @@ def store_token_for_testing():
     token, _ = Token.objects.get_or_create(user=u)
     with open('creds.json', 'w') as creds:
         creds.write(json.dumps({'token': token.key}))
-
-
-@task
-def test_api(port=80):
-    """
-    test REST API for CORS config by submitting a DVAPQL query to /api endpoint
-    """
-    import requests
-    if not os.path.isfile('creds.json'):
-        store_token_for_testing()
-    token = json.loads(file('creds.json').read())['token']
-    headers = {'Authorization': 'Token {}'.format(token)}
-    r = requests.post("http://localhost:{}/api/queries/".format(port),
-                      data={'script': file('dvaapp/test_scripts/url.json').read()},
-                      headers=headers)
-    print r.status_code
-
-
-@task
-def test_import_pipelines(port=80):
-    """
-    Test import pipeline
-    """
-    import requests
-    if not os.path.isfile('creds.json'):
-        store_token_for_testing()
-    token = json.loads(file('creds.json').read())['token']
-    headers = {'Authorization': 'Token {}'.format(token)}
-    for fname in glob.glob("../tests/import_tests/*.json"):
-        r = requests.post("http://localhost:{}/api/queries/".format(port), data={'script': file(fname).read()},
-                          headers=headers)
-        print fname,r.status_code
-
-
-@task
-def clear_test_bucket():
-    local('aws s3 rm --recursive s3://aub3dvatest')
-
-
-@task
-def test_framelist():
-    import django
-    sys.path.append(os.path.dirname(__file__))
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
-    django.setup()
-    from dvaui.view_shared import handle_uploaded_file
-    from dvaapp.tasks import perform_import, perform_frame_download
-    from django.core.files.uploadedfile import SimpleUploadedFile
-    from dvaapp.models import TEvent
-    for fname in glob.glob('../tests/ci/framelist.*'):
-        name = fname.split('/')[-1].split('.')[0]
-        f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/json")
-        v = handle_uploaded_file(f, name)
-        dt = TEvent.objects.get(video=v,operation='perform_import')
-        perform_import(dt.pk)
-        for t in TEvent.objects.filter(parent=dt):
-            perform_frame_download(t.pk)
-
-
-@task
-def test_coco():
-    import django
-    sys.path.append(os.path.dirname(__file__))
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
-    django.setup()
-    from dvaui.view_shared import handle_uploaded_file
-    from dvaapp.tasks import perform_import, perform_region_import, perform_dataset_extraction
-    from django.core.files.uploadedfile import SimpleUploadedFile
-    from dvaapp.models import TEvent
-    for fname in glob.glob('../tests/ci/coco*.zip'):
-        name = fname.split('/')[-1].split('.')[0]
-        f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
-        v = handle_uploaded_file(f, name)
-        dt = TEvent.objects.get(video=v,operation='perform_import')
-        perform_import(dt.pk)
-        dt = TEvent(video=v,operation='perform_dataset_extraction')
-        dt.save()
-        perform_dataset_extraction(dt.pk)
-        shutil.copy("../tests/ci/coco_regions/coco_ci_regions.json","dva/media/ingest/coco_ci_regions.json")
-        args = { "path":"/ingest/coco_ci_regions.json"}
-        dt = TEvent(video=v,operation='perform_region_import',arguments=args)
-        dt.save()
-        perform_region_import(dt.pk)

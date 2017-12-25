@@ -1,7 +1,6 @@
 import django
 import sys, os
-
-sys.path.append(os.path.dirname(__file__))
+sys.path.append(os.path.join(os.path.dirname(__file__),'../'))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
 django.setup()
 from dvaapp.models import TEvent

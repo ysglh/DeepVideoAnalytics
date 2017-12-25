@@ -65,9 +65,10 @@ script:
   - cd server && fab init_fs && cd ..
   - cd server && fab init_server && cd ..
   - cd server && fab init_models && cd ..
-  - cd server && fab ci && cd ..
-  - cd server && fab ci_face && cd ..
-  - cd server && fab ci_search && cd ..
+  - cd tests && python run_ci_tests.py && cd ..
+  - cd tests && python run_ci_face.py && cd ..
+  - cd server && fab launch_workers_and_scheduler_from_environment && cd ..
+  - cd tests && python run_ci_search.py && cd ..
   - wget --quiet localhost:8000
   - wget --quiet localhost:8000/videos/
   - wget --quiet localhost:8000/videos/1/

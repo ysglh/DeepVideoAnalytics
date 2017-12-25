@@ -155,6 +155,7 @@ def launch():
     launch_workers_and_scheduler_from_environment(False)
 
 
+@task
 def launch_workers_and_scheduler_from_environment(block_on_manager=False):
     """
     Launch workers and scheduler as specified in the environment variables.

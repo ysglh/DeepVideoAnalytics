@@ -1,5 +1,6 @@
+#!/usr/bin/env python
 import django, os, sys, glob, shutil
-sys.path.append(os.path.dirname(__file__))
+sys.path.append('../server/')
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
 django.setup()
 from dvaui.view_shared import handle_uploaded_file
@@ -9,7 +10,6 @@ from dvaapp.models import TEvent
 from django.conf import settings
 
 if __name__ == '__main__':
-
     for fname in glob.glob('ci/coco*.zip'):
         name = fname.split('/')[-1].split('.')[0]
         f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")

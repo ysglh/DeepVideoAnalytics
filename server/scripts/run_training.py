@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import django, os, sys, json, subprocess
 sys.path.append(os.path.join(os.path.dirname(__file__),'../'))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")

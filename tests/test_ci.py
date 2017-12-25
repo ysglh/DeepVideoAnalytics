@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import django
 import os, sys, glob
 sys.path.append("../server/")

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import django, os, sys
 sys.path.append('../server/')
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")

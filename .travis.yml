@@ -61,14 +61,10 @@ before_script:
   - cd server && python manage.py runserver 8000 &
 
 script:
-  - cd server && fab copy_defaults && cd ..
-  - cd server && fab init_fs && cd ..
-  - cd server && fab init_server && cd ..
-  - cd server && fab init_models && cd ..
-  - cd tests && python run_ci_tests.py && cd ..
-  - cd tests && python run_ci_face.py && cd ..
+  - cd server && fab copy_defaults && fab init_fs && cd ..
+  - cd tests && python test_ci.py && python test_ci_face.py && cd ..
   - cd server && fab launch_workers_and_scheduler_from_environment && cd ..
-  - cd tests && python run_ci_search.py && cd ..
+  - cd tests && python test_ci_search.py && cd ..
   - wget --quiet localhost:8000
   - wget --quiet localhost:8000/videos/
   - wget --quiet localhost:8000/videos/1/

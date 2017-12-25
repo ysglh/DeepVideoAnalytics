@@ -9,6 +9,8 @@ ehthumbs.db
 Icon?
 Thumbs.db
 *.swp
+creds.json
+*.mov
 docs/experiments/private
 docs/experiments/coco/coco_annotations
 docs/experiments/yolo/yolo_test.zip
@@ -16,8 +18,6 @@ docs/experiments/yolo/yolo_test.zip
 /repos/vdn
 /server/dva/staticfiles/
 /server/dvap/
-*.mov
-/server/creds.json
 /shared/
 /server/dvalib/crfasrnn/crfrnn_keras_model.h5
 /server/dvalib/crfasrnn/cpp/high_dim_filter.so

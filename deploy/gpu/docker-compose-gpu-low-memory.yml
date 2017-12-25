@@ -40,7 +40,7 @@
        - LAUNCH_BY_NAME_detector_textbox=1
        - TEST=1
        - AUTH_DISABLED=1
-     command: bash -c "youtube-dl -U && git pull && sleep 10 && fab migrate && fab start_container:server"
+     command: bash -c "youtube-dl -U && git pull && sleep 10 && ./migrate.sh && fab start_container:server"
      ports:
        - "8000:80"
        - "8888:8888"

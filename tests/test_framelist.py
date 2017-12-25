@@ -1,6 +1,6 @@
+#!/usr/bin/env python
 import django, sys, glob, os
-
-sys.path.append(os.path.dirname(__file__))
+sys.path.append('../server/')
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
 django.setup()
 from dvaui.view_shared import handle_uploaded_file

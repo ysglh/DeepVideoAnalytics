@@ -8,15 +8,11 @@ from dva.celery import app
 from .models import Video, Frame, TEvent,  IndexEntries, Region, Tube, \
     Retriever, Segment, QueryIndexVector, DeletedVideo, ManagementAction, SystemState, DVAPQL, \
     Worker, QueryRegion, QueryRegionIndexVector, TrainedModel, RegionLabel, FrameLabel, Label
-
-from .operations.indexing import IndexerTask
 from .operations.retrieval import RetrieverTask
-from .operations.detection import DetectorTask
-from .operations.segmentation import SegmentorTask
-from .operations.analysis import AnalyzerTask
 from .operations.decoding import VideoDecoder
 from .operations.dataset import DatasetCreator
 from .processing import process_next, mark_as_completed
+from . import task_handlers
 from dvalib import retriever
 from django.utils import timezone
 from celery.signals import task_prerun,celeryd_init
@@ -82,7 +78,7 @@ def perform_image_download(task_id):
     mark_as_completed(start)
 
 
-@app.task(track_started=True, name="perform_indexing", base=IndexerTask)
+@app.task(track_started=True, name="perform_indexing")
 def perform_indexing(task_id):
     start = TEvent.objects.get(pk=task_id)
     if start.started:
@@ -90,50 +86,8 @@ def perform_indexing(task_id):
     else:
         start.started = True
         start.save()
-    json_args = start.arguments
-    target = json_args.get('target','frames')
-    start.save()
-    if 'index' in json_args:
-        index_name = json_args['index']
-        visual_index, di = perform_indexing.get_index_by_name(index_name)
-    else:
-        visual_index, di = perform_indexing.get_index_by_pk(json_args['indexer_pk'])
-    sync = True
-    if target == 'query':
-        local_path = task_shared.download_and_get_query_path(start)
-        vector = visual_index.apply(local_path)
-        # TODO: figure out a better way to store numpy arrays.
-        s = io.BytesIO()
-        np.save(s,vector)
-        # can be replaced by Redis instead of using DB
-        _ = QueryIndexVector.objects.create(vector=s.getvalue(),event=start)
-        sync = False
-    elif target == 'query_regions':
-        queryset, target = task_shared.build_queryset(args=start.arguments)
-        region_paths = task_shared.download_and_get_query_region_path(start, queryset)
-        for i,dr in enumerate(queryset):
-            local_path = region_paths[i]
-            vector = visual_index.apply(local_path)
-            s = io.BytesIO()
-            np.save(s,vector)
-            # can be replaced by Redis instead of using DB
-            _ = QueryRegionIndexVector.objects.create(vector=s.getvalue(),event=start,query_region=dr)
-        sync = False
-    elif target == 'regions':
-        # For regions simply download/ensure files exists.
-        queryset, target = task_shared.build_queryset(args=start.arguments, video_id=start.video_id)
-        task_shared.ensure_files(queryset, target)
-        perform_indexing.index_queryset(di,visual_index,start,target,queryset)
-    elif target == 'frames':
-        queryset, target = task_shared.build_queryset(args=start.arguments, video_id=start.video_id)
-        if visual_index.cloud_fs_support and settings.DISABLE_NFS:
-            # if NFS is disabled and index supports cloud file systems natively (e.g. like Tensorflow)
-            perform_indexing.index_queryset(di, visual_index, start, target, queryset, cloud_paths=True)
-        else:
-            # Otherwise download and ensure that the files exist
-            task_shared.ensure_files(queryset, target)
-            perform_indexing.index_queryset(di,visual_index,start,target,queryset)
-    next_ids = process_next(task_id,sync=sync)
+    sync = task_handlers.handle_perform_indexing(start)
+    next_ids = process_next(start.pk,sync=sync)
     mark_as_completed(start)
     return next_ids
 
@@ -307,7 +261,7 @@ def perform_video_decode_lambda(task_id):
     raise NotImplementedError
 
 
-@app.task(track_started=True, name="perform_detection",base=DetectorTask)
+@app.task(track_started=True, name="perform_detection")
 def perform_detection(task_id):
     """
     :param task_id:
@@ -319,72 +273,7 @@ def perform_detection(task_id):
     else:
         start.started = True
         start.save()
-    video_id = start.video_id
-    args = start.arguments
-    frame_detections_list = []
-    dv = None
-    dd_list = []
-    query_flow = ('target' in args and args['target'] == 'query')
-    if 'detector_pk' in args:
-        detector_pk = int(args['detector_pk'])
-        cd = TrainedModel.objects.get(pk=detector_pk,model_type=TrainedModel.DETECTOR)
-        detector_name = cd.name
-    else:
-        detector_name = args['detector']
-        cd = TrainedModel.objects.get(name=detector_name,model_type=TrainedModel.DETECTOR)
-        detector_pk = cd.pk
-    perform_detection.load_detector(cd)
-    detector = perform_detection.get_static_detectors[cd.pk]
-    if detector.session is None:
-        logging.info("loading detection model")
-        detector.load()
-    if query_flow:
-        local_path = task_shared.download_and_get_query_path(start)
-        frame_detections_list.append((None,detector.detect(local_path)))
-    else:
-        if 'target' not in args:
-            args['target'] = 'frames'
-        dv = Video.objects.get(id=video_id)
-        queryset, target = task_shared.build_queryset(args, video_id, start.parent_process_id)
-        task_shared.ensure_files(queryset,target)
-        for k in queryset:
-            if target == 'frames':
-                local_path = k.path()
-            elif target == 'regions':
-                local_path = k.frame_path()
-            else:
-                raise NotImplementedError("Invalid target:{}".format(target))
-            frame_detections_list.append((k, detector.detect(local_path)))
-    for df,detections in frame_detections_list:
-        for d in detections:
-            dd = QueryRegion() if query_flow else Region()
-            dd.region_type = Region.DETECTION
-            if query_flow:
-                dd.query_id = start.parent_process_id
-            else:
-                dd.video_id = dv.pk
-                dd.frame_id = df.pk
-                dd.frame_index = df.frame_index
-                dd.segment_index = df.segment_index
-            if detector_name == 'textbox':
-                dd.object_name = 'TEXTBOX'
-                dd.confidence = 100.0 * d['score']
-            elif detector_name == 'face':
-                dd.object_name = 'MTCNN_face'
-                dd.confidence = 100.0
-            else:
-                dd.object_name = d['object_name']
-                dd.confidence = 100.0 * d['score']
-            dd.x = d['x']
-            dd.y = d['y']
-            dd.w = d['w']
-            dd.h = d['h']
-            dd.event_id = task_id
-            dd_list.append(dd)
-    if query_flow:
-        _ = QueryRegion.objects.bulk_create(dd_list, 1000)
-    else:
-        _ = Region.objects.bulk_create(dd_list, 1000)
+    query_flow = task_handlers.handle_perform_detection(start)
     launched = process_next(task_id)
     mark_as_completed(start)
     if query_flow:
@@ -393,7 +282,7 @@ def perform_detection(task_id):
         return 0
 
 
-@app.task(track_started=True, name="perform_analysis",base=AnalyzerTask)
+@app.task(track_started=True, name="perform_analysis")
 def perform_analysis(task_id):
     start = TEvent.objects.get(pk=task_id)
     if start.started:
@@ -401,95 +290,7 @@ def perform_analysis(task_id):
     else:
         start.started = True
         start.save()
-    video_id = start.video_id
-    args = start.arguments
-    analyzer_name = args['analyzer']
-    if analyzer_name not in perform_analysis._analyzers:
-        da = TrainedModel.objects.get(name=analyzer_name,model_type=TrainedModel.ANALYZER)
-        perform_analysis.load_analyzer(da)
-    analyzer = perform_analysis.get_static_analyzers[analyzer_name]
-    regions_batch = []
-    queryset, target = task_shared.build_queryset(args, video_id, start.parent_process_id)
-    query_path = None
-    query_regions_paths = None
-    if target == 'query':
-        query_path = task_shared.download_and_get_query_path(start)
-    elif target == 'query_regions':
-        query_regions_paths = task_shared.download_and_get_query_region_path(start, queryset)
-    else:
-        task_shared.ensure_files(queryset, target)
-    image_data = {}
-    frames_to_labels = []
-    regions_to_labels = []
-    labels_pk = {}
-    temp_root = tempfile.mkdtemp()
-    for i,f in enumerate(queryset):
-        if query_regions_paths:
-            path = query_regions_paths[i]
-            a = QueryRegion()
-            a.query_id = start.parent_process_id
-            a.x = f.x
-            a.y = f.y
-            a.w = f.w
-            a.h = f.h
-        elif query_path:
-            path = query_path
-            w, h = task_shared.get_query_dimensions(start)
-            a = QueryRegion()
-            a.query_id = start.parent_process_id
-            a.x = 0
-            a.y = 0
-            a.w = w
-            a.h = h
-            a.full_frame = True
-        else:
-            a = Region()
-            a.video_id = f.video_id
-            if target == 'regions':
-                a.x = f.x
-                a.y = f.y
-                a.w = f.w
-                a.h = f.h
-                a.frame_id = f.frame.id
-                a.frame_index = f.frame_index
-                a.segment_index = f.segment_index
-                path = task_shared.crop_and_get_region_path(f,image_data,temp_root)
-            elif target == 'frames':
-                a.full_frame = True
-                a.frame_index = f.frame_index
-                a.segment_index = f.segment_index
-                a.frame_id = f.id
-                path = f.path()
-            else:
-                raise NotImplementedError
-        object_name, text, metadata, labels = analyzer.apply(path)
-        if labels:
-            for l in labels:
-                if (l,analyzer.label_set) not in labels_pk:
-                    labels_pk[(l,analyzer.label_set)] = Label.objects.get_or_create(name=l,set=analyzer.label_set)[0].pk
-                if target == 'regions':
-                    regions_to_labels.append(RegionLabel(label_id=labels_pk[(l,analyzer.label_set)],region_id=f.pk,
-                                                         frame_id=f.frame.pk, frame_index=f.frame_index,
-                                                         segment_index=f.segment_index,video_id=f.video_id,
-                                                         event_id=task_id))
-                elif target == 'frames':
-                    frames_to_labels.append(FrameLabel(label_id=labels_pk[(l, analyzer.label_set)],frame_id=f.pk,
-                                                       frame_index=f.frame_index, segment_index=f.segment_index,
-                                                       video_id=f.video_id, event_id=task_id))
-        a.region_type = Region.ANNOTATION
-        a.object_name = object_name
-        a.text = text
-        a.metadata = metadata
-        a.event_id = task_id
-        regions_batch.append(a)
-    if query_regions_paths or query_path:
-        QueryRegion.objects.bulk_create(regions_batch, 1000)
-    else:
-        Region.objects.bulk_create(regions_batch,1000)
-    if regions_to_labels:
-        RegionLabel.objects.bulk_create(regions_to_labels,1000)
-    if frames_to_labels:
-        FrameLabel.objects.bulk_create(frames_to_labels,1000)
+    task_handlers.handle_perform_analysis(start)
     process_next(task_id)
     mark_as_completed(start)
     return 0
@@ -755,69 +556,6 @@ def perform_detector_training(task_id):
     return 0
 
 
-@app.task(track_started=True, name="perform_segmentation",base=SegmentorTask)
-def perform_segmentation(task_id):
-    """
-    :param task_id:
-    :return:
-    """
-    start = TEvent.objects.get(pk=task_id)
-    if start.started:
-        return 0  # to handle celery bug with ACK in SOLO mode
-    else:
-        start.started = True
-        start.save()
-    video_id = start.video_id
-    args = start.arguments
-    segmentor_name = args['segmentor']
-    segmentor = perform_segmentation.get_static_segmentors[segmentor_name]
-    if segmentor.session is None:
-        logging.info("loading detection model")
-        segmentor.load()
-    dv = Video.objects.get(id=video_id)
-    if 'filters' in args:
-        kwargs = args['filters']
-        kwargs['video_id'] = video_id
-        frames = Frame.objects.all().filter(**kwargs)
-        logging.info("Running {} Using filters {}".format(segmentor_name,kwargs))
-    else:
-        frames = Frame.objects.all().filter(video=dv)
-    dd_list = []
-    path_list = []
-    for df in frames:
-        local_path = df.path()
-        segmentation = segmentor.detect(local_path)
-        # for d in detections:
-        #     dd = Region()
-        #     dd.region_type = Region.DETECTION
-        #     dd.video_id = dv.pk
-        #     dd.frame_id = df.pk
-        #     dd.parent_frame_index = df.frame_index
-        #     dd.parent_segment_index = df.segment_index
-        #     if detector_name == 'coco':
-        #         dd.object_name = 'SSD_{}'.format(d['object_name'])
-        #         dd.confidence = 100.0 * d['score']
-        #     elif detector_name == 'textbox':
-        #         dd.object_name = 'TEXTBOX'
-        #         dd.confidence = 100.0 * d['score']
-        #     elif detector_name == 'face':
-        #         dd.object_name = 'MTCNN_face'
-        #         dd.confidence = 100.0
-        #     else:
-        #         raise NotImplementedError
-        #     dd.x = d['x']
-        #     dd.y = d['y']
-        #     dd.w = d['w']
-        #     dd.h = d['h']
-        #     dd.event_id = task_id
-        #     dd_list.append(dd)
-        #     path_list.append(local_path)
-    _ = Region.objects.bulk_create(dd_list,1000)
-    process_next(task_id)
-    mark_as_completed(start)
-    return 0
-
-
 @app.task(track_started=True, name="perform_compression")
 def perform_compression(task_id):
     """
@@ -909,21 +647,3 @@ def monitor_system():
     s.save()
 
 
-# def apply_model_global():
-#         # Check if a worker has become available and if it can be re-routed
-#         model_specific_queue_name = processing.get_model_specific_queue_name(start.operation, start.arguments)
-#         if Worker.objects.all().filter(queue_name=model_specific_queue_name).exists():
-#             start.started = False
-#             start.queue_name = model_specific_queue_name
-#             start.start_ts = None
-#             start.save()
-#             app.send_task(start.task_name, args=[start.pk, ], queue=model_specific_queue_name)
-#         else:
-#             start.started = False
-#             start.queue_name = model_specific_queue_name
-#             start.start_ts = None
-#             s = subprocess.Popen(['python', 'run_task.py', start.operation, start.pk])
-#             s.wait()
-#             if s.returncode != 0:
-#                 raise ValueError("run_task.py failed logs in logs/global_tasks.log")
-#         return True

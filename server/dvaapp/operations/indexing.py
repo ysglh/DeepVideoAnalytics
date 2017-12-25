@@ -1,5 +1,4 @@
 import logging, json, uuid, tempfile, os
-import celery
 from PIL import Image
 from django.conf import settings
 
@@ -13,40 +12,44 @@ except ImportError:
 from ..models import IndexEntries, TrainedModel
 
 
-class IndexerTask(celery.Task):
+class Indexers(object):
     _visual_indexer = {}
     _name_to_index = {}
     _session = None
 
-    def get_index_by_name(self,name):
-        if name not in IndexerTask._name_to_index:
+    @classmethod
+    def get_index_by_name(cls,name):
+        if name not in Indexers._name_to_index:
             di = TrainedModel.objects.get(name=name,model_type=TrainedModel.INDEXER)
-            IndexerTask._name_to_index[name] = di
+            Indexers._name_to_index[name] = di
         else:
-            di = IndexerTask._name_to_index[name]
-        return self.get_index(di),di
-
-    def get_index_by_pk(self,pk):
+            di = Indexers._name_to_index[name]
+        return cls.get_index(di),di
+    
+    @classmethod
+    def get_index_by_pk(cls,pk):
         di = TrainedModel.objects.get(pk=pk)
         if di.model_type != TrainedModel.INDEXER:
             raise ValueError("Model {} id: {} is not an Indexer".format(di.name,di.pk))
-        return self.get_index(di),di
-
-    def get_index(self,di):
+        return cls.get_index(di),di
+    
+    @classmethod
+    def get_index(cls,di):
         di.ensure()
-        if di.pk not in IndexerTask._visual_indexer:
+        if di.pk not in Indexers._visual_indexer:
             iroot = "{}/models/".format(settings.MEDIA_ROOT)
             if di.name == 'inception':
-                IndexerTask._visual_indexer[di.pk] = indexer.InceptionIndexer(iroot+"{}/network.pb".format(di.pk))
+                Indexers._visual_indexer[di.pk] = indexer.InceptionIndexer(iroot + "{}/network.pb".format(di.pk))
             elif di.name == 'facenet':
-                IndexerTask._visual_indexer[di.pk] = indexer.FacenetIndexer(iroot+"{}/facenet.pb".format(di.pk))
+                Indexers._visual_indexer[di.pk] = indexer.FacenetIndexer(iroot + "{}/facenet.pb".format(di.pk))
             elif di.name == 'vgg':
-                IndexerTask._visual_indexer[di.pk] = indexer.VGGIndexer(iroot+"{}/vgg.pb".format(di.pk))
+                Indexers._visual_indexer[di.pk] = indexer.VGGIndexer(iroot + "{}/vgg.pb".format(di.pk))
             else:
                 raise ValueError,"unregistered indexer with id {}".format(di.pk)
-        return IndexerTask._visual_indexer[di.pk]
+        return Indexers._visual_indexer[di.pk]
 
-    def index_queryset(self,di,visual_index,event,target,queryset, cloud_paths=False):
+    @classmethod
+    def index_queryset(cls,di,visual_index,event,target,queryset, cloud_paths=False):
         visual_index.load()
         temp_root = tempfile.mkdtemp()
         entries, paths, images = [], [], {}

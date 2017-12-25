@@ -700,6 +700,7 @@ class TrainingSet(models.Model):
     instance_type = models.CharField(max_length=1,choices=INSTANCE_TYPES,db_index=True,default=IMAGES)
     count = models.IntegerField(null=True)
     name = models.CharField(max_length=500,default="")
+    built = models.BooleanField(default=False)
     created = models.DateTimeField('date created', auto_now_add=True)
 
 

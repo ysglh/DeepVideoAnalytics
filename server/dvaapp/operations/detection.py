@@ -1,32 +1,26 @@
-import logging, os, json
-import celery
+import logging
 from ..models import TrainedModel
 try:
     from dvalib import detector
 except ImportError:
     logging.warning("Could not import indexer / clustering assuming running in front-end mode / Heroku")
-from django.conf import settings
 
 
-
-class DetectorTask(celery.Task):
+class Detectors(object):
     _detectors = {}
 
-    @property
-    def get_static_detectors(self):
-        return DetectorTask._detectors
-
-    def load_detector(self,cd):
+    @classmethod
+    def load_detector(cls,cd):
         cd.ensure()
-        if cd.pk not in DetectorTask._detectors:
+        if cd.pk not in Detectors._detectors:
             if cd.detector_type == TrainedModel.TFD:
-                DetectorTask._detectors[cd.pk] = detector.TFDetector(model_path=cd.get_model_path(),
-                                                                     class_index_to_string=cd.class_index_to_string)
+                Detectors._detectors[cd.pk] = detector.TFDetector(model_path=cd.get_model_path(),
+                                                                  class_index_to_string=cd.class_index_to_string)
             elif cd.detector_type == TrainedModel.YOLO:
-                DetectorTask._detectors[cd.pk] = detector.YOLODetector(cd.get_yolo_args())
+                Detectors._detectors[cd.pk] = detector.YOLODetector(cd.get_yolo_args())
             elif cd.name == 'face':
-                DetectorTask._detectors[cd.pk] = detector.FaceDetector()
+                Detectors._detectors[cd.pk] = detector.FaceDetector()
             elif cd.name == 'textbox':
-                DetectorTask._detectors[cd.pk] = detector.TextBoxDetector(model_path=cd.get_model_path())
+                Detectors._detectors[cd.pk] = detector.TextBoxDetector(model_path=cd.get_model_path())
             else:
                 raise ValueError,"{}".format(cd.pk)

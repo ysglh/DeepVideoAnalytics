@@ -73,6 +73,31 @@ def get_model_specific_queue_name(operation,args):
     return queue_name
 
 
+def get_model_pk_from_args(operation,args):
+    if 'detector_pk' in args:
+        return args['detector_pk']
+    elif 'indexer_pk' in args:
+        return args['indexer_pk']
+    elif 'retriever_pk' in args:
+        return args['retriever_pk']
+    elif 'analyzer_pk' in args:
+        return ['analyzer_pk']
+    elif 'index' in args:
+        if args['index'] not in INDEXER_NAME_TO_PK:
+            INDEXER_NAME_TO_PK[args['index']] = TrainedModel.objects.get(name=args['index'],model_type=TrainedModel.INDEXER).pk
+        return INDEXER_NAME_TO_PK[args['index']]
+    elif 'analyzer' in args:
+        if args['analyzer'] not in ANALYER_NAME_TO_PK:
+            ANALYER_NAME_TO_PK[args['analyzer']] = TrainedModel.objects.get(name=args['analyzer'],model_type=TrainedModel.ANALYZER).pk
+        return ANALYER_NAME_TO_PK[args['analyzer']]
+    elif 'detector' in args:
+        if args['detector'] not in DETECTOR_NAME_TO_PK:
+            DETECTOR_NAME_TO_PK[args['detector']] = TrainedModel.objects.get(name=args['detector'],model_type=TrainedModel.DETECTOR).pk
+        return DETECTOR_NAME_TO_PK[args['detector']]
+    else:
+        raise NotImplementedError,"{}, {}".format(operation,args)
+
+
 def get_queue_name_and_operation(operation,args):
     global CURRENT_QUEUES
     if operation in settings.TASK_NAMES_TO_QUEUE:
@@ -98,7 +123,7 @@ def get_queue_name_and_operation(operation,args):
                 # Check if global queue is enabled
                 if settings.GLOBAL_MODEL_QUEUE_ENABLED:
                     # send it to a  global queue which loads model at every execution
-                    return settings.GLOBAL_MODEL, "apply_model_global"
+                    return settings.GLOBAL_MODEL, operation
         return queue_name, operation
 
 

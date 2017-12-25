@@ -1,10 +1,12 @@
 import os, json, requests, copy, time, subprocess, logging, shutil, zipfile, uuid, calendar, shlex, sys, tempfile, uuid
-from models import Video, QueryRegion, QueryRegionIndexVector, DVAPQL, Region, Frame, Segment, IndexEntries, TEvent
+from models import Video, QueryRegion, QueryRegionIndexVector, DVAPQL, Region, Frame, Segment, IndexEntries, TEvent,\
+    Worker, TrainedModel
 from django.conf import settings
 from PIL import Image
 from . import serializers
 from .fs import ensure, upload_file_to_remote, upload_video_to_remote, get_path_to_file
-
+from . import processing
+from dva.celery import app
 
 def pid_exists(pid):
     try:
@@ -13,6 +15,52 @@ def pid_exists(pid):
         return False
     else:
         return True
+
+
+def check_defer(start):
+    """
+    Check if a worker that processes model specific queue has become available.
+    :param start:
+    :return:
+    """
+    model_specific_queue_name = processing.get_model_specific_queue_name(start.operation, start.arguments)
+    if Worker.objects.all().filter(queue_name=model_specific_queue_name).exists():
+        start.started = False
+        start.queue_name = model_specific_queue_name
+        start.start_ts = None
+        start.worker = None
+        start.save()
+        app.send_task(start.task_name, args=[start.pk, ], queue=model_specific_queue_name)
+
+
+def run_task_in_new_process(start):
+    """
+    Run in a new process,
+    TODO: Make sure that the new process has correct environment variable mode.
+    E.g. TF or PyTorch, otherwise it won't be able to import necessary library
+    :param start:
+    :return:
+    """
+    model_specific_queue_name = processing.get_model_specific_queue_name(start.operation, start.arguments)
+    trained_model = TrainedModel.objects.get(pk=processing.get_model_pk_from_args(start.operation,start.arguments))
+    start.started = False
+    start.queue_name = model_specific_queue_name
+    start.start_ts = None
+    new_envs = os.environ.copy()
+    for k in {'PYTORCH_MODE','CAFFE_MODE','MXNET_MODE'}:
+        if k in new_envs:
+            del new_envs[k]
+    if trained_model.mode == trained_model.PYTORCH:
+        new_envs['PYTORCH_MODE'] = '1'
+    elif trained_model.mode == trained_model.CAFFE:
+        new_envs['CAFFE_MODE'] = '1'
+    elif trained_model.mode == trained_model.MXNET_MODE:
+        new_envs['MXNET_MODE'] = '1'
+    s = subprocess.Popen(['python', 'run_task.py', start.operation, start.pk],env=new_envs)
+    s.wait()
+    if s.returncode != 0:
+        raise ValueError("run_task.py failed")
+    return True
 
 
 def relaunch_failed_task(old, app):

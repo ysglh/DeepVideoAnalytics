@@ -10,4 +10,4 @@ export LAUNCH_BY_NAME_analyzer_tagger=1
 export LAUNCH_Q_qclusterer=1
 export LAUNCH_Q_qextract=1
 export LAUNCH_SCHEDULER=1
-cd ../server/ && fab launch_workers_and_scheduler_from_environment:0
+cd ../server/ && ./launch_from_env.py 0

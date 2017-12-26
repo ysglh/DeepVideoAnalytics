@@ -31,5 +31,5 @@ if __name__ == '__main__':
     envs['SUPERUSER'] = 'akshay'
     envs['SUPERPASS'] = 'super'
     envs['SUPEREMAIL'] = 'test@deepvideoanalytics.com'
-    subprocess.check_output(shlex.split('fab copy_defaults'),cwd='../server',env=envs)
-    subprocess.check_output(shlex.split('fab init_fs'),cwd='../server',env=envs)
+    subprocess.check_output(shlex.split('./copy_defaults.py'),cwd='../server',env=envs)
+    subprocess.check_output(shlex.split('./init_fs.py'),cwd='../server',env=envs)

@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 import django, os, subprocess, sys, logging, shlex
 sys.path.append(os.path.dirname(__file__))
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+                    datefmt='%m-%d %H:%M',
+                    filename='../logs/startq.log',
+                    filemode='a')
 
 if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")

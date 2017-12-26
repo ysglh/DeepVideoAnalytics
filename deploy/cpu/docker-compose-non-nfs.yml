@@ -41,7 +41,7 @@
        - DISABLE_NFS=1
        - SECRET_KEY=283y312bhv2b13v13
        - INIT_PROCESS=/root/DVA/configs/custom_defaults/init_process.json
-     command: bash -c "youtube-dl -U && git pull && sleep 10 && ./migrate.sh && fab start_container:server"
+     command: bash -c "git pull && sleep 10 && ./migrate.sh && ./start_container.py server"
      ports:
        - "127.0.0.1:8000:80" # Since Docker messes up iptables, ufw has no effect as a result bind to localhost and tunnel / Port forward through SSH
      depends_on:
@@ -70,7 +70,7 @@
        - SECRET_KEY=283y312bhv2b13v13
        - LAUNCH_Q_qextract=1
        - LAUNCH_Q_qclusterer=1
-     command: bash -c "youtube-dl -U && git pull && sleep 60 && fab start_container:worker"
+     command: bash -c "git pull && sleep 60 && ./start_container.py worker"
      depends_on:
        - db
        - rabbit
@@ -96,7 +96,7 @@
        - DISABLE_NFS=1
        - SECRET_KEY=283y312bhv2b13v13
        - LAUNCH_SCHEDULER=1
-     command: bash -c "youtube-dl -U && git pull && sleep 60 && fab start_container:worker"
+     command: bash -c "git pull && sleep 60 && ./start_container.py worker"
      depends_on:
        - db
        - rabbit
@@ -122,7 +122,7 @@
        - MEDIA_URL=${MEDIA_URL}
        - DISABLE_NFS=1
        - SECRET_KEY=283y312bhv2b13v13
-     command: bash -c "youtube-dl -U && git pull && sleep 60 && fab start_container:worker"
+     command: bash -c "git pull && sleep 60 && ./start_container.py worker"
      depends_on:
        - db
        - rabbit
@@ -148,7 +148,7 @@
        - MEDIA_URL=${MEDIA_URL}
        - DISABLE_NFS=1
        - SECRET_KEY=283y312bhv2b13v13
-     command: bash -c "youtube-dl -U && git pull && sleep 60 && fab start_container:worker"
+     command: bash -c "git pull && sleep 60 && ./start_container.py worker"
      depends_on:
        - db
        - rabbit
@@ -174,7 +174,7 @@
        - MEDIA_URL=${MEDIA_URL}
        - DISABLE_NFS=1
        - SECRET_KEY=283y312bhv2b13v13
-     command: bash -c "youtube-dl -U && git pull && sleep 60 && fab start_container:worker"
+     command: bash -c "git pull && sleep 60 && ./start_container.py worker"
      depends_on:
        - db
        - rabbit
@@ -200,7 +200,7 @@
        - MEDIA_URL=${MEDIA_URL}
        - DISABLE_NFS=1
        - SECRET_KEY=283y312bhv2b13v13
-     command: bash -c "git pull && sleep 60 && fab start_container:worker"
+     command: bash -c "git pull && sleep 60 && ./start_container.py worker"
      depends_on:
        - db
        - rabbit
@@ -226,7 +226,7 @@
        - MEDIA_URL=${MEDIA_URL}
        - DISABLE_NFS=1
        - SECRET_KEY=283y312bhv2b13v13
-     command: bash -c "git pull && sleep 60 && fab start_container:worker"
+     command: bash -c "git pull && sleep 60 && ./start_container.py worker"
      depends_on:
        - db
        - rabbit
@@ -252,7 +252,7 @@
        - MEDIA_URL=${MEDIA_URL}
        - DISABLE_NFS=1
        - SECRET_KEY=283y312bhv2b13v13
-     command: bash -c "git pull && sleep 60 && fab start_container:worker"
+     command: bash -c "git pull && sleep 60 && ./start_container.py worker"
      depends_on:
        - db
        - rabbit
@@ -278,7 +278,7 @@
        - MEDIA_URL=${MEDIA_URL}
        - DISABLE_NFS=1
        - SECRET_KEY=283y312bhv2b13v13
-     command: bash -c "git pull && sleep 60 && fab start_container:worker"
+     command: bash -c "git pull && sleep 60 && ./start_container.py worker"
      depends_on:
        - db
        - rabbit
@@ -304,7 +304,7 @@
        - MEDIA_URL=${MEDIA_URL}
        - DISABLE_NFS=1
        - SECRET_KEY=283y312bhv2b13v13
-     command: bash -c "git pull && sleep 60 && fab start_container:worker"
+     command: bash -c "git pull && sleep 60 && ./start_container.py worker"
      depends_on:
        - db
        - rabbit
@@ -330,7 +330,7 @@
        - MEDIA_URL=${MEDIA_URL}
        - DISABLE_NFS=1
        - SECRET_KEY=283y312bhv2b13v13
-     command: bash -c "git pull && sleep 60 && fab start_container:worker"
+     command: bash -c "git pull && sleep 60 && ./start_container.py worker"
      depends_on:
        - db
        - rabbit
@@ -352,7 +352,7 @@
        - DB_USER=pgdbuser
        - DB_PASS=pgdbpass
        - LAUNCH_BY_NAME_detector_textbox=1
-     command: bash -c "sleep 60 && git pull && fab start_container:worker"
+     command: bash -c "sleep 60 && git pull && ./start_container.py worker"
      depends_on:
        - db
        - rabbit

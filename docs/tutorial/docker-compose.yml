@@ -42,7 +42,7 @@
        - LAUNCH_SCHEDULER=1
        - INIT_PROCESS=/root/DVA/configs/custom_defaults/init_process.json
        - AUTH_DISABLED=1
-     command: bash -c "git pull && sleep 45 && ./migrate.sh && fab start_container:server"
+     command: bash -c "git pull && sleep 45 && ./migrate.sh && ./start_container.py server"
      ports:
        - "8000:8000"
      depends_on:

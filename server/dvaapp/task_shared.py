@@ -33,7 +33,7 @@ def relaunch_failed_task(old, app):
 
 
 def launch_worker(queue_name, worker_name):
-    p = subprocess.Popen(['fab', 'startq:{}'.format(queue_name)], close_fds=True)
+    p = subprocess.Popen(['./startq.py','{}'.format(queue_name)], close_fds=True)
     message = "launched {} with pid {} on {}".format(queue_name, p.pid, worker_name)
     return message
 

@@ -86,4 +86,4 @@ spec:
         args:
           - bash
           - -c
-          - git pull  && sleep 15 && fab start_container:worker
+          - git pull  && sleep 15 && ./start_container.py worker

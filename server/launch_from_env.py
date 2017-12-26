@@ -41,6 +41,8 @@ if __name__ == '__main__':
                 if env_mode:
                     envs[env_mode] = "1"
                 _ = subprocess.Popen(['./startq.py',queue_name], env=envs)
+            else:
+                _ = subprocess.Popen(['./startq.py', queue_name])
         elif k.startswith('LAUNCH_Q_') and k != 'LAUNCH_Q_{}'.format(settings.Q_MANAGER):
             if k.strip() == 'LAUNCH_Q_qextract':
                 queue_name = k.split('_')[-1]

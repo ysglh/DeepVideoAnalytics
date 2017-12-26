@@ -38,9 +38,9 @@
        - LAUNCH_BY_NAME_detector_coco=1
        - LAUNCH_BY_NAME_detector_face=1
        - LAUNCH_BY_NAME_detector_textbox=1
-       - TEST=1
+       - INIT_PROCESS=/root/DVA/configs/custom_defaults/init_process.json
        - AUTH_DISABLED=1
-     command: bash -c "youtube-dl -U && git pull && sleep 10 && ./migrate.sh && fab start_container:server"
+     command: bash -c "git pull && sleep 10 && ./migrate.sh && fab start_container:server"
      ports:
        - "8000:80"
        - "8888:8888"
@@ -69,9 +69,8 @@
        - LAUNCH_Q_qclusterer=1
        - LAUNCH_Q_qextract=1
        - LAUNCH_Q_qtrainer=1
-       - TEST=1
        - AUTH_DISABLED=1
-     command: bash -c "youtube-dl -U && git pull && sleep 70 && fab start_container:worker"
+     command: bash -c "git pull && sleep 70 && fab start_container:worker"
      depends_on:
        - db
        - rabbit

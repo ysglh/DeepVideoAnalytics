@@ -29,20 +29,18 @@ def copy_defaults():
 
 
 @task
-def start_container(container_type):
+def start_container(container_type='server'):
     """
     Start container with queues launched as specified in environment
     """
     copy_defaults()
     init_fs()
+    block_on_manager = False
     if container_type == 'worker':
+        block_on_manager = True
         time.sleep(30)  # To avoid race condition where worker starts before migration is finished
-        launch_workers_and_scheduler_from_environment(block_on_manager=True)
-    elif container_type == 'server':
-        launch_workers_and_scheduler_from_environment()
-        launch_server_from_environment()
-    else:
-        raise ValueError, "invalid container_type = {}".format(container_type)
+    launch_workers_and_scheduler_from_environment(block_on_manager=block_on_manager)
+
 
 @task
 def launch_workers_and_scheduler_from_environment(block_on_manager=False):
@@ -106,13 +104,6 @@ def launch_workers_and_scheduler_from_environment(block_on_manager=False):
         local('fab startq:{}'.format(settings.Q_MANAGER))
     else:
         local('fab startq:{} &'.format(settings.Q_MANAGER))
-
-
-def launch_server_from_environment():
-    """
-    Launch django development server or NGINX server as specified in environment variable
-
-    """
     if 'LAUNCH_SERVER' in os.environ:
         local('python manage.py runserver 0.0.0.0:8000')
     elif 'LAUNCH_SERVER_NGINX' in os.environ:
@@ -144,19 +135,21 @@ def launch_server_from_environment():
         # local("chmod 0777 -R dva/media/")
         local('supervisord -n')
 
+
 @task
 def init_fs():
     """
     Initialize filesystem by creating directories
     """
-    import django
+    import django, json
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()
     from django.conf import settings
     from dvaui.models import ExternalServer
-    from dvaapp.models import TrainedModel, Retriever, Video
+    from dvaapp.models import TrainedModel, Retriever, DVAPQL
     from dvaui.defaults import EXTERNAL_SERVERS
+    from dvaapp.processing import DVAPQLProcess
     from django.contrib.auth.models import User
     from django.utils import timezone
     from dvaui.defaults import DEFAULT_MODELS
@@ -196,9 +189,16 @@ def init_fs():
                                                           model_type=TrainedModel.ANALYZER)
             if created:
                 dm.download()
-    if 'TEST' in os.environ and Video.objects.count() == 0:
-        test()
-
+    if 'INIT_PROCESS' in os.environ and DVAPQL.objects.count() == 0:
+        fname = os.environ.get('INIT_PROCESS')
+        p = DVAPQLProcess()
+        try:
+            jspec = json.load(file(fname))
+        except:
+            logging.exception("could not load : {}".format(fname))
+        else:
+            p.create_from_json(jspec)
+            p.launch()
 
 
 @task
@@ -218,6 +218,11 @@ def startq(queue_name, conc=3):
     if queue_name == settings.Q_MANAGER:
         command = 'celery -A dva worker -l info {} -c 1 -Q qmanager -n manager.%h -f ../logs/qmanager.log'.format(mute)
     elif queue_name == settings.Q_EXTRACTOR:
+        try:
+            subprocess.check_output(['youtube-dl','-U'])
+        except:
+            logging.exception("Could not update youtube-dl")
+            pass
         command = 'celery -A dva worker -l info {} -c {} -Q {} -n {}.%h -f ../logs/{}.log'.format(mute, max(int(conc), 2),
                                                                                                queue_name, queue_name,
                                                                                                queue_name)
@@ -231,28 +236,6 @@ def startq(queue_name, conc=3):
     logging.info(command)
     c = subprocess.Popen(args=shlex.split(command))
     c.wait()
-
-
-@task
-def test():
-    """
-    Run tests by launching tasks
-
-    """
-    import django
-    sys.path.append(os.path.dirname(__file__))
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
-    django.setup()
-    from django.core.files.uploadedfile import SimpleUploadedFile
-    from dvaui.view_shared import handle_uploaded_file
-    for fname in glob.glob('../tests/ci/*.mp4'):
-        name = fname.split('/')[-1].split('.')[0]
-        f = SimpleUploadedFile(fname, file(fname).read(), content_type="video/mp4")
-        handle_uploaded_file(f, name)
-    for fname in glob.glob('../tests/ci/*.zip'):
-        name = fname.split('/')[-1].split('.')[0]
-        f = SimpleUploadedFile(fname, file(fname).read(), content_type="application/zip")
-        handle_uploaded_file(f, name)
 
 
 @task

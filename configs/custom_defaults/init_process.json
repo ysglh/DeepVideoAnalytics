@@ -1,0 +1,345 @@
+{
+  "create": [
+    {
+      "MODEL": "Video",
+      "tasks": [
+        {
+          "operation": "perform_import",
+          "video_id": "__pk__",
+          "arguments": {
+            "map": [
+              {
+                "operation": "perform_video_segmentation",
+                "arguments": {
+                  "map": [
+                    {
+                      "operation": "perform_video_decode",
+                      "arguments": {
+                        "map": [
+                          {
+                            "operation": "perform_detection",
+                            "arguments": {
+                              "map": [
+                                {
+                                  "operation": "perform_indexing",
+                                  "arguments": {
+                                    "index": "inception",
+                                    "target": "regions",
+                                    "filters": {
+                                      "event_id": "__parent_event__",
+                                      "w__gte": 50,
+                                      "h__gte": 50
+                                    }
+                                  }
+                                }
+                              ],
+                              "detector": "coco",
+                              "filters": "__parent__"
+                            }
+                          },
+                          {
+                            "operation": "perform_detection",
+                            "arguments": {
+                              "map": [
+                                {
+                                  "operation": "perform_indexing",
+                                  "arguments": {
+                                    "index": "facenet",
+                                    "target": "regions",
+                                    "filters": {
+                                      "event_id": "__parent_event__"
+                                    }
+                                  }
+                                }
+                              ],
+                              "detector": "face",
+                              "filters": "__parent__"
+                            }
+                          },
+                          {
+                            "operation": "perform_indexing",
+                            "arguments": {
+                              "index": "inception",
+                              "target": "frames",
+                              "filters": "__parent__"
+                            }
+                          },
+                          {
+                            "operation": "perform_analysis",
+                            "arguments": {
+                              "analyzer": "tagger",
+                              "target": "frames",
+                              "filters": "__parent__"
+                            }
+                          }
+                        ],
+                        "rate": 30,
+                        "segments_batch_size": 10
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "path": "/root/DVA/tests/ci/citest.mp4"
+          }
+        }
+      ],
+      "spec": {
+        "name": "citest",
+        "uploader_id": null,
+        "created": "__timezone.now__"
+      }
+    },
+    {
+      "MODEL": "Video",
+      "tasks": [
+        {
+          "operation": "perform_import",
+          "video_id": "__pk__",
+          "arguments": {
+            "map": [
+              {
+                "operation": "perform_dataset_extraction",
+                "arguments": {
+                  "map": [
+                    {
+                      "operation": "perform_detection",
+                      "arguments": {
+                        "frames_batch_size": 500,
+                        "map": [
+                          {
+                            "operation": "perform_indexing",
+                            "arguments": {
+                              "index": "inception",
+                              "target": "regions",
+                              "filters": {
+                                "event_id": "__parent_event__",
+                                "w__gte": 50,
+                                "h__gte": 50
+                              }
+                            }
+                          }
+                        ],
+                        "detector": "coco"
+                      }
+                    },
+                    {
+                      "operation": "perform_detection",
+                      "arguments": {
+                        "frames_batch_size": 500,
+                        "map": [
+                          {
+                            "operation": "perform_indexing",
+                            "arguments": {
+                              "index": "facenet",
+                              "target": "regions",
+                              "filters": {
+                                "event_id": "__parent_event__"
+                              }
+                            }
+                          }
+                        ],
+                        "detector": "face"
+                      }
+                    },
+                    {
+                      "operation": "perform_indexing",
+                      "arguments": {
+                        "frames_batch_size": 500,
+                        "index": "inception",
+                        "target": "frames"
+                      }
+                    },
+                    {
+                      "operation": "perform_analysis",
+                      "arguments": {
+                        "frames_batch_size": 500,
+                        "target": "frames",
+                        "analyzer": "tagger"
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "path": "/root/DVA/tests/ci/exampledataset.zip"
+          }
+        }
+      ],
+      "spec": {
+        "dataset": true,
+        "name": "exampledataset",
+        "uploader_id": null,
+        "created": "__timezone.now__"
+      }
+    },
+    {
+      "MODEL": "Video",
+      "tasks": [
+        {
+          "operation": "perform_import",
+          "video_id": "__pk__",
+          "arguments": {
+            "map": [
+              {
+                "operation": "perform_dataset_extraction",
+                "arguments": {
+                  "map": [
+                    {
+                      "operation": "perform_detection",
+                      "arguments": {
+                        "frames_batch_size": 500,
+                        "map": [
+                          {
+                            "operation": "perform_indexing",
+                            "arguments": {
+                              "index": "inception",
+                              "target": "regions",
+                              "filters": {
+                                "event_id": "__parent_event__",
+                                "w__gte": 50,
+                                "h__gte": 50
+                              }
+                            }
+                          }
+                        ],
+                        "detector": "coco"
+                      }
+                    },
+                    {
+                      "operation": "perform_detection",
+                      "arguments": {
+                        "frames_batch_size": 500,
+                        "map": [
+                          {
+                            "operation": "perform_indexing",
+                            "arguments": {
+                              "index": "facenet",
+                              "target": "regions",
+                              "filters": {
+                                "event_id": "__parent_event__"
+                              }
+                            }
+                          }
+                        ],
+                        "detector": "face"
+                      }
+                    },
+                    {
+                      "operation": "perform_indexing",
+                      "arguments": {
+                        "frames_batch_size": 500,
+                        "index": "inception",
+                        "target": "frames"
+                      }
+                    },
+                    {
+                      "operation": "perform_analysis",
+                      "arguments": {
+                        "frames_batch_size": 500,
+                        "target": "frames",
+                        "analyzer": "tagger"
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "path": "/root/DVA/tests/ci/crnn_test.zip"
+          }
+        }
+      ],
+      "spec": {
+        "dataset": true,
+        "name": "crnn_test",
+        "uploader_id": null,
+        "created": "__timezone.now__"
+      }
+    },
+    {
+      "MODEL": "Video",
+      "tasks": [
+        {
+          "operation": "perform_import",
+          "video_id": "__pk__",
+          "arguments": {
+            "map": [
+              {
+                "operation": "perform_dataset_extraction",
+                "arguments": {
+                  "map": [
+                    {
+                      "operation": "perform_detection",
+                      "arguments": {
+                        "frames_batch_size": 500,
+                        "map": [
+                          {
+                            "operation": "perform_indexing",
+                            "arguments": {
+                              "index": "inception",
+                              "target": "regions",
+                              "filters": {
+                                "event_id": "__parent_event__",
+                                "w__gte": 50,
+                                "h__gte": 50
+                              }
+                            }
+                          }
+                        ],
+                        "detector": "coco"
+                      }
+                    },
+                    {
+                      "operation": "perform_detection",
+                      "arguments": {
+                        "frames_batch_size": 500,
+                        "map": [
+                          {
+                            "operation": "perform_indexing",
+                            "arguments": {
+                              "index": "facenet",
+                              "target": "regions",
+                              "filters": {
+                                "event_id": "__parent_event__"
+                              }
+                            }
+                          }
+                        ],
+                        "detector": "face"
+                      }
+                    },
+                    {
+                      "operation": "perform_indexing",
+                      "arguments": {
+                        "frames_batch_size": 500,
+                        "index": "inception",
+                        "target": "frames"
+                      }
+                    },
+                    {
+                      "operation": "perform_analysis",
+                      "arguments": {
+                        "frames_batch_size": 500,
+                        "target": "frames",
+                        "analyzer": "tagger"
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "path": "/root/DVA/tests/ci/coco_train2017_ci.zip"
+          }
+        }
+      ],
+      "spec": {
+        "dataset": true,
+        "name": "crnn_test",
+        "uploader_id": null,
+        "created": "__timezone.now__"
+      }
+    }
+  ],
+  "process_type": "V"
+}

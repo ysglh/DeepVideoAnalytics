@@ -120,8 +120,12 @@ def get_path_to_file(path,local_path):
         else:
             raise ValueError("NFS disabled but neither GS or S3 enabled.")
     fs_type = path[:2]
-    if path.startswith('/ingest') and '..' not in path: # avoid relative imports outside media root
+    # avoid maliciously crafted relative imports outside media root
+    if path.startswith('/ingest') and '..' not in path:
         shutil.move(os.path.join(settings.MEDIA_ROOT, path.strip('/')),local_path)
+    # avoid maliciously crafted relative imports outside test dir
+    elif path.startswith('/root/DVA/tests/ci/') and '..' not in path:
+        shutil.move(path,local_path)
     elif path.startswith('http'):
         u = urlparse.urlparse(path)
         if u.hostname == 'www.dropbox.com' and not path.endswith('?dl=1'):

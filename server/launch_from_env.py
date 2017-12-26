@@ -17,31 +17,30 @@ if __name__ == '__main__':
             if qtype == 'indexer':
                 dm = TrainedModel.objects.get(name=model_name, model_type=TrainedModel.INDEXER)
                 queue_name = 'q_indexer_{}'.format(dm.pk)
-                env_vars = "PYTORCH_MODE" if dm.mode == dm.PYTORCH else env_vars
-                env_vars = "CAFFE_MODE" if dm.mode == dm.CAFFE else env_vars
-                env_vars = "MXNET_MODE" if dm.mode == dm.MXNET else env_vars
             elif qtype == 'retriever':
                 dm = Retriever.objects.get(name=model_name)
                 queue_name = 'q_retriever_{}'.format(dm.pk)
             elif qtype == 'detector':
                 dm = TrainedModel.objects.get(name=model_name, model_type=TrainedModel.DETECTOR)
                 queue_name = 'q_detector_{}'.format(dm.pk)
-                env_vars = "PYTORCH_MODE" if dm.mode == dm.PYTORCH else env_vars
-                env_vars = "CAFFE_MODE" if dm.mode == dm.CAFFE else env_vars
-                env_vars = "MXNET_MODE" if dm.mode == dm.MXNET else env_vars
             elif qtype == 'analyzer':
                 dm = TrainedModel.objects.get(name=model_name, model_type=TrainedModel.ANALYZER)
                 queue_name = 'q_analyzer_{}'.format(dm.pk)
-                env_vars = "PYTORCH_MODE" if dm.mode == dm.PYTORCH else env_vars
-                env_vars = "CAFFE_MODE" if dm.mode == dm.CAFFE else env_vars
-                env_vars = "MXNET_MODE" if dm.mode == dm.MXNET else env_vars
             else:
                 raise ValueError, k
-            command = './startq.py {}'.format(queue_name)
-            logging.info("'{}' for {}".format(command, k))
             envs = os.environ.copy()
-            envs[env_vars] = 1
-            _ = subprocess.Popen(shlex.split(command), env=envs)
+            if qtype != 'retriever':
+                if dm.mode == dm.PYTORCH:
+                    env_vars = "PYTORCH_MODE"
+                elif dm.mode == dm.CAFFE:
+                    env_vars = "CAFFE_MODE"
+                elif dm.mode == dm.MXNET:
+                    env_vars = "MXNET_MODE"
+                else:
+                    env_vars = None
+                if env_vars:
+                    envs[env_vars] = 1
+            _ = subprocess.Popen(['./startq.py',queue_name], env=envs)
         elif k.startswith('LAUNCH_Q_') and k != 'LAUNCH_Q_{}'.format(settings.Q_MANAGER):
             if k.strip() == 'LAUNCH_Q_qextract':
                 queue_name = k.split('_')[-1]

@@ -61,7 +61,7 @@ before_script:
   - cd server && python manage.py runserver 8000 &
 
 script:
-  - cd server && ./copy_defaults && ./init_fs && cd ..
+  - cd server && ./copy_defaults.py && ./init_fs.py && cd ..
   - cd tests && python test_ci.py && python test_ci_face.py && cd ..
   - cd server && ./launch_from_env.py && cd ..
   - cd tests && python test_ci_search.py && cd ..

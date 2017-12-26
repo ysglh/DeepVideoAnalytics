@@ -41,5 +41,5 @@ if __name__ == '__main__':
     qp = DVAPQLProcess()
     qp.create_from_json(query_dict)
     qp.launch()
-    qp.wait(timeout=360)
+    qp.wait(timeout=400)
     print QueryResults.objects.count()

@@ -80,26 +80,26 @@ def launch_workers_and_scheduler_from_environment(block_on_manager=False):
                 env_vars = "MXNET_MODE=1 " if dm.mode == dm.MXNET else env_vars
             else:
                 raise ValueError, k
-            command = '{}fab startq:{} &'.format(env_vars, queue_name)
+            command = '{} ./startq.py {} &'.format(env_vars, queue_name)
             logging.info("'{}' for {}".format(command, k))
             local(command)
         elif k.startswith('LAUNCH_Q_') and k != 'LAUNCH_Q_{}'.format(settings.Q_MANAGER):
             if k.strip() == 'LAUNCH_Q_qextract':
                 queue_name = k.split('_')[-1]
-                local('fab startq:{},{} &'.format(queue_name, os.environ['LAUNCH_Q_qextract']))
+                local('./startq.py {} {} &'.format(queue_name, os.environ['LAUNCH_Q_qextract']))
             elif k.startswith('LAUNCH_Q_qglobal'):
                 queue_name = k.strip('LAUNCH_Q_')
-                local('fab startq:{} &'.format(queue_name))
+                local('./startq.py {} &'.format(queue_name))
             else:
                 queue_name = k.split('_')[-1]
-                local('fab startq:{} &'.format(queue_name))
+                local('./startq.py {} &'.format(queue_name))
     if os.environ.get("LAUNCH_SCHEDULER", False):
         # Should be launched only once per deployment
         local('fab start_scheduler &')
     if block_on_manager:  # the container process waits on the manager
-        local('fab startq:{}'.format(settings.Q_MANAGER))
+        local('./startq.py {}'.format(settings.Q_MANAGER))
     else:
-        local('fab startq:{} &'.format(settings.Q_MANAGER))
+        local('./startq.py {} &'.format(settings.Q_MANAGER))
     if 'LAUNCH_SERVER' in os.environ:
         p = subprocess.Popen(['python','manage.py','runserver','0.0.0.0:8000'])
         p.wait()
@@ -197,57 +197,3 @@ def init_fs():
         else:
             p.create_from_json(jspec)
             p.launch()
-
-
-@task
-def startq(queue_name, conc=3):
-    """
-    Start worker to handle a queue, Usage: fab startq:indexer
-    Concurrency is set to 1 but you can edit code to change.
-    :param conc:conccurency only for extractor
-
-    """
-    import django, os, subprocess
-    sys.path.append(os.path.dirname(__file__))
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
-    django.setup()
-    from django.conf import settings
-    mute = '--without-gossip --without-mingle --without-heartbeat' if 'CELERY_MUTE' in os.environ else ''
-    if queue_name == settings.Q_MANAGER:
-        command = 'celery -A dva worker -l info {} -c 1 -Q qmanager -n manager.%h -f ../logs/qmanager.log'.format(mute)
-    elif queue_name == settings.Q_EXTRACTOR:
-        try:
-            subprocess.check_output(['youtube-dl','-U'])
-        except:
-            logging.exception("Could not update youtube-dl")
-            pass
-        command = 'celery -A dva worker -l info {} -c {} -Q {} -n {}.%h -f ../logs/{}.log'.format(mute, max(int(conc), 2),
-                                                                                               queue_name, queue_name,
-                                                                                               queue_name)
-        # TODO: worker fails due to
-        # https://github.com/celery/celery/issues/3620
-    else:
-        command = 'celery -A dva worker -l info {} -P solo -c {} -Q {} -n {}.%h -f ../logs/{}.log'.format(mute, 1,
-                                                                                                       queue_name,
-                                                                                                       queue_name,
-                                                                                                       queue_name)
-    logging.info(command)
-    c = subprocess.Popen(args=shlex.split(command))
-    c.wait()
-
-
-@task
-def start_scheduler():
-    """
-    Start celery-beat scheduler using django database as source for tasks.
-
-    """
-    import django
-    sys.path.append(os.path.dirname(__file__))
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
-    django.setup()
-    from django_celery_beat.models import PeriodicTask,IntervalSchedule
-    di,created = IntervalSchedule.objects.get_or_create(every=os.environ.get('REFRESH_MINUTES',3),period=IntervalSchedule.MINUTES)
-    _ = PeriodicTask.objects.get_or_create(name="monitoring",task="monitor_system",interval=di,queue='qscheduler')
-    local('fab startq:qscheduler &')
-    local("celery -A dva beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler -f ../logs/beat.log")

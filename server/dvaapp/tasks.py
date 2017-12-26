@@ -11,7 +11,7 @@ from .models import Video, Frame, TEvent,  IndexEntries, Region, Tube, \
 from .operations.retrieval import RetrieverTask
 from .operations.decoding import VideoDecoder
 from .operations.dataset import DatasetCreator
-from .processing import process_next, mark_as_completed
+from .processing import process_next, mark_as_completed, defer, run_task_in_new_process
 from . import task_handlers
 from dvalib import retriever
 from django.utils import timezone
@@ -134,6 +134,9 @@ def perform_retrieval(task_id):
     start = TEvent.objects.get(pk=task_id)
     if start.started:
         return 0  # to handle celery bug with ACK in SOLO mode
+    elif start.queue.startswith(settings.GLOBAL_RETRIEVER) and defer(start):
+        logging.info("rerouting...")
+        return 0
     else:
         start.started = True
         start.save()
@@ -270,10 +273,18 @@ def perform_detection(task_id):
     start = TEvent.objects.get(pk=task_id)
     if start.started:
         return 0  # to handle celery bug with ACK in SOLO mode
+    elif start.queue.startswith(settings.GLOBAL_MODEL) and defer(start):
+        logging.info("rerouting...")
+        return 0
     else:
         start.started = True
         start.save()
-    query_flow = task_handlers.handle_perform_detection(start)
+    query_flow = ('target' in start.arguments and start.arguments['target'] == 'query')
+    if start.queue.startswith(settings.GLOBAL_MODEL):
+        logging.info("Running in new process")
+        run_task_in_new_process(start)
+    else:
+        task_handlers.handle_perform_detection(start)
     launched = process_next(task_id)
     mark_as_completed(start)
     if query_flow:

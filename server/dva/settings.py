@@ -246,8 +246,9 @@ STATICFILES_FINDERS = (
     # 'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
-GLOBAL_MODEL_QUEUE_ENABLED = False
-GLOBAL_RETRIEVER_QUEUE_ENABLED = True
+# following should be set or un-set on ALL workers
+GLOBAL_MODEL_QUEUE_ENABLED = os.environ('GLOBAL_MODEL',True)
+GLOBAL_RETRIEVER_QUEUE_ENABLED = os.environ('GLOBAL_RETRIEVER',True)
 
 Q_MANAGER = 'qmanager'
 Q_EXTRACTOR = 'qextract'

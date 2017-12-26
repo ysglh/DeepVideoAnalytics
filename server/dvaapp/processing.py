@@ -1,4 +1,4 @@
-import base64, copy, os, subprocess, json, logging
+import base64, copy, os, subprocess, json, logging, time
 from django.utils import timezone
 from django.conf import settings
 from dva.celery import app
@@ -34,10 +34,20 @@ INDEXER_NAME_TO_PK = {}
 RETRIEVER_NAME_TO_PK = {}
 DETECTOR_NAME_TO_PK = {}
 CURRENT_QUEUES = set()
+LAST_UPDATED = None
 
 
 def refresh_queue_names():
     return {w.queue_name for w in Worker.objects.all().filter(alive=True)}
+
+
+def get_queues():
+    global CURRENT_QUEUES
+    global LAST_UPDATED
+    if LAST_UPDATED is None or (time.time() - LAST_UPDATED) > 120:
+        CURRENT_QUEUES = refresh_queue_names()
+        LAST_UPDATED = time.time()
+    return CURRENT_QUEUES
 
 
 def get_model_specific_queue_name(operation,args):
@@ -342,20 +352,22 @@ class DVAPQLProcess(object):
         return json.dumps(json_query)
 
 
-def check_defer(start):
+def defer(start):
     """
     Check if a worker that processes model specific queue has become available.
     :param start:
     :return:
     """
     model_specific_queue_name = get_model_specific_queue_name(start.operation, start.arguments)
-    if Worker.objects.all().filter(queue_name=model_specific_queue_name).exists():
+    if model_specific_queue_name in get_queues():
         start.started = False
         start.queue_name = model_specific_queue_name
         start.start_ts = None
         start.worker = None
         start.save()
         app.send_task(start.task_name, args=[start.pk, ], queue=model_specific_queue_name)
+        return True
+    return False
 
 
 def run_task_in_new_process(start):

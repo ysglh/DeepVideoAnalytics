@@ -109,24 +109,24 @@ def launch_workers_and_scheduler_from_environment(block_on_manager=False):
         subprocess.check_output(["chmod","0777","-R","dva/staticfiles/"])
         # subprocess.check_output(["chmod","0777","-R","/root/media/"])
         try:
-            shutil.move("../configs/nginx.conf","/etc/nginx/nginx.conf")
+            subprocess.check_output(["mv","../configs/nginx.conf","/etc/nginx/"])
         except:
             print "warning assuming that the config was already moved"
             pass
         if 'ENABLE_BASICAUTH' in os.environ:
             try:
-                shutil.move("../configs/nginx-app_password.conf","/etc/nginx/sites-available/default/nginx-app_password.conf")
+                subprocess.check_output(["mv","../configs/nginx-app_password.conf","/etc/nginx/sites-available/default"])
             except:
                 print "warning assuming that the config was already moved"
                 pass
         else:
             try:
-                shutil.move("../configs/nginx-app.conf","/etc/nginx/sites-available/default/nginx-app.conf")
+                subprocess.check_output(["mv","../configs/nginx-app.conf","/etc/nginx/sites-available/default"])
             except:
                 print "warning assuming that the config was already moved"
                 pass
         try:
-            shutil.move("../configs/supervisor-app.conf","/etc/supervisor/conf.d/supervisor-app.conf")
+            subprocess.check_output(["mv","../configs/supervisor-app.conf","/etc/supervisor/conf.d/"])
         except:
             print "warning assuming that the config was already moved"
             pass

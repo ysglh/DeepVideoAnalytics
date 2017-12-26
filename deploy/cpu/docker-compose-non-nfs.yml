@@ -314,7 +314,7 @@
        - dvadata_exact_global_retriever:/root/media
    global_model:
      image: akshayubhat/dva-auto:latest
-     container_name: global_retriever
+     container_name: global_model
      environment:
        - DOCKER_MODE=true
        - RABBIT_HOST=rabbit

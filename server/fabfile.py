@@ -1,10 +1,6 @@
-import os
-import logging
-import time
-import glob
-import sys
+import logging, time, sys, os, shutil, shlex, subprocess
 from fabric.api import task, local
-import shutil
+
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
@@ -105,35 +101,37 @@ def launch_workers_and_scheduler_from_environment(block_on_manager=False):
     else:
         local('fab startq:{} &'.format(settings.Q_MANAGER))
     if 'LAUNCH_SERVER' in os.environ:
-        local('python manage.py runserver 0.0.0.0:8000')
+        p = subprocess.Popen(['python','manage.py','runserver','0.0.0.0:8000'])
+        p.wait()
     elif 'LAUNCH_SERVER_NGINX' in os.environ:
-        local('chmod 0777 -R /tmp')
+        subprocess.check_output(["chmod","0777","-R","/tmp"])
+        subprocess.check_output(["python","manage.py","collectstatic","--no-input"])
+        subprocess.check_output(["chmod","0777","-R","dva/staticfiles/"])
+        # subprocess.check_output(["chmod","0777","-R","/root/media/"])
         try:
-            local("mv ../configs/nginx.conf /etc/nginx/")
+            shutil.move("../configs/nginx.conf","/etc/nginx/")
         except:
             print "warning assuming that the config was already moved"
             pass
         if 'ENABLE_BASICAUTH' in os.environ:
             try:
-                local("mv ../configs/nginx-app_password.conf /etc/nginx/sites-available/default")
+                shutil.move("../configs/nginx-app_password.conf","/etc/nginx/sites-available/default")
             except:
                 print "warning assuming that the config was already moved"
                 pass
         else:
             try:
-                local("mv ../configs/nginx-app.conf /etc/nginx/sites-available/default")
+                shutil.move("../configs/nginx-app.conf","/etc/nginx/sites-available/default")
             except:
                 print "warning assuming that the config was already moved"
                 pass
         try:
-            local("mv ../configs/supervisor-app.conf /etc/supervisor/conf.d/")
+            shutil.move("../configs/supervisor-app.conf","/etc/supervisor/conf.d/")
         except:
             print "warning assuming that the config was already moved"
             pass
-        local("python manage.py collectstatic --no-input")
-        local("chmod 0777 -R dva/staticfiles/")
-        # local("chmod 0777 -R dva/media/")
-        local('supervisord -n')
+        p = subprocess.Popen(['supervisord','-n'])
+        p.wait()
 
 
 @task
@@ -209,7 +207,7 @@ def startq(queue_name, conc=3):
     :param conc:conccurency only for extractor
 
     """
-    import django, os, shlex, subprocess
+    import django, os, subprocess
     sys.path.append(os.path.dirname(__file__))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
     django.setup()

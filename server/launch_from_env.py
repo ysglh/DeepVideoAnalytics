@@ -13,7 +13,7 @@ if __name__ == '__main__':
     for k in os.environ:
         if k.startswith('LAUNCH_BY_NAME_'):
             qtype, model_name = k.split('_')[-2:]
-            env_vars = ""
+            env_mode = None
             if qtype == 'indexer':
                 dm = TrainedModel.objects.get(name=model_name, model_type=TrainedModel.INDEXER)
                 queue_name = 'q_indexer_{}'.format(dm.pk)
@@ -31,16 +31,16 @@ if __name__ == '__main__':
             envs = os.environ.copy()
             if qtype != 'retriever':
                 if dm.mode == dm.PYTORCH:
-                    env_vars = "PYTORCH_MODE"
+                    env_mode = "PYTORCH_MODE"
                 elif dm.mode == dm.CAFFE:
-                    env_vars = "CAFFE_MODE"
+                    env_mode = "CAFFE_MODE"
                 elif dm.mode == dm.MXNET:
-                    env_vars = "MXNET_MODE"
+                    env_mode = "MXNET_MODE"
                 else:
-                    env_vars = None
-                if env_vars:
-                    envs[env_vars] = 1
-            _ = subprocess.Popen(['./startq.py',queue_name], env=envs)
+                    env_mode = None
+                if env_mode:
+                    envs[env_mode] = "1"
+                _ = subprocess.Popen(['./startq.py',queue_name], env=envs)
         elif k.startswith('LAUNCH_Q_') and k != 'LAUNCH_Q_{}'.format(settings.Q_MANAGER):
             if k.strip() == 'LAUNCH_Q_qextract':
                 queue_name = k.split('_')[-1]

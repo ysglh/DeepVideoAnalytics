@@ -58,7 +58,7 @@ if __name__ == '__main__':
     if block_on_manager:  # the container process waits on the manager
         subprocess.check_call('./startq.py {}'.format(settings.Q_MANAGER))
     else:
-        _ = subprocess.Popen(shlex.split('./startq.py {} &'.format(settings.Q_MANAGER)))
+        _ = subprocess.Popen(shlex.split('./startq.py {}'.format(settings.Q_MANAGER)))
     if 'LAUNCH_SERVER' in os.environ:
         p = subprocess.Popen(['python', 'manage.py', 'runserver', '0.0.0.0:8000'])
         p.wait()

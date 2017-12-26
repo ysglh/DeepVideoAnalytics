@@ -12,7 +12,7 @@ if __name__ == "__main__":
     django.setup()
     from django.conf import settings
     queue_name = sys.argv[1]
-    if len(sys.argv) > 2:
+    if len(sys.argv) > 2 and sys.argv[2] != '&':
         conc = int(sys.argv[2])
     else:
         conc = 3

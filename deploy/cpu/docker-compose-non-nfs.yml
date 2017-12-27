@@ -258,82 +258,6 @@
        - rabbit
      volumes:
        - dvadata_face:/root/media
-   retriever_exact_inception:
-     image: akshayubhat/dva-auto:latest
-     container_name: retriever_exact_inception
-     environment:
-       - DOCKER_MODE=true
-       - RABBIT_HOST=rabbit
-       - RABBIT_USER=dvauser
-       - RABBIT_PASS=localpass
-       - DB_HOST=db
-       - DB_NAME=postgres
-       - DB_USER=pgdbuser
-       - DB_PASS=pgdbpass
-       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-       - DISABLE_DEBUG=1
-       - LAUNCH_BY_NAME_retriever_inception=1
-       - MEDIA_BUCKET=${MEDIA_BUCKET}
-       - MEDIA_URL=${MEDIA_URL}
-       - DISABLE_NFS=1
-       - SECRET_KEY=283y312bhv2b13v13
-     command: bash -c "git pull && sleep 60 && ./start_container.py"
-     depends_on:
-       - db
-       - rabbit
-     volumes:
-       - dvadata_exact_inception:/root/media
-   global_retriever:
-     image: akshayubhat/dva-auto:latest
-     container_name: global_retriever
-     environment:
-       - DOCKER_MODE=true
-       - RABBIT_HOST=rabbit
-       - RABBIT_USER=dvauser
-       - RABBIT_PASS=localpass
-       - DB_HOST=db
-       - DB_NAME=postgres
-       - DB_USER=pgdbuser
-       - DB_PASS=pgdbpass
-       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-       - DISABLE_DEBUG=1
-       - LAUNCH_Q_qglobal_retriever=1
-       - MEDIA_BUCKET=${MEDIA_BUCKET}
-       - MEDIA_URL=${MEDIA_URL}
-       - DISABLE_NFS=1
-       - SECRET_KEY=283y312bhv2b13v13
-     command: bash -c "git pull && sleep 60 && ./start_container.py"
-     depends_on:
-       - db
-       - rabbit
-     volumes:
-       - dvadata_exact_global_retriever:/root/media
-   global_model:
-     image: akshayubhat/dva-auto:latest
-     container_name: global_model
-     environment:
-       - DOCKER_MODE=true
-       - RABBIT_HOST=rabbit
-       - RABBIT_USER=dvauser
-       - RABBIT_PASS=localpass
-       - DB_HOST=db
-       - DB_NAME=postgres
-       - DB_USER=pgdbuser
-       - DB_PASS=pgdbpass
-       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-       - DISABLE_DEBUG=1
-       - LAUNCH_Q_qglobal_model=1
-       - MEDIA_BUCKET=${MEDIA_BUCKET}
-       - MEDIA_URL=${MEDIA_URL}
-       - DISABLE_NFS=1
-       - SECRET_KEY=283y312bhv2b13v13
-     command: bash -c "git pull && sleep 60 && ./start_container.py"
-     depends_on:
-       - db
-       - rabbit
    textdetector:
      image: akshayubhat/dva-auto:latest
      container_name: textdetector
@@ -358,6 +282,54 @@
        - rabbit
      volumes:
        - dvadata_textdetector:/root/media
+   global_model:
+     image: akshayubhat/dva-auto:latest
+     container_name: global_model
+     environment:
+       - DOCKER_MODE=true
+       - RABBIT_HOST=rabbit
+       - RABBIT_USER=dvauser
+       - RABBIT_PASS=localpass
+       - DB_HOST=db
+       - DB_NAME=postgres
+       - DB_USER=pgdbuser
+       - DB_PASS=pgdbpass
+       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+       - DISABLE_DEBUG=1
+       - LAUNCH_Q_GLOBAL_MODEL=1
+       - MEDIA_BUCKET=${MEDIA_BUCKET}
+       - MEDIA_URL=${MEDIA_URL}
+       - DISABLE_NFS=1
+       - SECRET_KEY=283y312bhv2b13v13
+     command: bash -c "git pull && sleep 60 && ./start_container.py"
+     depends_on:
+       - db
+       - rabbit
+   global_retriever:
+     image: akshayubhat/dva-auto:latest
+     container_name: global_retriever
+     environment:
+       - DOCKER_MODE=true
+       - RABBIT_HOST=rabbit
+       - RABBIT_USER=dvauser
+       - RABBIT_PASS=localpass
+       - DB_HOST=db
+       - DB_NAME=postgres
+       - DB_USER=pgdbuser
+       - DB_PASS=pgdbpass
+       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+       - DISABLE_DEBUG=1
+       - LAUNCH_Q_GLOBAL_RETRIEVER=1
+       - MEDIA_BUCKET=${MEDIA_BUCKET}
+       - MEDIA_URL=${MEDIA_URL}
+       - DISABLE_NFS=1
+       - SECRET_KEY=283y312bhv2b13v13
+     command: bash -c "git pull && sleep 60 && ./start_container.py"
+     depends_on:
+       - db
+       - rabbit
  volumes:
   dvapgdata:
   dvarabbit:
@@ -370,6 +342,4 @@
   dvadata_crnn:
   dvadata_tagger:
   dvadata_face:
-  dvadata_exact_inception:
-  dvadata_exact_global_retriever:
   dvadata_textdetector:

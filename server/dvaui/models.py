@@ -27,7 +27,7 @@ class ExternalServer(models.Model):
                     except:
                         errors.append(filename)
                     else:
-                        p, _ = StoredDVAPQL.objects.get_or_create(name=filename,server=self)
+                        p, _ = StoredDVAPQL.objects.get_or_create(name=os.path.join(root,filename)[len(cwd):],server=self)
                         p.server = self
                         p.process_type = StoredDVAPQL.PROCESS
                         p.script = j

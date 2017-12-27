@@ -9,7 +9,7 @@ except ImportError:
     np = None
     logging.warning("Could not import indexer / clustering assuming running in front-end mode")
 from django.apps import apps
-from models import Video,DVAPQL,TEvent,TrainedModel,Retriever,Worker,WorkerRequest
+from models import Video,DVAPQL,TEvent,TrainedModel,Retriever,Worker
 from celery.result import AsyncResult
 import fs
 import task_shared
@@ -123,10 +123,6 @@ def get_queue_name_and_operation(operation,args):
                 else:
                     return queue_name, operation
             else:
-                # Create a request for worker to process the queue
-                rw = WorkerRequest()
-                rw.queue_name = queue_name
-                rw.save()
                 # Check if global queue is enabled
                 if settings.GLOBAL_MODEL_QUEUE_ENABLED:
                     # send it to a  global queue which loads model at every execution

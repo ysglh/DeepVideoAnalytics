@@ -3,7 +3,7 @@ from .models import Video, Frame, TEvent, IndexEntries, QueryResults, DVAPQL, \
     Region, Tube, Segment, DeletedVideo, \
     VideoLabel, FrameLabel, RegionLabel, TubeLabel, SegmentLabel, Label, ManagementAction, \
     TrainedModel, Retriever, SystemState, Worker, QueryRegion, QueryRegionIndexVector, \
-    QueryRegionResults, TrainingSet, WorkerRequest
+    QueryRegionResults, TrainingSet
 
 
 @admin.register(SystemState)
@@ -127,9 +127,4 @@ class QueryRegionResultsAdmin(admin.ModelAdmin):
 
 @admin.register(TrainingSet)
 class TrainingSetAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(WorkerRequest)
-class WorkerRequestAdmin(admin.ModelAdmin):
     pass

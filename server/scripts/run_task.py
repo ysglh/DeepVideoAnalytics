@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 import django
-import sys, os
+import sys, os, logging
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+                    datefmt='%m-%d %H:%M',
+                    filename='../logs/task.log',
+                    filemode='a')
 sys.path.append(os.path.join(os.path.dirname(__file__),'../'))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
 django.setup()

@@ -103,7 +103,7 @@ spec:
         args:
           - bash
           - -c
-          - git pull && sleep 10 && ./migrate.sh && ./start_container.py server
+          - git pull && sleep 10 && ./migrate.sh && ./start_container.py
 ---
 apiVersion: v1
 kind: Service

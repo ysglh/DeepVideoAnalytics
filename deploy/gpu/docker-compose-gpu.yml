@@ -46,7 +46,7 @@
        - LAUNCH_Q_qtrainer=1
        - INIT_PROCESS=/root/DVA/configs/custom_defaults/init_process.json
        - AUTH_DISABLED=1
-     command: bash -c "git pull && sleep 10 && ./migrate.sh && ./start_container.py server"
+     command: bash -c "git pull && sleep 10 && ./migrate.sh && ./start_container.py"
      ports:
        - "8000:80"
        - "8888:8888"

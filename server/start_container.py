@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import logging, time, sys, subprocess
+import logging, time, os, subprocess
 
 
 logging.basicConfig(level=logging.INFO,
@@ -10,11 +10,15 @@ logging.basicConfig(level=logging.INFO,
 
 
 if __name__ == '__main__':
-    container_type = sys.argv[-1]
     subprocess.check_call(['./copy_defaults.py',])
     subprocess.check_call(['./init_fs.py',])
     block_on_manager = False
-    if container_type.strip() == 'worker':
+    if 'LAUNCH_SERVER' in os.environ or 'LAUNCH_SERVER_NGINX' in os.environ:
+        server_launch = True
+    else:
+        server_launch = False
+    if server_launch:
+        subprocess.check_call(['./launch_from_env.py','0'])
+    else:
         time.sleep(30)  # To avoid race condition where worker starts before migration is finished
         subprocess.check_call(['./launch_from_env.py','1'])
-    subprocess.check_call(['./launch_from_env.py','0'])

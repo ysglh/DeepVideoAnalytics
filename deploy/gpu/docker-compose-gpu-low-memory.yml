@@ -40,7 +40,7 @@
        - LAUNCH_BY_NAME_detector_textbox=1
        - INIT_PROCESS=/root/DVA/configs/custom_defaults/init_process.json
        - AUTH_DISABLED=1
-     command: bash -c "git pull && sleep 10 && ./migrate.sh && ./start_container.py server"
+     command: bash -c "git pull && sleep 10 && ./migrate.sh && ./start_container.py"
      ports:
        - "8000:80"
        - "8888:8888"
@@ -70,7 +70,7 @@
        - LAUNCH_Q_qextract=1
        - LAUNCH_Q_qtrainer=1
        - AUTH_DISABLED=1
-     command: bash -c "git pull && sleep 70 && ./start_container.py worker"
+     command: bash -c "git pull && sleep 70 && ./start_container.py"
      depends_on:
        - db
        - rabbit

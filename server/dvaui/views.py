@@ -454,7 +454,7 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
     context["videos"] = Video.objects.all().filter()
     context['detector_count'] = TrainedModel.objects.filter(model_type=TrainedModel.DETECTOR).count()
     context['rate'] = defaults.DEFAULT_RATE
-    return render(request, 'dashboard.html', context)
+    return render(request, 'dvaui/dashboard.html', context)
 
 
 @user_passes_test(user_check)
@@ -513,7 +513,7 @@ def annotate(request, frame_pk):
             return JsonResponse({'status': True})
         else:
             raise ValueError, form.errors
-    return render(request, 'annotate.html', context)
+    return render(request, 'dvaui/annotate.html', context)
 
 
 @user_passes_test(user_check)
@@ -656,7 +656,7 @@ def status(request):
     context['logs'] = []
     for fname in glob.glob('logs/*.log'):
         context['logs'].append((fname,file(fname).read()))
-    return render(request, 'status.html', context)
+    return render(request, 'dvaui/status.html', context)
 
 
 @user_passes_test(user_check)
@@ -683,7 +683,7 @@ def management(request):
         elif op == "launch":
             t = app.send_task('manage_host', args=[op,host_name,queue_name],exchange='qmanager')
             t.wait(timeout=timeout)
-    return render(request, 'management.html', context)
+    return render(request, 'dvaui/management.html', context)
 
 
 @user_passes_test(user_check)
@@ -691,7 +691,7 @@ def training(request):
     context = {}
     context["videos"] = Video.objects.all().filter()
     context["detectors"] = TrainedModel.objects.filter(model_type=TrainedModel.DETECTOR)
-    return render(request, 'training.html', context)
+    return render(request, 'dvaui/training.html', context)
 
 
 @user_passes_test(user_check)
@@ -715,7 +715,7 @@ def textsearch(request):
             context['results']['frames_subdir'] = Frame.objects.filter(subdir__search=q)[offset:limit]
         if request.GET.get('labels'):
             context['results']['labels'] = Label.objects.filter(name__search=q)[offset:limit]
-    return render(request, 'textsearch.html', context)
+    return render(request, 'dvaui/textsearch.html', context)
 
 
 @user_passes_test(user_check)
@@ -724,7 +724,7 @@ def retrievers(request):
     context['algorithms'] = {k.name for k in TrainedModel.objects.filter(model_type=TrainedModel.INDEXER)}
     context['index_entries'] = IndexEntries.objects.all()
     context['retrievers'] = Retriever.objects.all()
-    return render(request, 'retrievers.html', context)
+    return render(request, 'dvaui/retrievers.html', context)
 
 
 @user_passes_test(user_check)
@@ -807,7 +807,7 @@ def security(request):
     context['username'] = request.user.username
     token, created = Token.objects.get_or_create(user=request.user if request.user.is_authenticated else None)
     context['token'] = token
-    return render(request, 'security.html', context=context)
+    return render(request, 'dvaui/security.html', context=context)
 
 
 @user_passes_test(force_user_check)
@@ -914,7 +914,7 @@ def external(request):
         'servers':ExternalServer.objects.all(),
         'scripts': StoredDVAPQL.objects.all(),
     }
-    return render(request, 'external_data.html', context)
+    return render(request, 'dvaui/external_data.html', context)
 
 
 @user_passes_test(user_check)
@@ -970,7 +970,7 @@ def models(request):
         "detectors": TrainedModel.objects.filter(model_type=TrainedModel.DETECTOR),
         "deep_models": TrainedModel.objects.all()
     }
-    return render(request, 'models.html', context)
+    return render(request, 'dvaui/models.html', context)
 
 
 @user_passes_test(user_check)

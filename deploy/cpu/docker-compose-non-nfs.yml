@@ -21,6 +21,7 @@
      image: akshayubhat/dva-auto:latest
      container_name: webserver
      environment:
+       - GLOBAL_MODEL=1
        - DOCKER_MODE=true
        - RABBIT_HOST=rabbit
        - RABBIT_USER=dvauser
@@ -53,6 +54,7 @@
      image: akshayubhat/dva-auto:latest
      container_name: extractor
      environment:
+       - GLOBAL_MODEL=1
        - DOCKER_MODE=true
        - RABBIT_HOST=rabbit
        - RABBIT_USER=dvauser
@@ -80,6 +82,7 @@
      image: akshayubhat/dva-auto:latest
      container_name: scheduler
      environment:
+       - GLOBAL_MODEL=1
        - DOCKER_MODE=true
        - RABBIT_HOST=rabbit
        - RABBIT_USER=dvauser
@@ -106,6 +109,7 @@
      image: akshayubhat/dva-auto:latest
      container_name: inception
      environment:
+       - GLOBAL_MODEL=1
        - DOCKER_MODE=true
        - RABBIT_HOST=rabbit
        - RABBIT_USER=dvauser
@@ -132,6 +136,7 @@
      image: akshayubhat/dva-auto:latest
      container_name: facenet
      environment:
+       - GLOBAL_MODEL=1
        - DOCKER_MODE=true
        - RABBIT_HOST=rabbit
        - RABBIT_USER=dvauser
@@ -158,6 +163,7 @@
      image: akshayubhat/dva-auto:latest
      container_name: coco
      environment:
+       - GLOBAL_MODEL=1
        - DOCKER_MODE=true
        - RABBIT_HOST=rabbit
        - RABBIT_USER=dvauser
@@ -184,6 +190,7 @@
      image: akshayubhat/dva-auto:latest
      container_name: crnn
      environment:
+       - GLOBAL_MODEL=1
        - DOCKER_MODE=true
        - RABBIT_HOST=rabbit
        - RABBIT_USER=dvauser
@@ -210,6 +217,7 @@
      image: akshayubhat/dva-auto:latest
      container_name: tagger
      environment:
+       - GLOBAL_MODEL=1
        - DOCKER_MODE=true
        - RABBIT_HOST=rabbit
        - RABBIT_USER=dvauser
@@ -236,6 +244,7 @@
      image: akshayubhat/dva-auto:latest
      container_name: face
      environment:
+       - GLOBAL_MODEL=1
        - DOCKER_MODE=true
        - RABBIT_HOST=rabbit
        - RABBIT_USER=dvauser
@@ -262,6 +271,7 @@
      image: akshayubhat/dva-auto:latest
      container_name: textdetector
      environment:
+       - GLOBAL_MODEL=1
        - DOCKER_MODE=true
        - RABBIT_HOST=rabbit
        - RABBIT_USER=dvauser
@@ -286,6 +296,7 @@
      image: akshayubhat/dva-auto:latest
      container_name: global_model
      environment:
+       - GLOBAL_MODEL=1
        - DOCKER_MODE=true
        - RABBIT_HOST=rabbit
        - RABBIT_USER=dvauser
@@ -310,6 +321,7 @@
      image: akshayubhat/dva-auto:latest
      container_name: global_retriever
      environment:
+       - GLOBAL_MODEL=1
        - DOCKER_MODE=true
        - RABBIT_HOST=rabbit
        - RABBIT_USER=dvauser

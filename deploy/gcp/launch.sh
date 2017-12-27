@@ -14,6 +14,7 @@ kubectl create -f deployments/facenet.yaml
 kubectl create -f deployments/facenet_retriever.yaml
 kubectl create -f deployments/inception.yaml
 kubectl create -f deployments/inception_retriever.yaml
+kubectl create -f deployments/global_retriever.yaml
 kubectl create -f deployments/textbox.yaml
 kubectl create -f deployments/scheduler.yaml
 kubectl create -f deployments/crnn.yaml

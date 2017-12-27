@@ -241,7 +241,7 @@ STATICFILES_FINDERS = (
 
 # following should be set or un-set on ALL workers
 GLOBAL_MODEL_QUEUE_ENABLED = os.environ.get('GLOBAL_MODEL',False)
-GLOBAL_RETRIEVER_QUEUE_ENABLED = os.environ.get('GLOBAL_RETRIEVER',False)
+GLOBAL_RETRIEVER_QUEUE_ENABLED = False if os.environ.get('DISABLE_GLOBAL_RETRIEVER',False) else True
 
 Q_MANAGER = 'qmanager'
 Q_EXTRACTOR = 'qextract'

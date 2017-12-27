@@ -48,9 +48,10 @@ if __name__ == '__main__':
                 queue_name = k.split('_')[-1]
                 _ = subprocess.Popen(
                     shlex.split(('./startq.py {} {}'.format(queue_name, os.environ['LAUNCH_Q_qextract']))))
-            elif k.startswith('LAUNCH_Q_qglobal'):
-                queue_name = k.strip('LAUNCH_Q_')
-                _ = subprocess.Popen(shlex.split(('./startq.py {}'.format(queue_name))))
+            elif k.startswith('LAUNCH_Q_GLOBAL_RETRIEVER'):
+                _ = subprocess.Popen(shlex.split(('./startq.py {}'.format(settings.GLOBAL_RETRIEVER))))
+            elif k.startswith('LAUNCH_Q_GLOBAL_MODEL'):
+                _ = subprocess.Popen(shlex.split(('./startq.py {}'.format(settings.GLOBAL_MODEL))))
             else:
                 queue_name = k.split('_')[-1]
                 _ = subprocess.Popen(shlex.split(('./startq.py {}'.format(queue_name))))

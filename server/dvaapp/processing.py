@@ -387,11 +387,11 @@ def run_task_in_new_process(start):
     for k in {'PYTORCH_MODE','CAFFE_MODE','MXNET_MODE'}:
         if k in new_envs:
             del new_envs[k]
-    if trained_model.mode == trained_model.PYTORCH:
+    if trained_model.mode == TrainedModel.PYTORCH:
         new_envs['PYTORCH_MODE'] = '1'
-    elif trained_model.mode == trained_model.CAFFE:
+    elif trained_model.mode == TrainedModel.CAFFE:
         new_envs['CAFFE_MODE'] = '1'
-    elif trained_model.mode == trained_model.MXNET_MODE:
+    elif trained_model.mode == TrainedModel.MXNET:
         new_envs['MXNET_MODE'] = '1'
     s = subprocess.Popen(['python', 'scripts/run_task.py', start.operation, start.pk],env=new_envs)
     s.wait()

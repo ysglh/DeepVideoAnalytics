@@ -1,5 +1,4 @@
-import logging, json
-from django.conf import settings
+import logging
 import celery
 try:
     from dvalib import indexer, retriever
@@ -10,7 +9,6 @@ except ImportError:
 
 
 from ..models import IndexEntries,QueryResults,Region,Retriever, QueryRegionResults
-import io
 
 
 class RetrieverTask(celery.Task):
@@ -37,11 +35,13 @@ class RetrieverTask(celery.Task):
         :param index_name:
         :return:
         """
+        # This has a BUG where total count of index entries remains unchanged
         # TODO: Waiting for https://github.com/celery/celery/issues/3620 to be resolved to enabel ASYNC index updates
         # TODO improve this by either having a seperate broadcast queues or using last update timestampl
         last_count = RetrieverTask._index_count
         current_count = IndexEntries.objects.count()
-        if last_count == 0 or last_count != current_count:
+        visual_index = RetrieverTask._visual_retriever[dr.pk]
+        if last_count == 0 or last_count != current_count or len(visual_index.loaded_entries) == 0:
             # update the count
             RetrieverTask._index_count = current_count
             self.update_index(dr)
@@ -74,7 +74,7 @@ class RetrieverTask(celery.Task):
         # TODO: figure out a better way to store numpy arrays.
         if dr.algorithm == Retriever.EXACT:
             self.refresh_index(dr)
-        results = index_retriever.nearest(vector=vector,n=count,retriever_pk=retriever_pk,entry_getter=entry_getter)
+        results = index_retriever.nearest(vector=vector,n=count,retriever_pk=retriever_pk,entry_getter=None)
         # TODO: optimize this using batching
         for r in results:
             qr = QueryRegionResults() if region else QueryResults()
@@ -96,6 +96,3 @@ class RetrieverTask(celery.Task):
         event.parent_process.results_available = True
         event.parent_process.save()
         return 0
-
-def entry_getter(kid,retriever_pk):
-    return None

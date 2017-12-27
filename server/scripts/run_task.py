@@ -13,9 +13,10 @@ from dvaapp.models import TEvent
 from dvaapp.task_handlers import handle_perform_analysis, handle_perform_indexing, handle_perform_detection
 
 
-if '__name__' == '__main__':
+if __name__ == '__main__':
     task_name = sys.argv[-2]
     pk = int(sys.argv[-1])
+    logging.info("Executing {} {}".format(task_name,pk))
     if task_name == 'perform_indexing':
         handle_perform_indexing(TEvent.objects.get(pk=pk))
     elif task_name == 'perform_detection':

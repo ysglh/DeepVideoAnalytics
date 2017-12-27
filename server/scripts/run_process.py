@@ -5,7 +5,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
 django.setup()
 from dvaapp.processing import DVAPQLProcess
 
-if '__name__' == '__main__':
+if __name__ == '__main__':
     path = sys.argv[-1]
     with open(path) as f:
         j = json.load(f)

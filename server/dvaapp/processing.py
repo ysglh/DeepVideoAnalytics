@@ -374,11 +374,7 @@ def run_task_in_new_process(start):
     :param start:
     :return:
     """
-    model_specific_queue_name = get_model_specific_queue_name(start.operation, start.arguments)
     trained_model = TrainedModel.objects.get(pk=get_model_pk_from_args(start.operation,start.arguments))
-    start.started = False
-    start.queue_name = model_specific_queue_name
-    start.start_ts = None
     new_envs = os.environ.copy()
     for k in {'PYTORCH_MODE','CAFFE_MODE','MXNET_MODE'}:
         if k in new_envs:

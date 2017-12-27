@@ -5,7 +5,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
 django.setup()
 from django.conf import settings
 
-if '__name__' == '__main__':
+if __name__ == '__main__':
     try:
         os.mkdir('backups')
     except:

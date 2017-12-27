@@ -3,7 +3,7 @@ from ..models import TrainedModel
 try:
     from dvalib import detector
 except ImportError:
-    logging.warning("Could not import indexer / clustering assuming running in front-end mode / Heroku")
+    logging.warning("Could not import indexer / clustering assuming running in front-end mode")
 
 
 class Detectors(object):

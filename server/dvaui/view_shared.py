@@ -51,7 +51,7 @@ def handle_uploaded_file(f, name, user=None, rate=None):
         with open(local_fname,'wb+') as destination:
             for chunk in f.chunks():
                 destination.write(chunk)
-        if settings.DISABLE_NFS or settings.DEPLOY_ON_HEROKU:
+        if settings.DISABLE_NFS:
             fs.upload_file_to_remote(fpath)
             os.remove(local_fname)
         p = processing.DVAPQLProcess()
@@ -78,7 +78,7 @@ def handle_uploaded_file(f, name, user=None, rate=None):
         with open(local_fname,'wb+') as destination:
             for chunk in f.chunks():
                 destination.write(chunk)
-        if settings.DISABLE_NFS or settings.DEPLOY_ON_HEROKU:
+        if settings.DISABLE_NFS:
             fs.upload_file_to_remote(fpath)
             os.remove(local_fname)
         p = processing.DVAPQLProcess()

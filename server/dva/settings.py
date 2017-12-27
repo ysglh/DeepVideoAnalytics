@@ -16,14 +16,13 @@ DVA_PRIVATE_ENABLE = 'DVA_PRIVATE_ENABLE' in os.environ
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MEDIA_BUCKET = os.environ.get('MEDIA_BUCKET', None)
 CLOUD_FS_PREFIX = os.environ.get('CLOUD_FS_PREFIX', 's3') # By default AWS "s3", Tensorflow also supports "gs" for GCS
-DEPLOY_ON_HEROKU = 'DEPLOY_ON_HEROKU' in os.environ
 DISABLE_NFS = os.environ.get('DISABLE_NFS',False)
 
 if DISABLE_NFS and (MEDIA_BUCKET is None):
     raise EnvironmentError("Either an NFS/Data volume or a remote S3 bucket is required!")
 
 # SECURITY WARNING: keep the secret key used in production secret!
-if 'SECRET_KEY' in os.environ or DEPLOY_ON_HEROKU:
+if 'SECRET_KEY' in os.environ:
     SECRET_KEY = os.environ['SECRET_KEY']
     AUTH_DISABLED = False
 else:
@@ -33,22 +32,22 @@ else:
 INTERNAL_IPS = ['localhost','127.0.0.1']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-if 'DISABLE_DEBUG' in os.environ or DEPLOY_ON_HEROKU:
-    DEBUG = False
-else:
+if 'ENABLE_DEBUG' in os.environ:
     DEBUG = True
-
-if sys.platform == 'darwin':
+    DEV_ENV = False
+elif sys.platform == 'darwin':
     DEV_ENV = True
+    DEBUG = True
 else:
+    DEBUG = False
     DEV_ENV = False
 
-if DEPLOY_ON_HEROKU:
+if 'ALLOWED_HOSTS' in os.environ:
     ALLOWED_HOSTS = [k.strip() for k in os.environ['ALLOWED_HOSTS'].split(',') if k.strip()]
     # SESSION_COOKIE_SECURE = True
     # CSRF_COOKIE_SECURE = True
     # SECURE_SSL_REDIRECT = True
-    # SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https') # Confirm this cannot be spoofed for heroku
+    # SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https') # Confirm this cannot be spoofed
     # SECURE_REDIRECT_EXEMPT = [r'^vdn/.']
 else:
     ALLOWED_HOSTS = ["*"]  # Dont use this in prod
@@ -100,8 +99,7 @@ if DEV_ENV and DEBUG:
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_METHODS = ('POST', 'GET',)
 CORS_ALLOW_CREDENTIALS = True
-if not DEPLOY_ON_HEROKU:
-    CORS_URLS_REGEX = r'^api/.*$'
+CORS_URLS_REGEX = r'^api/.*$'
 REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
     'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
@@ -137,13 +135,22 @@ TEMPLATES = [
 
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
-if DEPLOY_ON_HEROKU:
+if 'BROKER_URL' in os.environ:
+    BROKER_URL = os.environ['BROKER_URL']
+elif DEV_ENV:
+    BROKER_URL = 'amqp://{}:{}@localhost//'.format('dvauser', 'localpass')
+elif 'CONTINUOUS_INTEGRATION' in os.environ:
+    BROKER_URL = 'amqp://{}:{}@localhost//'.format('guest', 'guest')
+else:
+    BROKER_URL = 'amqp://{}:{}@{}//'.format(os.environ.get('RABBIT_USER', 'dvauser'),
+                                            os.environ.get('RABBIT_PASS', 'localpass'),
+                                            os.environ.get('RABBIT_HOST', 'rabbit'))
+
+if 'DATABASE_URL' in os.environ:
     DATABASES = {}
     db_from_env = dj_database_url.config(conn_max_age=500)
     DATABASES['default'] = db_from_env
-    BROKER_URL = os.environ['CLOUDAMQP_URL']
 elif DEV_ENV:
-    BROKER_URL = 'amqp://{}:{}@localhost//'.format('dvauser', 'localpass')
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -165,29 +172,17 @@ elif 'CONTINUOUS_INTEGRATION' in os.environ:
             'PORT': '',
         }
     }
-    BROKER_URL = 'amqp://{}:{}@localhost//'.format('guest', 'guest')
-elif 'DOCKER_MODE' in os.environ:
-    if 'BROKER_URL' in os.environ:
-        BROKER_URL = os.environ['BROKER_URL']
-    else:
-        BROKER_URL = 'amqp://{}:{}@{}//'.format(os.environ.get('RABBIT_USER', 'dvauser'),
-                                                os.environ.get('RABBIT_PASS', 'localpass'),
-                                                os.environ.get('RABBIT_HOST', 'rabbit'))
-    if 'DATABASE_URL' in os.environ:
-        DATABASES = {}
-        db_from_env = dj_database_url.config(conn_max_age=500)
-        DATABASES['default'] = db_from_env
-    else:
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.postgresql_psycopg2',
-                'NAME': os.environ.get('DB_NAME', 'postgres'),
-                'USER': os.environ.get('DB_USER', 'postgres'),
-                'PASSWORD': os.environ.get('DB_PASS', 'postgres'),
-                'HOST': os.environ.get('DB_HOST', 'db'),
-                'PORT': 5432,
-            }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': os.environ.get('DB_NAME', 'postgres'),
+            'USER': os.environ.get('DB_USER', 'postgres'),
+            'PASSWORD': os.environ.get('DB_PASS', 'postgres'),
+            'HOST': os.environ.get('DB_HOST', 'db'),
+            'PORT': 5432,
         }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
@@ -225,11 +220,9 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 MEDIA_ROOT = os.path.expanduser('~/media/') if sys.platform == 'darwin' or os.environ.get('TRAVISTEST',False) else "/root/media/"
 
-if DEPLOY_ON_HEROKU and ('MEDIA_URL' not in os.environ or 'STATIC_URL' not in os.environ):
-    raise EnvironmentError('Please set STATIC_URL and MEDIA_URL')
-elif DISABLE_NFS and ('LAUNCH_SERVER' in os.environ or 'LAUNCH_SERVER_NGINX' in os.environ) and 'MEDIA_URL' not in os.environ:
+if DISABLE_NFS and ('LAUNCH_SERVER' in os.environ or 'LAUNCH_SERVER_NGINX' in os.environ) and 'MEDIA_URL' not in os.environ:
     raise EnvironmentError('You must set MEDIA_URL (e.g. http://s3bucketname.s3-website-us-east-1.amazonaws.com/)'
-                           ' when launching websever in NFS disabled mode.')
+                           ' or similar google storage bucket URL when launching websever in NFS disabled mode.')
 
 MEDIA_URL = os.environ.get('MEDIA_URL', '/media/')
 STATIC_URL = os.environ.get('STATIC_URL', '/static/')

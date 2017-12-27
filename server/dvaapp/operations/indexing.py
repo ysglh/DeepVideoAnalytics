@@ -7,7 +7,7 @@ try:
     import numpy as np
 except ImportError:
     np = None
-    logging.warning("Could not import indexer / clustering assuming running in front-end mode / Heroku")
+    logging.warning("Could not import indexer / clustering assuming running in front-end mode")
 
 from ..models import IndexEntries, TrainedModel
 

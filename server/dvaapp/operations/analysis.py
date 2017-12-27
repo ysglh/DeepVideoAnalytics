@@ -4,7 +4,7 @@ from django.conf import settings
 try:
     from dvalib import analyzer
 except ImportError:
-    logging.warning("Could not import analyzer assuming running in front-end mode / Heroku")
+    logging.warning("Could not import analyzer assuming running in front-end mode")
 
 
 class Analyzers(object):

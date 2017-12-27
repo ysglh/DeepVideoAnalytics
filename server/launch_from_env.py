@@ -58,7 +58,7 @@ if __name__ == '__main__':
         # Should be launched only once per deployment
         _ = subprocess.Popen(['./start_scheduler.py'])
     if block_on_manager:  # the container process waits on the manager
-        subprocess.check_call('./startq.py {}'.format(settings.Q_MANAGER))
+        subprocess.check_call(['./startq.py','{}'.format(settings.Q_MANAGER)])
     else:
         _ = subprocess.Popen(shlex.split('./startq.py {}'.format(settings.Q_MANAGER)))
     if 'LAUNCH_SERVER' in os.environ:

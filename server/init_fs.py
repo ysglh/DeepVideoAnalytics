@@ -14,6 +14,7 @@ from dvaapp.models import TrainedModel, Retriever, DVAPQL
 from dvaui.defaults import EXTERNAL_SERVERS
 from dvaapp.processing import DVAPQLProcess
 from django.contrib.auth.models import User
+from dvaapp.fs import get_path_to_file
 from django.utils import timezone
 from dvaui.defaults import DEFAULT_MODELS
 
@@ -55,12 +56,15 @@ if __name__ == "__main__":
             if created:
                 dm.download()
     if 'INIT_PROCESS' in os.environ and DVAPQL.objects.count() == 0:
-        fname = os.environ.get('INIT_PROCESS')
+        path = os.environ.get('INIT_PROCESS')
         p = DVAPQLProcess()
+        if not path.startswith('/root/DVA/configs/custom_defaults/'):
+            get_path_to_file(path,"temp.json")
+            path = 'temp.json'
         try:
-            jspec = json.load(file(fname))
+            jspec = json.load(file(path))
         except:
-            logging.exception("could not load : {}".format(fname))
+            logging.exception("could not load : {}".format(path))
         else:
             p.create_from_json(jspec)
             p.launch()

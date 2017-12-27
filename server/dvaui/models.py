@@ -28,9 +28,12 @@ class ExternalServer(models.Model):
                         errors.append(filename)
                     else:
                         url = self.url
-                        if not url.endswith('/'):
-                            url = "{}/".format(url)
-                        flname = "{}{}".format(url,os.path.join(root,filename)[len(cwd)+1+len(self.name):])
+                        if url.endswith('/'):
+                            url = url[:-1]
+                        relpath = os.path.join(root,filename)[len(cwd)+1+len(self.name):]
+                        if relpath.startswith('/'):
+                            relpath = relpath[1:]
+                        flname = "{}/{}".format(url,relpath)
                         p, _ = StoredDVAPQL.objects.get_or_create(name=flname,server=self)
                         p.server = self
                         p.process_type = StoredDVAPQL.PROCESS

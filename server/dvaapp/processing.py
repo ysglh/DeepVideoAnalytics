@@ -389,7 +389,7 @@ def run_task_in_new_process(start):
         new_envs['CAFFE_MODE'] = '1'
     elif trained_model.mode == TrainedModel.MXNET:
         new_envs['MXNET_MODE'] = '1'
-    s = subprocess.Popen(['python', 'scripts/run_task.py', start.operation, start.pk],env=new_envs)
+    s = subprocess.Popen(['python', 'scripts/run_task.py', start.operation, str(start.pk)],env=new_envs)
     s.wait()
     if s.returncode != 0:
         raise ValueError("run_task.py failed")

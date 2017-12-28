@@ -28,7 +28,7 @@
     {
        "type": "shell",
        "inline": [
-         "sleep 600"
+         "sleep 300"
        ]
      },
     {
@@ -37,6 +37,7 @@
     },
     {
         "type": "shell",
+        "expect_disconnect": true,
         "inline": [
             "sudo reboot"
         ]

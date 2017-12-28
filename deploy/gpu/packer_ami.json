@@ -21,17 +21,35 @@
       "destination": "/home/ubuntu/"
     },
     {
+      "type": "file",
+      "source": "./fix_docker_compose.py",
+      "destination": "/home/ubuntu/"
+    },
+    {
+       "type": "shell",
+       "inline": [
+         "sleep 600"
+       ]
+     },
+    {
       "type": "shell",
       "script": "./install_docker.sh"
     },
     {
+        "type": "shell",
+        "inline": [
+            "sudo reboot"
+        ]
+    },
+    {
       "type": "shell",
+      "pause_before": "120s",
       "script": "./install_nvidia_docker.sh"
     },
     {
         "type": "shell",
         "inline":[
-            "docker pull akshayubhat/dva-auto:latest"
+            "sudo docker pull akshayubhat/dva-auto:latest"
         ]
     }
   ]

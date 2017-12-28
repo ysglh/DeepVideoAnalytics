@@ -317,15 +317,10 @@ class RetrieverList(UserPassesTestMixin, ListView):
 class TrainedModelList(UserPassesTestMixin, ListView):
     model = TrainedModel
     template_name = "dvaui/model_list.html"
-    paginate_by = 50
+    paginate_by = 100
 
     def get_context_data(self, **kwargs):
         context = super(TrainedModelList, self).get_context_data(**kwargs)
-        context.update({
-            'visual_index_list': TrainedModel.objects.filter(model_type=TrainedModel.INDEXER),
-            'analyzers': TrainedModel.objects.filter(model_type=TrainedModel.ANALYZER),
-            "detectors": TrainedModel.objects.filter(model_type=TrainedModel.DETECTOR),
-        })
         return context
 
     def test_func(self):
@@ -372,7 +367,7 @@ class TrainingSetList(UserPassesTestMixin, ListView):
 class IndexEntryList(UserPassesTestMixin, ListView):
     model = IndexEntries
     template_name = "dvaui/index_list.html"
-    paginate_by = 50
+    paginate_by = 100
 
     def get_context_data(self, **kwargs):
         context = super(IndexEntryList, self).get_context_data(**kwargs)

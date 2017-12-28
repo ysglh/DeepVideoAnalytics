@@ -6,7 +6,9 @@
 <div class="row">
     <div class="box box-info">
         <div class="box-header">
-            <h2>Create retriever & perform clustering for approximate search</h2>
+            <h2>Retrievers
+                <a href="/stored_process#shortcuts" class="btn btn-success" style="float: right"><i class="fa fa-plus-square"></i> Create new retriever</a>
+            </h2>
         </div>
     </div>
 </div>
@@ -32,7 +34,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                {% for r in retrievers %}
+                {% for r in objects %}
                     <tr>
                         <td>{{ r.name }} </td>
                         <td>{{ r.get_algorithm_display }}</td>

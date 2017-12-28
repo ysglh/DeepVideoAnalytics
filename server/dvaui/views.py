@@ -297,6 +297,23 @@ class ProcessList(UserPassesTestMixin, ListView):
         return new_context
 
 
+class RetrieverList(UserPassesTestMixin, ListView):
+    model = Retriever
+    template_name = "dvaui/retriever_list.html"
+    paginate_by = 100
+
+    def get_context_data(self, **kwargs):
+        context = super(RetrieverList, self).get_context_data(**kwargs)
+        return context
+
+    def test_func(self):
+        return user_check(self.request.user)
+
+    def get_queryset(self):
+        new_context = DVAPQL.objects.filter().order_by('-created')
+        return new_context
+
+
 class TrainedModelList(UserPassesTestMixin, ListView):
     model = TrainedModel
     template_name = "dvaui/model_list.html"
@@ -474,6 +491,10 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
     context['region_count'] = Region.objects.all().count()
     context['models_count'] = TrainedModel.objects.all().count()
     context['worker_count'] = Worker.objects.all().count()
+    context['training_set_count'] = TrainingSet.objects.all().count()
+    context['retriever_counts'] = Retriever.objects.all().count()
+    context['external_server_count'] = ExternalServer.objects.all().count()
+    context['script_count'] = StoredDVAPQL.objects.all().count()
     context['tube_count'] = Tube.objects.all().count()
     context["videos"] = Video.objects.all().filter()
     context['detector_count'] = TrainedModel.objects.filter(model_type=TrainedModel.DETECTOR).count()
@@ -732,13 +753,6 @@ def textsearch(request):
         if request.GET.get('labels'):
             context['results']['labels'] = Label.objects.filter(name__search=q)[offset:limit]
     return render(request, 'dvaui/textsearch.html', context)
-
-
-@user_passes_test(user_check)
-def retrievers(request):
-    context = {'algorithms': {k.name for k in TrainedModel.objects.filter(model_type=TrainedModel.INDEXER)},
-               'index_entries': IndexEntries.objects.all(), 'retrievers': Retriever.objects.all()}
-    return render(request, 'dvaui/retrievers.html', context)
 
 
 @user_passes_test(user_check)

@@ -50,7 +50,7 @@
     {
         "type": "shell",
         "inline":[
-            "sudo docker pull akshayubhat/dva-auto:latest"
+            "sudo docker pull akshayubhat/dva-auto:gpu"
         ]
     }
   ]

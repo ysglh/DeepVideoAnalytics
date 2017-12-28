@@ -1,4 +1,4 @@
-AMI = 'ami-37bb714d'
+AMI = 'ami-3c145846'
 env_user = "ubuntu"
 key_filename = "~/.ssh/<your_private_key>"
 KeyName = "key pair name from AWS"

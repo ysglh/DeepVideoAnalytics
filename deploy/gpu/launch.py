@@ -12,7 +12,7 @@ if __name__ == '__main__':
     ec2r = boto3.resource('ec2')
     instances = ec2r.create_instances(DryRun=False, ImageId=AMI, KeyName=KeyName, MinCount=1, MaxCount=1,
                                       SecurityGroups=[SecurityGroupName, ], InstanceType="p2.xlarge",
-                                      Monitoring={'Enabled': True, },BlockDeviceMappings=[{"DeviceName": "/dev/xvda",
+                                      Monitoring={'Enabled': True, },BlockDeviceMappings=[{"DeviceName": "/dev/sda1",
                                                                                            "Ebs" : { "VolumeSize" : 200 }}],
                                       IamInstanceProfile=IAM_ROLE)
     for instance in instances:

@@ -82,12 +82,227 @@
             </div>
         </div>
     </div>
+    <div class="row">
+    <div class="col-lg-6">
+        <div class="box box-primary">
+            <form action="/index_video" method="POST">
+            <div class="box-header with-border">
+                <h4>Index custom set of frames or regions</h4>
+            </div>
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="form-group">
+                            <label for="task_name">Indexing algorithm</label>
+                            <select class="js-example-basic" id="visual_index_name" class="form-control" name="visual_index_name" style="width:100%">
+                            {% for i in visual_index_list %}
+                                <option value="{{ i.name }}">{{ i.name }}</option>
+                            {% endfor %}
+                            </select>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-4"><div class="form-group"><label>object name<input type="text" class="form-control" name="object_name"> </label></div></div>
+                            <div class="col-xs-4"><div class="form-group"><label>object_name_contains<input type="text" class="form-control" name="object_name__contains"></label></div></div>
+                            <div class="col-xs-4"><div class="form-group"><label>text_contains<input type="text" class="form-control" name="text__contains"></label></div></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="frame_video_name">Video</label>
+                            <select class="js-example-basic-multiple" multiple="multiple" id="frame_video_name" class="form-control" style="width:100%">
+                            {% for v in videos %}
+                                <option value="{{ v.pk }}">{{ v.name }}</option>
+                            {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="region_type">Region types</label>
+                            <select class="js-example-basic" class="js-example-basic-multiple" multiple="multiple" id="region_type" class="form-control" name="region_type__in" style="width:100%">
+                            {% for k,v in region_types %}
+                                <option value="{{ k }}" selected="selected" >{{ v }}</option>
+                            {% endfor %}
+                        </select>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-3"><div class="form-group"><label>Min height<input type="number" class="form-control" value="50" name="h__gte"></label></div></div>
+                            <div class="col-xs-3"><div class="form-group"><label>Max height<input type="number" class="form-control" name="h__lte"></label></div></div>
+                            <div class="col-xs-3"><div class="form-group"><label>Min width<input type="number"  class="form-control" value="50" name="w__gte"></label></div></div>
+                            <div class="col-xs-3"><div class="form-group"><label>Max width<input type="number"  class="form-control" name="w__lte"></label></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="box-footer text-center">
+                <div class="form-group">
+                    {% csrf_token %}
+                    <button class="btn btn-primary" name="target" value="frames" type="submit" style="display:inline-block;margin-right:12px">Create custom index for selected frames</button>
+                    <button class="btn btn-primary" name="target" value="regions" type="submit" style="display:inline-block;" >Create custom index for selected regions</button>
+                </div>
+            </div>
+            </form>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="box box-primary">
+            <div class="box-header with-border">
+                <h4>Detect objects using custom detector</h4>
+            </div>
+            <div class="box-body">
+                        <form role="form" action="/detect_objects/"  method="post" >
+                        <div class="row">
+                        <div class="col-lg-6"><div class="form-group">
+                                <label for="excluded_videos">Select detector</label>
+                                <select class="js-example-basic-single" id="detector_pk" name="detector_pk" style="width:100%">
+                                {% for k in detectors %}
+                                    <option value="{{ k.pk }}">{{ k.name }}</option>
+                                {% endfor %}
+                                </select>
+                        </div></div>
+                        <div class="col-lg-6">
+                            <div class="form-group">
+                                <label for="excluded_videos">Select video/dataset</label>
+                                <select class="js-example-basic-single" id="video_pk" name="video_pk" style="width:100%">
+                                {% for v in videos %}
+                                    <option value="{{ v.pk }}">{{ v.name }}</option>
+                                {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        </div>
+                        {% csrf_token %}
+                        <div style="text-align: center">
+                            <button type="submit" style="margin: auto" name="action" value="detect" class="btn btn-info"><i class="fa fa-play"></i> Apply detector</button>
+                        </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-12">
+            <form action="/create_retriever/" method="post">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h4>Create new retriever Exact or approximate retrievers using LOPQ</h4>
+                </div>
+                <div class="box-body">
+                        <div class="row">
+                            <div class="col-lg-3 col-md-6">
+                                <label for="name">name</label>
+                                <input name="name" class="form-control" placeholder="name" required="required" type="text" >
+                                <label for="retriever_type">Retriever type</label>
+                                <select class="js-example-basic" id="retriever_type" name="retriever_type"  style="width:100%">
+                                    <option value="L">LOPQ</option>
+                                    <option value="E">Exact</option>
+                                </select>
+                            </div>
+                            <div class="col-lg-4 col-md-6">
+                                <label for="selected">All entries by a specific Indexer</label>
+                                <select class="js-example-basic" id="selected" name="algorithm"  style="width:100%">
+                                {% for v in algorithms %}
+                                    <option value="{{ v }}">{{ v }}</option>
+                                {% endfor %}
+                                </select>
+                                <h4 class="text-center">OR</h4>
+                                <label for="source_filters">Specify source filter as JSON (IndexEntries.objects.filters(**kwargs))</label>
+                                <textarea name="source_filters" id="script2" style="display:none" ></textarea>
+                                <div id="editor2" style="width:95%;margin:auto;height:200px" ></div>
+                            </div>
+                            <div class="col-lg-1 col-md-2 col-sm-3">
+                                <label for="components">PCA components</label>
+                                <input name="components" class="form-control" value="128" required="required" type="number" >
+                            </div>
+                            <div class="col-lg-1 col-md-2 col-sm-3">
+                                <label for="m">M</label>
+                                <input name="m" class="form-control" value="16" required="required" type="number" >
+                            </div>
+                            <div class="col-lg-1 col-md-2 col-sm-3">
+                                <label for="v">V</label>
+                                <input name="v" class="form-control" value="16" required="required" type="number" >
+                            </div>
+                            <div class="col-lg-1 col-md-2 col-sm-3">
+                                <label for="sub">Subq</label>
+                                <input name="sub" class="form-control" value="256" required="required" type="number" >
+                            </div>
+                        </div>
+                </div>
+                <div class="box-footer text-center">
+                    {% csrf_token %}<button name="submit" class="btn btn-primary">Create new retriever</button>
+                </div>
+            </div>
+            </form>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h4>Train custom YOLO detector</h4>
+                </div>
+                <div class="box-body">
+                    <form role="form" action="/train_detector/"  method="post" >
+                            <div class="row">
+                            <div class="col-lg-6"><div class="form-group">
+                                <label for="name">Detector name</label>
+                                <input id="id_name" name="name" class="form-control" type="text" required="" placeholder="provide a name">
+                            </div></div>
+                            <div class="col-lg-6">
+                                <div class="form-group">
+                                    <label for="excluded_videos">Exclude video/dataset</label>
+                                    <select class="js-example-basic-multiple" multiple="multiple" id="excluded_videos" name="excluded_videos_train" style="width:100%">
+                                    {% for v in videos %}
+                                        <option value="{{ v.pk }}">{{ v.name }}</option>
+                                    {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            </div>
+                            <div class="row">
+                            <div class="col-lg-6"><div class="form-group">
+                                <label for="object_names">Object names</label>
+                                <input id="object_names" name="object_names" class="form-control" type="text" placeholder="comma separated list of regions to by object_names">
+                            </div></div>
+                            <div class="col-lg-6"><div class="form-group">
+                                <label for="labels">Labels</label>
+                                <input id="labels" name="labels" class="form-control" type="text" placeholder="comma separated list of regions to by applied labels">
+                            </div></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="args">Additional JSON arguments for customizing options such as number of phase 1/2 epochs, etc.</label>
+                                <textarea class="form-control" name="args" rows="2" placeholder="Additional arguments as JSON { phase_2_epochs:50 } etc."></textarea>
+                            </div>
+                            {% csrf_token %}
+                            <div style="text-align: center">
+                                <button type="submit" name="action" value="estimate" class="pull-left btn btn-info"><i class="fa fa-list"></i> Estimate training set</button>
+                                <button type="submit" name="action" value="train" class="pull-right btn btn-primary"><i class="fa fa-gears"></i> Train detector</button>
+                            </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </section>
 {% endblock %}
 {% block page_js%}
 <script>
     $(document).ready(function() {
         InitializeTables();
+        var visual_index_name = $("#visual_index_name");
+        visual_index_name.select2({theme: "bootstrap"});
+        var frame_video_name = $("#frame_video_name");
+        frame_video_name.select2({theme: "bootstrap",multiple:true});
+        var region_type = $("#region_type");
+        region_type.select2({theme: "bootstrap",multiple:true});
+        var excluded_videos_ids = $("#excluded_videos");
+        excluded_videos_ids.select2({theme: "bootstrap"});
+        var selected_video_id = $("#video_pk");
+        selected_video_id.select2({theme: "bootstrap"});
+        var selected_detector_id = $("#detector_pk");
+        selected_detector_id.select2({theme: "bootstrap"});
+        var excluded_videos_ids_train = $("#excluded_videos_train");
+        excluded_videos_ids.select2({theme: "bootstrap"});
+        var selected_video_id_train = $("#video_pk_train");
+        selected_video_id_train.select2({theme: "bootstrap"});
+        var selected_detector_id_train = $("#detector_pk_train");
+        selected_detector_id_train.select2({theme: "bootstrap"});
         var scripttext = document.getElementById("script");
         var editor = ace.edit("editor",{
             wrapBehavioursEnabled:true,
@@ -98,6 +313,24 @@
         editor.getSession().setValue(textarea.val());
         editor.getSession().on('change', function(){
           textarea.val(editor.getSession().getValue());
+        });
+        var indexer_selector = $("#selected");
+        indexer_selector.select2({theme: "bootstrap"});
+        var retriever_type = $("#retriever_type");
+        retriever_type.select2({theme: "bootstrap"});
+        var excluded_index_entries = $("#excluded_index_entries");
+        excluded_index_entries.select2({theme: "bootstrap"});
+        var scripttext2 = document.getElementById("script2");
+        scripttext2.textContent = "";
+        var editor2 = ace.edit("editor2",{
+            wrapBehavioursEnabled:true,
+            autoScrollEditorIntoView:true});
+        editor2.setTheme("ace/theme/chrome");
+        editor2.getSession().setMode("ace/mode/json");
+        var textarea2 = $('textarea[name="source_filters"]').hide();
+        editor2.getSession().setValue(textarea2.val());
+        editor2.getSession().on('change', function(){
+          textarea2.val(editor2.getSession().getValue());
         });
     })
 </script>

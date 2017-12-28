@@ -10,7 +10,7 @@ from .forms import UploadFileForm, YTVideoForm, AnnotationForm
 from dvaapp.models import Video, Frame, DVAPQL, QueryResults, TEvent, IndexEntries, Region, \
     Tube,  Segment, FrameLabel, SegmentLabel, \
     VideoLabel, RegionLabel, TubeLabel, Label, ManagementAction, \
-    TrainedModel, Retriever, SystemState, QueryRegion, QueryRegionResults, Worker
+    TrainedModel, Retriever, SystemState, QueryRegion, QueryRegionResults, Worker, TrainingSet
 from .models import StoredDVAPQL, ExternalServer
 from dva.celery import app
 from rest_framework import viewsets, mixins
@@ -204,54 +204,6 @@ class VideoDetail(UserPassesTestMixin, DetailView):
         return user_check(self.request.user)
 
 
-# class RetrieverDetails(UserPassesTestMixin, DetailView):
-#     model = Clusters
-#
-#     def get_context_data(self, **kwargs):
-#         context = super(ClustersDetails, self).get_context_data(**kwargs)
-#         context['coarse'] = []
-#         context['index_entries'] = [IndexEntries.objects.get(pk=k) for k in self.object.included_index_entries_pk]
-#         for k in ClusterCodes.objects.filter(clusters_id=self.object.pk).values('coarse_text').annotate(
-#                 count=Count('coarse_text')):
-#             context['coarse'].append({'coarse_text': k['coarse_text'].replace(' ', '_'),
-#                                       'count': k['count'],
-#                                       'first': ClusterCodes.objects.all().filter(clusters_id=self.object.pk,
-#                                                                                  coarse_text=k['coarse_text']).first(),
-#                                       'last': ClusterCodes.objects.all().filter(clusters_id=self.object.pk,
-#                                                                                 coarse_text=k['coarse_text']).last()
-#                                       })
-#
-#         return context
-#
-#     def test_func(self):
-#         return user_check(self.request.user)
-
-
-class DetectionDetail(UserPassesTestMixin, DetailView):
-    model = TrainedModel
-    template_name = "dvaui/customdetector_detail.html"
-
-
-    def get_context_data(self, **kwargs):
-        context = super(DetectionDetail, self).get_context_data(**kwargs)
-        classdist = context['object'].class_distribution.strip()
-        context['class_distribution'] = json.loads(classdist) if classdist else {}
-        context['phase_1_log'] = []
-        context['phase_2_log'] = []
-        for k in context['object'].phase_1_log.split('\n')[1:]:
-            if k.strip():
-                epoch,train_loss,val_loss = k.strip().split(',')
-                context['phase_1_log'].append((epoch,round(float(train_loss),2),round(float(val_loss),2)))
-        for k in context['object'].phase_2_log.split('\n')[1:]:
-            if k.strip():
-                epoch,train_loss,val_loss = k.strip().split(',')
-                context['phase_2_log'].append((epoch,round(float(train_loss),2),round(float(val_loss),2)))
-        return context
-
-    def test_func(self):
-        return user_check(self.request.user)
-
-
 class FrameDetail(UserPassesTestMixin, DetailView):
     model = Frame
     template_name = 'dvaui/frame_detail.html'
@@ -345,6 +297,74 @@ class ProcessList(UserPassesTestMixin, ListView):
         return new_context
 
 
+class TrainedModelList(UserPassesTestMixin, ListView):
+    model = TrainedModel
+    template_name = "dvaui/model_list.html"
+    paginate_by = 50
+
+    def get_context_data(self, **kwargs):
+        context = super(TrainedModelList, self).get_context_data(**kwargs)
+        context.update({
+            'visual_index_list': TrainedModel.objects.filter(model_type=TrainedModel.INDEXER),
+            'analyzers': TrainedModel.objects.filter(model_type=TrainedModel.ANALYZER),
+            "detectors": TrainedModel.objects.filter(model_type=TrainedModel.DETECTOR),
+        })
+        return context
+
+    def test_func(self):
+        return user_check(self.request.user)
+
+
+class TrainedModelDetail(UserPassesTestMixin, DetailView):
+    model = TrainedModel
+    template_name = "dvaui/model_detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(TrainedModelDetail, self).get_context_data(**kwargs)
+        classdist = context['object'].class_distribution.strip()
+        context['class_distribution'] = json.loads(classdist) if classdist else {}
+        context['phase_1_log'] = []
+        context['phase_2_log'] = []
+        for k in context['object'].phase_1_log.split('\n')[1:]:
+            if k.strip():
+                epoch,train_loss,val_loss = k.strip().split(',')
+                context['phase_1_log'].append((epoch,round(float(train_loss),2),round(float(val_loss),2)))
+        for k in context['object'].phase_2_log.split('\n')[1:]:
+            if k.strip():
+                epoch,train_loss,val_loss = k.strip().split(',')
+                context['phase_2_log'].append((epoch,round(float(train_loss),2),round(float(val_loss),2)))
+        return context
+
+    def test_func(self):
+        return user_check(self.request.user)
+
+
+class TrainingSetList(UserPassesTestMixin, ListView):
+    model = TrainingSet
+    template_name = "dvaui/training_set_list.html"
+    paginate_by = 50
+
+    def get_context_data(self, **kwargs):
+        context = super(TrainingSetList, self).get_context_data(**kwargs)
+        return context
+
+    def test_func(self):
+        return user_check(self.request.user)
+
+
+class IndexEntryList(UserPassesTestMixin, ListView):
+    model = IndexEntries
+    template_name = "dvaui/index_list.html"
+    paginate_by = 50
+
+    def get_context_data(self, **kwargs):
+        context = super(IndexEntryList, self).get_context_data(**kwargs)
+        return context
+
+    def test_func(self):
+        return user_check(self.request.user)
+
+
 class ProcessDetail(UserPassesTestMixin, DetailView):
     model = DVAPQL
     template_name = "dvaui/process_detail.html"
@@ -365,11 +385,15 @@ class ProcessDetail(UserPassesTestMixin, DetailView):
 class StoredProcessList(UserPassesTestMixin, ListView):
     model = StoredDVAPQL
     template_name = "dvaui/stored_process_list.html"
-    paginate_by = 20
+    paginate_by = 200
     ordering = "-created"
 
     def get_context_data(self, **kwargs):
         context = super(StoredProcessList, self).get_context_data(**kwargs)
+        context['visual_index_list'] = TrainedModel.objects.filter(model_type=TrainedModel.INDEXER)
+        context["videos"] = Video.objects.all()
+        context["region_types"] = Region.REGION_TYPES
+        context["detectors"] = TrainedModel.objects.filter(model_type=TrainedModel.DETECTOR)
         return context
 
     def test_func(self):
@@ -687,14 +711,6 @@ def management(request):
 
 
 @user_passes_test(user_check)
-def training(request):
-    context = {}
-    context["videos"] = Video.objects.all().filter()
-    context["detectors"] = TrainedModel.objects.filter(model_type=TrainedModel.DETECTOR)
-    return render(request, 'dvaui/training.html', context)
-
-
-@user_passes_test(user_check)
 def textsearch(request):
     context = {'results': {}, "videos": Video.objects.all().filter()}
     q = request.GET.get('q')
@@ -720,10 +736,8 @@ def textsearch(request):
 
 @user_passes_test(user_check)
 def retrievers(request):
-    context = {}
-    context['algorithms'] = {k.name for k in TrainedModel.objects.filter(model_type=TrainedModel.INDEXER)}
-    context['index_entries'] = IndexEntries.objects.all()
-    context['retrievers'] = Retriever.objects.all()
+    context = {'algorithms': {k.name for k in TrainedModel.objects.filter(model_type=TrainedModel.INDEXER)},
+               'index_entries': IndexEntries.objects.all(), 'retrievers': Retriever.objects.all()}
     return render(request, 'dvaui/retrievers.html', context)
 
 
@@ -957,20 +971,6 @@ def rename_video(request):
         return redirect('video_list')
     else:
         return redirect('accounts/login/')
-
-
-@user_passes_test(user_check)
-def models(request):
-    context = {
-        'visual_index_list': TrainedModel.objects.filter(model_type=TrainedModel.INDEXER),
-        'index_entries': IndexEntries.objects.all(),
-        'analyzers': TrainedModel.objects.filter(model_type=TrainedModel.ANALYZER),
-        "videos": Video.objects.all(),
-        "region_types": Region.REGION_TYPES,
-        "detectors": TrainedModel.objects.filter(model_type=TrainedModel.DETECTOR),
-        "deep_models": TrainedModel.objects.all()
-    }
-    return render(request, 'dvaui/models.html', context)
 
 
 @user_passes_test(user_check)

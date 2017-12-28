@@ -4,9 +4,10 @@
       "type": "amazon-ebs",
       "region": "us-east-1",
       "source_ami": "ami-37bb714d",
+      "ami_groups": ["all"],
       "instance_type": "p2.xlarge",
       "ssh_username": "ubuntu",
-      "ami_name": "DVA GPU {{timestamp}}"
+      "ami_name": "DVA GPU AMI auto generated on {{timestamp}}"
     }
   ],
   "provisioners": [
@@ -51,6 +52,12 @@
         "type": "shell",
         "inline":[
             "sudo docker pull akshayubhat/dva-auto:gpu"
+        ]
+    },
+    {
+        "type": "shell",
+        "inline":[
+            "git clone https://github.com/AKSHAYUBHAT/DeepVideoAnalytics"
         ]
     }
   ]

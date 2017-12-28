@@ -16,3 +16,6 @@ E.g. A single EC2 or a GCP instance. For several type of workloads this is good 
 - launch.py : Launch on demand GPU instance on AWS
 
 - launch_spot.py : Launch spot GPU instance on AWS
+
+- packer_ami.json : Contains Packer script to automatically create AWS EC2 AMI using AWS Deep Learning AMI
+                    in us-east-1 region.

@@ -1,0 +1,38 @@
+{
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "region": "us-east-1",
+      "source_ami": "ami-37bb714d",
+      "instance_type": "p2.xlarge",
+      "ssh_username": "ubuntu",
+      "ami_name": "DVA GPU {{timestamp}}"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "file",
+      "source": "./install_docker.sh",
+      "destination": "/home/ubuntu/"
+    },
+    {
+      "type": "file",
+      "source": "./install_nvidia_docker.sh",
+      "destination": "/home/ubuntu/"
+    },
+    {
+      "type": "shell",
+      "script": "./install_docker.sh"
+    },
+    {
+      "type": "shell",
+      "script": "./install_nvidia_docker.sh"
+    },
+    {
+        "type": "shell",
+        "inline":[
+            "docker pull akshayubhat/dva-auto:latest"
+        ]
+    }
+  ]
+}

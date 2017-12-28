@@ -248,6 +248,7 @@ Q_EXTRACTOR = 'qextract'
 Q_CLUSTER = 'qclusterer'
 Q_TRAINER = 'qtrainer'
 Q_LAMBDA = 'qlambda'
+GLOBAL_MODEL_FLASK_SERVER_PORT = 8989
 GLOBAL_MODEL = 'qglobal_model'  # if a model specific queue does not exists then this is where the task ends up
 GLOBAL_RETRIEVER = 'qglobal_retriever' # if a retriever specific queue does not exists then the task ends up here
 

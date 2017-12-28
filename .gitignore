@@ -10,6 +10,7 @@ Icon?
 Thumbs.db
 *.swp
 creds.json
+*.pid
 *.mov
 docs/experiments/private
 docs/experiments/coco/coco_annotations

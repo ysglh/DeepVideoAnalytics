@@ -8,6 +8,7 @@ logs/*.log
 ehthumbs.db
 Icon?
 Thumbs.db
+connect.sh
 *.swp
 creds.json
 *.pid
@@ -33,5 +34,6 @@ docs/experiments/yolo/yolo_test.zip
 /client/build/
 /deploy/gcp/secrets.yml
 /deploy/gcp/config.py
+/deploy/gpu/config.py
 /deploy/static/
 /docs/marketing/

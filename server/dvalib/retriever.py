@@ -58,100 +58,12 @@ class BaseRetriever(object):
 
 class LOPQRetriever(BaseRetriever):
 
-    def __init__(self,name,proto_filename,args,test_mode=False):
+    def __init__(self,name,args,test_mode=False):
         super(BaseRetriever, self).__init__()
         self.name = name
-        self.proto_filename = proto_filename
-        self.entries = []
-        self.test_mode = test_mode
-        self.n_components = int(args['components'])
-        self.m = int(args['m'])
-        self.v = int(args['v'])
-        self.sub = int(args['sub'])
-        self.model = None
-        self.searcher = None
-        self.pca_reduction = None
-        self.P = None
-        self.mu = None
-        self.permuted_inds = None
-        self.model_proto_filename = proto_filename
-        self.P_filename = proto_filename.replace('.proto','.P.npy')
-        self.entries_filename = proto_filename.replace('.proto','.json')
-        self.mu_filename = proto_filename.replace('.proto','.mu.npy')
-        self.pca_filename = proto_filename.replace('.proto', '.pca.pkl')
-        self.model_lmdb_filename = proto_filename.replace('.proto', '_lmdb')
-        self.permuted_inds_filename = proto_filename.replace('.proto', '.permuted_inds.pkl')
-
-    def pca(self):
-        """
-        A simple PCA implementation that demonstrates how eigenvalue allocation
-        is used to permute dimensions in order to balance the variance across
-        sub vectors. There are plenty of PCA implementations elsewhere. What is
-        important is that the eigenvalues can be used to compute a variance-balancing
-        dimension permutation.
-        """
-        count, D = self.data.shape
-        mu = self.data.sum(axis=0) / float(count)
-        summed_covar = reduce(lambda acc, x: acc + np.outer(x, x), self.data, np.zeros((D, D)))
-        A = summed_covar / (count - 1) - np.outer(mu, mu)
-        eigenvalues, P = np.linalg.eigh(A)
-        self.permuted_inds = eigenvalue_allocation(2, eigenvalues)
-        P = P[:, self.permuted_inds]
-        return P, mu
-
-    def cluster(self):
-        self.data = self.index
-        self.pca_reduction = PCA(n_components=self.n_components)
-        self.pca_reduction.fit(self.data)
-        self.data = self.pca_reduction.transform(self.data)
-        self.P, self.mu = self.pca()
-        self.data = self.data - self.mu
-        self.data = np.dot(self.data,self.P)
-        self.model = LOPQModel(V=self.v, M=self.m, subquantizer_clusters=self.sub)
-        self.model.fit(self.data, n_init=1) # replace self.data by train
-        for i,e in enumerate(self.entries): # avoid doing this twice again in searcher
-            r = self.model.predict(self.data[i])
-            e['coarse'] = r.coarse
-            e['fine'] = r.fine
-            e['index'] = i
-        self.searcher = LOPQSearcherLMDB(self.model,self.model_lmdb_filename)
-        self.searcher.add_data(self.data)
-        # cluster_codes = []
-        # for e in c.entries:
-        #     cc.video_id = e['video_primary_key']
-        #     if 'detection_primary_key' in e:
-        #         cc.detection_id = e['detection_primary_key']
-        #         cc.frame_id = Region.objects.get(pk=cc.detection_id).frame_id
-        #     else:
-        #         cc.frame_id = e['frame_primary_key']
-        #     cc.clusters = dc
-        #     cc.coarse = e['coarse']
-        #     cc.fine = e['fine']
-        #     cc.coarse_text = " ".join(map(str, e['coarse']))
-        #     cc.fine_text = " ".join(map(str, e['fine']))
-        #     cc.searcher_index = e['index']
-        #     cluster_codes.append(cc)
-
-    def find(self):
-        i,selected = random.choice([k for k in enumerate(self.entries)])
-        print selected
-        for k in self.searcher.get_result_quota(self.data[i],10):
-            print k
-
-    def save(self):
-        with open(self.model_proto_filename,'w') as f:
-            self.model.export_proto(f)
-            with open(self.pca_filename,'w') as out:
-                pickle.dump(self.pca_reduction,out)
-            with open(self.P_filename, 'w') as out:
-                np.save(out,self.P)
-            with open(self.mu_filename, 'w') as out:
-                np.save(out,self.mu)
-            with open(self.entries_filename, 'w') as out:
-                json.dump(out, self.entries)
-            with open(self.permuted_inds_filename, 'w') as out:
-                pickle.dump(self.permuted_inds,out)
-            self.searcher.env.close()
+        self.loaded_entries = {}
+        self.index, self.files, self.findex = None, {}, 0
+        self.support_batching = False
 
     def load(self):
         self.model = LOPQModel.load_proto(self.model_proto_filename)

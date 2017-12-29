@@ -2,6 +2,16 @@ import os, logging
 import numpy as np
 from collections import namedtuple
 from .base_indexer import BaseIndexer
+try:
+    from sklearn.decomposition import PCA
+    from lopq import LOPQModel, LOPQSearcher
+    from lopq.search import LOPQSearcherLMDB
+    from lopq.eval import compute_all_neighbors, get_recall
+    from lopq.model import eigenvalue_allocation
+    from lopq.utils import compute_codes_parallel
+except:
+    pass
+
 
 if os.environ.get('PYTORCH_MODE', False):
     pass
@@ -373,6 +383,43 @@ class CaffeIndexer(BaseCustomIndexer):
 
     def load(self):
         pass
+
+    def apply(self, path):
+        pass
+
+
+class LOPQIndexer(BaseIndexer):
+
+    def __init__(self,name,components,m,v,sub,dirname,source_indexer_shashum):
+        self.name = name
+        self.n_components = int(components)
+        self.m = int(m)
+        self.v = int(v)
+        self.dirname = dirname
+        self.sub = int(sub)
+        self.model = None
+        self.pca_reduction = None
+        self.P = None
+        self.mu = None
+        self.permuted_inds = None
+        self.model_proto_filename = "{}/model.proto".format(dirname)
+        self.P_filename = self.model_proto_filename.replace('.proto', '.P.npy')
+        self.entries_filename = self.model_proto_filename.replace('.proto', '.json')
+        self.mu_filename = self.model_proto_filename.replace('.proto', '.mu.npy')
+        self.pca_filename = self.model_proto_filename.replace('.proto', '.pca.pkl')
+        self.permuted_inds_filename = self.model_proto_filename.replace('.proto', '.permind.pkl')
+
+    def load(self):
+        self.model = LOPQModel.load_proto(self.model_proto_filename)
+        # self.pca_reduction = pickle.load(file(self.pca_filename))
+        self.P = np.load(file(self.P_filename))
+        self.mu = np.load(file(self.mu_filename))
+        self.permuted_inds = np.load(file(self.permuted_inds_filename))
+
+    def approximate(self, vector):
+        vector = np.dot((self.pca_reduction.transform(vector) - self.mu), self.P).transpose().squeeze()
+        codes = self.model.predict(vector)
+        return codes.coarse, codes.fine
 
     def apply(self, path):
         pass

@@ -37,3 +37,5 @@ docs/experiments/yolo/yolo_test.zip
 /deploy/gpu/config.py
 /deploy/static/
 /docs/marketing/
+/tests/training/facenet.npy
+/tests/training/facenet_lopq/

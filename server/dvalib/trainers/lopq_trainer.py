@@ -25,11 +25,9 @@ class LOPQTrainer(object):
         self.P = None
         self.mu = None
         self.permuted_inds = None
-        self.model_proto_filename = "{}/model.proto".format(dirname)
-        self.P_filename = self.model_proto_filename.replace('.proto', '.P.npy')
-        self.mu_filename = self.model_proto_filename.replace('.proto', '.mu.npy')
-        self.pca_filename = self.model_proto_filename.replace('.proto', '.pca.pkl')
-        self.permuted_inds_filename = self.model_proto_filename.replace('.proto', '.permind.pkl')
+        self.json = {
+
+        }
 
     def pca(self,training_data):
         """
@@ -59,13 +57,18 @@ class LOPQTrainer(object):
         self.model.fit(training_data, n_init=1)  # replace self.data by train
 
     def save(self):
-        with open(self.model_proto_filename, 'w') as f:
+        model_proto_filename = "{}/model.proto".format(self.dirname)
+        P_filename =   "{}/model.P.npy".format(self.dirname)
+        mu_filename =   "{}/model.mu.npy".format(self.dirname)
+        pca_filename =  "{}/model.pca.pkl".format(self.dirname)
+        permind_filename =  "{}/model.permind.pkl".format(self.dirname)
+        with open(model_proto_filename, 'w') as f:
             self.model.export_proto(f)
-            with open(self.pca_filename, 'w') as out:
-                pickle.dump(self.pca_reduction, out)
-            with open(self.P_filename, 'w') as out:
-                np.save(out, self.P)
-            with open(self.mu_filename, 'w') as out:
-                np.save(out, self.mu)
-            with open(self.permuted_inds_filename, 'w') as out:
-                pickle.dump(self.permuted_inds, out)
+        with open(pca_filename, 'w') as out:
+            pickle.dump(self.pca_reduction, out)
+        with open(P_filename, 'w') as out:
+            np.save(out, self.P)
+        with open(mu_filename, 'w') as out:
+            np.save(out, self.mu)
+        with open(permind_filename, 'w') as out:
+            pickle.dump(self.permuted_inds, out)

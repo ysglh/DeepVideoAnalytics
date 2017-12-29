@@ -63,6 +63,7 @@ if __name__ == '__main__':
     else:
         _ = subprocess.Popen(shlex.split('./startq.py {}'.format(settings.Q_MANAGER)))
     if 'LAUNCH_SERVER' in os.environ:
+        subprocess.check_output(["python", "manage.py", "collectstatic", "--no-input"])
         p = subprocess.Popen(['python', 'manage.py', 'runserver', '0.0.0.0:8000'])
         p.wait()
     elif 'LAUNCH_SERVER_NGINX' in os.environ:

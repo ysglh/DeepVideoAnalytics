@@ -5,6 +5,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
 django.setup()
 from django.conf import settings
 from dvaapp.models import TrainedModel
+from dvaapp.operations import indexing
 from dvalib.trainers import lopq_trainer
 from dvalib.retriever import LOPQRetriever
 from dvalib.indexer import LOPQIndexer
@@ -25,3 +26,7 @@ if __name__ == '__main__':
     m.create_directory()
     for f in m.files:
         shutil.copy(f['url'],'{}/models/{}/{}'.format(settings.MEDIA_ROOT,m.pk,f['filename']))
+    facenet, _ = indexing.Indexers.get_index_by_name('facenet')
+    i = LOPQIndexer(name=m.name,dirname="{}/models/{}/".format(settings.MEDIA_ROOT,m.pk),source_model=facenet)
+    print i.approximate(data[0])
+    print i.apply('../../docs/figures/leo.jpg')

@@ -1,7 +1,7 @@
-import os, logging
+import os, logging, pickle
 import numpy as np
 from collections import namedtuple
-from .base_indexer import BaseIndexer
+from .base_indexer import BaseIndexer, BaseApproximateIndexer
 try:
     from sklearn.decomposition import PCA
     from lopq import LOPQModel, LOPQSearcher
@@ -388,19 +388,18 @@ class CaffeIndexer(BaseCustomIndexer):
         pass
 
 
-class LOPQIndexer(BaseIndexer):
+class LOPQIndexer(BaseApproximateIndexer):
 
-    def __init__(self,name,components,m,v,sub,dirname,source_indexer_shashum):
+    def __init__(self,name,dirname,source_model=None):
+        super(LOPQIndexer, self).__init__()
         self.name = name
-        self.n_components = int(components)
-        self.m = int(m)
-        self.v = int(v)
         self.dirname = dirname
-        self.sub = int(sub)
         self.model = None
         self.pca_reduction = None
         self.P = None
         self.mu = None
+        self.model = None
+        self.source_model = source_model
         self.permuted_inds = None
         self.model_proto_filename = "{}/model.proto".format(dirname)
         self.P_filename = self.model_proto_filename.replace('.proto', '.P.npy')
@@ -410,16 +409,16 @@ class LOPQIndexer(BaseIndexer):
         self.permuted_inds_filename = self.model_proto_filename.replace('.proto', '.permind.pkl')
 
     def load(self):
+        logging.info("Loading LOPQ indexer model {}".format(self.name))
         self.model = LOPQModel.load_proto(self.model_proto_filename)
-        # self.pca_reduction = pickle.load(file(self.pca_filename))
+        self.pca_reduction = pickle.load(file(self.pca_filename))
         self.P = np.load(file(self.P_filename))
         self.mu = np.load(file(self.mu_filename))
         self.permuted_inds = np.load(file(self.permuted_inds_filename))
 
     def approximate(self, vector):
+        if self.model is None:
+            self.load()
         vector = np.dot((self.pca_reduction.transform(vector) - self.mu), self.P).transpose().squeeze()
         codes = self.model.predict(vector)
         return codes.coarse, codes.fine
-
-    def apply(self, path):
-        pass

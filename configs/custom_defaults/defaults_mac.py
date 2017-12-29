@@ -133,7 +133,7 @@ DEFAULT_MODELS = [
             },
         ],
         "mode": "T",
-        "class_index_to_string": {
+        "arguments": {"class_index_to_string": {
             "1": "person",
             "2": "bicycle",
             "3": "car",
@@ -214,6 +214,7 @@ DEFAULT_MODELS = [
             "88": "teddy bear",
             "89": "hair drier",
             "90": "toothbrush"
+        }
         }
     },
     {

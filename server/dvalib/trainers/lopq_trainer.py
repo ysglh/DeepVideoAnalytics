@@ -25,9 +25,7 @@ class LOPQTrainer(object):
         self.P = None
         self.mu = None
         self.permuted_inds = None
-        self.json = {
-
-        }
+        self.source_indexer_shashum = source_indexer_shashum
 
     def pca(self,training_data):
         """
@@ -58,10 +56,10 @@ class LOPQTrainer(object):
 
     def save(self):
         model_proto_filename = "{}/model.proto".format(self.dirname)
-        P_filename =   "{}/model.P.npy".format(self.dirname)
-        mu_filename =   "{}/model.mu.npy".format(self.dirname)
-        pca_filename =  "{}/model.pca.pkl".format(self.dirname)
-        permind_filename =  "{}/model.permind.pkl".format(self.dirname)
+        P_filename = "{}/model.P.npy".format(self.dirname)
+        mu_filename = "{}/model.mu.npy".format(self.dirname)
+        pca_filename = "{}/model.pca.pkl".format(self.dirname)
+        permind_filename = "{}/model.permind.pkl".format(self.dirname)
         with open(model_proto_filename, 'w') as f:
             self.model.export_proto(f)
         with open(pca_filename, 'w') as out:
@@ -72,3 +70,22 @@ class LOPQTrainer(object):
             np.save(out, self.mu)
         with open(permind_filename, 'w') as out:
             pickle.dump(self.permuted_inds, out)
+        j = {"name":"LOPQ Indexer",
+              "algorithm":"LOPQ",
+              "model_type":"I",
+               "arguments":{
+                   'm':self.m,
+                   'v': self.v,
+                   'sub': self.sub,
+                   'components': self.n_components,
+                   'indexer_shasum': self.source_indexer_shashum
+               },
+               "files": [
+                   {"filename":"model.proto","url":"{}/model.proto".format(self.dirname)},
+                   {"filename":"model.P.npy","url":"{}/model.P.npy".format(self.dirname)},
+                   {"filename":"model.mu.npy","url":"{}/model.mu.npy".format(self.dirname)},
+                   {"filename":"model.pca.pkl","url":"{}/model.pca.pkl".format(self.dirname)},
+                   {"filename":"model.permind.pkl","url":"{}/model.permind.pkl".format(self.dirname)}
+               ]
+            }
+        return j

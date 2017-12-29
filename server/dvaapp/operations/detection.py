@@ -15,7 +15,8 @@ class Detectors(object):
         if cd.pk not in Detectors._detectors:
             if cd.detector_type == TrainedModel.TFD:
                 Detectors._detectors[cd.pk] = detector.TFDetector(model_path=cd.get_model_path(),
-                                                                  class_index_to_string=cd.class_index_to_string)
+                                                                  class_index_to_string=
+                                                                  cd.arguments['class_index_to_string'])
             elif cd.detector_type == TrainedModel.YOLO:
                 Detectors._detectors[cd.pk] = detector.YOLODetector(cd.get_yolo_args())
             elif cd.name == 'face':

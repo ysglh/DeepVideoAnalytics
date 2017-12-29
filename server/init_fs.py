@@ -35,13 +35,14 @@ if __name__ == "__main__":
             dm, created = TrainedModel.objects.get_or_create(name=m['name'],algorithm=m['algorithm'],mode=m['mode'],
                                                           files=m.get('files',[]), model_filename=m.get("filename", ""),
                                                           detector_type=m.get("detector_type", ""),
-                                                          class_index_to_string=m.get("class_index_to_string", {}),
+                                                          arguments=m.get("arguments", {}),
                                                           model_type=TrainedModel.DETECTOR,)
             if created:
                 dm.download()
         if m['model_type'] == "indexer":
             dm, created = TrainedModel.objects.get_or_create(name=m['name'], mode=m['mode'], files=m.get('files',[]),
-                                                          shasum=m['shasum'],model_type=TrainedModel.INDEXER)
+                                                             arguments=m.get("arguments", {}), shasum=m['shasum'],
+                                                             model_type=TrainedModel.INDEXER)
             if created:
                 dr, dcreated = Retriever.objects.get_or_create(name=m['name'],
                                                                source_filters={'indexer_shasum': dm.shasum})
@@ -52,7 +53,8 @@ if __name__ == "__main__":
                 dm.download()
         if m['model_type'] == "analyzer":
             dm, created = TrainedModel.objects.get_or_create(name=m['name'], files=m.get('files',[]), mode=m['mode'],
-                                                          model_type=TrainedModel.ANALYZER)
+                                                             arguments=m.get("arguments", {}),
+                                                             model_type=TrainedModel.ANALYZER)
             if created:
                 dm.download()
     if 'INIT_PROCESS' in os.environ and DVAPQL.objects.count() == 0:

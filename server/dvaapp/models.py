@@ -163,20 +163,10 @@ class TrainedModel(models.Model):
     algorithm = models.CharField(max_length=100,default="")
     shasum = models.CharField(max_length=40,null=True,unique=True)
     model_filename = models.CharField(max_length=200,default="",null=True)
-    input_layer_name = models.CharField(max_length=300,default="")
-    embedding_layer_name = models.CharField(max_length=300,default="")
-    embedding_layer_size = models.CharField(max_length=300,default="")
     created = models.DateTimeField('date created', auto_now_add=True)
-    arguments = models.TextField(default="")
-    phase_1_log = models.TextField(default="")
-    phase_2_log = models.TextField(default="")
-    class_distribution = models.TextField(default="")
-    class_names = models.TextField(default="")
-    frames_count = models.IntegerField(default=0)
-    boxes_count = models.IntegerField(default=0)
+    arguments = JSONField(null=True,blank=True)
     source = models.ForeignKey(TEvent, null=True)
     trained = models.BooleanField(default=False)
-    class_index_to_string = JSONField(null=True,blank=True)
     url = models.CharField(max_length=200,default="")
     files = JSONField(null=True,blank=True)
     produces_labels = models.BooleanField(default=False)
@@ -238,15 +228,8 @@ class TrainedModel(models.Model):
             zipf.extractall("{}/models/{}/".format(settings.MEDIA_ROOT, self.pk))
             zipf.close()
             os.remove(source_zip)
-            self.phase_1_log = file("{}/models/{}/phase_1.log".format(settings.MEDIA_ROOT, self.pk)).read()
-            self.phase_2_log = file("{}/models/{}/phase_2.log".format(settings.MEDIA_ROOT, self.pk)).read()
             with open("{}/models/{}/input.json".format(settings.MEDIA_ROOT, self.pk)) as fh:
                 metadata = json.load(fh)
-            if 'class_distribution' in metadata:
-                self.class_distribution = json.dumps(metadata['class_distribution'])
-            else:
-                self.class_distribution = json.dumps(metadata['class_names'])
-                self.class_names = json.dumps(metadata['class_names'])
             self.save()
 
     def ensure(self):

@@ -1,5 +1,13 @@
-import os
+import os, sys, shutil
+import django
+sys.path.append("../../server/")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
+django.setup()
+from django.conf import settings
+from dvaapp.models import TrainedModel
 from dvalib.trainers import lopq_trainer
+from dvalib.retriever import LOPQRetriever
+from dvalib.indexer import LOPQIndexer
 import numpy as np
 
 
@@ -11,4 +19,9 @@ if __name__ == '__main__':
     data = np.load('facenet.npy')
     print data.shape
     l.train(data)
-    l.save()
+    j = l.save()
+    m = TrainedModel(**j)
+    m.save()
+    m.create_directory()
+    for f in m.files:
+        shutil.copy(f['url'],'{}/models/{}/{}'.format(settings.MEDIA_ROOT,m.pk,f['filename']))

@@ -125,7 +125,7 @@ DEFAULT_MODELS = [
         "detector_type": "T",
         "algorithm": "mobilenet_ssd",
         "filename": "coco_mobilenet.pb",
-        "files":[
+        "files": [
             {
                 "url": "https://www.dropbox.com/s/nzz26b2p4wxygg3/coco_mobilenet.pb",
                 "filename": "coco_mobilenet.pb",
@@ -133,7 +133,7 @@ DEFAULT_MODELS = [
             },
         ],
         "mode": "T",
-        "class_index_to_string": {
+        "arguments": {"class_index_to_string": {
             "1": "person",
             "2": "bicycle",
             "3": "car",
@@ -215,6 +215,7 @@ DEFAULT_MODELS = [
             "89": "hair drier",
             "90": "toothbrush"
         }
+        }
     },
     {
         "model_type": "detector",
@@ -252,7 +253,7 @@ DEFAULT_MODELS = [
         "model_type": "indexer",
         "name": "inception",
         "filename": "network.pb",
-        "files":[
+        "files": [
             {
                 "url": "https://www.dropbox.com/s/fc7li2vwn8lvsyu/network.pb",
                 "filename": "network.pb"
@@ -311,5 +312,5 @@ DEFAULT_MODELS = [
 ]
 
 EXTERNAL_SERVERS = [
-    {'url':'https://github.com/VisualDataNetwork/root', 'name':'VDN'},
+    {'url': 'https://github.com/VisualDataNetwork/root', 'name': 'VDN'},
 ]

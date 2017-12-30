@@ -74,7 +74,7 @@ class LOPQRetriever(BaseRetriever):
         ids = []
         last_index = len(self.entries)
         for i, e in enumerate(entries):
-            codes.append(e['codes'])
+            codes.append(tuple(e['codes']))
             ids.append(i+last_index)
             self.entries.append(e)
         self.searcher.add_codes(codes,ids)

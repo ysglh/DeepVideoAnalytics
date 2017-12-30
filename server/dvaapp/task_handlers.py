@@ -57,6 +57,11 @@ def handle_perform_indexing(start):
     return sync
 
 
+def handle_perform_index_approximation(start):
+    json_args = start.arguments
+
+
+
 def handle_perform_detection(start):
     video_id = start.video_id
     args = start.arguments

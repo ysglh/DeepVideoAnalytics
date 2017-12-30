@@ -141,10 +141,12 @@ class TrainedModel(models.Model):
         (MXNET, 'MXNet'),
     )
     INDEXER = 'I'
+    APPROXIMATOR = 'P'
     DETECTOR = 'D'
     ANALYZER = 'A'
     SEGMENTER = 'S'
     MTYPE = (
+        (APPROXIMATOR, 'Approximator'),
         (INDEXER, 'Indexer'),
         (DETECTOR, 'Detector'),
         (ANALYZER, 'Analyzer'),

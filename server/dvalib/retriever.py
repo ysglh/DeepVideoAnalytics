@@ -58,13 +58,15 @@ class BaseRetriever(object):
 
 class LOPQRetriever(BaseRetriever):
 
-    def __init__(self,name,lopq_model_from_protobuf):
+    def __init__(self,name,approximator):
         super(BaseRetriever, self).__init__()
         self.approximate = True
         self.name = name
         self.loaded_entries = []
         self.support_batching = False
-        self.searcher = LOPQSearcher(model=lopq_model_from_protobuf)
+        self.approximator = approximator
+        self.approximator.load()
+        self.searcher = LOPQSearcher(model=self.approximator.model)
 
     def load_approximate_index(self,entries):
         codes = []
@@ -78,7 +80,8 @@ class LOPQRetriever(BaseRetriever):
 
     def nearest(self,vector=None,n=12):
         results = []
-        results_indexes, visited = self.searcher.search(vector,quota=n)
+        pca_vec = self.approximator.get_pca_vector(vector)
+        results_indexes, visited = self.searcher.search(pca_vec,quota=n)
         for r in results_indexes:
             results.append(self.loaded_entries[r.id])
         return results

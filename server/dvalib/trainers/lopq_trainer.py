@@ -70,9 +70,9 @@ class LOPQTrainer(object):
             np.save(out, self.mu)
         with open(permind_filename, 'w') as out:
             pickle.dump(self.permuted_inds, out)
-        j = {"name":"LOPQ Indexer",
+        j = {"name":self.name,
               "algorithm":"LOPQ",
-              "model_type":"I",
+              "model_type":"P",
                "arguments":{
                    'm':self.m,
                    'v': self.v,

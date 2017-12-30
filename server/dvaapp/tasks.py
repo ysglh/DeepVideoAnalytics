@@ -71,6 +71,20 @@ def perform_indexing(task_id):
     return next_ids
 
 
+@app.task(track_started=True, name="perform_index_approximation")
+def perform_index_approximation(task_id):
+    start = models.TEvent.objects.get(pk=task_id)
+    if start.started:
+        return 0  # to handle celery bug with ACK in SOLO mode
+    else:
+        start.started = True
+        start.save()
+    sync = task_handlers.perform_index_approximation(start)
+    next_ids = process_next(start.pk, sync=sync)
+    mark_as_completed(start)
+    return next_ids
+
+
 @app.task(track_started=True, name="perform_transformation")
 def perform_transformation(task_id):
     """

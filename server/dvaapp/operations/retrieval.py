@@ -74,7 +74,7 @@ class RetrieverTask(celery.Task):
         # TODO: figure out a better way to store numpy arrays.
         if dr.algorithm == Retriever.EXACT:
             self.refresh_index(dr)
-        results = index_retriever.nearest(vector=vector,n=count,retriever_pk=retriever_pk,entry_getter=None)
+        results = index_retriever.nearest(vector=vector,n=count)
         # TODO: optimize this using batching
         for r in results:
             qr = QueryRegionResults() if region else QueryResults()

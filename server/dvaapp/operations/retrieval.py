@@ -56,7 +56,7 @@ class Retrievers(object):
         source_filters = dr.source_filters.copy()
         if dr.indexer_shasum:
             source_filters['indexer_shasum'] = dr.indexer_shasum
-        if dr.ap:
+        if dr.approximator_shasum:
             source_filters['approximator_shasum'] = dr.approximator_shasum
         index_entries = IndexEntries.objects.filter(**source_filters)
         visual_index = cls._visual_retriever[dr.pk]

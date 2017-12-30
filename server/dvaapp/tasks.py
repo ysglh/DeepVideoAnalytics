@@ -6,7 +6,7 @@ from PIL import Image
 from django.conf import settings
 from dva.celery import app
 from . import models
-from .operations.retrieval import RetrieverTask
+from .operations.retrieval import Retrievers
 from .operations.decoding import VideoDecoder
 from .operations.dataset import DatasetCreator
 from .processing import process_next, mark_as_completed
@@ -122,7 +122,7 @@ def perform_transformation(task_id):
     mark_as_completed(start)
 
 
-@app.task(track_started=True, name="perform_retrieval", base=RetrieverTask)
+@app.task(track_started=True, name="perform_retrieval")
 def perform_retrieval(task_id):
     start = models.TEvent.objects.get(pk=task_id)
     if start.started:
@@ -137,12 +137,12 @@ def perform_retrieval(task_id):
     target = args.get('target', 'query')  # by default target is query
     if target == 'query':
         vector = np.load(io.BytesIO(models.QueryIndexVector.objects.get(event=start.parent_id).vector))
-        perform_retrieval.retrieve(start, args.get('retriever_pk', 20), vector, args.get('count', 20))
+        Retrievers.retrieve(start, args.get('retriever_pk', 20), vector, args.get('count', 20))
     elif target == 'query_region_index_vectors':
         queryset, target = task_shared.build_queryset(args=args)
         for dr in queryset:
             vector = np.load(io.BytesIO(dr.vector))
-            perform_retrieval.retrieve(start, args.get('retriever_pk', 20), vector, args.get('count', 20),
+            Retrievers.retrieve(start, args.get('retriever_pk', 20), vector, args.get('count', 20),
                                        region=dr.query_region)
     else:
         raise NotImplementedError(target)

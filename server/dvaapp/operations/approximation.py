@@ -14,6 +14,7 @@ from ..models import TrainedModel
 class Approximators(object):
     _index_approximator = {}
     _name_to_index = {}
+    _shasum_to_index = {}
     _session = None
 
     @classmethod
@@ -24,7 +25,16 @@ class Approximators(object):
         else:
             di = Approximators._name_to_index[name]
         return cls.get_approximator(di),di
-    
+
+    @classmethod
+    def get_approximator_by_shasum(cls,shasum):
+        if shasum not in Approximators._shasum_to_index:
+            di = TrainedModel.objects.get(shasum=shasum,model_type=TrainedModel.APPROXIMATOR)
+            Approximators._shasum_to_index[shasum] = di
+        else:
+            di = Approximators._shasum_to_index[shasum]
+        return cls.get_approximator(di),di
+
     @classmethod
     def get_approximator_by_pk(cls,pk):
         di = TrainedModel.objects.get(pk=pk)

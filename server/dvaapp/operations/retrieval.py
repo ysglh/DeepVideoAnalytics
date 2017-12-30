@@ -1,5 +1,5 @@
 import logging
-import celery
+from .approximation import Approximators
 try:
     from dvalib import indexer, retriever
     import numpy as np
@@ -11,26 +11,31 @@ except ImportError:
 from ..models import IndexEntries,QueryResults,Region,Retriever, QueryRegionResults
 
 
-class RetrieverTask(celery.Task):
+class Retrievers(object):
     _visual_retriever = {}
     _retriever_object = {}
     _index_count = 0
 
-    def get_retriever(self,retriever_pk):
-        if retriever_pk not in RetrieverTask._visual_retriever:
+    @classmethod
+    def get_retriever(cls,retriever_pk):
+        if retriever_pk not in cls._visual_retriever:
             dr = Retriever.objects.get(pk=retriever_pk)
-            RetrieverTask._retriever_object[retriever_pk] = dr
+            cls._retriever_object[retriever_pk] = dr
             if dr.algorithm == Retriever.EXACT:
-                RetrieverTask._visual_retriever[retriever_pk] = retriever.BaseRetriever(name=dr.name)
+                cls._visual_retriever[retriever_pk] = retriever.BaseRetriever(name=dr.name)
             elif dr.algorithm == Retriever.LOPQ:
-                dr.arguments['proto_filename'] = dr.proto_filename()
-                RetrieverTask._visual_retriever[retriever_pk] = retriever.LOPQRetriever(name=dr.name,args=dr.arguments)
-                RetrieverTask._visual_retriever[retriever_pk].load()
+                approximator, da = Approximators.get_approximator_by_shasum(dr.approximator_shashum)
+                da.ensure()
+                approximator.load()
+                cls._visual_retriever[retriever_pk] = retriever.LOPQRetriever(name=dr.name,
+                                                                              approximator=approximator)
+
             else:
                 raise ValueError,"{} not valid retriever algorithm".format(dr.algorithm)
-        return RetrieverTask._visual_retriever[retriever_pk], RetrieverTask._retriever_object[retriever_pk]
+        return cls._visual_retriever[retriever_pk], cls._retriever_object[retriever_pk]
 
-    def refresh_index(self, dr):
+    @classmethod
+    def refresh_index(cls, dr):
         """
         :param index_name:
         :return:
@@ -38,42 +43,54 @@ class RetrieverTask(celery.Task):
         # This has a BUG where total count of index entries remains unchanged
         # TODO: Waiting for https://github.com/celery/celery/issues/3620 to be resolved to enabel ASYNC index updates
         # TODO improve this by either having a seperate broadcast queues or using last update timestampl
-        last_count = RetrieverTask._index_count
+        last_count = cls._index_count
         current_count = IndexEntries.objects.count()
-        visual_index = RetrieverTask._visual_retriever[dr.pk]
+        visual_index = cls._visual_retriever[dr.pk]
         if last_count == 0 or last_count != current_count or len(visual_index.loaded_entries) == 0:
             # update the count
-            RetrieverTask._index_count = current_count
-            self.update_index(dr)
+            cls._index_count = current_count
+            cls.update_index(dr)
 
-    def update_index(self,dr):
-        index_entries = IndexEntries.objects.filter(**dr.source_filters)
-        visual_index = RetrieverTask._visual_retriever[dr.pk]
+    @classmethod
+    def update_index(cls,dr):
+        source_filters = dr.source_filters.copy()
+        if dr.indexer_shashum:
+            source_filters['indexer_shashum'] = dr.indexer_shashum
+        if dr.ap:
+            source_filters['approximator_shashum'] = dr.approximator_shashum
+        index_entries = IndexEntries.objects.filter(**source_filters)
+        visual_index = cls._visual_retriever[dr.pk]
         for index_entry in index_entries:
             if index_entry.pk not in visual_index.loaded_entries and index_entry.count > 0:
-                vectors, vector_entries = index_entry.load_index()
+                vectors, entries = index_entry.load_index()
                 logging.info("Starting {} in {} with shape {}".format(index_entry.video_id, visual_index.name,vectors.shape))
-                start_index = visual_index.findex
-                try:
-                    visual_index.load_index(vectors, vector_entries)
-                except:
-                    logging.info("ERROR Failed to load {} vectors shape {} entries {}".format(index_entry.video_id,vectors.shape,len(vector_entries)))
-                visual_index.loaded_entries[index_entry.pk] = indexer.IndexRange(start=start_index,
-                                                                                 end=visual_index.findex - 1)
-                logging.info("finished {} in {}, current shape {}, range".format(index_entry.video_id,
-                                                                                 visual_index.name,
-                                                                                 visual_index.index.shape,
-                                                                                 visual_index.loaded_entries[
-                                                                                     index_entry.pk].start,
-                                                                                 visual_index.loaded_entries[
-                                                                                     index_entry.pk].end,
-                                                                                 ))
+                if visual_index.approximate:
+                    visual_index.load_index(entries)
+                else:
+                    try:
+                        start_index = visual_index.findex
+                        visual_index.load_index(vectors, entries)
+                        visual_index.loaded_entries[index_entry.pk] = indexer.IndexRange(start=start_index,
+                                                                                         end=visual_index.findex-1)
+                    except:
+                        logging.info("ERROR Failed to load {} vectors shape {} entries {}".format(
+                            index_entry.video_id,vectors.shape,len(entries)))
+                    else:
+                        logging.info("finished {} in {}, current shape {}, range".format(index_entry.video_id,
+                                                                             visual_index.name,
+                                                                             visual_index.index.shape,
+                                                                             visual_index.loaded_entries[
+                                                                                 index_entry.pk].start,
+                                                                             visual_index.loaded_entries[
+                                                                                 index_entry.pk].end,
+                                                                             ))
 
-    def retrieve(self,event,retriever_pk,vector,count,region=None):
-        index_retriever,dr = self.get_retriever(retriever_pk)
+    @classmethod
+    def retrieve(cls,event,retriever_pk,vector,count,region=None):
+        index_retriever,dr = cls.get_retriever(retriever_pk)
         # TODO: figure out a better way to store numpy arrays.
         if dr.algorithm == Retriever.EXACT:
-            self.refresh_index(dr)
+            cls.refresh_index(dr)
         results = index_retriever.nearest(vector=vector,n=count)
         # TODO: optimize this using batching
         for r in results:

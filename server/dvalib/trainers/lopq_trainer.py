@@ -1,4 +1,4 @@
-import pickle, json
+import pickle, hashlib
 import numpy as np
 
 try:
@@ -72,6 +72,7 @@ class LOPQTrainer(object):
             pickle.dump(self.permuted_inds, out)
         j = {"name":self.name,
               "algorithm":"LOPQ",
+              "shasum":hashlib.sha1(file(model_proto_filename).read()).hexdigest(),
               "model_type":"P",
                "arguments":{
                    'm':self.m,

@@ -262,6 +262,8 @@ class Retriever(models.Model):
     )
     algorithm = models.CharField(max_length=1,choices=MODES,db_index=True,default=EXACT)
     name = models.CharField(max_length=200,default="")
+    indexer_shasum = models.CharField(max_length=40,null=True)
+    approximator_shashum = models.CharField(max_length=40,null=True)
     arguments = JSONField(blank=True,null=True)
     source_filters = JSONField()
     created = models.DateTimeField('date created', auto_now_add=True)
@@ -474,6 +476,7 @@ class IndexEntries(models.Model):
     algorithm = models.CharField(max_length=100)
     indexer = models.ForeignKey(TrainedModel, null=True)
     indexer_shasum = models.CharField(max_length=40)
+    approximator_shashum = models.CharField(max_length=40, null=True)
     detection_name = models.CharField(max_length=100)
     count = models.IntegerField()
     approximate = models.BooleanField(default=False)
@@ -510,11 +513,14 @@ class IndexEntries(models.Model):
         if not os.path.isdir(index_dir):
             os.mkdir(index_dir)
         dirnames = {}
+        if self.algorithm == 'LOPQ':
+            vectors = None
+        else:
+            fs.ensure(self.npy_path(media_root=''), dirnames, media_root)
+            vectors = np.load(self.npy_path(media_root))
         fs.ensure(self.entries_path(media_root=''),dirnames,media_root)
-        fs.ensure(self.npy_path(media_root=''),dirnames,media_root)
-        vectors = np.load(self.npy_path(media_root))
-        vector_entries = json.load(file(self.entries_path(media_root)))
-        return vectors,vector_entries
+        entries = json.load(file(self.entries_path(media_root)))
+        return vectors,entries
 
 
 class Tube(models.Model):

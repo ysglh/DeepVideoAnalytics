@@ -68,7 +68,7 @@ class LOPQRetriever(BaseRetriever):
         self.approximator.load()
         self.searcher = LOPQSearcher(model=self.approximator.model)
 
-    def load_approximate_index(self,entries):
+    def load_index(self,numpy_matrix=None,entries=None):
         codes = []
         ids = []
         last_index = len(self.loaded_entries)

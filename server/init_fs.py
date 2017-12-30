@@ -45,7 +45,8 @@ if __name__ == "__main__":
                                                              model_type=TrainedModel.INDEXER)
             if created:
                 dr, dcreated = Retriever.objects.get_or_create(name=m['name'],
-                                                               source_filters={'indexer_shasum': dm.shasum})
+                                                               source_filters={},
+                                                               indexer_shasum=dm.shasum)
                 if dcreated:
                     dr.last_built = timezone.now()
                     dr.save()

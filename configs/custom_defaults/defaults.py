@@ -24,7 +24,15 @@ DEFAULT_PROCESSING_PLAN_VIDEO = [
              'arguments': {
                  'index': 'facenet',
                  'target': 'regions',
-                 'filters': {'event_id': '__parent_event__'}
+                 'filters': {'event_id': '__parent_event__'},
+                 'map': [{
+                     'operation': 'perform_index_approximation',
+                     'arguments': {
+                         'target': 'index_entries',
+                         'approximator_shasum': '93be2f99d432a7ce2d1626107659510755ea3815',
+                         'filters': {'event_id': '__parent_event__'}
+                     }
+                 }]
              }},
         ]}
      },
@@ -62,7 +70,16 @@ DEFAULT_PROCESSING_PLAN_DATASET = [
              'arguments': {
                  'index': 'facenet',
                  'target': 'regions',
-                 'filters': {'event_id': '__parent_event__'}
+                 'filters': {'event_id': '__parent_event__'},
+                 'map': [{
+                     'operation': 'perform_index_approximation',
+                     'arguments': {
+                         'target': 'index_entries',
+                         'approximator_shasum': '93be2f99d432a7ce2d1626107659510755ea3815',
+                         'filters': {'event_id': '__parent_event__'}
+                     }
+                 }]
+
              }
              },
         ]}
@@ -101,7 +118,15 @@ DEFAULT_PROCESSING_PLAN_FRAMELIST = [
              'arguments': {
                  'index': 'facenet',
                  'target': 'regions',
-                 'filters': {'event_id': '__parent_event__'}
+                 'filters': {'event_id': '__parent_event__'},
+                 'map': [{
+                     'operation': 'perform_index_approximation',
+                     'arguments': {
+                         'target': 'index_entries',
+                         'approximator_shasum': '93be2f99d432a7ce2d1626107659510755ea3815',
+                         'filters': {'event_id': '__parent_event__'}
+                     }
+                 }]
              }
              },
         ]}

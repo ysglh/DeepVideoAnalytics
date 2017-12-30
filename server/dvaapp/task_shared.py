@@ -143,6 +143,8 @@ def build_queryset(args,video_id=None,query_id=None):
     elif target == 'query':
         kwargs['pk'] = query_id
         queryset = DVAPQL.objects.all().filter(**kwargs)
+    elif target == 'index_entries':
+        queryset = IndexEntries.objects.all().filter(**kwargs)
     elif target == 'query_regions':
         queryset = QueryRegion.objects.all().filter(**kwargs)
     elif target == 'query_region_index_vectors':

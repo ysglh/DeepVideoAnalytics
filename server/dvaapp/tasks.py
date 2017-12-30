@@ -79,7 +79,7 @@ def perform_index_approximation(task_id):
     else:
         start.started = True
         start.save()
-    sync = task_handlers.perform_index_approximation(start)
+    sync = task_handlers.handle_perform_index_approximation(start)
     next_ids = process_next(start.pk, sync=sync)
     mark_as_completed(start)
     return next_ids

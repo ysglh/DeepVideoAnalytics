@@ -24,6 +24,7 @@ SYNC_TASKS = {
     'perform_region_import':[],
     'perform_transformation':[{'operation': 'perform_sync', 'arguments': {'dirname': 'regions'}},],
     'perform_indexing':[{'operation': 'perform_sync', 'arguments': {'dirname': 'indexes'}},],
+    'perform_index_approximation':[{'operation': 'perform_sync', 'arguments': {'dirname': 'indexes'}},],
     'perform_import':[{'operation': 'perform_sync', 'arguments': {}},],
     'perform_detector_training':[],
     'perform_detector_import':[],
@@ -31,6 +32,7 @@ SYNC_TASKS = {
 
 ANALYER_NAME_TO_PK = {}
 INDEXER_NAME_TO_PK = {}
+APPROXIMATOR_SHASUM_TO_PK = {}
 RETRIEVER_NAME_TO_PK = {}
 DETECTOR_NAME_TO_PK = {}
 CURRENT_QUEUES = set()
@@ -59,6 +61,8 @@ def get_model_specific_queue_name(operation,args):
         queue_name = "q_retriever_{}".format(args['retriever_pk'])
     elif 'analyzer_pk' in args:
         queue_name = "q_analyzer_{}".format(args['analyzer_pk'])
+    elif 'approximator_pk' in args:
+        queue_name = "q_approximator_{}".format(args['approximator_pk'])
     elif 'retriever' in args:
         if args['retriever'] not in RETRIEVER_NAME_TO_PK:
             RETRIEVER_NAME_TO_PK[args['retriever']] = Retriever.objects.get(name=args['retriever']).pk
@@ -67,6 +71,12 @@ def get_model_specific_queue_name(operation,args):
         if args['index'] not in INDEXER_NAME_TO_PK:
             INDEXER_NAME_TO_PK[args['index']] = TrainedModel.objects.get(name=args['index'],model_type=TrainedModel.INDEXER).pk
         queue_name = 'q_indexer_{}'.format(INDEXER_NAME_TO_PK[args['index']])
+    elif 'approximator_shasum' in args:
+        ashasum= args['approximator_shasum']
+        if ashasum not in APPROXIMATOR_SHASUM_TO_PK:
+            APPROXIMATOR_SHASUM_TO_PK[ashasum] = TrainedModel.objects.get(shasum=ashasum,
+                                                                          model_type=TrainedModel.INDEXER).pk
+        queue_name = 'q_approximator_{}'.format(APPROXIMATOR_SHASUM_TO_PK[ashasum])
     elif 'analyzer' in args:
         if args['analyzer'] not in ANALYER_NAME_TO_PK:
             ANALYER_NAME_TO_PK[args['analyzer']] = TrainedModel.objects.get(name=args['analyzer'],model_type=TrainedModel.ANALYZER).pk
@@ -83,6 +93,8 @@ def get_model_specific_queue_name(operation,args):
 def get_model_pk_from_args(operation,args):
     if 'detector_pk' in args:
         return args['detector_pk']
+    if 'approximator_pk' in args:
+        return args['approximator_pk']
     elif 'indexer_pk' in args:
         return args['indexer_pk']
     elif 'retriever_pk' in args:
@@ -101,6 +113,12 @@ def get_model_pk_from_args(operation,args):
         if args['detector'] not in DETECTOR_NAME_TO_PK:
             DETECTOR_NAME_TO_PK[args['detector']] = TrainedModel.objects.get(name=args['detector'],model_type=TrainedModel.DETECTOR).pk
         return DETECTOR_NAME_TO_PK[args['detector']]
+    elif 'approximator_shasum' in args:
+        ashasum= args['approximator_shasum']
+        if ashasum not in APPROXIMATOR_SHASUM_TO_PK:
+            APPROXIMATOR_SHASUM_TO_PK[ashasum] = TrainedModel.objects.get(shasum=ashasum,
+                                                                          model_type=TrainedModel.INDEXER).pk
+        return APPROXIMATOR_SHASUM_TO_PK[ashasum]
     else:
         raise NotImplementedError,"{}, {}".format(operation,args)
 

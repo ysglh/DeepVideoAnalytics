@@ -1,9 +1,8 @@
 from django.conf import settings
-from .operations import indexing, detection, analysis
-import io, logging, tempfile
+from .operations import indexing, detection, analysis, approximation
+import io, logging, tempfile, json, uuid
 from . import task_shared
 from . import models
-
 
 try:
     import numpy as np
@@ -13,7 +12,7 @@ except ImportError:
 
 def handle_perform_indexing(start):
     json_args = start.arguments
-    target = json_args.get('target','frames')
+    target = json_args.get('target', 'frames')
     if 'index' in json_args:
         index_name = json_args['index']
         visual_index, di = indexing.Indexers.get_index_by_name(index_name)
@@ -25,20 +24,20 @@ def handle_perform_indexing(start):
         vector = visual_index.apply(local_path)
         # TODO: figure out a better way to store numpy arrays.
         s = io.BytesIO()
-        np.save(s,vector)
+        np.save(s, vector)
         # can be replaced by Redis instead of using DB
-        _ = models.QueryIndexVector.objects.create(vector=s.getvalue(),event=start)
+        _ = models.QueryIndexVector.objects.create(vector=s.getvalue(), event=start)
         sync = False
     elif target == 'query_regions':
         queryset, target = task_shared.build_queryset(args=start.arguments)
         region_paths = task_shared.download_and_get_query_region_path(start, queryset)
-        for i,dr in enumerate(queryset):
+        for i, dr in enumerate(queryset):
             local_path = region_paths[i]
             vector = visual_index.apply(local_path)
             s = io.BytesIO()
-            np.save(s,vector)
+            np.save(s, vector)
             # can be replaced by Redis instead of using DB
-            _ = models.QueryRegionIndexVector.objects.create(vector=s.getvalue(),event=start,query_region=dr)
+            _ = models.QueryRegionIndexVector.objects.create(vector=s.getvalue(), event=start, query_region=dr)
         sync = False
     elif target == 'regions':
         # For regions simply download/ensure files exists.
@@ -58,8 +57,40 @@ def handle_perform_indexing(start):
 
 
 def handle_perform_index_approximation(start):
-    json_args = start.arguments
-
+    args = start.arguments
+    if 'approximator_pk' in args:
+        approx, da = approximation.Approximators.get_approximator_by_pk(args['approximator_pk'])
+    elif 'approximator_shasum' in args:
+        approx, da = approximation.Approximators.get_approximator_by_shasum(args['approximator_shasum'])
+    else:
+        raise ValueError("Could not find approximator {}".format(args))
+    if args['target'] == 'index_entries':
+        queryset, target = task_shared.build_queryset(args, start.video_id, start.parent_process_id)
+        new_approx_indexes = []
+        for index_entry in queryset:
+            vectors, entries = index_entry.load_index()
+            for i, e in enumerate(entries):
+                e['codes'] = approx.approximate(vectors[i, :])
+            approx_ind = models.IndexEntries()
+            approx_ind.indexer_shasum = index_entry.indexer_shasum
+            approx_ind.approximator_shasum = da.shasum
+            approx_ind.count = index_entry.cont
+            approx_ind.approximate = True
+            approx_ind.detection_name = index_entry.detection_name
+            approx_ind.contains_detections = index_entry.cont
+            approx_ind.contains_frames = index_entry.cont
+            approx_ind.video_id = index_entry.video_id
+            approx_ind.event_id = start.pk
+            uid = str(uuid.uuid1()).replace('-', '_')
+            entries_fname = "{}/{}/indexes/{}.json".format(settings.MEDIA_ROOT, start.video_id, uid)
+            with open(entries_fname, 'w') as entryfile:
+                json.dump(entries, entryfile)
+            approx_ind.entries_file_name = entries_fname
+            approx_ind.features_file_name = ""
+            new_approx_indexes.append(new_approx_indexes)
+        models.IndexEntries.objects.bulk_create(new_approx_indexes, batch_size=100)
+    else:
+        raise ValueError("Target {} not allowed, only index_entries are allowed".format(args['target']))
 
 
 def handle_perform_detection(start):
@@ -71,11 +102,11 @@ def handle_perform_detection(start):
     query_flow = ('target' in args and args['target'] == 'query')
     if 'detector_pk' in args:
         detector_pk = int(args['detector_pk'])
-        cd = models.TrainedModel.objects.get(pk=detector_pk,model_type=models.TrainedModel.DETECTOR)
+        cd = models.TrainedModel.objects.get(pk=detector_pk, model_type=models.TrainedModel.DETECTOR)
         detector_name = cd.name
     else:
         detector_name = args['detector']
-        cd = models.TrainedModel.objects.get(name=detector_name,model_type=models.TrainedModel.DETECTOR)
+        cd = models.TrainedModel.objects.get(name=detector_name, model_type=models.TrainedModel.DETECTOR)
         detector_pk = cd.pk
     detection.Detectors.load_detector(cd)
     detector = detection.Detectors._detectors[cd.pk]
@@ -84,13 +115,13 @@ def handle_perform_detection(start):
         detector.load()
     if query_flow:
         local_path = task_shared.download_and_get_query_path(start)
-        frame_detections_list.append((None,detector.detect(local_path)))
+        frame_detections_list.append((None, detector.detect(local_path)))
     else:
         if 'target' not in args:
             args['target'] = 'frames'
         dv = models.Video.objects.get(id=video_id)
         queryset, target = task_shared.build_queryset(args, video_id, start.parent_process_id)
-        task_shared.ensure_files(queryset,target)
+        task_shared.ensure_files(queryset, target)
         for k in queryset:
             if target == 'frames':
                 local_path = k.path()
@@ -99,7 +130,7 @@ def handle_perform_detection(start):
             else:
                 raise NotImplementedError("Invalid target:{}".format(target))
             frame_detections_list.append((k, detector.detect(local_path)))
-    for df,detections in frame_detections_list:
+    for df, detections in frame_detections_list:
         for d in detections:
             dd = models.QueryRegion() if query_flow else models.Region()
             dd.region_type = models.Region.DETECTION
@@ -138,7 +169,7 @@ def handle_perform_analysis(start):
     args = start.arguments
     analyzer_name = args['analyzer']
     if analyzer_name not in analysis.Analyzers._analyzers:
-        da = models.TrainedModel.objects.get(name=analyzer_name,model_type=models.TrainedModel.ANALYZER)
+        da = models.TrainedModel.objects.get(name=analyzer_name, model_type=models.TrainedModel.ANALYZER)
         analysis.Analyzers.load_analyzer(da)
     analyzer = analysis.Analyzers._analyzers[analyzer_name]
     regions_batch = []
@@ -156,7 +187,7 @@ def handle_perform_analysis(start):
     regions_to_labels = []
     labels_pk = {}
     temp_root = tempfile.mkdtemp()
-    for i,f in enumerate(queryset):
+    for i, f in enumerate(queryset):
         if query_regions_paths:
             path = query_regions_paths[i]
             a = models.QueryRegion()
@@ -186,7 +217,7 @@ def handle_perform_analysis(start):
                 a.frame_id = f.frame.id
                 a.frame_index = f.frame_index
                 a.segment_index = f.segment_index
-                path = task_shared.crop_and_get_region_path(f,image_data,temp_root)
+                path = task_shared.crop_and_get_region_path(f, image_data, temp_root)
             elif target == 'frames':
                 a.full_frame = True
                 a.frame_index = f.frame_index
@@ -198,17 +229,20 @@ def handle_perform_analysis(start):
         object_name, text, metadata, labels = analyzer.apply(path)
         if labels:
             for l in labels:
-                if (l,analyzer.label_set) not in labels_pk:
-                    labels_pk[(l,analyzer.label_set)] = models.Label.objects.get_or_create(name=l,set=analyzer.label_set)[0].pk
+                if (l, analyzer.label_set) not in labels_pk:
+                    labels_pk[(l, analyzer.label_set)] = models.Label.objects.get_or_create(name=l,
+                                                                                             set=analyzer.label_set)[0].pk
                 if target == 'regions':
-                    regions_to_labels.append(models.RegionLabel(label_id=labels_pk[(l,analyzer.label_set)],region_id=f.pk,
-                                                         frame_id=f.frame.pk, frame_index=f.frame_index,
-                                                         segment_index=f.segment_index,video_id=f.video_id,
-                                                         event_id=task_id))
+                    regions_to_labels.append(
+                        models.RegionLabel(label_id=labels_pk[(l, analyzer.label_set)], region_id=f.pk,
+                                           frame_id=f.frame.pk, frame_index=f.frame_index,
+                                           segment_index=f.segment_index, video_id=f.video_id,
+                                           event_id=task_id))
                 elif target == 'frames':
-                    frames_to_labels.append(models.FrameLabel(label_id=labels_pk[(l, analyzer.label_set)],frame_id=f.pk,
-                                                       frame_index=f.frame_index, segment_index=f.segment_index,
-                                                       video_id=f.video_id, event_id=task_id))
+                    frames_to_labels.append(
+                        models.FrameLabel(label_id=labels_pk[(l, analyzer.label_set)], frame_id=f.pk,
+                                          frame_index=f.frame_index, segment_index=f.segment_index,
+                                          video_id=f.video_id, event_id=task_id))
         a.region_type = models.Region.ANNOTATION
         a.object_name = object_name
         a.text = text
@@ -218,8 +252,8 @@ def handle_perform_analysis(start):
     if query_regions_paths or query_path:
         models.QueryRegion.objects.bulk_create(regions_batch, 1000)
     else:
-        models.Region.objects.bulk_create(regions_batch,1000)
+        models.Region.objects.bulk_create(regions_batch, 1000)
     if regions_to_labels:
-        models.RegionLabel.objects.bulk_create(regions_to_labels,1000)
+        models.RegionLabel.objects.bulk_create(regions_to_labels, 1000)
     if frames_to_labels:
-        models.FrameLabel.objects.bulk_create(frames_to_labels,1000)
+        models.FrameLabel.objects.bulk_create(frames_to_labels, 1000)

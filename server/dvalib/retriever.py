@@ -63,6 +63,7 @@ class LOPQRetriever(BaseRetriever):
         self.approximate = True
         self.name = name
         self.loaded_entries = []
+        self.entries = []
         self.support_batching = False
         self.approximator = approximator
         self.approximator.load()
@@ -71,11 +72,11 @@ class LOPQRetriever(BaseRetriever):
     def load_index(self,numpy_matrix=None,entries=None):
         codes = []
         ids = []
-        last_index = len(self.loaded_entries)
+        last_index = len(self.entries)
         for i, e in enumerate(entries):
             codes.append(e['codes'])
             ids.append(i+last_index)
-            self.loaded_entries.append(e)
+            self.entries.append(e)
         self.searcher.add_codes(codes,ids)
 
     def nearest(self,vector=None,n=12):
@@ -83,5 +84,5 @@ class LOPQRetriever(BaseRetriever):
         pca_vec = self.approximator.get_pca_vector(vector)
         results_indexes, visited = self.searcher.search(pca_vec,quota=n)
         for r in results_indexes:
-            results.append(self.loaded_entries[r.id])
+            results.append(self.entries[r.id])
         return results

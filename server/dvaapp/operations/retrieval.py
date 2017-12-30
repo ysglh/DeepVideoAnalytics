@@ -64,7 +64,10 @@ class Retrievers(object):
             if index_entry.pk not in visual_index.loaded_entries and index_entry.count > 0:
                 vectors, entries = index_entry.load_index()
                 if visual_index.approximate:
-                    visual_index.load_index(entries)
+                    start_index = len(visual_index.entries)
+                    visual_index.load_index(entries=entries)
+                    visual_index.loaded_entries[index_entry.pk] = indexer.IndexRange(start=start_index,
+                                                                                     end=len(visual_index.entries)-1)
                 else:
                     logging.info("Starting {} in {} with shape {}".format(index_entry.video_id, visual_index.name,
                                                                           vectors.shape))

@@ -41,7 +41,7 @@ class BaseRetriever(object):
             self.index = np.concatenate([self.index, np.atleast_2d(np.concatenate(temp_index).squeeze())])
             logging.info(self.index.shape)
 
-    def nearest(self, vector=None, n=12,retriever_pk=None,entry_getter=None):
+    def nearest(self, vector=None, n=12):
         dist = None
         results = []
         if self.index is not None:
@@ -58,44 +58,27 @@ class BaseRetriever(object):
 
 class LOPQRetriever(BaseRetriever):
 
-    def __init__(self,name,model):
+    def __init__(self,name,lopq_model_from_protobuf):
         super(BaseRetriever, self).__init__()
         self.approximate = True
         self.name = name
-        self.loaded_entries = {}
-        self.index, self.files, self.findex = None, {}, 0
+        self.loaded_entries = []
         self.support_batching = False
-        self.searcher = LOPQSearcher(model=model)
+        self.searcher = LOPQSearcher(model=lopq_model_from_protobuf)
 
     def load_approximate_index(self,entries):
+        codes = []
+        ids = []
+        last_index = len(self.loaded_entries)
         for i, e in enumerate(entries):
-            self.files[self.findex] = e
-            self.findex += 1
+            codes.append(e['codes'])
+            ids.append(i+last_index)
+            self.loaded_entries.append(e)
+        self.searcher.add_codes(codes,ids)
 
-
-
-    def nearest(self,vector=None, n=12,retriever_pk=None,entry_getter=None):
+    def nearest(self,vector=None,n=12):
         results = []
-        coarse, fine, results_indexes = self.apply(vector, n)
-        for i, k in enumerate(results_indexes[0]):
-            e = entry_getter(k.id,retriever_pk)
-            if e.detection_id:
-                results.append({
-                    'rank': i + 1,
-                    'dist': i,
-                    'detection_primary_key': e.detection_id,
-                    'frame_index': e.frame.frame_index,
-                    'frame_primary_key': e.frame_id,
-                    'video_primary_key': e.video_id,
-                    'type': 'detection',
-                })
-            else:
-                results.append({
-                    'rank': i + 1,
-                    'dist': i,
-                    'frame_index': e.frame.frame_index,
-                    'frame_primary_key': e.frame_id,
-                    'video_primary_key': e.video_id,
-                    'type': 'frame',
-                })
+        results_indexes, visited = self.searcher.search(vector,quota=n)
+        for r in results_indexes:
+            results.append(self.loaded_entries[r.id])
         return results

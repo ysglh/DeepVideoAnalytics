@@ -417,8 +417,18 @@ class LOPQIndexer(BaseApproximateIndexer):
         self.permuted_inds = np.load(file(self.permuted_inds_filename))
 
     def approximate(self, vector):
-        if self.model is None:
-            self.load()
-        vector = np.dot((self.pca_reduction.transform(vector) - self.mu), self.P).transpose().squeeze()
+        vector = self.get_pca_vector(vector)
         codes = self.model.predict(vector)
         return codes.coarse, codes.fine
+
+    def get_pca_vector(self, vector):
+        if self.model is None:
+            self.load()
+        return np.dot((self.pca_reduction.transform(vector) - self.mu), self.P).transpose().squeeze()
+
+    def get_pca_vector_from_path(self, path):
+        if self.source_model:
+            vector = self.source_model.apply(path)
+        else:
+            raise ValueError
+        return self.get_pca_vector(vector)

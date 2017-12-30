@@ -66,6 +66,7 @@ class Retrievers(object):
             if index_entry.pk not in visual_index.loaded_entries and index_entry.count > 0:
                 vectors, entries = index_entry.load_index()
                 if visual_index.approximate:
+                    logging.info("loading approximate {}".format(index_entry.pk,entries.pk))
                     start_index = len(visual_index.entries)
                     visual_index.load_index(entries=entries)
                     visual_index.loaded_entries[index_entry.pk] = indexer.IndexRange(start=start_index,
@@ -94,9 +95,8 @@ class Retrievers(object):
     @classmethod
     def retrieve(cls,event,retriever_pk,vector,count,region=None):
         index_retriever,dr = cls.get_retriever(retriever_pk)
-        # TODO: figure out a better way to store numpy arrays.
-        if dr.algorithm == Retriever.EXACT:
-            cls.refresh_index(dr)
+        cls.refresh_index(dr)
+        # TODO: figure out a better way to store numpy arrays
         results = index_retriever.nearest(vector=vector,n=count)
         # TODO: optimize this using batching
         for r in results:

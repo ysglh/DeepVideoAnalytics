@@ -516,11 +516,11 @@ class IndexEntries(models.Model):
         if not os.path.isdir(index_dir):
             os.mkdir(index_dir)
         dirnames = {}
-        if self.algorithm == 'LOPQ':
-            vectors = None
-        else:
+        if self.features_file_name.strip():
             fs.ensure(self.npy_path(media_root=''), dirnames, media_root)
             vectors = np.load(self.npy_path(media_root))
+        else:
+            vectors = None
         fs.ensure(self.entries_path(media_root=''),dirnames,media_root)
         entries = json.load(file(self.entries_path(media_root)))
         return vectors,entries

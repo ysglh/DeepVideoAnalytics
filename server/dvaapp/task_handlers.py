@@ -74,11 +74,11 @@ def handle_perform_index_approximation(start):
             approx_ind = models.IndexEntries()
             approx_ind.indexer_shasum = index_entry.indexer_shasum
             approx_ind.approximator_shasum = da.shasum
-            approx_ind.count = index_entry.cont
+            approx_ind.count = index_entry.count
             approx_ind.approximate = True
             approx_ind.detection_name = index_entry.detection_name
-            approx_ind.contains_detections = index_entry.cont
-            approx_ind.contains_frames = index_entry.cont
+            approx_ind.contains_detections = index_entry.contains_detections
+            approx_ind.contains_frames = index_entry.contains_frames
             approx_ind.video_id = index_entry.video_id
             approx_ind.event_id = start.pk
             uid = str(uuid.uuid1()).replace('-', '_')

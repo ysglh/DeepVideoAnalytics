@@ -75,7 +75,7 @@ def get_model_specific_queue_name(operation,args):
         ashasum= args['approximator_shasum']
         if ashasum not in APPROXIMATOR_SHASUM_TO_PK:
             APPROXIMATOR_SHASUM_TO_PK[ashasum] = TrainedModel.objects.get(shasum=ashasum,
-                                                                          model_type=TrainedModel.INDEXER).pk
+                                                                          model_type=TrainedModel.APPROXIMATOR).pk
         queue_name = 'q_approximator_{}'.format(APPROXIMATOR_SHASUM_TO_PK[ashasum])
     elif 'analyzer' in args:
         if args['analyzer'] not in ANALYER_NAME_TO_PK:
@@ -117,7 +117,7 @@ def get_model_pk_from_args(operation,args):
         ashasum= args['approximator_shasum']
         if ashasum not in APPROXIMATOR_SHASUM_TO_PK:
             APPROXIMATOR_SHASUM_TO_PK[ashasum] = TrainedModel.objects.get(shasum=ashasum,
-                                                                          model_type=TrainedModel.INDEXER).pk
+                                                                          model_type=TrainedModel.APPROXIMATOR).pk
         return APPROXIMATOR_SHASUM_TO_PK[ashasum]
     else:
         raise NotImplementedError,"{}, {}".format(operation,args)

@@ -120,7 +120,7 @@ DEFAULT_PROCESSING_PLAN_FRAMELIST = [
 
 DEFAULT_MODELS = [
     {
-        "model_type": "detector",
+        "model_type": "D",
         "name": "coco",
         "detector_type": "T",
         "algorithm": "mobilenet_ssd",
@@ -218,7 +218,7 @@ DEFAULT_MODELS = [
         }
     },
     {
-        "model_type": "detector",
+        "model_type": "D",
         "name": "textbox",
         "files": [
             {
@@ -242,7 +242,7 @@ DEFAULT_MODELS = [
         "mode": "T"
     },
     {
-        "model_type": "detector",
+        "model_type": "D",
         "name": "face",
         "url": None,
         "filename": None,
@@ -250,7 +250,7 @@ DEFAULT_MODELS = [
         "mode": "T"
     },
     {
-        "model_type": "indexer",
+        "model_type": "I",
         "name": "inception",
         "filename": "network.pb",
         "files": [
@@ -263,7 +263,7 @@ DEFAULT_MODELS = [
         "mode": "T"
     },
     {
-        "model_type": "indexer",
+        "model_type": "I",
         "name": "facenet",
         "files": [
             {
@@ -275,7 +275,7 @@ DEFAULT_MODELS = [
         "mode": "T"
     },
     {
-        "model_type": "analyzer",
+        "model_type": "A",
         "name": "crnn",
         "files": [
             {
@@ -287,7 +287,7 @@ DEFAULT_MODELS = [
         "mode": "P"
     },
     {
-        "model_type": "analyzer",
+        "model_type": "A",
         "name": "tagger",
         "files": [
             {
@@ -308,6 +308,41 @@ DEFAULT_MODELS = [
             }
         ],
         "mode": "T"
+    },
+    {
+        "files": [
+            {
+                "url": "https://www.dropbox.com/s/bmuo0vhftf8hi27/model.proto",
+                "filename": "model.proto"
+            },
+            {
+                "url": "https://www.dropbox.com/s/qanj8le8r3ahs5m/model.P.npy",
+                "filename": "model.P.npy"
+            },
+            {
+                "url": "https://www.dropbox.com/s/b2yaec97lhkejoa/model.mu.npy",
+                "filename": "model.mu.npy"
+            },
+            {
+                "url": "https://www.dropbox.com/s/zee3o12dzwj8zrv/model.pca.pkl",
+                "filename": "model.pca.pkl"
+            },
+            {
+                "url": "https://www.dropbox.com/s/y4bh94p254bh1kl/model.permind.pkl",
+                "filename": "model.permind.pkl"
+            }
+        ],
+        "name": "Facenet_LOPQ_on_LFW",
+        "algorithm": "LOPQ",
+        "arguments": {
+            "indexer_shasum": "9f99caccbc75dcee8cb0a55a0551d7c5cb8a6836",
+            "m": 32,
+            "sub": 256,
+            "components": 64,
+            "v": 32
+        },
+        "model_type": "P",
+        "shasum": "93be2f99d432a7ce2d1626107659510755ea3815"
     }
 ]
 

@@ -309,10 +309,6 @@ class RetrieverList(UserPassesTestMixin, ListView):
     def test_func(self):
         return user_check(self.request.user)
 
-    def get_queryset(self):
-        new_context = DVAPQL.objects.filter().order_by('-created')
-        return new_context
-
 
 class TrainedModelList(UserPassesTestMixin, ListView):
     model = TrainedModel

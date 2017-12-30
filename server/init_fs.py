@@ -15,7 +15,6 @@ from dvaui.defaults import EXTERNAL_SERVERS
 from dvaapp.processing import DVAPQLProcess
 from django.contrib.auth.models import User
 from dvaapp.fs import get_path_to_file
-from django.utils import timezone
 from dvaui.defaults import DEFAULT_MODELS
 
 if __name__ == "__main__":
@@ -31,7 +30,7 @@ if __name__ == "__main__":
     for e in EXTERNAL_SERVERS:
         ExternalServer.objects.get_or_create(name=e['name'],url=e['url'])
     for m in DEFAULT_MODELS:
-        if m['model_type'] == "detector":
+        if m['model_type'] == TrainedModel.DETECTOR:
             dm, created = TrainedModel.objects.get_or_create(name=m['name'],algorithm=m['algorithm'],mode=m['mode'],
                                                           files=m.get('files',[]), model_filename=m.get("filename", ""),
                                                           detector_type=m.get("detector_type", ""),
@@ -39,23 +38,13 @@ if __name__ == "__main__":
                                                           model_type=TrainedModel.DETECTOR,)
             if created:
                 dm.download()
-        if m['model_type'] == "indexer":
-            dm, created = TrainedModel.objects.get_or_create(name=m['name'], mode=m['mode'], files=m.get('files',[]),
-                                                             arguments=m.get("arguments", {}), shasum=m['shasum'],
-                                                             model_type=TrainedModel.INDEXER)
-            if created:
-                dr, dcreated = Retriever.objects.get_or_create(name=m['name'],
-                                                               source_filters={},
-                                                               indexer_shasum=dm.shasum)
-                if dcreated:
-                    dr.last_built = timezone.now()
-                    dr.save()
-            if created:
-                dm.download()
-        if m['model_type'] == "analyzer":
-            dm, created = TrainedModel.objects.get_or_create(name=m['name'], files=m.get('files',[]), mode=m['mode'],
+        else:
+            dm, created = TrainedModel.objects.get_or_create(name=m['name'], mode=m.get('mode',TrainedModel.TENSORFLOW),
+                                                             files=m.get('files',[]),
+                                                             algorithm=m.get('algorithm',""),
                                                              arguments=m.get("arguments", {}),
-                                                             model_type=TrainedModel.ANALYZER)
+                                                             shasum=m.get('shasum',None),
+                                                             model_type=m['model_type'])
             if created:
                 dm.download()
     if 'INIT_PROCESS' in os.environ and DVAPQL.objects.count() == 0:

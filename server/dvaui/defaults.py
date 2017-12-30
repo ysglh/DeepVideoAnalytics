@@ -120,7 +120,7 @@ DEFAULT_PROCESSING_PLAN_FRAMELIST = [
 
 DEFAULT_MODELS = [
     {
-        "model_type": "detector",
+        "model_type": "D",
         "name": "coco",
         "detector_type": "T",
         "algorithm": "mobilenet_ssd",
@@ -218,7 +218,7 @@ DEFAULT_MODELS = [
         }
     },
     {
-        "model_type": "detector",
+        "model_type": "D",
         "name": "textbox",
         "files": [
             {
@@ -242,7 +242,7 @@ DEFAULT_MODELS = [
         "mode": "T"
     },
     {
-        "model_type": "detector",
+        "model_type": "D",
         "name": "face",
         "url": None,
         "filename": None,
@@ -250,7 +250,7 @@ DEFAULT_MODELS = [
         "mode": "T"
     },
     {
-        "model_type": "indexer",
+        "model_type": "I",
         "name": "inception",
         "files":[
             {
@@ -262,7 +262,7 @@ DEFAULT_MODELS = [
         "mode": "T"
     },
     {
-        "model_type": "indexer",
+        "model_type": "I",
         "name": "facenet",
         "files": [
             {
@@ -274,7 +274,7 @@ DEFAULT_MODELS = [
         "mode": "T"
     },
     {
-        "model_type": "analyzer",
+        "model_type": "A",
         "name": "crnn",
         "files": [
             {
@@ -286,7 +286,7 @@ DEFAULT_MODELS = [
         "mode": "P"
     },
     {
-        "model_type": "analyzer",
+        "model_type": "A",
         "name": "tagger",
         "files": [
             {
@@ -307,7 +307,43 @@ DEFAULT_MODELS = [
             }
         ],
         "mode": "T"
+    },
+    {
+        "files": [
+            {
+                "url": "/users/aub3/DeepVideoAnalytics/shared/facenet_lopq/model.proto",
+                "filename": "model.proto"
+            },
+            {
+                "url": "/users/aub3/DeepVideoAnalytics/shared/facenet_lopq/model.P.npy",
+                "filename": "model.P.npy"
+            },
+            {
+                "url": "/users/aub3/DeepVideoAnalytics/shared/facenet_lopq/model.mu.npy",
+                "filename": "model.mu.npy"
+            },
+            {
+                "url": "/users/aub3/DeepVideoAnalytics/shared/facenet_lopq/model.pca.pkl",
+                "filename": "model.pca.pkl"
+            },
+            {
+                "url": "/users/aub3/DeepVideoAnalytics/shared/facenet_lopq/model.permind.pkl",
+                "filename": "model.permind.pkl"
+            }
+        ],
+        "name": "Facenet_LOPQ_on_LFW",
+        "algorithm": "LOPQ",
+        "arguments": {
+            "indexer_shasum": "9f99caccbc75dcee8cb0a55a0551d7c5cb8a6836",
+            "m": 32,
+            "sub": 256,
+            "components": 64,
+            "v": 32
+        },
+        "model_type": "P",
+        "shasum": "93be2f99d432a7ce2d1626107659510755ea3815"
     }
+
 ]
 
 EXTERNAL_SERVERS = [

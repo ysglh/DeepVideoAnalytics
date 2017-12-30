@@ -4,6 +4,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.postgres.fields import ArrayField, JSONField
 from django.conf import settings
+from django.utils import timezone
 from . import fs
 try:
     import numpy as np
@@ -230,9 +231,23 @@ class TrainedModel(models.Model):
             zipf.extractall("{}/models/{}/".format(settings.MEDIA_ROOT, self.pk))
             zipf.close()
             os.remove(source_zip)
-            with open("{}/models/{}/input.json".format(settings.MEDIA_ROOT, self.pk)) as fh:
-                metadata = json.load(fh)
             self.save()
+        elif self.model_type == self.INDEXER:
+            dr, dcreated = Retriever.objects.get_or_create(name=self.name,source_filters={},
+                                                           algorithm=Retriever.EXACT,
+                                                           indexer_shasum=self.shasum)
+            if dcreated:
+                dr.last_built = timezone.now()
+                dr.save()
+        elif self.model_type == self.APPROXIMATOR:
+            dr, dcreated = Retriever.objects.get_or_create(name=self.name,
+                                                           source_filters={},
+                                                           algorithm=Retriever.LOPQ,
+                                                           approximator_shasum=self.shasum,
+                                                           indexer_shasum=self.arguments['indexer_shasum'])
+            if dcreated:
+                dr.last_built = timezone.now()
+                dr.save()
 
     def ensure(self):
         for m in self.files:
@@ -242,18 +257,6 @@ class TrainedModel(models.Model):
 
 
 class Retriever(models.Model):
-    """
-    # train_fraction = models.FloatField(default=0.8) # by default use 80% of data for training
-    # cluster_count = models.IntegerField(default=0)
-    # pca_file_name = models.CharField(max_length=200,default="")
-    # model_file_name = models.CharField(max_length=200, default="")
-    # components = models.IntegerField(default=64) # computer 64 principal components
-    # started = models.DateTimeField('date created', auto_now_add=True)
-    # completed = models.BooleanField(default=False)
-    # m = models.IntegerField(default=16)
-    # v = models.IntegerField(default=16)
-    # sub = models.IntegerField(default=256)
-    """
     EXACT = 'E'
     LOPQ = 'L'
     MODES = (

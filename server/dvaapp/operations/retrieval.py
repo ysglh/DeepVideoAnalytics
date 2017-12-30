@@ -58,6 +58,8 @@ class Retrievers(object):
             source_filters['indexer_shasum'] = dr.indexer_shasum
         if dr.approximator_shasum:
             source_filters['approximator_shasum'] = dr.approximator_shasum
+        else:
+            source_filters['approximator_shasum'] = None # Required otherwise approximate index entries are selected
         index_entries = IndexEntries.objects.filter(**source_filters)
         visual_index = cls._visual_retriever[dr.pk]
         for index_entry in index_entries:

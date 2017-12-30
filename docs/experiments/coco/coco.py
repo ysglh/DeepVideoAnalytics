@@ -33,8 +33,8 @@ def convert_captions(fname,prefix,subset=None):
     regions_json = []
     captions_train_data = json.load(file(fname))
     for annotation in captions_train_data['annotations']:
-        if subset is None or annotation['id'] in subset:
-            fname = "{}{}.jpg".format(prefix,str(annotation['id']).zfill(12))
+        if subset is None or annotation['image_id'] in subset:
+            fname = "{}{}.jpg".format(prefix,str(annotation['image_id']).zfill(12))
             regions_json.append(utils.create_region_json(fname,"caption",0,0,0,0,None,annotation['caption'],full_frame=True))
     return regions_json
 

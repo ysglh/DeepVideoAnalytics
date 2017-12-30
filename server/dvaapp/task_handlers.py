@@ -87,7 +87,7 @@ def handle_perform_index_approximation(start):
                 json.dump(entries, entryfile)
             approx_ind.entries_file_name = entries_fname
             approx_ind.features_file_name = ""
-            new_approx_indexes.append(new_approx_indexes)
+            new_approx_indexes.append(approx_ind)
         models.IndexEntries.objects.bulk_create(new_approx_indexes, batch_size=100)
     else:
         raise ValueError("Target {} not allowed, only index_entries are allowed".format(args['target']))

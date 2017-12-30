@@ -85,7 +85,7 @@ def handle_perform_index_approximation(start):
             entries_fname = "{}/{}/indexes/{}.json".format(settings.MEDIA_ROOT, start.video_id, uid)
             with open(entries_fname, 'w') as entryfile:
                 json.dump(entries, entryfile)
-            approx_ind.entries_file_name = entries_fname
+            approx_ind.entries_file_name = "{}.json".format(uid)
             approx_ind.features_file_name = ""
             new_approx_indexes.append(approx_ind)
         models.IndexEntries.objects.bulk_create(new_approx_indexes, batch_size=100)

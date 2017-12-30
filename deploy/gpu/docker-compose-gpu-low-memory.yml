@@ -66,7 +66,6 @@
        - LAUNCH_BY_NAME_retriever_inception=1
        - LAUNCH_BY_NAME_retriever_facenet=1
        - LAUNCH_BY_NAME_analyzer_crnn=1
-       - LAUNCH_Q_qclusterer=1
        - LAUNCH_Q_qextract=1
        - LAUNCH_Q_qtrainer=1
        - AUTH_DISABLED=1

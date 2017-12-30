@@ -99,7 +99,7 @@ class Retrievers(object):
         # TODO: figure out a better way to store numpy arrays
         results = index_retriever.nearest(vector=vector,n=count)
         # TODO: optimize this using batching
-        for r in results:
+        for rank,r in enumerate(results):
             qr = QueryRegionResults() if region else QueryResults()
             if region:
                 qr.query_region = region
@@ -113,8 +113,8 @@ class Retrievers(object):
                 qr.frame_id = r['frame_primary_key']
             qr.video_id = r['video_primary_key']
             qr.algorithm = dr.algorithm
-            qr.rank = r['rank']
-            qr.distance = r['dist']
+            qr.rank = r.get('rank',rank)
+            qr.distance = r.get('dist',rank)
             qr.save()
         event.parent_process.results_available = True
         event.parent_process.save()

@@ -245,7 +245,6 @@ GLOBAL_RETRIEVER_QUEUE_ENABLED = False if os.environ.get('DISABLE_GLOBAL_RETRIEV
 
 Q_MANAGER = 'qmanager'
 Q_EXTRACTOR = 'qextract'
-Q_CLUSTER = 'qclusterer'
 Q_TRAINER = 'qtrainer'
 Q_LAMBDA = 'qlambda'
 GLOBAL_MODEL_FLASK_SERVER_PORT = 8989
@@ -265,7 +264,6 @@ TASK_NAMES_TO_QUEUE = {
     "perform_sync":Q_EXTRACTOR,
     "perform_detector_import":Q_EXTRACTOR,
     "perform_import":Q_EXTRACTOR,
-    "perform_retriever_creation": Q_CLUSTER,
     "perform_detector_training": Q_TRAINER,
     "perform_video_decode_lambda": Q_LAMBDA
 }

@@ -28,7 +28,6 @@ env:
     - LAUNCH_BY_NAME_indexer_inception=1
     - LAUNCH_BY_NAME_retriever_inception=1
     - LAUNCH_BY_NAME_detector_coco=1
-    - LAUNCH_Q_qclusterer=1
     - TRAVISTEST=1
 
 before_install:

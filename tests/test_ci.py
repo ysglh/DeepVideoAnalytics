@@ -10,7 +10,7 @@ from dvaapp.models import Video, TEvent, DVAPQL, Retriever, TrainedModel
 from django.conf import settings
 from dvaapp.processing import DVAPQLProcess
 from dvaapp.tasks import perform_dataset_extraction, perform_indexing, perform_export, perform_import, \
-    perform_retriever_creation, perform_detection, \
+    perform_detection, \
     perform_video_segmentation, perform_transformation
 
 if __name__ == '__main__':

@@ -417,27 +417,6 @@ def perform_frame_download(event_id):
     mark_as_completed(start)
 
 
-@app.task(track_started=True, name="perform_retriever_creation")
-def perform_retriever_creation(cluster_task_id):
-    start = models.TEvent.objects.get(pk=cluster_task_id)
-    if start.started:
-        return 0  # to handle celery bug with ACK in SOLO mode
-    else:
-        start.started = True
-        start.save()
-    dc = models.Retriever.objects.get(pk=start.arguments['retriever_pk'])
-    dc.create_directory()
-    c = retriever.LOPQRetriever(name=dc.name, args=dc.arguments, proto_filename=dc.proto_filename())
-    for i in models.IndexEntries.objects.filter(**dc.source_filters):
-        c.load_index(np.load(i.npy_path()), i.entries_path())
-    c.cluster()
-    c.save()
-    dc.last_built = timezone.now()
-    dc.completed = True
-    dc.save()
-    mark_as_completed(start)
-
-
 @app.task(track_started=True, name="perform_sync")
 def perform_sync(task_id):
     """

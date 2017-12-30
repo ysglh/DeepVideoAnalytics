@@ -41,7 +41,6 @@
        - LAUNCH_BY_NAME_analyzer_crnn=1
        - LAUNCH_BY_NAME_detector_face=1
        - LAUNCH_BY_NAME_detector_textbox=1
-       - LAUNCH_Q_qclusterer=1
        - LAUNCH_Q_qextract=1
        - LAUNCH_Q_qtrainer=1
        - INIT_PROCESS=/root/DVA/configs/custom_defaults/init_process.json

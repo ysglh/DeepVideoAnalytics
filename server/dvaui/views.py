@@ -458,7 +458,7 @@ def index(request, query_pk=None, frame_pk=None, detection_pk=None):
     context['indexer_retrievers'] = []
     for i in TrainedModel.objects.filter(model_type=TrainedModel.INDEXER):
         for r in Retriever.objects.all():
-            if 'indexer_shasum' in r.source_filters and r.source_filters['indexer_shasum'] == i.shasum and r.last_built:
+            if  i.shasum and r.indexer_shasum == i.shasum:
                 context['indexer_retrievers'].append(('{} > {} retriever {} (pk:{})'.format(i.name,
                                                       r.get_algorithm_display(),r.name,r.pk),
                                                       '{}_{}'.format(i.pk,r.pk)))

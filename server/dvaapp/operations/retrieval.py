@@ -24,7 +24,7 @@ class Retrievers(object):
             if dr.algorithm == Retriever.EXACT:
                 cls._visual_retriever[retriever_pk] = retriever.BaseRetriever(name=dr.name)
             elif dr.algorithm == Retriever.LOPQ:
-                approximator, da = Approximators.get_approximator_by_shasum(dr.approximator_shashum)
+                approximator, da = Approximators.get_approximator_by_shasum(dr.approximator_shasum)
                 da.ensure()
                 approximator.load()
                 cls._visual_retriever[retriever_pk] = retriever.LOPQRetriever(name=dr.name,
@@ -54,10 +54,10 @@ class Retrievers(object):
     @classmethod
     def update_index(cls,dr):
         source_filters = dr.source_filters.copy()
-        if dr.indexer_shashum:
-            source_filters['indexer_shashum'] = dr.indexer_shashum
+        if dr.indexer_shasum:
+            source_filters['indexer_shasum'] = dr.indexer_shasum
         if dr.ap:
-            source_filters['approximator_shashum'] = dr.approximator_shashum
+            source_filters['approximator_shasum'] = dr.approximator_shasum
         index_entries = IndexEntries.objects.filter(**source_filters)
         visual_index = cls._visual_retriever[dr.pk]
         for index_entry in index_entries:

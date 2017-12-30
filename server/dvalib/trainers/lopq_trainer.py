@@ -13,7 +13,7 @@ except:
 
 class LOPQTrainer(object):
 
-    def __init__(self,name,components,m,v,sub,dirname,source_indexer_shashum):
+    def __init__(self,name,components,m,v,sub,dirname,source_indexer_shasum):
         self.name = name
         self.n_components = int(components)
         self.m = int(m)
@@ -25,7 +25,7 @@ class LOPQTrainer(object):
         self.P = None
         self.mu = None
         self.permuted_inds = None
-        self.source_indexer_shashum = source_indexer_shashum
+        self.source_indexer_shasum = source_indexer_shasum
 
     def pca(self,training_data):
         """
@@ -79,7 +79,7 @@ class LOPQTrainer(object):
                    'v': self.v,
                    'sub': self.sub,
                    'components': self.n_components,
-                   'indexer_shasum': self.source_indexer_shashum
+                   'indexer_shasum': self.source_indexer_shasum
                },
                "files": [
                    {"filename":"model.proto","url":"{}/model.proto".format(self.dirname)},

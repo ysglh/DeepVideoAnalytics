@@ -123,6 +123,7 @@ class TEvent(models.Model):
     parent = models.ForeignKey('self',null=True)
     parent_process = models.ForeignKey(DVAPQL,null=True)
     imported = models.BooleanField(default=False)
+    task_group_id = models.IntegerField(default=-1)
 
 
 class TrainedModel(models.Model):

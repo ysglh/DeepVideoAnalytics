@@ -1,4 +1,4 @@
-import base64, copy, os, subprocess, json, logging, time, requests
+import base64, copy, os, json, logging, time
 from django.utils import timezone
 from django.conf import settings
 from dva.celery import app
@@ -261,6 +261,7 @@ class DVAPQLProcess(object):
         self.media_dir = media_dir
         self.task_results = {}
         self.created_objects = []
+        self.task_group_index = 0
 
     def store(self):
         query_path = "{}/queries/{}.png".format(settings.MEDIA_ROOT, self.process.pk)
@@ -298,6 +299,13 @@ class DVAPQLProcess(object):
     def validate(self):
         pass
 
+    def assign_task_group_id(self, tasks):
+        for t in tasks:
+            t['task_group_id'] = self.task_group_index
+            self.task_group_index += 1
+            if 'map' in t.get('arguments',{}):
+                self.assign_task_group_id(t['arguments']['map'])
+
     def launch(self):
         if self.process.script['process_type'] == DVAPQL.PROCESS:
             for c in self.process.script.get('create',[]):
@@ -307,8 +315,10 @@ class DVAPQLProcess(object):
                         c['spec'][k] = timezone.now()
                 instance = m.objects.create(**c['spec'])
                 self.created_objects.append(instance)
+                self.assign_task_group_id(c.get('tasks',[]))
                 for t in copy.deepcopy(c.get('tasks',[])):
                     self.launch_task(t,instance.pk)
+            self.assign_task_group_id(self.process.script.get('tasks',[]))
             for t in self.process.script.get('tasks',[]):
                 self.launch_task(t)
         elif self.process.script['process_type'] == DVAPQL.QUERY:
@@ -320,6 +330,7 @@ class DVAPQLProcess(object):
                 self.task_results[next_task.pk] = app.send_task(name=operation,args=[next_task.pk, ],queue=queue_name,priority=5)
         else:
             raise NotImplementedError
+        self.process.save()
 
     def wait(self,timeout=60):
         for _, result in self.task_results.iteritems():
@@ -353,6 +364,7 @@ class DVAPQLProcess(object):
                     args['filters'].update(f)
             dt = TEvent()
             dt.parent_process = self.process
+            dt.task_group_id = t['task_group_id']
             if 'video_id' in t:
                 dt.video_id = t['video_id']
             dt.arguments = args

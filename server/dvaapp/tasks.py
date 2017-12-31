@@ -366,7 +366,7 @@ def perform_region_import(event_id):
         start.save()
     path = start.arguments.get('path', None)
     dv = start.video
-    tempdirname = tempfile.gettempdir()
+    tempdirname = tempfile.mkdtemp()
     temp_filename = ""
     try:
         if path.endswith('.json'):
@@ -382,10 +382,7 @@ def perform_region_import(event_id):
     task_shared.import_frame_regions_json(j, dv, event_id)
     dv.save()
     process_next(start.pk)
-    try:
-        os.remove(temp_filename)
-    except:
-        pass
+    os.remove(temp_filename)
     mark_as_completed(start)
 
 

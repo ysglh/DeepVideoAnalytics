@@ -392,7 +392,10 @@ def perform_region_import(event_id):
     task_shared.import_frame_regions_json(j, dv, event_id)
     dv.save()
     process_next(start.pk)
-    os.remove(temp_filename)
+    try:
+        os.remove(temp_filename)
+    except:
+        pass
     mark_as_completed(start)
 
 

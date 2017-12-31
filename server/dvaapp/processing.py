@@ -309,11 +309,12 @@ class DVAPQLProcess(object):
     def launch(self):
         if self.process.script['process_type'] == DVAPQL.PROCESS:
             for c in self.process.script.get('create',[]):
+                c_copy = copy.deepcopy(c)
                 m = apps.get_model(app_label='dvaapp',model_name=c['MODEL'])
                 for k,v in c['spec'].iteritems():
                     if v == '__timezone.now__':
-                        c['spec'][k] = timezone.now()
-                instance = m.objects.create(**c['spec'])
+                        c_copy['spec'][k] = timezone.now()
+                instance = m.objects.create(**c_copy['spec'])
                 self.created_objects.append(instance)
                 self.assign_task_group_id(c.get('tasks',[]))
                 for t in copy.deepcopy(c.get('tasks',[])):

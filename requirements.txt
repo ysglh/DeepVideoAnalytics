@@ -29,3 +29,4 @@ cython
 easydict
 google-cloud-storage
 urllib3
+flask

@@ -51,6 +51,8 @@ if __name__ == '__main__':
             elif k.startswith('LAUNCH_Q_GLOBAL_RETRIEVER'):
                 _ = subprocess.Popen(shlex.split(('./startq.py {}'.format(settings.GLOBAL_RETRIEVER))))
             elif k.startswith('LAUNCH_Q_GLOBAL_MODEL'):
+                # TODO remove this once requirements.txt is updated
+                subprocess.check_output(['pip','install','--upgrade','flask'])
                 _ = subprocess.Popen(shlex.split(('./startq.py {}'.format(settings.GLOBAL_MODEL))))
             else:
                 queue_name = k.split('_')[-1]

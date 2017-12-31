@@ -47,16 +47,6 @@ def start_task(task_id, task, args, **kwargs):
         start.save()
 
 
-@app.task(track_started=True, name="perform_map")
-def perform_map(task_id):
-    """
-    map tasks on set of videos/datasets.
-    :param task_id:
-    :return:
-    """
-    raise NotImplementedError
-
-
 @app.task(track_started=True, name="perform_indexing")
 def perform_indexing(task_id):
     start = models.TEvent.objects.get(pk=task_id)

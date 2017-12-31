@@ -393,15 +393,16 @@ class ProcessDetail(UserPassesTestMixin, DetailView):
 class StoredProcessList(UserPassesTestMixin, ListView):
     model = StoredDVAPQL
     template_name = "dvaui/stored_process_list.html"
-    paginate_by = 200
+    paginate_by = 500
     ordering = "-created"
 
     def get_context_data(self, **kwargs):
         context = super(StoredProcessList, self).get_context_data(**kwargs)
-        context['visual_index_list'] = TrainedModel.objects.filter(model_type=TrainedModel.INDEXER)
+        context['indexers'] = TrainedModel.objects.filter(model_type=TrainedModel.INDEXER)
+        context['approximators'] = TrainedModel.objects.filter(model_type=TrainedModel.APPROXIMATOR)
+        context['models'] = TrainedModel.objects.filter(model_type__in=[TrainedModel.INDEXER,TrainedModel.DETECTOR,
+                                                                        TrainedModel.ANALYZER])
         context["videos"] = Video.objects.all()
-        context["region_types"] = Region.REGION_TYPES
-        context["detectors"] = TrainedModel.objects.filter(model_type=TrainedModel.DETECTOR)
         return context
 
     def test_func(self):
@@ -978,107 +979,55 @@ def rename_video(request):
         return redirect('accounts/login/')
 
 
-@user_passes_test(user_check)
-def index_video(request):
-    if request.method == 'POST':
-        filters = {
-            'region_type__in': request.POST.getlist('region_type__in', []),
-            'w__gte': int(request.POST.get('w__gte')),
-            'h__gte': int(request.POST.get('h__gte'))
-         }
-        for optional_key in ['text__contains', 'object_name__contains', 'object_name']:
-            if request.POST.get(optional_key, None):
-                filters[optional_key] = request.POST.get(optional_key)
-        for optional_key in ['h__lte', 'w__lte']:
-            if request.POST.get(optional_key, None):
-                filters[optional_key] = int(request.POST.get(optional_key))
-        args = {'filters':filters,'index':request.POST.get('visual_index_name')}
-        p = DVAPQLProcess()
-        spec = {
-            'process_type':DVAPQL.PROCESS,
-            'tasks':[
-                {
-                    'operation':'perform_indexing',
-                    'arguments':args,
-                    'video_id':request.POST.get('video_id')
-                }
-            ]
-        }
-        user = request.user if request.user.is_authenticated else None
-        p.create_from_json(spec,user)
-        p.launch()
-        redirect('process_detail',pk=p.process.pk)
-    else:
-        raise ValueError
+# @user_passes_test(user_check)
+# def index_video(request):
+#     if request.method == 'POST':
+#         filters = {
+#             'region_type__in': request.POST.getlist('region_type__in', []),
+#             'w__gte': int(request.POST.get('w__gte')),
+#             'h__gte': int(request.POST.get('h__gte'))
+#          }
+#         for optional_key in ['text__contains', 'object_name__contains', 'object_name']:
+#             if request.POST.get(optional_key, None):
+#                 filters[optional_key] = request.POST.get(optional_key)
+#         for optional_key in ['h__lte', 'w__lte']:
+#             if request.POST.get(optional_key, None):
+#                 filters[optional_key] = int(request.POST.get(optional_key))
+#         args = {'filters':filters,'index':request.POST.get('visual_index_name')}
+#         p = DVAPQLProcess()
+#         spec = {
+#             'process_type':DVAPQL.PROCESS,
+#             'tasks':[
+#                 {
+#                     'operation':'perform_indexing',
+#                     'arguments':args,
+#                     'video_id':request.POST.get('video_id')
+#                 }
+#             ]
+#         }
+#         user = request.user if request.user.is_authenticated else None
+#         p.create_from_json(spec,user)
+#         p.launch()
+#         redirect('process_detail',pk=p.process.pk)
+#     else:
+#         raise ValueError
+#
+#
+# @user_passes_test(user_check)
+# def detect_objects(request):
+#     if request.method == 'POST':
+#         detector_pk = request.POST.get('detector_pk')
+#         video_pk = request.POST.get('video_pk')
+#         p = DVAPQLProcess()
+#         p.create_from_json(j={
+#             "process_type":DVAPQL.PROCESS,
+#             "tasks":[{'operation':"perform_detection",
+#                       'arguments':{'detector_pk': int(detector_pk),'detector':"custom"},
+#                       'video_id':video_pk}]
+#         },user=request.user if request.user.is_authenticated else None)
+#         p.launch()
+#         return redirect('process_detail',pk=p.process.pk)
+#     else:
+#         raise ValueError
 
 
-@user_passes_test(user_check)
-def detect_objects(request):
-    if request.method == 'POST':
-        detector_pk = request.POST.get('detector_pk')
-        video_pk = request.POST.get('video_pk')
-        p = DVAPQLProcess()
-        p.create_from_json(j={
-            "process_type":DVAPQL.PROCESS,
-            "tasks":[{'operation':"perform_detection",
-                      'arguments':{'detector_pk': int(detector_pk),'detector':"custom"},
-                      'video_id':video_pk}]
-        },user=request.user if request.user.is_authenticated else None)
-        p.launch()
-        return redirect('process_detail',pk=p.process.pk)
-    else:
-        raise ValueError
-
-
-@user_passes_test(user_check)
-def train_detector(request):
-    if request.method == 'POST':
-        args = request.POST.get('args')
-        args = json.loads(args) if args.strip() else {}
-        args['name'] = request.POST.get('name')
-        args['labels'] = [k.strip() for k in request.POST.get('labels').split(',') if k.strip()]
-        args['object_names'] = [k.strip() for k in request.POST.get('object_names').split(',') if k.strip()]
-        args['excluded_videos'] = request.POST.getlist('excluded_videos')
-        args['detector_pk'] = '__pk__'
-        p = DVAPQLProcess()
-        p.create_from_json(j={
-            "process_type":DVAPQL.PROCESS,
-            "create":[
-                {
-                    'MODEL':'Detector',
-                    'spec':{
-                        'name':args['name'],
-                        'arguments':json.dumps(args),
-                        'algorithm':'yolo'
-                    },
-                    "tasks":[
-                        {'operation':"perform_detector_training",
-                         'arguments':args,
-                         }]
-                }
-            ]
-        },user=request.user if request.user.is_authenticated else None)
-        p.launch()
-        return redirect('process_detail', pk=p.process.pk)
-    # elif request.POST.get('action') == 'estimate':
-    #     args = request.POST.get('args')
-    #     args = json.loads(args) if args.strip() else {}
-    #     args['name'] = request.POST.get('name')
-    #     args['labels'] = [k.strip() for k in request.POST.get('labels').split(',') if k.strip()]
-    #     args['object_names'] = [k.strip() for k in request.POST.get('object_names').split(',') if k.strip()]
-    #     args['excluded_videos'] = request.POST.getlist('excluded_videos')
-    #     labels = set(args['labels']) if 'labels' in args else set()
-    #     object_names = set(args['object_names']) if 'object_names' in args else set()
-    #     class_distribution, class_names, rboxes, rboxes_set,
-    #     frames, i_class_names = create_detector_dataset(object_names, labels)
-    #     context["estimate"] = {
-    #         'args':args,
-    #         'class_distribution':class_distribution,
-    #         'class_names':class_names,
-    #         'rboxes':rboxes,
-    #         'rboxes_set':rboxes_set,
-    #         'frames':frames,
-    #         'i_class_names':i_class_names
-    #     }
-    else:
-        raise ValueError

@@ -85,7 +85,7 @@
         </div>
     </div>
     <div class="row">
-    <div class="col-lg-12">
+    <div class="col-lg-12" id="shortcuts">
         <div class="box box-primary">
             <div class="box-header with-border text-center">
                 <h2>Shortcut for processing videos, creating training sets, models etc</h2>
@@ -95,80 +95,46 @@
     </div>
     <div class="col-lg-6">
         <div class="box box-primary">
-            <form action="/index_video" method="POST">
+            <form action="/shortcuts" method="POST">
             <div class="box-header with-border">
-                <h4>Index frames/regions, detect objects,</h4>
+                <h4>Index frames/regions, detect objects, perform analysis</h4>
             </div>
             <div class="box-body">
                 <div class="row">
                     <div class="col-lg-12">
-                        <div class="form-group">
-                            <label for="task_name">Indexing algorithm</label>
-                            <select class="js-example-basic" id="visual_index_name" class="form-control" name="visual_index_name" style="width:100%">
-                            {% for i in visual_index_list %}
-                                <option value="{{ i.name }}">{{ i.name }}</option>
-                            {% endfor %}
-                            </select>
-                        </div>
                         <div class="row">
-                            <div class="col-xs-4"><div class="form-group"><label>object name<input type="text" class="form-control" name="object_name"> </label></div></div>
-                            <div class="col-xs-4"><div class="form-group"><label>object_name_contains<input type="text" class="form-control" name="object_name__contains"></label></div></div>
-                            <div class="col-xs-4"><div class="form-group"><label>text_contains<input type="text" class="form-control" name="text__contains"></label></div></div>
+                            <div class="col-lg-6"><div class="form-group">
+                                <label for="excluded_videos">Select model</label>
+                                <select class="js-example-basic-single" id="apply_model_pk" name="model_pk" style="width:100%">
+                                {% for k in models %}
+                                    <option value="{{ k.pk }}">{{ k.get_model_type_display }} : {{ k.name }}</option>
+                                {% endfor %}
+                                </select>
+                        </div></div>
+                        <div class="col-lg-2"><div class="form-group"><label>Frame batch size<input type="number" class="form-control" name="frame_batch_size"></label></div></div>
+                        <div class="col-lg-2"><div class="form-group"><label>Segment batch size<input type="number" class="form-control" name="segment_batch_size"></label></div></div>
+                        <div class="col-lg-2"><div class="form-group"><label>Target
+                            <select class="js-example-basic-single" id="apply_target" name="target" style="width:100%">
+                                <option value="frames" selected="selected">Frames</option>
+                                <option value="regions">Regions</option>
+                            </select>
+                        </label>
+                        </div>
+                        </div>
                         </div>
                         <div class="form-group">
                             <label for="frame_video_name">Video</label>
-                            <select class="js-example-basic-multiple" multiple="multiple" id="frame_video_name" class="form-control" style="width:100%">
+                            <select class="js-example-basic-multiple" multiple="multiple" id="apply_video_pk" name="video_pk" class="form-control" style="width:100%">
                             {% for v in videos %}
                                 <option value="{{ v.pk }}">{{ v.name }}</option>
                             {% endfor %}
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label for="region_type">Region types</label>
-                            <select class="js-example-basic" class="js-example-basic-multiple" multiple="multiple" id="region_type" class="form-control" name="region_type__in" style="width:100%">
-                            {% for k,v in region_types %}
-                                <option value="{{ k }}" selected="selected" >{{ v }}</option>
-                            {% endfor %}
-                        </select>
-                        </div>
                         <div class="row">
-                        <div class="col-lg-6"><div class="form-group">
-                                <label for="excluded_videos">Select detector</label>
-                                <select class="js-example-basic-single" id="detector_pk" name="detector_pk" style="width:100%">
-                                {% for k in detectors %}
-                                    <option value="{{ k.pk }}">{{ k.name }}</option>
-                                {% endfor %}
-                                </select>
-                        </div></div>
-                        <div class="col-lg-6">
-                            <div class="form-group">
-                                <label for="excluded_videos">Select video/dataset</label>
-                                <select class="js-example-basic-single" id="video_pk" name="video_pk" style="width:100%">
-                                {% for v in videos %}
-                                    <option value="{{ v.pk }}">{{ v.name }}</option>
-                                {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-                        </div>
-                        <div class="row">
-                        <div class="col-lg-6"><div class="form-group">
-                                <label for="excluded_videos">Select detector</label>
-                                <select class="js-example-basic-single" id="detector_pk" name="detector_pk" style="width:100%">
-                                {% for k in detectors %}
-                                    <option value="{{ k.pk }}">{{ k.name }}</option>
-                                {% endfor %}
-                                </select>
-                        </div></div>
-                        <div class="col-lg-6">
-                            <div class="form-group">
-                                <label for="excluded_videos">Select video/dataset</label>
-                                <select class="js-example-basic-single" id="video_pk" name="video_pk" style="width:100%">
-                                {% for v in videos %}
-                                    <option value="{{ v.pk }}">{{ v.name }}</option>
-                                {% endfor %}
-                                </select>
-                            </div>
+                        <div class="col-lg-12">
+                            <label for="filters">Specify additional filters as JSON (e.g. Frames.objects.filters(**{ "object_name" : "car" }))</label>
+                            <textarea name="filters" id="script3" style="display:none" ></textarea>
+                            <div id="editor3" style="width:95%;margin:auto;height:200px" ></div>
                         </div>
                         </div>
                     </div>
@@ -184,35 +150,40 @@
         </div>
     </div>
     <div class="col-lg-6">
-        <form action="/create_retriever/" method="post">
+        <form action="/shortcuts" method="post">
         <div class="box box-primary">
             <div class="box-header with-border">
                 <h4>Create new retriever</h4>
             </div>
             <div class="box-body">
                     <div class="row">
-                        <div class="col-lg-12">
+                        <div class="col-lg-12 form-group">
                             <label for="name">name</label>
                             <input name="name" class="form-control" placeholder="name" required="required" type="text" >
-                            <label for="retriever_type">Retriever type</label>
-                            <select class="js-example-basic" id="retriever_type" name="retriever_type"  style="width:100%">
-                                <option value="L">LOPQ</option>
-                                <option value="E">Exact</option>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6 form-group">
+                            <label for="selected">Indexer</label>
+                            <select class="js-example-basic" id="selected_indexers" name="indexer_shasum"  style="width:100%">
+                            {% for i in indexers %}
+                                <option value="{{ i.shasum }}">{{ i.name }}</option>
+                            {% endfor %}
                             </select>
                         </div>
-                        <div class="col-lg-12">
-                            <label for="selected">All entries by a specific Indexe shasum</label>
-                            <select class="js-example-basic" id="selected" name="indexer_shasum"  style="width:100%">
-                            {% for v in algorithms %}
-                                <option value="{{ v }}">{{ v }}</option>
-                            {% endfor %}
-                            </select>
-                            <label for="selected">All entries by a specific approximator</label>
+                        <div class="col-lg-6 form-group">
+
+                            <label for="selected">Approximator</label>
                             <select class="js-example-basic" id="selected_approximators" name="approximator_shasum"  style="width:100%">
                             {% for v in approximators %}
-                                <option value="{{ v }}">{{ v }}</option>
+                                <option value="{{ v.shasum }}">{{ v.name }}</option>
                             {% endfor %}
+                                <option value=""> None / Exact</option>
                             </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-12 form-group">
                             <label for="source_filters">Specify additional source filter as JSON (IndexEntries.objects.filters(**kwargs))</label>
                             <textarea name="source_filters" id="script2" style="display:none" ></textarea>
                             <div id="editor2" style="width:95%;margin:auto;height:200px" ></div>
@@ -227,49 +198,41 @@
     </div>
     </div>
     <div class="row">
-        <div class="col-lg-12">
+        <div class="col-lg-6">
             <div class="box box-primary">
                 <div class="box-header with-border">
-                    <h4>Train LOPQ approximator</h4>
+                    <h4>Create training set for approximation</h4>
                 </div>
                 <div class="box-body">
-                    <form role="form" action="/train_detector/"  method="post" >
-                            <div class="row">
-                            <div class="col-lg-6"><div class="form-group">
-                                <label for="name">Detector name</label>
-                                <input id="id_name" name="name" class="form-control" type="text" required="" placeholder="provide a name">
-                            </div></div>
-                            <div class="col-lg-6">
-                                <div class="form-group">
-                                    <label for="excluded_videos">Exclude video/dataset</label>
-                                    <select class="js-example-basic-multiple" multiple="multiple" id="excluded_videos" name="excluded_videos_train" style="width:100%">
-                                    {% for v in videos %}
-                                        <option value="{{ v.pk }}">{{ v.name }}</option>
-                                    {% endfor %}
-                                    </select>
-                                </div>
-                            </div>
-                            </div>
-                            <div class="row">
-                            <div class="col-lg-6"><div class="form-group">
-                                <label for="object_names">Object names</label>
-                                <input id="object_names" name="object_names" class="form-control" type="text" placeholder="comma separated list of regions to by object_names">
-                            </div></div>
-                            <div class="col-lg-6"><div class="form-group">
-                                <label for="labels">Labels</label>
-                                <input id="labels" name="labels" class="form-control" type="text" placeholder="comma separated list of regions to by applied labels">
-                            </div></div>
-                            </div>
-                            <div class="form-group">
-                                <label for="args">Additional JSON arguments for customizing options such as number of phase 1/2 epochs, etc.</label>
-                                <textarea class="form-control" name="args" rows="2" placeholder="Additional arguments as JSON { phase_2_epochs:50 } etc."></textarea>
-                            </div>
-                            {% csrf_token %}
-                            <div style="text-align: center">
-                                <button type="submit" name="action" value="estimate" class="pull-left btn btn-info"><i class="fa fa-list"></i> Estimate training set</button>
-                                <button type="submit" name="action" value="train" class="pull-right btn btn-primary"><i class="fa fa-gears"></i> Train detector</button>
-                            </div>
-                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h4>Train an LOPQ approximator</h4>
+                </div>
+                <div class="box-body">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h4>Create training set for detector</h4>
+                </div>
+                <div class="box-body">
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h4>Train a YOLO detector</h4>
+                </div>
+                <div class="box-body">
                 </div>
             </div>
         </div>
@@ -280,24 +243,7 @@
 <script>
     $(document).ready(function() {
         InitializeTables();
-        var visual_index_name = $("#visual_index_name");
-        visual_index_name.select2({theme: "bootstrap"});
-        var frame_video_name = $("#frame_video_name");
-        frame_video_name.select2({theme: "bootstrap",multiple:true});
-        var region_type = $("#region_type");
-        region_type.select2({theme: "bootstrap",multiple:true});
-        var excluded_videos_ids = $("#excluded_videos");
-        excluded_videos_ids.select2({theme: "bootstrap"});
-        var selected_video_id = $("#video_pk");
-        selected_video_id.select2({theme: "bootstrap"});
-        var selected_detector_id = $("#detector_pk");
-        selected_detector_id.select2({theme: "bootstrap"});
-        var excluded_videos_ids_train = $("#excluded_videos_train");
-        excluded_videos_ids.select2({theme: "bootstrap"});
-        var selected_video_id_train = $("#video_pk_train");
-        selected_video_id_train.select2({theme: "bootstrap"});
-        var selected_detector_id_train = $("#detector_pk_train");
-        selected_detector_id_train.select2({theme: "bootstrap"});
+        // Run script
         var scripttext = document.getElementById("script");
         var editor = ace.edit("editor",{
             wrapBehavioursEnabled:true,
@@ -309,12 +255,20 @@
         editor.getSession().on('change', function(){
           textarea.val(editor.getSession().getValue());
         });
-        var indexer_selector = $("#selected");
-        indexer_selector.select2({theme: "bootstrap"});
-        var retriever_type = $("#retriever_type");
-        retriever_type.select2({theme: "bootstrap"});
-        var excluded_index_entries = $("#excluded_index_entries");
-        excluded_index_entries.select2({theme: "bootstrap"});
+        // apply script
+        var scripttext3 = document.getElementById("script3");
+        scripttext3.textContent = "";
+        var editor3 = ace.edit("editor3",{
+            wrapBehavioursEnabled:true,
+            autoScrollEditorIntoView:true});
+        editor3.setTheme("ace/theme/chrome");
+        editor3.getSession().setMode("ace/mode/json");
+        var textarea3 = $('textarea[name="filters"]').hide();
+        editor3.getSession().setValue(textarea3.val());
+        editor3.getSession().on('change', function(){
+          textarea2.val(editor3.getSession().getValue());
+        });
+        // Retriever creation source_json
         var scripttext2 = document.getElementById("script2");
         scripttext2.textContent = "";
         var editor2 = ace.edit("editor2",{
@@ -327,6 +281,12 @@
         editor2.getSession().on('change', function(){
           textarea2.val(editor2.getSession().getValue());
         });
+        //
+        $("#selected_indexers").select2({theme: "bootstrap"});
+        $("#selected_approximators").select2({theme: "bootstrap"});
+        $("#apply_target").select2({theme: "bootstrap"});
+        $("#apply_model_pk").select2({theme: "bootstrap"});
+        $("#apply_video_pk").select2({theme: "bootstrap",multiple:true});
     })
 </script>
 {% endblock %}

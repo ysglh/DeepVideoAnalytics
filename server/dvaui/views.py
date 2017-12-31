@@ -984,7 +984,7 @@ def shortcuts(request):
             filters = json.loads(jf) if jf.strip() else {}
             model_pk = request.POST.get("model_pk")
             video_pks = request.POST.getlist('video_pk')
-            target = request.POST.getlist('target')
+            target = request.POST.get('target')
             frames_batch_size = request.POST.get('frames_batch_size')
             if not frames_batch_size:
                 frames_batch_size = defaults.DEFAULT_FRAMES_BATCH_SIZE

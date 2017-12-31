@@ -1,4 +1,5 @@
 import os, json, requests, shutil, zipfile, cStringIO, base64, uuid
+from copy import deepcopy
 from dvaapp.models import Video, TEvent,  Label, RegionLabel, TrainedModel, Retriever, DVAPQL, Region, Frame, \
     QueryRegion, QueryRegionResults,QueryResults
 from django.conf import settings
@@ -9,7 +10,45 @@ from dvaapp import serializers
 from dvaapp import fs
 from PIL import Image
 import defaults
+from dvaapp.processing import DVAPQLProcess
 
+
+def model_apply(model_pk,video_pks,filters,target,segments_batch_size,frames_batch_size,user=None):
+    trained_model = TrainedModel.objects.get(pk=model_pk)
+    if trained_model.model_type == TrainedModel.INDEXER:
+        operation = 'perform_indexing'
+        args = {"indexer_pk": model_pk, 'filters': filters, 'target': target}
+    elif trained_model.model_type == TrainedModel.DETECTOR:
+        operation = 'perform_detection'
+        args = {"detector_pk": model_pk, 'filters': filters, 'target': target}
+    elif trained_model.model_type == TrainedModel.ANALYZER:
+        operation = 'perform_analysis'
+        args = {"analyzer_pk": model_pk, 'filters': filters, 'target': target}
+    else:
+        operation = ""
+        args = {}
+    p = DVAPQLProcess()
+    spec = {
+        'process_type': DVAPQL.PROCESS,
+        'tasks': []
+    }
+    for vpk in video_pks:
+        dv = Video.objects.get(pk=vpk)
+        video_specific_args = deepcopy(args)
+        if dv.dataset:
+            video_specific_args['frames_batch_size'] = frames_batch_size
+        else:
+            video_specific_args['segments_batch_size'] = segments_batch_size
+        spec['tasks'].append(
+            {
+                'operation': operation,
+                'arguments': video_specific_args,
+                'video_id': vpk
+
+            })
+    p.create_from_json(spec, user)
+    p.launch()
+    return p.process.pk
 
 def refresh_task_status():
     for t in TEvent.objects.all().filter(started=True, completed=False, errored=False):

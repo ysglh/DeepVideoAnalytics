@@ -1,7 +1,6 @@
 from django.shortcuts import render, redirect
 from django.conf import settings
 from django.http import JsonResponse
-import requests
 import glob
 import json
 from django.views.generic import ListView, DetailView
@@ -13,9 +12,7 @@ from dvaapp.models import Video, Frame, DVAPQL, QueryResults, TEvent, IndexEntri
     TrainedModel, Retriever, SystemState, QueryRegion, QueryRegionResults, Worker, TrainingSet
 from .models import StoredDVAPQL, ExternalServer
 from dva.celery import app
-from rest_framework import viewsets, mixins
 from django.contrib.auth.models import User
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from django.db.models import Count
 import math
 from django.db.models import Max
@@ -977,6 +974,30 @@ def rename_video(request):
         return redirect('video_list')
     else:
         return redirect('accounts/login/')
+
+
+@user_passes_test(user_check)
+def shortcuts(request):
+    if request.method == 'POST':
+        if request.POST.get('op') == 'apply':
+            jf = request.POST.get("filters",'{}')
+            filters = json.loads(jf) if jf.strip() else {}
+            model_pk = request.POST.get("model_pk")
+            video_pks = request.POST.getlist('video_pk')
+            target = request.POST.getlist('target')
+            frames_batch_size = request.POST.getlist('frames_batch_size')
+            if not frames_batch_size:
+                frames_batch_size = defaults.DEFAULT_FRAMES_BATCH_SIZE
+            segments_batch_size = request.POST.getlist('segments_batch_size')
+            if not segments_batch_size:
+                segments_batch_size = defaults.DEFAULT_SEGMENTS_BATCH_SIZE
+            user = request.user if request.user.is_authenticated else None
+            process_pk = view_shared.model_apply(model_pk,video_pks,filters,target,segments_batch_size,
+                                                 frames_batch_size,user)
+            return redirect('process_detail',pk=process_pk)
+    else:
+        raise NotImplementedError("Only POST allowed")
+
 
 
 # @user_passes_test(user_check)

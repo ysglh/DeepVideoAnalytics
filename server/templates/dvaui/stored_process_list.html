@@ -266,7 +266,7 @@
         var textarea3 = $('textarea[name="filters"]').hide();
         editor3.getSession().setValue(textarea3.val());
         editor3.getSession().on('change', function(){
-          textarea2.val(editor3.getSession().getValue());
+          textarea3.val(editor3.getSession().getValue());
         });
         // Retriever creation source_json
         var scripttext2 = document.getElementById("script2");

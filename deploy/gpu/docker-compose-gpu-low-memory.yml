@@ -42,8 +42,8 @@
        - AUTH_DISABLED=1
      command: bash -c "git pull && sleep 10 && ./migrate.sh && ./start_container.py"
      ports:
-       - "8000:80"
-       - "8888:8888"
+       - "127.0.0.1:8000:80"
+       - "127.0.0.1:8888:8888"
      depends_on:
        - db
        - rabbit

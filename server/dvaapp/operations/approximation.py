@@ -46,13 +46,11 @@ class Approximators(object):
     def get_approximator(cls,di):
         di.ensure()
         if di.pk not in Approximators._index_approximator:
-            iroot = "{}/models/".format(settings.MEDIA_ROOT)
+            model_dirname = "{}/models/{}".format(settings.MEDIA_ROOT, di.pk)
             if di.algorithm == 'LOPQ':
-                Approximators._index_approximator[di.pk] = approximator.LOPQApproximator(di.name,
-                                                                                     iroot + "{}/".format(di.pk))
+                Approximators._index_approximator[di.pk] = approximator.LOPQApproximator(di.name, model_dirname)
             elif di.algorithm == 'PCA':
-                Approximators._index_approximator[di.pk] = approximator.PCAApproximator(di.name,
-                                                                                     iroot + "{}/".format(di.pk))
+                Approximators._index_approximator[di.pk] = approximator.PCAApproximator(di.name, model_dirname)
             else:
                 raise ValueError,"unknown approximator type {}".format(di.pk)
         return Approximators._index_approximator[di.pk]

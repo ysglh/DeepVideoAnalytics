@@ -66,13 +66,12 @@ class PCAApproximator(BaseApproximator):
         self.pca_eigenvals = None
         self.source_components = source_components
         self.components = components
-        self.model_proto_filename = "{}/model.proto".format(dirname)
 
     def load(self):
         logging.info("Loading PCA model {}".format(self.name))
-        self.pca_mean = np.load(os.path.join(self.dirname,'/mean.npy'))[:, 0]
-        self.pca_eigenvals = np.load(os.path.join(self.dirname, '/eigenvals.npy'))[:self.components, 0]
-        self.pca_eigenvecs = np.load(os.path.join(self.dirname,'/eigenvecs.npy')).T[:, :self.components]
+        self.pca_mean = np.load(os.path.join(self.dirname,'mean.npy'))[:, 0]
+        self.pca_eigenvals = np.load(os.path.join(self.dirname, 'eigenvals.npy'))[:self.components, 0]
+        self.pca_eigenvecs = np.load(os.path.join(self.dirname,'eigenvecs.npy')).T[:, :self.components]
 
 
     def approximate(self, vector):

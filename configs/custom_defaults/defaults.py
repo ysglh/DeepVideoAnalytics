@@ -11,7 +11,15 @@ DEFAULT_PROCESSING_PLAN_VIDEO = [
              'arguments': {
                  'index': 'inception',
                  'target': 'regions',
-                 'filters': {'event_id': '__parent_event__', 'w__gte': 50, 'h__gte': 50}
+                 'filters': {'event_id': '__parent_event__', 'w__gte': 50, 'h__gte': 50},
+                 'map': [{
+                     'operation': 'perform_index_approximation',
+                     'arguments': {
+                         'target': 'index_entries',
+                         'approximator_shasum': '86689432ac09d86dd95d7d3ed57227d27eb09c81',
+                         'filters': {'event_id': '__parent_event__'}
+                     }
+                 }]
              }
              },
         ]}

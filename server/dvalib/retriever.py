@@ -21,9 +21,11 @@ IndexRange = namedtuple('IndexRange',['start','end'])
 
 class BaseRetriever(object):
 
-    def __init__(self,name):
+    def __init__(self,name,approximator=None,algorithm="EXACT"):
         self.name = name
+        self.algorithm = algorithm
         self.approximate = False
+        self.approximator = approximator
         self.net = None
         self.loaded_entries = {}
         self.index, self.files, self.findex = None, {}, 0
@@ -44,6 +46,8 @@ class BaseRetriever(object):
     def nearest(self, vector=None, n=12):
         dist = None
         results = []
+        if self.approximator:
+            vector = self.approximator.approximate(vector)
         if self.index is not None:
             # logging.info("{} and {}".format(vector.shape,self.index.shape))
             dist = spatial.distance.cdist(vector,self.index)
@@ -59,7 +63,7 @@ class BaseRetriever(object):
 class LOPQRetriever(BaseRetriever):
 
     def __init__(self,name,approximator):
-        super(BaseRetriever, self).__init__()
+        super(LOPQRetriever, self).__init__(name=name,approximator=approximator,algorithm="LOPQ")
         self.approximate = True
         self.name = name
         self.loaded_entries = {}

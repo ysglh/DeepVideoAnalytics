@@ -241,9 +241,10 @@ class TrainedModel(models.Model):
                 dr.last_built = timezone.now()
                 dr.save()
         elif self.model_type == self.APPROXIMATOR:
+            algo = Retriever.LOPQ if self.algorithm == 'LOPQ' else Retriever.EXACT
             dr, dcreated = Retriever.objects.get_or_create(name=self.name,
                                                            source_filters={},
-                                                           algorithm=Retriever.LOPQ,
+                                                           algorithm=algo,
                                                            approximator_shasum=self.shasum,
                                                            indexer_shasum=self.arguments['indexer_shasum'])
             if dcreated:
@@ -258,6 +259,9 @@ class TrainedModel(models.Model):
 
 
 class Retriever(models.Model):
+    """
+    Here Exact is an L2 Flat retriever
+    """
     EXACT = 'E'
     LOPQ = 'L'
     MODES = (

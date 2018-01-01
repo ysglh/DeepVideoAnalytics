@@ -1,6 +1,6 @@
 from base_approximator import BaseApproximator
 import numpy as np
-import pickle, logging
+import pickle, logging, os
 try:
     from sklearn.decomposition import PCA
     from lopq import LOPQModel, LOPQSearcher
@@ -51,3 +51,38 @@ class LOPQApproximator(BaseApproximator):
         if self.model is None:
             self.load()
         return np.dot((self.pca_reduction.transform(vector) - self.mu), self.P).transpose().squeeze()
+
+
+class PCAApproximator(BaseApproximator):
+    """
+    A PCA approximator used by Youtube 8M.
+    """
+    def __init__(self,name,dirname,components=1024,source_components=2048):
+        super(PCAApproximator, self).__init__()
+        self.name = name
+        self.dirname = dirname
+        self.pca_mean = None
+        self.pca_eigenvecs = None
+        self.pca_eigenvals = None
+        self.source_components = source_components
+        self.components = components
+        self.model_proto_filename = "{}/model.proto".format(dirname)
+
+    def load(self):
+        logging.info("Loading PCA model {}".format(self.name))
+        self.pca_mean = np.load(os.path.join(self.dirname,'/mean.npy'))[:, 0]
+        self.pca_eigenvals = np.load(os.path.join(self.dirname, '/eigenvals.npy'))[:self.components, 0]
+        self.pca_eigenvecs = np.load(os.path.join(self.dirname,'/eigenvecs.npy')).T[:, :self.components]
+
+
+    def approximate(self, vector):
+        vector = self.get_pca_vector(vector)
+        return vector
+
+    def get_pca_vector(self, vector):
+        if self.pca_eigenvecs is None:
+            self.load()
+        feats = vector - self.pca_mean
+        feats = feats.reshape((1, self.source_components)).dot(self.pca_eigenvecs).reshape((self.components,))
+        feats /= np.sqrt(self.pca_eigenvals + 1e-4)
+        return feats

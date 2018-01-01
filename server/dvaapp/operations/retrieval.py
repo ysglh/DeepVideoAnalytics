@@ -21,7 +21,12 @@ class Retrievers(object):
         if retriever_pk not in cls._visual_retriever:
             dr = Retriever.objects.get(pk=retriever_pk)
             cls._retriever_object[retriever_pk] = dr
-            if dr.algorithm == Retriever.EXACT:
+            if dr.algorithm == Retriever.EXACT and dr.approximator_shasum.strip():
+                approximator, da = Approximators.get_approximator_by_shasum(dr.approximator_shasum)
+                da.ensure()
+                approximator.load()
+                cls._visual_retriever[retriever_pk] = retriever.BaseRetriever(name=dr.name,approximator=approximator)
+            elif dr.algorithm == Retriever.EXACT:
                 cls._visual_retriever[retriever_pk] = retriever.BaseRetriever(name=dr.name)
             elif dr.algorithm == Retriever.LOPQ:
                 approximator, da = Approximators.get_approximator_by_shasum(dr.approximator_shasum)
@@ -65,7 +70,7 @@ class Retrievers(object):
         for index_entry in index_entries:
             if index_entry.pk not in visual_index.loaded_entries and index_entry.count > 0:
                 vectors, entries = index_entry.load_index()
-                if visual_index.approximate:
+                if visual_index.algorithm == "LOPQ":
                     logging.info("loading approximate index {}".format(index_entry.pk))
                     start_index = len(visual_index.entries)
                     visual_index.load_index(entries=entries)

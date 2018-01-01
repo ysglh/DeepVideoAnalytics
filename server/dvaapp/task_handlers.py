@@ -66,30 +66,7 @@ def handle_perform_index_approximation(start):
         raise ValueError("Could not find approximator {}".format(args))
     if args['target'] == 'index_entries':
         queryset, target = task_shared.build_queryset(args, start.video_id, start.parent_process_id)
-        new_approx_indexes = []
-        for index_entry in queryset:
-            vectors, entries = index_entry.load_index()
-            for i, e in enumerate(entries):
-                e['codes'] = approx.approximate(vectors[i, :])
-            approx_ind = models.IndexEntries()
-            approx_ind.indexer_shasum = index_entry.indexer_shasum
-            approx_ind.approximator_shasum = da.shasum
-            approx_ind.count = index_entry.count
-            approx_ind.approximate = True
-            approx_ind.detection_name = index_entry.detection_name
-            approx_ind.contains_detections = index_entry.contains_detections
-            approx_ind.contains_frames = index_entry.contains_frames
-            approx_ind.video_id = index_entry.video_id
-            approx_ind.algorithm = da.name
-            approx_ind.event_id = start.pk
-            uid = str(uuid.uuid1()).replace('-', '_')
-            entries_fname = "{}/{}/indexes/{}.json".format(settings.MEDIA_ROOT, start.video_id, uid)
-            with open(entries_fname, 'w') as entryfile:
-                json.dump(entries, entryfile)
-            approx_ind.entries_file_name = "{}.json".format(uid)
-            approx_ind.features_file_name = ""
-            new_approx_indexes.append(approx_ind)
-        models.IndexEntries.objects.bulk_create(new_approx_indexes, batch_size=100)
+        approximation.Approximators.approximate_queryset(approx, da, queryset, start.video_id, start.pk)
     else:
         raise ValueError("Target {} not allowed, only index_entries are allowed".format(args['target']))
 

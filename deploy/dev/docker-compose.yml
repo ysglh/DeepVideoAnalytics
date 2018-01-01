@@ -40,7 +40,7 @@
        - LAUNCH_Q_qextract=1
        - LAUNCH_SCHEDULER=1
        - AUTH_DISABLED=1
-     command: bash -c "sleep 30 && ./migrate.sh && ./start_container.py"
+     command: bash -c "sleep 30 && ./start_container.py"
      ports:
        - "8199:8000"
      depends_on:

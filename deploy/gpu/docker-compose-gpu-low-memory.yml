@@ -40,7 +40,7 @@
        - LAUNCH_BY_NAME_detector_textbox=1
        - INIT_PROCESS=/root/DVA/configs/custom_defaults/init_process.json
        - AUTH_DISABLED=1
-     command: bash -c "git pull && sleep 10 && ./migrate.sh && ./start_container.py"
+     command: bash -c "git pull && sleep 10 && ./start_container.py"
      ports:
        - "127.0.0.1:8000:80"
        - "127.0.0.1:8888:8888"

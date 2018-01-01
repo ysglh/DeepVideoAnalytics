@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import logging, boto3, subprocess
 
 logging.basicConfig(level=logging.INFO,

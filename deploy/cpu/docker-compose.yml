@@ -52,7 +52,7 @@
        - LAUNCH_Q_qextract=1
        - LAUNCH_SCHEDULER=1
        - INIT_PROCESS=/root/DVA/configs/custom_defaults/init_process.json
-     command: bash -c "git pull && sleep 10 && ./migrate.sh && ./start_container.py"
+     command: bash -c "git pull && sleep 10 && ./start_container.py"
      ports:
        - "127.0.0.1:8000:80" # Since Docker messes up iptables, ufw has no effect as a result bind to localhost and tunnel / Port forward through SSH
        - "127.0.0.1:8888:8888" # Since Docker messes up iptables, ufw has no effect as a result bind to localhost and tunnel / Port forward through SSH

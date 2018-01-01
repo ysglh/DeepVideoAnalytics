@@ -1,4 +1,4 @@
-import logging, boto3
+import logging, boto3, subprocess
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
@@ -20,8 +20,11 @@ if __name__ == '__main__':
         instance.reload()
         print(instance.id, instance.instance_type)
         logging.info("instance allocated")
+        with open('hosts','w') as h:
+            h.write(instance.public_ip_address)
         fh = open("connect.sh", 'w')
         fh.write(
             "#!/bin/bash\n" + 'autossh -M 0 -o "ServerAliveInterval 30" -o "ServerAliveCountMax 3" -L 8600:localhost:8000 -i ' + key_filename + " " + env_user + "@" +
             instance.public_ip_address + "\n")
         fh.close()
+    subprocess.call(['fab','deploy'])

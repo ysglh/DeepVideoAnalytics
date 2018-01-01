@@ -18,7 +18,7 @@
        - dvarabbit:/var/lib/rabbitmq
    dva:
      image: akshayubhat/dva-auto:gpu
-     container_name: dva-server
+     container_name: webserver
      environment:
        - DOCKER_MODE=true
        - RABBIT_HOST=rabbit

@@ -24,7 +24,7 @@ if __name__ == '__main__':
             h.write(instance.public_ip_address)
         fh = open("connect.sh", 'w')
         fh.write(
-            "#!/bin/bash\n" + 'autossh -M 0 -o "ServerAliveInterval 30" -o "ServerAliveCountMax 3" -L 8600:localhost:8000,8688:localhost:8888 -i ' + key_filename + " " + env_user + "@" +
+            "#!/bin/bash\n" + 'autossh -M 0 -o "ServerAliveInterval 30" -o "ServerAliveCountMax 3" -L 8600:localhost:8000 -L 8688:localhost:8888 -i ' + key_filename + " " + env_user + "@" +
             instance.public_ip_address + "\n")
         fh.close()
     subprocess.call(['fab','deploy'])

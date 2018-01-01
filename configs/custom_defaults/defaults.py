@@ -384,7 +384,7 @@ DEFAULT_MODELS = [
                 "filename": "mean.npy"
             },
         ],
-        "name": "Youtube8M_PCA_for_inception",
+        "name": "Inception_PCA_from_Youtube8M",
         "algorithm": "PCA",
         "arguments": {
             "indexer_shasum": "48b026cf77dfbd5d9841cca3ee550ef0ee5a0751",

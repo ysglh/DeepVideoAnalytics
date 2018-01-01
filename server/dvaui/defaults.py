@@ -367,6 +367,30 @@ DEFAULT_MODELS = [
         },
         "model_type": "P",
         "shasum": "93be2f99d432a7ce2d1626107659510755ea3815"
+    },
+    {
+        "files": [
+            {
+                "url": "/users/aub3/DeepVideoAnalytics/shared/yt8m/eigenvals.npy",
+                "filename": "eigenvals.npy"
+            },
+            {
+                "url": "/users/aub3/DeepVideoAnalytics/shared/yt8m/eigenvecs.npy",
+                "filename": "eigenvecs.npy"
+            },
+            {
+                "url": "/users/aub3/DeepVideoAnalytics/shared/yt8m/mean.npy",
+                "filename": "mean.npy"
+            },
+        ],
+        "name": "Youtube8M_PCA_for_inception",
+        "algorithm": "PCA",
+        "arguments": {
+            "indexer_shasum": "48b026cf77dfbd5d9841cca3ee550ef0ee5a0751",
+            "components": 1024,
+        },
+        "model_type": "P",
+        "shasum": "86689432ac09d86dd95d7d3ed57227d27eb09c81"
     }
 
 ]

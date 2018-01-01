@@ -42,8 +42,8 @@ class Indexers(object):
                 Indexers._visual_indexer[di.pk] = indexer.InceptionIndexer(iroot + "{}/network.pb".format(di.pk))
             elif di.name == 'facenet':
                 Indexers._visual_indexer[di.pk] = indexer.FacenetIndexer(iroot + "{}/facenet.pb".format(di.pk))
-            elif di.name == 'vgg':
-                Indexers._visual_indexer[di.pk] = indexer.VGGIndexer(iroot + "{}/vgg.pb".format(di.pk))
+            elif di.algorithm == 'vgg':
+                Indexers._visual_indexer[di.pk] = indexer.VGGIndexer(iroot + "{}/{}".format(di.pk,di.files[0]['filename']))
             else:
                 raise ValueError,"unregistered indexer with id {}".format(di.pk)
         return Indexers._visual_indexer[di.pk]

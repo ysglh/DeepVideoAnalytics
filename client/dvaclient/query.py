@@ -63,8 +63,7 @@ class ProcessVideoURL(DVAQuery):
                 {
                     "operation": "perform_import",
                     "arguments": {
-                        "source": "URL",
-                        "url": self.url,
+                        "path": self.url,
                         "name": self.name,
                         "map": [
                             {

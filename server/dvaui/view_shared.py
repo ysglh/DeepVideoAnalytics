@@ -13,6 +13,28 @@ import defaults
 from dvaapp.processing import DVAPQLProcess
 
 
+def create_retriever(name,algorithm,filters,indexer_shasum,approximator_shasum,user=None):
+    p = DVAPQLProcess()
+    spec = {
+        'process_type': DVAPQL.PROCESS,
+        'create': [
+            {
+                "MODEL":"Retriever",
+                "spec":{
+                    "name":name,
+                    "algorithm":algorithm,
+                    "indexer_shasum":indexer_shasum,
+                    "approximator_shasum":approximator_shasum,
+                    "source_filters":filters
+                }
+            }
+        ]
+    }
+    p.create_from_json(spec, user)
+    p.launch()
+    return p.process.pk
+
+
 def model_apply(model_pk,video_pks,filters,target,segments_batch_size,frames_batch_size,user=None):
     trained_model = TrainedModel.objects.get(pk=model_pk)
     if trained_model.model_type == TrainedModel.INDEXER:

@@ -1,0 +1,117 @@
+ version: '3'
+ services:
+   db:
+     image: postgres:9.6.6
+     container_name: dva-pg
+     volumes:
+      - dvapgdata:/var/lib/postgresql/data
+     environment:
+      - POSTGRES_USER=pgdbuser
+      - POSTGRES_PASSWORD=pgdbpass
+   rabbit:
+     image: rabbitmq
+     container_name: dva-rmq
+     environment:
+       - RABBITMQ_DEFAULT_USER=dvauser
+       - RABBITMQ_DEFAULT_PASS=localpass
+     volumes:
+       - dvarabbit:/var/lib/rabbitmq
+   dva:
+     image: akshayubhat/dva-auto:gpu
+     container_name: webserver
+     environment:
+       - DOCKER_MODE=true
+       - RABBIT_HOST=rabbit
+       - RABBIT_USER=dvauser
+       - RABBIT_PASS=localpass
+       - GPU_AVAILABLE=1
+       - DB_HOST=db
+       - DB_NAME=postgres
+       - DB_USER=pgdbuser
+       - DB_PASS=pgdbpass
+       - LAUNCH_SERVER_NGINX=1
+       - SUPERUSER=akshay
+       - SUPERPASS=super
+       - SUPEREMAIL=akshay@deepvideoanalytics.com
+       - LAUNCH_BY_NAME_indexer_inception=1
+       - LAUNCH_BY_NAME_indexer_facenet=1
+       - LAUNCH_BY_NAME_retriever_inception=1
+       - LAUNCH_BY_NAME_retriever_facenet=1
+       - LAUNCH_BY_NAME_detector_coco=1
+       - LAUNCH_BY_NAME_analyzer_crnn=1
+       - LAUNCH_BY_NAME_detector_face=1
+       - LAUNCH_BY_NAME_detector_textbox=1
+       - LAUNCH_Q_qextract=1
+       - LAUNCH_Q_qtrainer=1
+       - LAUNCH_SCHEDULER=1
+       - GLOBAL_MODEL=1
+       - LAUNCH_Q_GLOBAL_MODEL=1
+       - LAUNCH_Q_GLOBAL_RETRIEVER=1
+       - INIT_PROCESS=/root/DVA/configs/custom_defaults/init_process.json
+       - AUTH_DISABLED=1
+     command: bash -c "git pull && sleep 10 && ./start_container.py"
+     ports:
+       - "127.0.0.1:8000:80"
+       - "127.0.0.1:8888:8888"
+     depends_on:
+       - db
+       - rabbit
+     volumes:
+       - dvadata:/root/media
+   inception:
+     image: akshayubhat/dva-auto:gpu
+     environment:
+       - DOCKER_MODE=true
+       - RABBIT_HOST=rabbit
+       - RABBIT_USER=dvauser
+       - RABBIT_PASS=localpass
+       - GPU_AVAILABLE=1
+       - DB_HOST=db
+       - DB_NAME=postgres
+       - DB_USER=pgdbuser
+       - DB_PASS=pgdbpass
+       - NVIDIA_VISIBLE_DEVICES=0
+       - SUPERUSER=akshay
+       - SUPERPASS=super
+       - SUPEREMAIL=akshay@deepvideoanalytics.com
+       - LAUNCH_BY_NAME_indexer_inception=1
+       - LAUNCH_SCHEDULER=1
+       - GLOBAL_MODEL=1
+       - AUTH_DISABLED=1
+     command: bash -c "git pull && sleep 10 && ./start_container.py"
+     depends_on:
+       - db
+       - rabbit
+     volumes:
+       - dvadata:/root/media
+   coco:
+     image: akshayubhat/dva-auto:gpu
+     environment:
+       - DOCKER_MODE=true
+       - RABBIT_HOST=rabbit
+       - RABBIT_USER=dvauser
+       - RABBIT_PASS=localpass
+       - GPU_AVAILABLE=1
+       - DB_HOST=db
+       - DB_NAME=postgres
+       - DB_USER=pgdbuser
+       - DB_PASS=pgdbpass
+       - NVIDIA_VISIBLE_DEVICES=0
+       - SUPERUSER=akshay
+       - SUPERPASS=super
+       - SUPEREMAIL=akshay@deepvideoanalytics.com
+       - LAUNCH_BY_NAME_indexer_inception=1
+       - LAUNCH_SCHEDULER=1
+       - GLOBAL_MODEL=1
+       - AUTH_DISABLED=1
+     command: bash -c "git pull && sleep 10 && ./start_container.py"
+     depends_on:
+       - db
+       - rabbit
+     volumes:
+       - dvadata:/root/media
+ volumes:
+  dvapgdata:
+  dvadata:
+  dvarabbit:
+

@@ -745,46 +745,6 @@ def textsearch(request):
 
 
 @user_passes_test(user_check)
-def create_retriever(request):
-    if request.method == 'POST':
-        spec = {}
-        if request.POST.get('retriever_type') == Retriever.LOPQ:
-            v = request.POST.get('v')
-            m = request.POST.get('m')
-            components = request.POST.get('components')
-            sub = request.POST.get('sub')
-            spec['name'] = request.POST.get('name')
-            spec['algorithm'] = Retriever.LOPQ
-            args = {}
-            args['components']= components
-            args['sub']= sub
-            args['m']= m
-            args['v']= v
-            spec['arguments'] = args
-            if request.POST.get('source_filters',None):
-                spec['source_filters'] = json.loads(request.POST.get('source_filter','{}'))
-            else:
-                spec['source_filters'] = {'indexer_shasum':TrainedModel.objects.get(name=request.POST.get('algorithm'),
-                                                                                 model_type=TrainedModel.INDEXER).shasum}
-            next_tasks = [{'operation': "perform_retriever_creation",'arguments': {'retriever_pk':'__pk__'},},]
-        elif request.POST.get('retriever_type') == Retriever.EXACT:
-            spec['name'] = request.POST.get('name')
-            spec['last_built'] = '__timezone.now__'
-            spec['source_filters'] = json.loads(request.POST.get('source_filters', '{}'))
-            spec['algorithm'] = Retriever.EXACT
-            next_tasks = []
-        else:
-            raise ValueError
-        if spec:
-            p = DVAPQLProcess()
-            p.create_from_json(j={"process_type": DVAPQL.PROCESS,
-                                  "create":[{'MODEL':'Retriever','spec':spec,'tasks': next_tasks}],
-                                  }, user=request.user if request.user.is_authenticated else None)
-            p.launch()
-    return redirect('retrievers')
-
-
-@user_passes_test(user_check)
 def submit_process(request):
     if request.method == 'POST':
         process_pk = request.POST.get('process_pk',None)
@@ -978,6 +938,7 @@ def rename_video(request):
 
 @user_passes_test(user_check)
 def shortcuts(request):
+    user = request.user if request.user.is_authenticated else None
     if request.method == 'POST':
         if request.POST.get('op') == 'apply':
             jf = request.POST.get("filters",'{}')
@@ -991,10 +952,24 @@ def shortcuts(request):
             segments_batch_size = request.POST.get('segments_batch_size')
             if not segments_batch_size:
                 segments_batch_size = defaults.DEFAULT_SEGMENTS_BATCH_SIZE
-            user = request.user if request.user.is_authenticated else None
             process_pk = view_shared.model_apply(model_pk,video_pks,filters,target,int(segments_batch_size),
                                                  int(frames_batch_size),user)
             return redirect('process_detail',pk=process_pk)
+        elif request.POST.get('op') == 'create_retriever':
+            jf = request.POST.get("source_filters",'{}')
+            filters = json.loads(jf) if jf.strip() else {}
+            name = request.POST.get('name')
+            indexer_shasum = request.POST.get('indexer_shasum')
+            approximator_shasum = request.POST.get('approximator_shasum')
+            if approximator_shasum:
+                approximator_shasum = None
+                algorithm = Retriever.LOPQ
+            else:
+                algorithm = Retriever.EXACT
+            _ = view_shared.create_retriever(name,algorithm,filters,indexer_shasum,approximator_shasum,user)
+            return redirect('retriever_list')
+        else:
+            raise NotImplementedError(request.POST.get('op'))
     else:
         raise NotImplementedError("Only POST allowed")
 

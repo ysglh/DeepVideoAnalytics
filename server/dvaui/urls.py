@@ -21,7 +21,6 @@ urlpatterns = [
     url(r'^management/$', views.management, name='management'),
     url(r'^textsearch', views.textsearch, name='textsearch'),
     url(r'^retrievers/$', views.RetrieverList.as_view(), name='retriever_list'),
-    url(r'^create_retriever/$', views.create_retriever, name='create_retriever'),
     url(r'^external', views.external, name='external'),
     url(r'^pull_external', views.pull_external, name='pull_external'),
     url(r'^youtube$', views.yt, name='youtube'),

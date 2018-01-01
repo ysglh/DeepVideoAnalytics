@@ -268,19 +268,8 @@ class Retriever(models.Model):
     name = models.CharField(max_length=200,default="")
     indexer_shasum = models.CharField(max_length=40,null=True)
     approximator_shasum = models.CharField(max_length=40,null=True)
-    arguments = JSONField(blank=True,null=True)
     source_filters = JSONField()
     created = models.DateTimeField('date created', auto_now_add=True)
-    last_built = models.DateTimeField(null=True)
-
-    def create_directory(self):
-        os.mkdir('{}/retrievers/{}'.format(settings.MEDIA_ROOT, self.pk))
-
-    def path(self):
-        return '{}/retrievers/{}/'.format(settings.MEDIA_ROOT, self.pk)
-
-    def proto_filename(self):
-        return "{}/{}.proto".format(self.path(), self.pk)
 
 
 class QueryIndexVector(models.Model):

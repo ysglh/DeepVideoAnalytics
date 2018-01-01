@@ -49,8 +49,10 @@ class BaseRetriever(object):
         if self.approximator:
             vector = self.approximator.approximate(vector)
         if self.index is not None:
-            # logging.info("{} and {}".format(vector.shape,self.index.shape))
-            dist = spatial.distance.cdist(vector,self.index)
+            try:
+                dist = spatial.distance.cdist(vector,self.index)
+            except:
+                raise ValueError("Could not compute distance Vector shape {} and index shape {}".format(vector.shape, self.index.shape))
         if dist is not None:
             ranked = np.squeeze(dist.argsort())
             for i, k in enumerate(ranked[:n]):

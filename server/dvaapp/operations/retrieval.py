@@ -21,7 +21,7 @@ class Retrievers(object):
         if retriever_pk not in cls._visual_retriever:
             dr = Retriever.objects.get(pk=retriever_pk)
             cls._retriever_object[retriever_pk] = dr
-            if dr.algorithm == Retriever.EXACT and dr.approximator_shasum.strip():
+            if dr.algorithm == Retriever.EXACT and dr.approximator_shasum and dr.approximator_shasum.strip():
                 approximator, da = Approximators.get_approximator_by_shasum(dr.approximator_shasum)
                 da.ensure()
                 approximator.load()

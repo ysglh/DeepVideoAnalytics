@@ -34,7 +34,10 @@ def deploy(compose_file="docker-compose-gpu.yml"):
             pass
     with cd('DeepVideoAnalytics/deploy/gpu'):
         run('git pull')
-        run('docker-compose -f {} up -d'.format(compose_file))
-    time.sleep(120)
+        try:
+            run('docker-compose -f {} up -d'.format(compose_file))
+        except:
+            pass
+    time.sleep(60)
     webbrowser.open("http://localhost:8600")
     local("./connect.sh")

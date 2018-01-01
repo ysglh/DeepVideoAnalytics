@@ -35,6 +35,7 @@ docs/experiments/yolo/yolo_test.zip
 /deploy/gcp/secrets.yml
 /deploy/gcp/config.py
 /deploy/gpu/config.py
+/deploy/gpu/host
 /deploy/static/
 /docs/marketing/
 /tests/training/facenet.npy

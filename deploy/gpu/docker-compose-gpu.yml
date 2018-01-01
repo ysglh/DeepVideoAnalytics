@@ -18,7 +18,7 @@
        - dvarabbit:/var/lib/rabbitmq
    dva:
      image: akshayubhat/dva-auto:gpu
-     container_name: dva-server
+     container_name: webserver
      environment:
        - DOCKER_MODE=true
        - RABBIT_HOST=rabbit
@@ -43,6 +43,10 @@
        - LAUNCH_BY_NAME_detector_textbox=1
        - LAUNCH_Q_qextract=1
        - LAUNCH_Q_qtrainer=1
+       - LAUNCH_SCHEDULER=1
+       - GLOBAL_MODEL=1
+       - LAUNCH_Q_GLOBAL_MODEL=1
+       - LAUNCH_Q_GLOBAL_RETRIEVER=1
        - INIT_PROCESS=/root/DVA/configs/custom_defaults/init_process.json
        - AUTH_DISABLED=1
      command: bash -c "git pull && sleep 10 && ./migrate.sh && ./start_container.py"

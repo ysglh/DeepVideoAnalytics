@@ -47,8 +47,17 @@ DEFAULT_PROCESSING_PLAN_VIDEO = [
     {'operation': 'perform_indexing', 'arguments':
         {'index': 'inception',
          'target': 'frames',
-         'filters': '__parent__'
-         }},
+         'filters': '__parent__',
+         'map': [{
+             'operation': 'perform_index_approximation',
+             'arguments': {
+                 'target': 'index_entries',
+                 'approximator_shasum': '86689432ac09d86dd95d7d3ed57227d27eb09c81',
+                 'filters': {'event_id': '__parent_event__'}
+             }
+         }]
+         }
+     },
     {'operation': 'perform_analysis', 'arguments':
         {'analyzer': 'tagger',
          'target': 'frames',

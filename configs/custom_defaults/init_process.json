@@ -73,7 +73,19 @@
                             "arguments": {
                               "index": "inception",
                               "target": "frames",
-                              "filters": "__parent__"
+                              "filters": "__parent__",
+                              "map": [
+                                {
+                                  "operation": "perform_index_approximation",
+                                  "arguments": {
+                                    "target": "index_entries",
+                                    "approximator_shasum": "86689432ac09d86dd95d7d3ed57227d27eb09c81",
+                                    "filters": {
+                                      "event_id": "__parent_event__"
+                                    }
+                                  }
+                                }
+                              ]
                             }
                           },
                           {
@@ -129,7 +141,19 @@
                                 "event_id": "__parent_event__",
                                 "w__gte": 50,
                                 "h__gte": 50
-                              }
+                              },
+                              "map": [
+                                {
+                                  "operation": "perform_index_approximation",
+                                  "arguments": {
+                                    "target": "index_entries",
+                                    "approximator_shasum": "86689432ac09d86dd95d7d3ed57227d27eb09c81",
+                                    "filters": {
+                                      "event_id": "__parent_event__"
+                                    }
+                                  }
+                                }
+                              ]
                             }
                           }
                         ],
@@ -172,7 +196,19 @@
                       "arguments": {
                         "frames_batch_size": 500,
                         "index": "inception",
-                        "target": "frames"
+                        "target": "frames",
+                        "map": [
+                          {
+                            "operation": "perform_index_approximation",
+                            "arguments": {
+                              "target": "index_entries",
+                              "approximator_shasum": "86689432ac09d86dd95d7d3ed57227d27eb09c81",
+                              "filters": {
+                                "event_id": "__parent_event__"
+                              }
+                            }
+                          }
+                        ]
                       }
                     },
                     {
@@ -224,7 +260,19 @@
                                 "event_id": "__parent_event__",
                                 "w__gte": 50,
                                 "h__gte": 50
-                              }
+                              },
+                              "map": [
+                                {
+                                  "operation": "perform_index_approximation",
+                                  "arguments": {
+                                    "target": "index_entries",
+                                    "approximator_shasum": "86689432ac09d86dd95d7d3ed57227d27eb09c81",
+                                    "filters": {
+                                      "event_id": "__parent_event__"
+                                    }
+                                  }
+                                }
+                              ]
                             }
                           }
                         ],
@@ -267,7 +315,19 @@
                       "arguments": {
                         "frames_batch_size": 500,
                         "index": "inception",
-                        "target": "frames"
+                        "target": "frames",
+                        "map": [
+                          {
+                            "operation": "perform_index_approximation",
+                            "arguments": {
+                              "target": "index_entries",
+                              "approximator_shasum": "86689432ac09d86dd95d7d3ed57227d27eb09c81",
+                              "filters": {
+                                "event_id": "__parent_event__"
+                              }
+                            }
+                          }
+                        ]
                       }
                     },
                     {
@@ -319,7 +379,19 @@
                                 "event_id": "__parent_event__",
                                 "w__gte": 50,
                                 "h__gte": 50
-                              }
+                              },
+                              "map": [
+                                {
+                                  "operation": "perform_index_approximation",
+                                  "arguments": {
+                                    "target": "index_entries",
+                                    "approximator_shasum": "86689432ac09d86dd95d7d3ed57227d27eb09c81",
+                                    "filters": {
+                                      "event_id": "__parent_event__"
+                                    }
+                                  }
+                                }
+                              ]
                             }
                           }
                         ],
@@ -362,7 +434,19 @@
                       "arguments": {
                         "frames_batch_size": 500,
                         "index": "inception",
-                        "target": "frames"
+                        "target": "frames",
+                        "map": [
+                          {
+                            "operation": "perform_index_approximation",
+                            "arguments": {
+                              "target": "index_entries",
+                              "approximator_shasum": "86689432ac09d86dd95d7d3ed57227d27eb09c81",
+                              "filters": {
+                                "event_id": "__parent_event__"
+                              }
+                            }
+                          }
+                        ]
                       }
                     },
                     {

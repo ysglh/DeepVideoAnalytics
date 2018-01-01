@@ -71,7 +71,8 @@ class Approximators(object):
                 approx_ind.entries_file_name = "{}.json".format(uid)
                 approx_ind.features_file_name = ""
             elif da.algorithm == 'PCA':
-                approx_vectors = approx.approximate(vectors)
+                # TODO optimize this by doing matmul rather than calling for each entry
+                approx_vectors = np.array([approx.approximate(vectors[i, :]) for i, e in enumerate(entries)])
                 entries_fname = "{}/{}/indexes/{}.json".format(settings.MEDIA_ROOT, video_id, uid)
                 feat_fname = "{}/{}/indexes/{}.npy".format(settings.MEDIA_ROOT, video_id, uid)
                 with open(entries_fname, 'w') as entryfile:

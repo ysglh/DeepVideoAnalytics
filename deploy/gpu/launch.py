@@ -20,7 +20,7 @@ if __name__ == '__main__':
         instance.reload()
         print(instance.id, instance.instance_type)
         logging.info("instance allocated")
-        with open('hosts','w') as h:
+        with open('host','w') as h:
             h.write(instance.public_ip_address)
         fh = open("connect.sh", 'w')
         fh.write(

@@ -2,7 +2,7 @@ import logging, time
 from fabric.api import task, local, run, cd, env
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
-                    datefmt='%m-%d %H:%M', filename='../logs/aws.log', filemode='a')
+                    datefmt='%m-%d %H:%M', filename='../../logs/aws.log', filemode='a')
 
 from config import key_filename
 

@@ -11,7 +11,7 @@ Deployment with Kubernetes on Google Cloud Engine
 
 Once cluster has been created, log in using either cloud shell or in your local terminal. By following instruction
 for connecting to cluster. Start kubproxy in background by runnin `kubectl proxy &`. Clone DeepVideoAnalytics 
-repo and go to deploy/gcp.
+repo and go to deploy/kube.
 
 #### 1. Create [config.py](config_example.py) (copy & edit config_example.py) which contains values for secrets_template.yml
 

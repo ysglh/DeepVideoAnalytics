@@ -27,9 +27,9 @@ We provide instructions for deploying DVA in three scenarios.
 
 1. [deploy/cpu](/deploy/cpu) contains docker-compose files for non-GPU single machine deployments on Linode, AWS, GCP etc.
 
-2. [deploy/gpu](/deploy/gpu) contains docker-compose files for GPU single machine deployments on AWS etc.
+2. [deploy/gpu](/deploy/gpu) contains docker-compose files for GPU single machine deployments on GCP, AWS etc.
 
-3. [deploy/gcp](/deploy/gcp) contains files used for launching DVA in a scalable GKE + GCS setup
+3. [deploy/kube](/deploy/kube) contains files used for launching DVA in a scalable GKE + GCS setup
 
 
 ### Development

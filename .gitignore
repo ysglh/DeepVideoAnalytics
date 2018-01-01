@@ -32,8 +32,8 @@ docs/experiments/yolo/yolo_test.zip
 /repos/tf_ctpn_cpu/data/demo/test.jpg
 /repos/tf_ctpn_cpu/data/results/
 /client/build/
-/deploy/gcp/secrets.yml
-/deploy/gcp/config.py
+/deploy/kube/secrets.yml
+/deploy/kube/config.py
 /deploy/gpu/config.py
 /deploy/gpu/host
 /deploy/static/

@@ -9,9 +9,9 @@
 
 1. /cpu contains docker-compose files for non-GPU single machine deployments on Linode, AWS, GCP etc.
 
-2. /gpu contains docker-compose files for GPU single machine deployments on AWS etc.
+2. /gpu contains docker-compose files for GPU single machine deployments on GCP & AWS etc.
 
-3. /gcp contains files used for launching DVA in a scalable GKE + GCS setup
+3. /kube contains files used for launching DVA in a scalable GKE + GCS setup
 
 #### Container images
 

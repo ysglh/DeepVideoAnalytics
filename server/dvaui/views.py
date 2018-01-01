@@ -985,15 +985,15 @@ def shortcuts(request):
             model_pk = request.POST.get("model_pk")
             video_pks = request.POST.getlist('video_pk')
             target = request.POST.get('target')
-            frames_batch_size = request.POST.get('frames_batch_size')
+            frames_batch_size = request.POST.get('frames_batch_size',)
             if not frames_batch_size:
                 frames_batch_size = defaults.DEFAULT_FRAMES_BATCH_SIZE
             segments_batch_size = request.POST.get('segments_batch_size')
             if not segments_batch_size:
                 segments_batch_size = defaults.DEFAULT_SEGMENTS_BATCH_SIZE
             user = request.user if request.user.is_authenticated else None
-            process_pk = view_shared.model_apply(model_pk,video_pks,filters,target,segments_batch_size,
-                                                 frames_batch_size,user)
+            process_pk = view_shared.model_apply(model_pk,video_pks,filters,target,int(segments_batch_size),
+                                                 int(frames_batch_size),user)
             return redirect('process_detail',pk=process_pk)
     else:
         raise NotImplementedError("Only POST allowed")

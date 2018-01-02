@@ -47,7 +47,7 @@ class BaseRetriever(object):
         dist = None
         results = []
         if self.approximator:
-            vector = self.approximator.approximate(vector)
+            vector = np.atleast_2d(self.approximator.approximate(vector))
         if self.index is not None:
             try:
                 dist = spatial.distance.cdist(vector,self.index)

@@ -40,7 +40,7 @@
        - LAUNCH_Q_qextract=1
        - LAUNCH_SCHEDULER=1
        - LAUNCH_Q_GLOBAL_RETRIEVER=1
-     command: bash -c "git pull && sleep 10 && ./start_container.py"
+     command: bash -c "git pull && sleep 45 && ./start_container.py"
      depends_on:
        - db
        - rabbit
@@ -54,7 +54,7 @@
        - NVIDIA_VISIBLE_DEVICES=0
        - GPU_MEMORY=0.3
        - LAUNCH_BY_NAME_indexer_inception=1
-     command: bash -c "git pull && sleep 10 && ./start_container.py"
+     command: bash -c "git pull && sleep 45 && ./start_container.py"
      depends_on:
        - db
        - rabbit
@@ -68,7 +68,7 @@
        - NVIDIA_VISIBLE_DEVICES=0
        - GPU_MEMORY=0.3
        - LAUNCH_BY_NAME_indexer_facenet=1
-     command: bash -c "git pull && sleep 10 && ./start_container.py"
+     command: bash -c "git pull && sleep 45 && ./start_container.py"
      depends_on:
        - db
        - rabbit
@@ -82,7 +82,7 @@
        - NVIDIA_VISIBLE_DEVICES=1
        - GPU_MEMORY=0.4
        - LAUNCH_BY_NAME_detector_coco=1
-     command: bash -c "git pull && sleep 10 && ./start_container.py"
+     command: bash -c "git pull && sleep 45 && ./start_container.py"
      depends_on:
        - db
        - rabbit
@@ -96,7 +96,7 @@
        - NVIDIA_VISIBLE_DEVICES=0
        - GPU_MEMORY=0.4
        - LAUNCH_BY_NAME_detector_textbox=1
-     command: bash -c "git pull && sleep 10 && ./start_container.py"
+     command: bash -c "git pull && sleep 45 && ./start_container.py"
      depends_on:
        - db
        - rabbit
@@ -110,7 +110,7 @@
        - NVIDIA_VISIBLE_DEVICES=1
        - GPU_MEMORY=0.15
        - LAUNCH_BY_NAME_detector_face=1
-     command: bash -c "git pull && sleep 10 && ./start_container.py"
+     command: bash -c "git pull && sleep 45 && ./start_container.py"
      depends_on:
        - db
        - rabbit
@@ -124,7 +124,7 @@
        - NVIDIA_VISIBLE_DEVICES=1
        - GPU_MEMORY=0.2
        - LAUNCH_BY_NAME_analyzer_tagger=0
-     command: bash -c "git pull && sleep 10 && ./start_container.py"
+     command: bash -c "git pull && sleep 45 && ./start_container.py"
      depends_on:
        - db
        - rabbit
@@ -138,7 +138,7 @@
        - NVIDIA_VISIBLE_DEVICES=0
        - GPU_MEMORY=0.2
        - LAUNCH_BY_NAME_analyzer_crnn=1
-     command: bash -c "git pull && sleep 10 && ./start_container.py"
+     command: bash -c "git pull && sleep 45 && ./start_container.py"
      depends_on:
        - db
        - rabbit
@@ -152,7 +152,7 @@
        - NVIDIA_VISIBLE_DEVICES=0
        - GPU_MEMORY=0.2
        - LAUNCH_Q_GLOBAL_MODEL=1
-     command: bash -c "git pull && sleep 10 && ./start_container.py"
+     command: bash -c "git pull && sleep 45 && ./start_container.py"
      depends_on:
        - db
        - rabbit

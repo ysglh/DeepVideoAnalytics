@@ -7,19 +7,19 @@
      volumes:
       - dvapgdata:/var/lib/postgresql/data
      env_file:
-       - ./common.env
+       - ./common_non_nfs.env
    rabbit:
      image: rabbitmq
      container_name: dva-rmq
      env_file:
-       - ./common.env
+       - ./common_non_nfs.env
      volumes:
        - dvarabbit:/var/lib/rabbitmq
    webserver:
      image: akshayubhat/dva-auto:latest
      container_name: webserver
      env_file:
-       - ./common.env
+       - ./common_non_nfs.env
        - ~/aws.env
      environment:
        - LAUNCH_SERVER_NGINX=1
@@ -35,7 +35,7 @@
      image: akshayubhat/dva-auto:latest
      container_name: extractor
      env_file:
-       - ./common.env
+       - ./common_non_nfs.env
        - ~/aws.env
      environment:
        - LAUNCH_Q_qextract=1
@@ -47,7 +47,7 @@
      image: akshayubhat/dva-auto:latest
      container_name: scheduler
      env_file:
-       - ./common.env
+       - ./common_non_nfs.env
        - ~/aws.env
      environment:
        - LAUNCH_SCHEDULER=1
@@ -59,7 +59,7 @@
      image: akshayubhat/dva-auto:latest
      container_name: inception
      env_file:
-       - ./common.env
+       - ./common_non_nfs.env
        - ~/aws.env
      environment:
        - LAUNCH_BY_NAME_indexer_inception=1
@@ -71,7 +71,7 @@
      image: akshayubhat/dva-auto:latest
      container_name: facenet
      env_file:
-       - ./common.env
+       - ./common_non_nfs.env
        - ~/aws.env
      environment:
        - LAUNCH_BY_NAME_indexer_facenet=1
@@ -83,7 +83,7 @@
      image: akshayubhat/dva-auto:latest
      container_name: coco
      env_file:
-       - ./common.env
+       - ./common_non_nfs.env
        - ~/aws.env
      environment:
        - LAUNCH_BY_NAME_detector_coco=1
@@ -95,7 +95,7 @@
      image: akshayubhat/dva-auto:latest
      container_name: crnn
      env_file:
-       - ./common.env
+       - ./common_non_nfs.env
        - ~/aws.env
      environment:
        - LAUNCH_BY_NAME_analyzer_crnn=1
@@ -107,7 +107,7 @@
      image: akshayubhat/dva-auto:latest
      container_name: tagger
      env_file:
-       - ./common.env
+       - ./common_non_nfs.env
        - ~/aws.env
      environment:
        - LAUNCH_BY_NAME_analyzer_tagger=1
@@ -119,7 +119,7 @@
      image: akshayubhat/dva-auto:latest
      container_name: face
      env_file:
-       - ./common.env
+       - ./common_non_nfs.env
        - ~/aws.env
      environment:
        - LAUNCH_BY_NAME_detector_face=1
@@ -131,7 +131,7 @@
      image: akshayubhat/dva-auto:latest
      container_name: textdetector
      env_file:
-       - ./common.env
+       - ./common_non_nfs.env
        - ~/aws.env
      environment:
        - LAUNCH_BY_NAME_detector_textbox=1
@@ -143,7 +143,7 @@
      image: akshayubhat/dva-auto:latest
      container_name: global_model
      env_file:
-       - ./common.env
+       - ./common_non_nfs.env
        - ~/aws.env
      environment:
        - LAUNCH_Q_GLOBAL_MODEL=1
@@ -155,7 +155,7 @@
      image: akshayubhat/dva-auto:latest
      container_name: global_retriever
      env_file:
-       - ./common.env
+       - ./common_non_nfs.env
        - ~/aws.env
      environment:
        - LAUNCH_Q_GLOBAL_RETRIEVER=1

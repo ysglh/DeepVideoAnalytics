@@ -1,13 +1,13 @@
 # Single machine with GPU deployment
 
 The docker-compose files in this repo are intended for single instance GPU deployment. 
-E.g. A single EC2 or a GCP instance. For several type of workloads this is good enough.
+E.g. A single EC2 or a GCP instance. For several one-off workloads this is good enough.
 
-#### We provide a public AMI in us-east-1 region with Docker, nvidia-docker2 and DVA GPU container image : ami-642f631e
+- install_gcp_cuda_drivers.sh install CUDA along with drivers on GCP Ubuntu Xenial VM ( Not need for AWS since the DL AMI contains pre-installed drivers.)
 
-- docker-compose-gpu.yml : Same as above except when a GPU is available and NVidia docker compose is installled.
-                               
-- docker-compose-gpu-low-memory.yml : Same as GPU except indexers do not use GPU for lower GPU memory consumption.
+- docker-compose-gpu.yml : Docker compose file for single GPU with at last 12 Gb VRAM.
+
+- docker-compose-multi-gpu.yml : Docker compose file for multiple GPUs.
 
 - fix_docker_compose.py : make nvidia-docker default runtime.
 
@@ -15,9 +15,6 @@ E.g. A single EC2 or a GCP instance. For several type of workloads this is good 
 
 - install_nvidia_docker.sh install nvidia docker and make it default runtime.
 
-- launch.py : Launch on demand GPU instance on AWS
+- /aws instructions for using P2 instance and AMI
 
-- launch_spot.py : Launch spot GPU instance on AWS
-
-- packer_ami.json : Contains Packer script to automatically create AWS EC2 AMI using AWS Deep Learning AMI
-                    in us-east-1 region.
+- /gcp instructions for using Google Cloud Platform cloud VM

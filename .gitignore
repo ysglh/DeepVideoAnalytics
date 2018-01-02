@@ -34,8 +34,10 @@ docs/experiments/yolo/yolo_test.zip
 /client/build/
 /deploy/kube/secrets.yml
 /deploy/kube/config.py
-/deploy/gpu/config.py
-/deploy/gpu/host
+/deploy/gpu/aws/config.py
+/deploy/gpu/aws/host
+/deploy/gpu/gcp/config.py
+/deploy/gpu/gcp/host
 /deploy/static/
 /docs/marketing/
 /tests/training/facenet.npy

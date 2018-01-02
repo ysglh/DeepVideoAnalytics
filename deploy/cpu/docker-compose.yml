@@ -20,24 +20,10 @@
    dva:
      image: akshayubhat/dva-auto:latest
      container_name: webserver
+     env_file:
+       - ./common.env
      environment:
-       - GLOBAL_MODEL=1
-       - DOCKER_MODE=true
-       - RABBIT_HOST=rabbit
-       - RABBIT_USER=dvauser
-       - RABBIT_PASS=localpass
-       - DB_HOST=db
-       - DB_NAME=postgres
-       - DB_USER=pgdbuser
-       - DB_PASS=pgdbpass
        - LAUNCH_SERVER_NGINX=1
-       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-       - DISABLE_DEBUG=1
-       - SECRET_KEY=283y312bhv2b13v13
-       - SUPERUSER=akshay
-       - SUPERPASS=super
-       - SUPEREMAIL=akshay@deepvideoanalytics.com
        - LAUNCH_Q_GLOBAL_MODEL=1
        - LAUNCH_Q_GLOBAL_RETRIEVER=1
        - LAUNCH_BY_NAME_indexer_inception=1

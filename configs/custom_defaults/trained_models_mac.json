@@ -1,149 +1,4 @@
-DEFAULT_SEGMENTS_BATCH_SIZE = 10  # how many video segments should we process at a time?
-DEFAULT_FRAMES_BATCH_SIZE = 500  # How many frames/images in a dataset should we process at a time?
-DEFAULT_RATE = 30  # Default video decoding 1 frame per 30 frames AND all i-frames
-
-DEFAULT_PROCESSING_PLAN_VIDEO = [
-    {'operation': 'perform_detection', 'arguments': {
-        'filters': '__parent__',
-        'detector': 'coco',
-        'map': [
-            {'operation': 'perform_indexing',
-             'arguments': {
-                 'index': 'inception',
-                 'target': 'regions',
-                 'filters': {'event_id': '__parent_event__', 'w__gte': 50, 'h__gte': 50}
-             }
-             },
-        ]}
-     },
-    {'operation': 'perform_detection', 'arguments': {
-        'filters': '__parent__',
-        'detector': 'face',
-        'map': [
-            {'operation': 'perform_indexing',
-             'arguments': {
-                 'index': 'facenet',
-                 'target': 'regions',
-                 'filters': {'event_id': '__parent_event__'},
-                 'map': [{
-                     'operation': 'perform_index_approximation',
-                     'arguments': {
-                         'target': 'index_entries',
-                         'approximator_shasum': '93be2f99d432a7ce2d1626107659510755ea3815',
-                         'filters': {'event_id': '__parent_event__'}
-                     }
-                 }]
-             }},
-        ]}
-     },
-    {'operation': 'perform_indexing', 'arguments':
-        {'index': 'inception',
-         'target': 'frames',
-         'filters': '__parent__'
-         }},
-    {'operation': 'perform_analysis', 'arguments':
-        {'analyzer': 'tagger',
-         'target': 'frames',
-         'filters': '__parent__'
-         }}
-]
-
-DEFAULT_PROCESSING_PLAN_DATASET = [
-    {'operation': 'perform_detection', 'arguments': {
-        'frames_batch_size': DEFAULT_FRAMES_BATCH_SIZE,
-        'detector': 'coco',
-        'map': [
-            {'operation': 'perform_indexing',
-             'arguments': {
-                 'index': 'inception',
-                 'target': 'regions',
-                 'filters': {'event_id': '__parent_event__', 'w__gte': 50, 'h__gte': 50}
-             }
-             },
-        ]}
-     },
-    {'operation': 'perform_detection', 'arguments': {
-        'detector': 'face',
-        'frames_batch_size': DEFAULT_FRAMES_BATCH_SIZE,
-        'map': [
-            {'operation': 'perform_indexing',
-             'arguments': {
-                 'index': 'facenet',
-                 'target': 'regions',
-                 'filters': {'event_id': '__parent_event__'},
-                 'map': [{
-                     'operation': 'perform_index_approximation',
-                     'arguments': {
-                         'target': 'index_entries',
-                         'approximator_shasum': '93be2f99d432a7ce2d1626107659510755ea3815',
-                         'filters': {'event_id': '__parent_event__'}
-                     }
-                 }]
-
-             }
-             },
-        ]}
-     },
-    {'operation': 'perform_indexing', 'arguments': {
-        'index': 'inception',
-        'frames_batch_size': DEFAULT_FRAMES_BATCH_SIZE,
-        'target': 'frames',
-    }},
-    {'operation': 'perform_analysis', 'arguments':
-        {'analyzer': 'tagger',
-         'target': 'frames',
-         'frames_batch_size': DEFAULT_FRAMES_BATCH_SIZE,
-         }}
-]
-
-DEFAULT_PROCESSING_PLAN_FRAMELIST = [
-    {'operation': 'perform_detection', 'arguments': {
-        'filters': {'event_id': '__parent_event__'},
-        'detector': 'coco',
-        'map': [
-            {'operation': 'perform_indexing',
-             'arguments': {
-                 'index': 'inception',
-                 'target': 'regions',
-                 'filters': {'event_id': '__parent_event__', 'w__gte': 50, 'h__gte': 50}
-             }
-             },
-        ]}
-     },
-    {'operation': 'perform_detection', 'arguments': {
-        'detector': 'face',
-        'filters': {'event_id': '__parent_event__'},
-        'map': [
-            {'operation': 'perform_indexing',
-             'arguments': {
-                 'index': 'facenet',
-                 'target': 'regions',
-                 'filters': {'event_id': '__parent_event__'},
-                 'map': [{
-                     'operation': 'perform_index_approximation',
-                     'arguments': {
-                         'target': 'index_entries',
-                         'approximator_shasum': '93be2f99d432a7ce2d1626107659510755ea3815',
-                         'filters': {'event_id': '__parent_event__'}
-                     }
-                 }]
-             }
-             },
-        ]}
-     },
-    {'operation': 'perform_indexing', 'arguments': {
-        'index': 'inception',
-        'filters': {'event_id': '__parent_event__'},
-        'target': 'frames',
-    }},
-    {'operation': 'perform_analysis', 'arguments':
-        {'analyzer': 'tagger',
-         'target': 'frames',
-         'filters': {'event_id': '__parent_event__'},
-         }}
-]
-
-DEFAULT_MODELS = [
+[
     {
         "model_type": "D",
         "name": "coco",
@@ -153,9 +8,8 @@ DEFAULT_MODELS = [
         "files": [
             {
                 "url": "/users/aub3/DeepVideoAnalytics/shared/coco_mobilenet.pb",
-                "filename": "coco_mobilenet.pb",
-
-            },
+                "filename": "coco_mobilenet.pb"
+            }
         ],
         "mode": "T",
         "arguments": {"class_index_to_string": {
@@ -248,7 +102,7 @@ DEFAULT_MODELS = [
         "files": [
             {
                 "url": "/users/aub3/DeepVideoAnalytics/shared/checkpoint",
-                "filename": "checkpoint",
+                "filename": "checkpoint"
             },
             {
                 "url": "/users/aub3/DeepVideoAnalytics/shared/VGGnet_fast_rcnn_iter_50000.ckpt.data-00000-of-00001",
@@ -269,8 +123,8 @@ DEFAULT_MODELS = [
     {
         "model_type": "D",
         "name": "face",
-        "url": None,
-        "filename": None,
+        "url": null,
+        "filename": null,
         "algorithm": "mtcnn_facenet",
         "mode": "T"
     },
@@ -304,7 +158,7 @@ DEFAULT_MODELS = [
         "files": [
             {
                 "url": "/users/aub3/DeepVideoAnalytics/shared/crnn.pth",
-                "filename": "crnn.pth",
+                "filename": "crnn.pth"
             }
         ],
 
@@ -316,7 +170,7 @@ DEFAULT_MODELS = [
         "files": [
             {
                 "url": "/users/aub3/DeepVideoAnalytics/shared/open_images.ckpt",
-                "filename": "open_images.ckpt",
+                "filename": "open_images.ckpt"
             },
             {
                 "url": "/users/aub3/DeepVideoAnalytics/shared/open_images.ckpt.meta",
@@ -381,20 +235,16 @@ DEFAULT_MODELS = [
             {
                 "url": "/users/aub3/DeepVideoAnalytics/shared/yt8m/mean.npy",
                 "filename": "mean.npy"
-            },
+            }
         ],
         "name": "Inception_PCA_from_Youtube8M",
         "algorithm": "PCA",
         "arguments": {
             "indexer_shasum": "48b026cf77dfbd5d9841cca3ee550ef0ee5a0751",
-            "components": 1024,
+            "components": 1024
         },
         "model_type": "P",
         "shasum": "86689432ac09d86dd95d7d3ed57227d27eb09c81"
     }
 
-]
-
-EXTERNAL_SERVERS = [
-    {'url': 'https://github.com/VisualDataNetwork/root', 'name': 'VDN'},
 ]

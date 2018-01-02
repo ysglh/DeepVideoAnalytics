@@ -158,7 +158,7 @@ def handle_uploaded_file(f, name, user=None, rate=None):
                             {'arguments': {'path': fpath,
                                            'map':[
                                                {
-                                                    'arguments': {'map': defaults.DEFAULT_PROCESSING_PLAN_DATASET},
+                                                    'arguments': {'map': json.load(file("../configs/custom_defaults/dataset_processing.json"))},
                                                     'operation': 'perform_dataset_extraction',
                                                }
                                            ]
@@ -188,7 +188,7 @@ def handle_uploaded_file(f, name, user=None, rate=None):
                                                    'operation': 'perform_frame_download',
                                                    'arguments': {
                                                        'frames_batch_size': defaults.DEFAULT_FRAMES_BATCH_SIZE,
-                                                       'map': defaults.DEFAULT_PROCESSING_PLAN_FRAMELIST
+                                                       'map': json.load(file("../configs/custom_defaults/framelist_processing.json"))
                                                    },
                                                }
                                            ]
@@ -220,7 +220,7 @@ def handle_uploaded_file(f, name, user=None, rate=None):
                                                             'arguments': {
                                                                 'segments_batch_size': defaults.DEFAULT_SEGMENTS_BATCH_SIZE,
                                                                 'rate': rate,
-                                                                'map': defaults.DEFAULT_PROCESSING_PLAN_VIDEO
+                                                                'map': json.load(file("../configs/custom_defaults/video_processing.json"))
                                                             }
                                                             }
                                                        ]},

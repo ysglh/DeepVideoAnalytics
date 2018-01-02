@@ -18,7 +18,6 @@ if __name__ == '__main__':
     utils.migrate()
     subprocess.check_output(shlex.split('python manage.py flush --no-input'),cwd='../server')
     utils.migrate()
-    shutil.copy("../configs/custom_defaults/defaults_mac.py", '../server/dvaui/defaults.py')
     for dirname in os.listdir(settings.MEDIA_ROOT):
         shutil.rmtree("{}/{}".format(settings.MEDIA_ROOT,dirname))
     for log_filename in glob.glob("../logs/*.log"):
@@ -31,5 +30,4 @@ if __name__ == '__main__':
     envs['SUPERUSER'] = 'akshay'
     envs['SUPERPASS'] = 'super'
     envs['SUPEREMAIL'] = 'test@deepvideoanalytics.com'
-    subprocess.check_output(shlex.split('./copy_defaults.py'),cwd='../server',env=envs)
     subprocess.check_output(shlex.split('./init_fs.py'),cwd='../server',env=envs)

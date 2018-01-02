@@ -10,12 +10,10 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dva.settings")
 django.setup()
 from django.conf import settings
 from dvaui.models import ExternalServer
-from dvaapp.models import TrainedModel, Retriever, DVAPQL
-from dvaui.defaults import EXTERNAL_SERVERS
+from dvaapp.models import TrainedModel, DVAPQL
 from dvaapp.processing import DVAPQLProcess
 from django.contrib.auth.models import User
 from dvaapp.fs import get_path_to_file
-from dvaui.defaults import DEFAULT_MODELS
 
 if __name__ == "__main__":
     if not User.objects.filter(is_superuser=True).exists() and 'SUPERUSER' in os.environ:
@@ -27,9 +25,14 @@ if __name__ == "__main__":
                 os.mkdir("{}/{}".format(settings.MEDIA_ROOT, create_dirname))
             except:
                 pass
-    for e in EXTERNAL_SERVERS:
-        ExternalServer.objects.get_or_create(name=e['name'],url=e['url'])
-    for m in DEFAULT_MODELS:
+    if ExternalServer.objects.count() == 0:
+        for e in json.loads(file("../configs/custom_defaults/servers.json").read()):
+            ExternalServer.objects.get_or_create(name=e['name'],url=e['url'])
+    if sys.platform == 'darwin':
+        default_models = json.loads(file("../configs/custom_defaults/trained_models_mac.json").read())
+    else:
+        default_models = json.loads(file("../configs/custom_defaults/trained_models.json").read())
+    for m in default_models:
         if m['model_type'] == TrainedModel.DETECTOR:
             dm, created = TrainedModel.objects.get_or_create(name=m['name'],algorithm=m['algorithm'],mode=m['mode'],
                                                           files=m.get('files',[]), model_filename=m.get("filename", ""),

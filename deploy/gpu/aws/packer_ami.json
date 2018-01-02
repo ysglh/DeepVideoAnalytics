@@ -13,17 +13,17 @@
   "provisioners": [
     {
       "type": "file",
-      "source": "./install_docker.sh",
+      "source": "../install_docker.sh",
       "destination": "/home/ubuntu/"
     },
     {
       "type": "file",
-      "source": "./install_nvidia_docker.sh",
+      "source": "../install_nvidia_docker.sh",
       "destination": "/home/ubuntu/"
     },
     {
       "type": "file",
-      "source": "./fix_docker_compose.py",
+      "source": "../fix_docker_compose.py",
       "destination": "/home/ubuntu/"
     },
     {

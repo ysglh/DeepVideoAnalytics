@@ -5,15 +5,13 @@
      container_name: dva-pg
      volumes:
       - dvapgdata:/var/lib/postgresql/data
-     environment:
-      - POSTGRES_USER=pgdbuser
-      - POSTGRES_PASSWORD=pgdbpass
+     env_file:
+       - ./common.env
    rabbit:
      image: rabbitmq
      container_name: dva-rmq
-     environment:
-       - RABBITMQ_DEFAULT_USER=dvauser
-       - RABBITMQ_DEFAULT_PASS=localpass
+     env_file:
+       - ./common.env
      volumes:
        - dvarabbit:/var/lib/rabbitmq
    dva:

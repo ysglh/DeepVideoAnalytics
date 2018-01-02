@@ -25,7 +25,7 @@ if __name__ == "__main__":
         except:
             logging.exception("Could not update youtube-dl")
             pass
-        command = 'celery -A dva worker -l info {} -c {} -Q {} -n {}.%h -f ../logs/{}.log'.format(mute, max(int(conc), 2),
+        command = 'celery -A dva worker -l info {} -c {} -Q {} -n {}.%h -f ../logs/{}.log'.format(mute, max(int(conc), 4),
                                                                                                   queue_name, queue_name,
                                                                                                   queue_name)
         # TODO: worker fails due to

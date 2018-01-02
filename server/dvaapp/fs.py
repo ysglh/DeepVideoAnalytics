@@ -131,11 +131,9 @@ def get_path_to_file(path,local_path):
         if u.hostname == 'www.dropbox.com' and not path.endswith('?dl=1'):
             r = requests.get(path + '?dl=1')
         else:
-            r = requests.get(path)
+            r = requests.get(path,stream=True)
         with open(local_path, 'wb') as f:
-            for chunk in r.iter_content(chunk_size=1024):
-                if chunk:
-                    f.write(chunk)
+            shutil.copyfileobj(r.raw, f)
         r.close()
     elif fs_type == 's3' and not path.endswith('/'):
         bucket_name = path[5:].split('/')[0]

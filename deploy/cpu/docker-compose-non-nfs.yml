@@ -7,21 +7,22 @@
      volumes:
       - dvapgdata:/var/lib/postgresql/data
      env_file:
-       - ./common_non_nfs.env
+       - ./common.env
    rabbit:
      image: rabbitmq
      container_name: dva-rmq
      env_file:
-       - ./common_non_nfs.env
+       - ./common.env
      volumes:
        - dvarabbit:/var/lib/rabbitmq
    webserver:
      image: akshayubhat/dva-auto:latest
      container_name: webserver
      env_file:
-       - ./common_non_nfs.env
+       - ./common.env
        - ~/aws.env
      environment:
+       - DISABLE_NFS=1
        - LAUNCH_SERVER_NGINX=1
        - INIT_PROCESS=/root/DVA/configs/custom_defaults/init_process.json
      command: bash -c "git pull && sleep 10 && ./start_container.py"
@@ -35,9 +36,10 @@
      image: akshayubhat/dva-auto:latest
      container_name: extractor
      env_file:
-       - ./common_non_nfs.env
+       - ./common.env
        - ~/aws.env
      environment:
+       - DISABLE_NFS=1
        - LAUNCH_Q_qextract=1
      command: bash -c "git pull && sleep 60 && ./start_container.py"
      depends_on:
@@ -47,9 +49,10 @@
      image: akshayubhat/dva-auto:latest
      container_name: scheduler
      env_file:
-       - ./common_non_nfs.env
+       - ./common.env
        - ~/aws.env
      environment:
+       - DISABLE_NFS=1
        - LAUNCH_SCHEDULER=1
      command: bash -c "git pull && sleep 60 && ./start_container.py"
      depends_on:
@@ -59,9 +62,10 @@
      image: akshayubhat/dva-auto:latest
      container_name: inception
      env_file:
-       - ./common_non_nfs.env
+       - ./common.env
        - ~/aws.env
      environment:
+       - DISABLE_NFS=1
        - LAUNCH_BY_NAME_indexer_inception=1
      command: bash -c "git pull && sleep 60 && ./start_container.py"
      depends_on:
@@ -71,9 +75,10 @@
      image: akshayubhat/dva-auto:latest
      container_name: facenet
      env_file:
-       - ./common_non_nfs.env
+       - ./common.env
        - ~/aws.env
      environment:
+       - DISABLE_NFS=1
        - LAUNCH_BY_NAME_indexer_facenet=1
      command: bash -c "git pull && sleep 60 && ./start_container.py"
      depends_on:
@@ -83,9 +88,10 @@
      image: akshayubhat/dva-auto:latest
      container_name: coco
      env_file:
-       - ./common_non_nfs.env
+       - ./common.env
        - ~/aws.env
      environment:
+       - DISABLE_NFS=1
        - LAUNCH_BY_NAME_detector_coco=1
      command: bash -c "git pull && sleep 60 && ./start_container.py"
      depends_on:
@@ -95,9 +101,10 @@
      image: akshayubhat/dva-auto:latest
      container_name: crnn
      env_file:
-       - ./common_non_nfs.env
+       - ./common.env
        - ~/aws.env
      environment:
+       - DISABLE_NFS=1
        - LAUNCH_BY_NAME_analyzer_crnn=1
      command: bash -c "git pull && sleep 60 && ./start_container.py"
      depends_on:
@@ -107,9 +114,10 @@
      image: akshayubhat/dva-auto:latest
      container_name: tagger
      env_file:
-       - ./common_non_nfs.env
+       - ./common.env
        - ~/aws.env
      environment:
+       - DISABLE_NFS=1
        - LAUNCH_BY_NAME_analyzer_tagger=1
      command: bash -c "git pull && sleep 60 && ./start_container.py"
      depends_on:
@@ -119,9 +127,10 @@
      image: akshayubhat/dva-auto:latest
      container_name: face
      env_file:
-       - ./common_non_nfs.env
+       - ./common.env
        - ~/aws.env
      environment:
+       - DISABLE_NFS=1
        - LAUNCH_BY_NAME_detector_face=1
      command: bash -c "git pull && sleep 60 && ./start_container.py"
      depends_on:
@@ -131,9 +140,10 @@
      image: akshayubhat/dva-auto:latest
      container_name: textdetector
      env_file:
-       - ./common_non_nfs.env
+       - ./common.env
        - ~/aws.env
      environment:
+       - DISABLE_NFS=1
        - LAUNCH_BY_NAME_detector_textbox=1
      command: bash -c "sleep 60 && git pull && ./start_container.py"
      depends_on:
@@ -143,9 +153,10 @@
      image: akshayubhat/dva-auto:latest
      container_name: global_model
      env_file:
-       - ./common_non_nfs.env
+       - ./common.env
        - ~/aws.env
      environment:
+       - DISABLE_NFS=1
        - LAUNCH_Q_GLOBAL_MODEL=1
      command: bash -c "git pull && sleep 60 && ./start_container.py"
      depends_on:
@@ -155,9 +166,10 @@
      image: akshayubhat/dva-auto:latest
      container_name: global_retriever
      env_file:
-       - ./common_non_nfs.env
+       - ./common.env
        - ~/aws.env
      environment:
+       - DISABLE_NFS=1
        - LAUNCH_Q_GLOBAL_RETRIEVER=1
      command: bash -c "git pull && sleep 60 && ./start_container.py"
      depends_on:

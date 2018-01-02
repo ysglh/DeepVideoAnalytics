@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
-source ~/aws.env && docker-compose -f docker-compose-non-nfs.yml down -v
-source ~/aws.env && docker-compose -f docker-compose-non-nfs.yml up -d
+docker-compose -f docker-compose-non-nfs.yml down -v
+docker-compose -f docker-compose-non-nfs.yml up -d

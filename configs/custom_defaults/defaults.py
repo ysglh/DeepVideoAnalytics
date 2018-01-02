@@ -74,7 +74,15 @@ DEFAULT_PROCESSING_PLAN_DATASET = [
              'arguments': {
                  'index': 'inception',
                  'target': 'regions',
-                 'filters': {'event_id': '__parent_event__', 'w__gte': 50, 'h__gte': 50}
+                 'filters': {'event_id': '__parent_event__', 'w__gte': 50, 'h__gte': 50},
+                 'map': [{
+                     'operation': 'perform_index_approximation',
+                     'arguments': {
+                         'target': 'index_entries',
+                         'approximator_shasum': '86689432ac09d86dd95d7d3ed57227d27eb09c81',
+                         'filters': {'event_id': '__parent_event__'}
+                     }
+                 }]
              }
              },
         ]}
@@ -105,6 +113,14 @@ DEFAULT_PROCESSING_PLAN_DATASET = [
         'index': 'inception',
         'frames_batch_size': DEFAULT_FRAMES_BATCH_SIZE,
         'target': 'frames',
+        'map': [{
+            'operation': 'perform_index_approximation',
+            'arguments': {
+                'target': 'index_entries',
+                'approximator_shasum': '86689432ac09d86dd95d7d3ed57227d27eb09c81',
+                'filters': {'event_id': '__parent_event__'}
+            }
+        }]
     }},
     {'operation': 'perform_analysis', 'arguments':
         {'analyzer': 'tagger',
@@ -122,7 +138,16 @@ DEFAULT_PROCESSING_PLAN_FRAMELIST = [
              'arguments': {
                  'index': 'inception',
                  'target': 'regions',
-                 'filters': {'event_id': '__parent_event__', 'w__gte': 50, 'h__gte': 50}
+                 'filters': {'event_id': '__parent_event__', 'w__gte': 50, 'h__gte': 50},
+                 'map': [{
+                     'operation': 'perform_index_approximation',
+                     'arguments': {
+                         'target': 'index_entries',
+                         'approximator_shasum': '86689432ac09d86dd95d7d3ed57227d27eb09c81',
+                         'filters': {'event_id': '__parent_event__'}
+                     }
+                 }]
+
              }
              },
         ]}
@@ -152,6 +177,14 @@ DEFAULT_PROCESSING_PLAN_FRAMELIST = [
         'index': 'inception',
         'filters': {'event_id': '__parent_event__'},
         'target': 'frames',
+        'map': [{
+            'operation': 'perform_index_approximation',
+            'arguments': {
+                'target': 'index_entries',
+                'approximator_shasum': '86689432ac09d86dd95d7d3ed57227d27eb09c81',
+                'filters': {'event_id': '__parent_event__'}
+            }
+        }]
     }},
     {'operation': 'perform_analysis', 'arguments':
         {'analyzer': 'tagger',

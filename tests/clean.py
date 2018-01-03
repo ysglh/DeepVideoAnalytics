@@ -27,7 +27,7 @@ if __name__ == '__main__':
     except:
         pass
     envs = os.environ.copy()
-    envs['SUPERUSER'] = 'akshay'
+    envs['SUPERUSER'] = 'admin'
     envs['SUPERPASS'] = 'super'
-    envs['SUPEREMAIL'] = 'test@deepvideoanalytics.com'
+    envs['SUPEREMAIL'] = 'admin@test.com'
     subprocess.check_output(shlex.split('./init_fs.py'),cwd='../server',env=envs)

@@ -12,14 +12,9 @@ logging.basicConfig(level=logging.INFO,
 if __name__ == '__main__':
     if 'LAUNCH_SERVER' in os.environ or 'LAUNCH_SERVER_NGINX' in os.environ:
         subprocess.check_call(['./migrate.sh',])
-    subprocess.check_call(['./init_fs.py',])
-    block_on_manager = False
-    if 'LAUNCH_SERVER' in os.environ or 'LAUNCH_SERVER_NGINX' in os.environ:
-        server_launch = True
-    else:
-        server_launch = False
-    if server_launch:
+        subprocess.check_call(['./init_fs.py', ])
         subprocess.check_call(['./launch_from_env.py','0'])
     else:
         time.sleep(30)  # To avoid race condition where worker starts before migration is finished
+        subprocess.check_call(['./init_fs.py', ])
         subprocess.check_call(['./launch_from_env.py','1'])

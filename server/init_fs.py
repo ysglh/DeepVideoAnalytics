@@ -16,9 +16,15 @@ from django.contrib.auth.models import User
 from dvaapp.fs import get_path_to_file
 
 if __name__ == "__main__":
-    if not User.objects.filter(is_superuser=True).exists() and 'SUPERUSER' in os.environ:
-        User.objects.create_superuser(username=os.environ['SUPERUSER'], password=os.environ['SUPERPASS'],
-                                      email=os.environ['SUPEREMAIL'])
+    if 'SUPERUSER' in os.environ and not User.objects.filter(is_superuser=True).exists():
+        try:
+            User.objects.create_superuser(username=os.environ['SUPERUSER'],
+                                          password=os.environ['SUPERPASS'],
+                                          email=os.environ['SUPEREMAIL'])
+        except:
+            logging.warning("Could not create Superuser, might be because one already exists in which "
+                            "case please ignore.")
+            pass
     for create_dirname in ['queries', 'exports', 'external', 'retrievers', 'ingest','training_sets']:
         if not os.path.isdir("{}/{}".format(settings.MEDIA_ROOT, create_dirname)):
             try:

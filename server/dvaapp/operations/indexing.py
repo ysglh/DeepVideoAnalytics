@@ -73,7 +73,11 @@ class Indexers(object):
                     'index': i,
                     'type': df.region_type
                 }
-                if not df.materialized:
+                if df.full_frame:
+                    paths.append(df.frame_path())
+                elif df.materialized:
+                    paths.append(df.path())
+                else:
                     frame_path = df.frame_path()
                     if frame_path not in images:
                         images[frame_path] = Image.open(frame_path)
@@ -81,13 +85,12 @@ class Indexers(object):
                     region_path = df.path(temp_root=temp_root)
                     img2.save(region_path)
                     paths.append(region_path)
-                else:
-                    paths.append(df.path())
             else:
                 raise ValueError,"{} target not configured".format(target)
             entries.append(entry)
         if entries:
             logging.info(paths)  # adding temporary logging to check whether s3:// paths are being correctly used.
+            # TODO Ensure that "full frame"/"regions" are not repeatedly indexed.
             features = visual_index.index_paths(paths)
             uid = str(uuid.uuid1()).replace('-','_')
             dirnames = ['{}/{}/'.format(settings.MEDIA_ROOT,event.video_id),

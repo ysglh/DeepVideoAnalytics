@@ -10,10 +10,5 @@ E.g. A desktop, linode, digital ocean droplet, aws ec2 instance or a gcp cloud v
 
 - webserver_logs.sh : Get uwsgi logs from webserver
 
-#### Security warning
-
-When deploying/running on remote Ubuntu machines on VPS services such as Linode etc. please be aware of the
-[Docker/UFW firewall issues](https://askubuntu.com/questions/652556/uncomplicated-firewall-ufw-is-not-blocking-anything-when-using-docker).
-Docker bypasses UFW firewall and opens the port 8000 to internet.
-You can change the behavior by using a loopback interface (127.0.0.1:8000:80) and then forwarding the
-local port (8000) over SSH tunnel.
+#### The docker-compose files use loopback interface (127.0.0.1:8000:80), we recommend forwarding the host OS port (8000)
+over SSH tunnel when using cloud providers or VPS services such as Linode.

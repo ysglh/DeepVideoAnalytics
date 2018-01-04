@@ -1,5 +1,9 @@
 # Deep Video Analytics deployment configurations
 
+#### Environment variables
+
+- common.env contains environment variable used in both cpu and gpu/multi-gpu deployments.
+
 #### Developing Deep Video Analytics
 
 - /dev contains a docker-compose file which maps host /server directory (relative path), and can be used

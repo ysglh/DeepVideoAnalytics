@@ -7,19 +7,19 @@
      volumes:
       - dvapgdata:/var/lib/postgresql/data
      env_file:
-       - ./common.env
+       - ../common.env
    rabbit:
      image: rabbitmq
      container_name: dva-rmq
      env_file:
-       - ./common.env
+       - ../common.env
      volumes:
        - dvarabbit:/var/lib/rabbitmq
    dva:
      image: akshayubhat/dva-auto:latest
      container_name: webserver
      env_file:
-       - ./common.env
+       - ../common.env
      environment:
        - LAUNCH_SERVER_NGINX=1
        - LAUNCH_Q_GLOBAL_MODEL=1

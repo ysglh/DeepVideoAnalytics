@@ -15,6 +15,13 @@
        - ../common.env
      volumes:
        - dvarabbit:/var/lib/rabbitmq
+   redis:
+     image: bitnami/redis:latest
+     container_name: dva-redis
+     env_file:
+       - ../common.env
+     volumes:
+       - dvaredis:/bitnami
    dva:
      image: akshayubhat/dva-auto:latest
      container_name: webserver
@@ -43,9 +50,11 @@
      depends_on:
        - db
        - rabbit
+       - redis
      volumes:
        - dvadata:/root/media
  volumes:
   dvapgdata:
   dvadata:
   dvarabbit:
+  dvaredis:

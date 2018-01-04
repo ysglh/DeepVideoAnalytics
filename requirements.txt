@@ -30,3 +30,5 @@ easydict
 google-cloud-storage
 urllib3
 flask
+redis
+hiredis

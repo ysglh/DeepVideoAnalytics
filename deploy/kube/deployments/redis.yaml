@@ -1,0 +1,78 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-master
+  labels:
+    app: redis
+    tier: backend
+    role: master
+spec:
+  selector:
+    app: redis
+    tier: backend
+    role: master
+  ports:
+    - port: 6379
+      targetPort: 6379
+  clusterIP: None
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: redisdata-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 3Gi
+  storageClassName: slow
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: redis-master
+spec:
+  replicas: 1
+  progressDeadlineSeconds: 600
+  minReadySeconds: 15
+  revisionHistoryLimit: 5
+  template:
+    metadata:
+      labels:
+        app: redis
+        role: master
+        tier: backend
+    spec:
+      containers:
+      - image: bitnami/redis
+        imagePullPolicy: "IfNotPresent"
+        resources:
+          requests:
+            memory: "1000Mi"
+            cpu: "2"
+          limits:
+            memory: "4000Mi"
+            cpu: "4"
+        name: master
+        env:
+        - name: RABBIT_HOST
+          valueFrom:
+            secretKeyRef:
+              name: redis-secret
+              key: rabbithost
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: redis-secret
+              key: redispassword
+        ports:
+        - containerPort: 5672
+          name: redis-master
+        volumeMounts:
+        - name: redis-data
+          mountPath: "/bitnami"
+      volumes:
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: redisdata-claim

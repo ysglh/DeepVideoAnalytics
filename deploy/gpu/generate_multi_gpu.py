@@ -15,6 +15,13 @@ skeleton = """
        - ../common.env
      volumes:
        - dvarabbit:/var/lib/rabbitmq
+   redis:
+     image: bitnami/redis:latest
+     container_name: dva-redis
+     env_file:
+       - ../common.env
+     volumes:
+       - dvaredis:/bitnami       
    webserver:
      image: akshayubhat/dva-auto:gpu
      env_file:
@@ -28,6 +35,7 @@ skeleton = """
        - "127.0.0.1:8888:8888"
      depends_on:
        - db
+       - redis       
        - rabbit
      volumes:
        - dvadata:/root/media
@@ -44,6 +52,7 @@ skeleton = """
      command: bash -c "git pull && sleep 45 && ./start_container.py"
      depends_on:
        - db
+       - redis       
        - rabbit
      volumes:
        - dvadata:/root/media
@@ -60,6 +69,7 @@ skeleton = """
      command: bash -c "git pull && sleep 45 && ./start_container.py"
      depends_on:
        - db
+       - redis       
        - rabbit
      volumes:
        - dvadata:/root/media
@@ -67,6 +77,7 @@ skeleton = """
   dvapgdata:
   dvadata:
   dvarabbit:
+  dvaredis:
 """
 
 block = """   {worker_name}:
@@ -81,6 +92,7 @@ block = """   {worker_name}:
      command: bash -c "git pull && sleep 45 && ./start_container.py"
      depends_on:
        - db
+       - redis       
        - rabbit
      volumes:
        - dvadata:/root/media"""

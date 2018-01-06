@@ -1,8 +1,5 @@
 # Deep Video Analytics tutorial
 
-To run tutorials start DVA containers and run notebooks using jupyter.
+- start_tutorial.py : Starts containers, notebook server and waits for the container to be started.
 
-```bash
-docker-compose up -d
-jupyter notebook
-```
+- stop_tutorial.py : Stops containers and removes the associated volumes

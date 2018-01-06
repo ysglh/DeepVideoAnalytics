@@ -28,6 +28,7 @@
      env_file:
        - ../common.env
      environment:
+       - LAUNCH_NOTEBOOK=1
        - LAUNCH_SERVER_NGINX=1
        - LAUNCH_Q_GLOBAL_MODEL=1
        - LAUNCH_Q_GLOBAL_RETRIEVER=1

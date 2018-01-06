@@ -26,8 +26,8 @@ if __name__ == '__main__':
             if r.ok:
                 print "Open browser window and go to http://localhost:8000 to access DVA Web UI"
                 print 'Use following auth code to use jupyter notebook on  '
-                print subprocess.check_output(["jupyter",'notebook','list'])
-                print 'For windows you might need to replace "localhost" with ip address of docker-machine '
+                print subprocess.check_output(["docker","exec","-it","webserver","jupyter",'notebook','list'])
+                print 'For windows you might need to replace "localhost" with ip address of docker-machine'
                 webbrowser.open("http://localhost:8000")
                 webbrowser.open("http://localhost:8888")
                 break

@@ -9,7 +9,8 @@ if __name__ == '__main__':
     except:
         raise SystemError("Docker is not running")
     try:
-        subprocess.check_call(["docker-compose"])
+        subprocess.check_call(["docker-compose",'ps'],
+                              cwd=os.path.join(os.path.dirname(__file__),'../../deploy/cpu'))
     except:
         raise SystemError("Docker-compose is not available")
     print "Trying to launch containers, first time it might take a while to download container images"

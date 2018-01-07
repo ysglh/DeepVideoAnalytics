@@ -28,6 +28,7 @@ skeleton = """
        - ../common.env
      environment:
        - LAUNCH_SERVER_NGINX=1
+       - LAUNCH_NOTEBOOK=1
        - INIT_PROCESS=/root/DVA/configs/custom_defaults/init_process.json
      command: bash -c "git pull && sleep 10 && ./start_container.py"
      ports:

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -xe
+python create_secrets.py
 kubectl create -f secrets.yml
 kubectl create -f deployments/gce-pd.yml
 kubectl create -f deployments/postgres.yaml

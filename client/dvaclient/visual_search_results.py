@@ -50,7 +50,7 @@ class VisualSearchResults(object):
             for r in query_region['query_results']:
                 pass
 
-    def visualize(self):
+    def visualize(self,host="http://localhost"):
         print "Query Image"
         with open('temp.png', 'w') as f:
             f.write(base64.decodestring(self.query.query_json['image_data_b64']))
@@ -61,10 +61,15 @@ class VisualSearchResults(object):
         for rank, r in self.similar_images:
             if r.region:
                 print "Rank {}, region".format(rank)
-                display(Image(crop_region_url(r.frame['media_url'], r.region), width=300))
+                display(Image(crop_region_url(self.fix_url(r.frame['media_url'],host=host), r.region), width=300))
             else:
                 print "Rank {}, full frame".format(rank)
-                display(Image(r.frame['media_url'], width=300))
+                display(Image(self.fix_url(r.frame['media_url'],host=host), width=300))
         print "\n\n\n"
 
 
+    def fix_url(self,url,host):
+        if url.startswith('/'):
+            return "{}{}".format(host,url)
+        else:
+            return url

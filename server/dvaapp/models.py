@@ -21,9 +21,6 @@ class Worker(models.Model):
 
 
 class DVAPQL(models.Model):
-    """
-    A query object with image_data, can have multiple children subspecies
-    """
     SCHEDULE = 'S'
     PROCESS = 'V'
     QUERY = 'Q'
@@ -31,7 +28,6 @@ class DVAPQL(models.Model):
     process_type = models.CharField(max_length=1, choices=TYPE_CHOICES, default=QUERY, )
     created = models.DateTimeField('date created', auto_now_add=True)
     user = models.ForeignKey(User, null=True, related_name="submitter")
-    image_data = models.BinaryField(null=True)
     script = JSONField(blank=True, null=True)
     results_metadata = models.TextField(default="")
     results_available = models.BooleanField(default=False)

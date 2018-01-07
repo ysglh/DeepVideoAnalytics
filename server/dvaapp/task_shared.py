@@ -4,6 +4,7 @@ from models import Video, QueryRegion, QueryRegionIndexVector, DVAPQL, Region, F
 from django.conf import settings
 from PIL import Image
 from . import serializers
+from dva.in_memory import redis_client
 from .fs import ensure, upload_file_to_remote, upload_video_to_remote, get_path_to_file
 from dva.celery import app
 
@@ -195,16 +196,20 @@ def load_frame_list(dv,event_id,frame_index__gte=0,frame_index__lt=-1):
 
 def download_and_get_query_path(start):
     local_path = "{}/queries/{}_{}.png".format(settings.MEDIA_ROOT, start.pk, start.parent_process_id)
-    with open(local_path, 'w') as fh:
-        fh.write(str(start.parent_process.image_data))
+    if not os.path.isfile(local_path):
+        source_path = "/queries/{}.png".format(settings.MEDIA_ROOT, start.parent_process_id)
+        image_data = redis_client.get(source_path)
+        if image_data:
+            with open(local_path, 'w') as fh:
+                fh.write(str(image_data))
+        else:
+            ensure(source_path,safe=True)
+            shutil.copy(source_path,local_path)
     return local_path
 
 
 def download_and_get_query_region_path(start,regions):
-    query_local_path = "{}/queries/{}_{}.png".format(settings.MEDIA_ROOT, start.pk, start.parent_process_id)
-    if not os.path.isfile(query_local_path):
-        with open(query_local_path, 'w') as fh:
-            fh.write(str(start.parent_process.image_data))
+    query_local_path = download_and_get_query_path(start)
     imdata = Image.open(query_local_path)
     rpaths = []
     for r in regions:
@@ -216,10 +221,7 @@ def download_and_get_query_region_path(start,regions):
 
 
 def get_query_dimensions(start):
-    query_local_path = "{}/queries/{}_{}.png".format(settings.MEDIA_ROOT, start.pk, start.parent_process_id)
-    if not os.path.isfile(query_local_path):
-        with open(query_local_path, 'w') as fh:
-            fh.write(str(start.parent_process.image_data))
+    query_local_path = download_and_get_query_path(start)
     imdata = Image.open(query_local_path)
     width, height = imdata.size
     return width, height

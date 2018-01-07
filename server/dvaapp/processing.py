@@ -2,6 +2,7 @@ import base64, copy, os, json, logging, time
 from django.utils import timezone
 from django.conf import settings
 from dva.celery import app
+from dva.in_memory import redis_client
 try:
     from dvalib import indexer, clustering, retriever
     import numpy as np
@@ -263,29 +264,28 @@ class DVAPQLProcess(object):
         self.created_objects = []
         self.task_group_index = 0
 
-    def store(self):
-        query_path = "{}/queries/{}.png".format(settings.MEDIA_ROOT, self.process.pk)
-        with open(query_path, 'w') as fh:
-            fh.write(self.process.image_data)
-        if settings.DISABLE_NFS:
-            query_key = "/queries/{}.png".format(self.process.pk)
-            fs.upload_file_to_remote(query_key)
-            os.remove(query_path)
-
     def create_from_json(self, j, user=None):
         if self.process is None:
             self.process = DVAPQL()
         if not (user is None):
             self.process.user = user
         if j['process_type'] == DVAPQL.QUERY:
+            image_data = None
             if j['image_data_b64'].strip():
                 image_data = base64.decodestring(j['image_data_b64'])
                 j['image_data_b64'] = None
-                self.process.image_data = image_data
             self.process.process_type = DVAPQL.QUERY
             self.process.script = j
             self.process.save()
-            self.store()
+            if image_data:
+                query_path = "{}/queries/{}.png".format(settings.MEDIA_ROOT, self.process.pk)
+                redis_client.set("/queries/{}.png".format(self.process.pk),image_data,ex=1200)
+                with open(query_path, 'w') as fh:
+                    fh.write(image_data)
+                if settings.DISABLE_NFS:
+                    query_key = "/queries/{}.png".format(self.process.pk)
+                    fs.upload_file_to_remote(query_key)
+                    os.remove(query_path)
         elif j['process_type'] == DVAPQL.PROCESS:
             self.process.process_type = DVAPQL.PROCESS
             self.process.script = j

@@ -110,16 +110,17 @@ config = {
                                        (1,0.25,"LAUNCH_BY_NAME_indexer_facenet","facenet"),
                                        (1,0.25,"LAUNCH_BY_NAME_analyzer_tagger","tagger")]
                                   },
-    "docker-compose-3-gpus.yml": {"global_model_gpu_id": 0,
-                                  "global_model_memory_fraction": 0.3,
+    "docker-compose-4-gpus.yml": {"global_model_gpu_id": 2,
+                                  "global_model_memory_fraction": 0.29,
                                   "workers":
                                       [(0,0.3,"LAUNCH_BY_NAME_indexer_inception","inception"),
-                                       (0,0.3,"LAUNCH_BY_NAME_analyzer_crnn","crnn"),
-                                       (1,0.5,"LAUNCH_BY_NAME_detector_coco","coco"),
-                                       (1,0.5,"LAUNCH_BY_NAME_detector_textbox","textbox"),
-                                       (2,0.6,"LAUNCH_BY_NAME_detector_face","face"),
-                                       (2,0.25,"LAUNCH_BY_NAME_indexer_facenet","facenet"),
-                                       (2,0.25,"LAUNCH_BY_NAME_analyzer_tagger","tagger")]
+                                       (0,0.4,"LAUNCH_BY_NAME_analyzer_tagger","tagger"),
+                                       (0,0.2,"LAUNCH_BY_NAME_analyzer_crnn","crnn"),
+                                       (1,1.0,"LAUNCH_BY_NAME_detector_coco","coco"),
+                                       (2,0.7,"LAUNCH_BY_NAME_detector_face","face"),
+                                       (3,0.5,"LAUNCH_BY_NAME_detector_textbox","textbox"),
+                                       (3,0.45,"LAUNCH_BY_NAME_indexer_facenet","facenet")
+                                       ]
                                   },
 }
 

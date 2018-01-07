@@ -73,6 +73,22 @@
        - rabbit
      volumes:
        - dvadata:/root/media
+   tagger:
+     image: akshayubhat/dva-auto:gpu
+     env_file:
+       - ../common.env
+     environment:
+       - GPU_AVAILABLE=1
+       - NVIDIA_VISIBLE_DEVICES=0
+       - GPU_MEMORY=0.4
+       - LAUNCH_BY_NAME_analyzer_tagger=1
+     command: bash -c "git pull && sleep 45 && ./start_container.py"
+     depends_on:
+       - db
+       - redis       
+       - rabbit
+     volumes:
+       - dvadata:/root/media
    crnn:
      image: akshayubhat/dva-auto:gpu
      env_file:
@@ -80,7 +96,7 @@
      environment:
        - GPU_AVAILABLE=1
        - NVIDIA_VISIBLE_DEVICES=0
-       - GPU_MEMORY=0.3
+       - GPU_MEMORY=0.2
        - LAUNCH_BY_NAME_analyzer_crnn=1
      command: bash -c "git pull && sleep 45 && ./start_container.py"
      depends_on:
@@ -96,24 +112,8 @@
      environment:
        - GPU_AVAILABLE=1
        - NVIDIA_VISIBLE_DEVICES=1
-       - GPU_MEMORY=0.5
+       - GPU_MEMORY=1.0
        - LAUNCH_BY_NAME_detector_coco=1
-     command: bash -c "git pull && sleep 45 && ./start_container.py"
-     depends_on:
-       - db
-       - redis       
-       - rabbit
-     volumes:
-       - dvadata:/root/media
-   textbox:
-     image: akshayubhat/dva-auto:gpu
-     env_file:
-       - ../common.env
-     environment:
-       - GPU_AVAILABLE=1
-       - NVIDIA_VISIBLE_DEVICES=1
-       - GPU_MEMORY=0.5
-       - LAUNCH_BY_NAME_detector_textbox=1
      command: bash -c "git pull && sleep 45 && ./start_container.py"
      depends_on:
        - db
@@ -128,8 +128,24 @@
      environment:
        - GPU_AVAILABLE=1
        - NVIDIA_VISIBLE_DEVICES=2
-       - GPU_MEMORY=0.6
+       - GPU_MEMORY=0.7
        - LAUNCH_BY_NAME_detector_face=1
+     command: bash -c "git pull && sleep 45 && ./start_container.py"
+     depends_on:
+       - db
+       - redis       
+       - rabbit
+     volumes:
+       - dvadata:/root/media
+   textbox:
+     image: akshayubhat/dva-auto:gpu
+     env_file:
+       - ../common.env
+     environment:
+       - GPU_AVAILABLE=1
+       - NVIDIA_VISIBLE_DEVICES=3
+       - GPU_MEMORY=0.5
+       - LAUNCH_BY_NAME_detector_textbox=1
      command: bash -c "git pull && sleep 45 && ./start_container.py"
      depends_on:
        - db
@@ -143,25 +159,9 @@
        - ../common.env
      environment:
        - GPU_AVAILABLE=1
-       - NVIDIA_VISIBLE_DEVICES=2
-       - GPU_MEMORY=0.25
+       - NVIDIA_VISIBLE_DEVICES=3
+       - GPU_MEMORY=0.45
        - LAUNCH_BY_NAME_indexer_facenet=1
-     command: bash -c "git pull && sleep 45 && ./start_container.py"
-     depends_on:
-       - db
-       - redis       
-       - rabbit
-     volumes:
-       - dvadata:/root/media
-   tagger:
-     image: akshayubhat/dva-auto:gpu
-     env_file:
-       - ../common.env
-     environment:
-       - GPU_AVAILABLE=1
-       - NVIDIA_VISIBLE_DEVICES=2
-       - GPU_MEMORY=0.25
-       - LAUNCH_BY_NAME_analyzer_tagger=1
      command: bash -c "git pull && sleep 45 && ./start_container.py"
      depends_on:
        - db
@@ -175,8 +175,8 @@
        - ../common.env
      environment:
        - GPU_AVAILABLE=1     
-       - NVIDIA_VISIBLE_DEVICES=0
-       - GPU_MEMORY=0.3
+       - NVIDIA_VISIBLE_DEVICES=2
+       - GPU_MEMORY=0.29
        - LAUNCH_Q_GLOBAL_MODEL=1
      command: bash -c "git pull && sleep 45 && ./start_container.py"
      depends_on:

@@ -3,6 +3,7 @@ from .operations import indexing, detection, analysis, approximation
 import io, logging, tempfile, json, uuid
 from . import task_shared
 from . import models
+from dva.in_memory import redis_client
 
 try:
     import numpy as np
@@ -37,6 +38,7 @@ def handle_perform_indexing(start):
             s = io.BytesIO()
             np.save(s, vector)
             # can be replaced by Redis instead of using DB
+            redis_client.hset(start.pk,dr.pk,s.getvalue())
             _ = models.QueryRegionIndexVector.objects.create(vector=s.getvalue(), event=start, query_region=dr)
         sync = False
     elif target == 'regions':

@@ -98,6 +98,16 @@ spec:
             secretKeyRef:
               name: postgres-secret
               key: dbpassword
+        - name: REDIS_HOST
+          valueFrom:
+            secretKeyRef:
+              name: redis-secret
+              key: redishost
+        - name: REDIS_PASSSWORD
+          valueFrom:
+            secretKeyRef:
+              name: redis-secret
+              key: redispassword
         ports:
         - containerPort: 80
         args:

@@ -83,6 +83,16 @@ spec:
             secretKeyRef:
               name: app-secret
               key: cloudfsprefix
+        - name: REDIS_HOST
+          valueFrom:
+            secretKeyRef:
+              name: redis-secret
+              key: redishost
+        - name: REDIS_PASSSWORD
+          valueFrom:
+            secretKeyRef:
+              name: redis-secret
+              key: redispassword
         args:
           - bash
           - -c

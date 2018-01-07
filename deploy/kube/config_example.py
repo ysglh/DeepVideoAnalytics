@@ -13,3 +13,5 @@ superpass=''
 superemail=''
 cloudfsprefix='gs'
 cors_origin='' # to set CORS on the bucket Can be * or specific website e.g. http://example.website.com
+redishost = "redis"
+redispassword = "sadnnasndaslnk"

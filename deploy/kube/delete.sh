@@ -2,6 +2,7 @@
 kubectl delete -f secrets.yml
 kubectl delete -f deployments/gce-pd.yml
 kubectl delete -f deployments/coco.yaml
+kubectl delete -f deployments/redis.yaml
 kubectl delete -f deployments/extractor.yaml
 kubectl delete -f deployments/face.yaml
 kubectl delete -f deployments/facenet.yaml

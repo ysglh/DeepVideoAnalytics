@@ -20,4 +20,6 @@ if __name__ == '__main__':
             superpass=base64.encodestring(config.superpass),
             superemail=base64.encodestring(config.superemail),
             cloudfsprefix=base64.encodestring(config.cloudfsprefix),
+            redishost=base64.encodestring(config.redishost),
+            redispassword=base64.encodestring(config.redispassword),
         ).replace('\n\n','\n'))

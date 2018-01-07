@@ -56,11 +56,6 @@ spec:
             cpu: "4"
         name: master
         env:
-        - name: RABBIT_HOST
-          valueFrom:
-            secretKeyRef:
-              name: redis-secret
-              key: rabbithost
         - name: REDIS_PASSWORD
           valueFrom:
             secretKeyRef:

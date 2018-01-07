@@ -56,7 +56,7 @@ class DVAContext(object):
                 for e in l:
                     if query_id and e['parent_process'].strip('/').split('/')[-1] == str(query_id):
                         print e['created'], e['start_ts'], e['operation'], e['started'], e['completed'], e['duration']
-                    else:
+                    elif query_id is None:
                         print e['created'], e['start_ts'], e['operation'], e['started'], e['completed'], e['duration']
             return l
         else:

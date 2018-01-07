@@ -26,7 +26,7 @@ class DVAQuery(object):
     def wait(self, timeout=3, max_attempts=60, verbose=False):
         i_timeout, i_max_attempts = timeout, max_attempts
         while not self.completed() and max_attempts > 0:
-            msg = "Query {qid} not completed sleeping for {timeout} and waiting for at most {attempts} attempts, ".format(qid=self, timeout=timeout, attempts=max_attempts)
+            msg = "Query {qid} not completed sleeping for {timeout} and waiting for at most {attempts} attempts, ".format(qid=self.query_id, timeout=timeout, attempts=max_attempts)
             logging.info(msg)
             if verbose:
                 print msg

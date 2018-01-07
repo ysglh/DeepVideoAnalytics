@@ -1,5 +1,5 @@
 from __future__ import unicode_literals
-import os, json, gzip, sys, shutil, zipfile
+import os, json, gzip, sys, shutil, zipfile, uuid
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.postgres.fields import ArrayField, JSONField
@@ -32,6 +32,8 @@ class DVAPQL(models.Model):
     results_metadata = models.TextField(default="")
     results_available = models.BooleanField(default=False)
     completed = models.BooleanField(default=False)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+
 
 
 class Video(models.Model):

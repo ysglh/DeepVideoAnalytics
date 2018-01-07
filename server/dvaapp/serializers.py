@@ -316,10 +316,17 @@ class SegmentExportSerializer(serializers.ModelSerializer):
 
 class DVAPQLSerializer(serializers.HyperlinkedModelSerializer):
     tasks = TaskExportSerializer(source='tevent_set', read_only=True, many=True)
+    query_image_url = serializers.SerializerMethodField()
+
+    def get_query_image_urll(self,obj):
+        if obj.process_type == DVAPQL.QUERY:
+            return "{}queries/{}.png".format(settings.MEDIA_URL,obj.uuid)
+        else:
+            return None
 
     class Meta:
         model = DVAPQL
-        fields =('process_type', 'created', 'user', 'image_data', 'script', 'tasks',
+        fields =('process_type','query_image_url','created', 'user', 'uuid', 'script', 'tasks',
                  'results_metadata', 'results_available', 'completed','id')
 
 

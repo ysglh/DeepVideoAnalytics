@@ -195,9 +195,9 @@ def load_frame_list(dv,event_id,frame_index__gte=0,frame_index__lt=-1):
 
 
 def download_and_get_query_path(start):
-    local_path = "{}/queries/{}_{}.png".format(settings.MEDIA_ROOT, start.pk, start.parent_process_id)
+    local_path = "{}/queries/{}_{}.png".format(settings.MEDIA_ROOT, start.pk, start.parent_process.uuid)
     if not os.path.isfile(local_path):
-        source_path = "/queries/{}.png".format(start.parent_process_id)
+        source_path = "/queries/{}.png".format(start.parent_process.uuid)
         image_data = redis_client.get(source_path)
         if image_data:
             with open(local_path, 'w') as fh:
@@ -213,7 +213,7 @@ def download_and_get_query_region_path(start,regions):
     imdata = Image.open(query_local_path)
     rpaths = []
     for r in regions:
-        region_path = "{}/queries/region_{}_{}.png".format(settings.MEDIA_ROOT, r.pk, start.parent_process_id)
+        region_path = "{}/queries/region_{}_{}.png".format(settings.MEDIA_ROOT, r.pk, start.parent_process.uuid)
         img2 = imdata.crop((r.x, r.y, r.x + r.w, r.y + r.h))
         img2.save(region_path)
         rpaths.append(region_path)

@@ -270,7 +270,7 @@ class VisualSearchDetail(UserPassesTestMixin, DetailView):
         context['running_tasks'] = TEvent.objects.all().filter(parent_process=self.object,started=True, completed=False, errored=False).count()
         context['successful_tasks'] = TEvent.objects.all().filter(parent_process=self.object,completed=True).count()
         context['errored_tasks'] = TEvent.objects.all().filter(parent_process=self.object,errored=True).count()
-        context['url'] = '{}queries/{}.png'.format(settings.MEDIA_URL, self.object.pk, self.object.pk)
+        context['url'] = '{}queries/{}.png'.format(settings.MEDIA_URL, self.object.uuid)
         return context
 
     def test_func(self):
@@ -431,7 +431,7 @@ def search(request):
                                   'primary_key': qp.process.pk,
                                   'results': qp_context['results'],
                                   'regions': qp_context['regions'],
-                                  'url': '{}queries/{}.png'.format(settings.MEDIA_URL, qp.process.pk)
+                                  'url': '{}queries/{}.png'.format(settings.MEDIA_URL, qp.process.uuid)
                                   })
 
 

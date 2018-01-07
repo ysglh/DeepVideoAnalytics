@@ -278,19 +278,19 @@ class DVAPQLProcess(object):
             self.process.script = j
             self.process.save()
             if image_data:
-                query_path = "{}/queries/{}.png".format(settings.MEDIA_ROOT, self.process.pk)
-                redis_client.set("/queries/{}.png".format(self.process.pk),image_data,ex=1200)
+                query_path = "{}/queries/{}.png".format(settings.MEDIA_ROOT, self.process.uuid)
+                redis_client.set("/queries/{}.png".format(self.process.uuid),image_data,ex=1200)
                 with open(query_path, 'w') as fh:
                     fh.write(image_data)
                 if settings.DISABLE_NFS:
-                    query_key = "/queries/{}.png".format(self.process.pk)
+                    query_key = "/queries/{}.png".format(self.process.uuid)
                     fs.upload_file_to_remote(query_key)
                     os.remove(query_path)
         elif j['process_type'] == DVAPQL.PROCESS:
             self.process.process_type = DVAPQL.PROCESS
             self.process.script = j
             self.process.save()
-        elif j['process_type'] == DVAPQL.INGEST:
+        elif j['process_type'] == DVAPQL.SCHEDULE:
             raise NotImplementedError
         else:
             raise ValueError

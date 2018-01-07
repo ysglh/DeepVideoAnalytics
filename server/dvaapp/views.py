@@ -11,6 +11,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticate
 from .processing import DVAPQLProcess
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from dva.in_memory import redis_client
 import logging
 
 try:

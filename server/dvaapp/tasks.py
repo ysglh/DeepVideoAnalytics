@@ -12,7 +12,7 @@ from .operations.dataset import DatasetCreator
 from .processing import process_next, mark_as_completed
 from . import global_model_retriever
 from . import task_handlers
-from dvalib import retriever
+from dva.in_memory import redis_client
 from django.utils import timezone
 from celery.signals import task_prerun, celeryd_init
 from . import fs

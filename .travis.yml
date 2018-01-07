@@ -15,6 +15,7 @@ services:
   - docker
   - postgresql
   - rabbitmq
+  - redis-server
 
 addons:
   postgresql: "9.6"

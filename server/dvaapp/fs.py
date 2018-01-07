@@ -6,6 +6,8 @@ import boto3
 import shutil
 import errno
 import logging, subprocess, requests, zipfile, urlparse
+from dva.in_memory import redis_client
+
 try:
     from google.cloud import storage
 except:

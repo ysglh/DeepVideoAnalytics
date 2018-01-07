@@ -47,11 +47,18 @@ class DVAContext(object):
         else:
             r.raise_for_status()
 
-    def list_events(self):
+    def list_events(self,verbose=False,query_id=None):
         r = requests.get("{server}/events/".format(server=self.server),
                          headers=self.headers)
         if r.ok:
-            return r.json()
+            l = r.json()
+            if verbose:
+                for e in l:
+                    if query_id and e['parent_process'].strip('/').split('/')[-1] == str(query_id):
+                        print e['created'], e['start_ts'], e['operation'], e['started'], e['completed'], e['duration']
+                    else:
+                        print e['created'], e['start_ts'], e['operation'], e['started'], e['completed'], e['duration']
+            return l
         else:
             r.raise_for_status()
 

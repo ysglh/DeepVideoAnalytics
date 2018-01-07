@@ -23,15 +23,20 @@ class DVAQuery(object):
         else:
             raise ValueError("Query already requested")
 
-    def wait(self, timeout=3, max_attempts=20):
+    def wait(self, timeout=3, max_attempts=60, verbose=False):
+        i_timeout, i_max_attempts = timeout, max_attempts
         while not self.completed() and max_attempts > 0:
-            logging.info("Query {qid} not completed sleeping for {timeout} and"
-                         " waiting for at most {attempts} attempts, ".format(qid=self, timeout=timeout,
-                                                                             attempts=max_attempts))
+            msg = "Query {qid} not completed sleeping for {timeout} and waiting for at most {attempts} attempts, ".format(qid=self, timeout=timeout, attempts=max_attempts)
+            logging.info(msg)
+            if verbose:
+                print msg
+                self.context.list_events(verbose=True,query_id=self.query_id)
             max_attempts -= 1
             time.sleep(timeout)
         if max_attempts == 0:
-            raise ValueError('Timed out after {} seconds'.format(max_attempts * timeout))
+            print  'Timed out after {} seconds'.format(i_max_attempts * i_timeout)
+            return False
+        return True
 
     def completed(self):
         if self.results is None:

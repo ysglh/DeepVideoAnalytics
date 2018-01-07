@@ -44,6 +44,14 @@ spec:
         role: master
         tier: backend
     spec:
+      initContainers:
+      - name: "fix-non-root-permissions"
+        image: "busybox"
+        imagePullPolicy: "Always"
+        command: [ "chmod", "-R", "g+rwX", "/bitnami" ]
+        volumeMounts:
+        - name: redis-data
+          mountPath: /bitnami
       containers:
       - image: bitnami/redis
         imagePullPolicy: "IfNotPresent"

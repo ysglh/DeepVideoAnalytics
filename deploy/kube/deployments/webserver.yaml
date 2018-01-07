@@ -103,7 +103,7 @@ spec:
             secretKeyRef:
               name: redis-secret
               key: redishost
-        - name: REDIS_PASSSWORD
+        - name: REDIS_PASSWORD
           valueFrom:
             secretKeyRef:
               name: redis-secret

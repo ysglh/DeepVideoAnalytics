@@ -16,3 +16,4 @@ kubectl delete -f deployments/webserver.yaml
 kubectl delete -f deployments/scheduler.yaml
 kubectl delete -f deployments/crnn.yaml
 kubectl delete -f deployments/tagger.yaml
+kubectl delete -f deployments/global_retriever.yaml

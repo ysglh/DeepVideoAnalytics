@@ -276,12 +276,6 @@ class Retriever(models.Model):
     created = models.DateTimeField('date created', auto_now_add=True)
 
 
-class QueryIndexVector(models.Model):
-    event = models.OneToOneField(TEvent)
-    vector = models.BinaryField()
-    created = models.DateTimeField('date created', auto_now_add=True)
-
-
 class Frame(models.Model):
     video = models.ForeignKey(Video)
     event = models.ForeignKey(TEvent,null=True)

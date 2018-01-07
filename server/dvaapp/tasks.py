@@ -126,7 +126,7 @@ def perform_retrieval(task_id):
     args = start.arguments
     target = args.get('target', 'query')  # by default target is query
     if target == 'query':
-        vector = np.load(io.BytesIO(models.QueryIndexVector.objects.get(event=start.parent_id).vector))
+        vector = np.load(io.BytesIO(redis_client.get(start.parent_id)))
         Retrievers.retrieve(start, args.get('retriever_pk', 20), vector, args.get('count', 20))
     elif target == 'query_region_index_vectors':
         queryset, target = task_shared.build_queryset(args=args)

@@ -26,8 +26,7 @@ def handle_perform_indexing(start):
         # TODO: figure out a better way to store numpy arrays.
         s = io.BytesIO()
         np.save(s, vector)
-        # can be replaced by Redis instead of using DB
-        _ = models.QueryIndexVector.objects.create(vector=s.getvalue(), event=start)
+        redis_client.set(start.pk,s.getvalue())
         sync = False
     elif target == 'query_regions':
         queryset, target = task_shared.build_queryset(args=start.arguments)

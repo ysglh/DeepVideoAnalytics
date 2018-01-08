@@ -308,8 +308,8 @@ def import_frame_regions_json(regions_json,video,event_id):
 
 def get_sync_paths(dirname,task_id):
     if dirname == 'indexes':
-        f = [k.entries_path(media_root="") for k in IndexEntries.objects.filter(event_id=task_id)]
-        f += [k.npy_path(media_root="") for k in IndexEntries.objects.filter(event_id=task_id)]
+        f = [k.entries_path(media_root="") for k in IndexEntries.objects.filter(event_id=task_id) if k.entries_file_name]
+        f += [k.npy_path(media_root="") for k in IndexEntries.objects.filter(event_id=task_id) if k.features_file_name]
     elif dirname == 'frames':
         f = [k.path(media_root="") for k in Frame.objects.filter(event_id=task_id)]
     elif dirname == 'segments':

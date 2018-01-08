@@ -44,7 +44,7 @@ urlpatterns = [
     url(r'^videos/$', views.VideoList.as_view(), name="video_list"),
     url(r'^queries/$', views.VisualSearchList.as_view()),
     url(r'^Search$', views.search),
-    url(r'^videos/(?P<pk>\d+)/$', views.VideoDetail.as_view(), name='video_detail'),
+    url(r'^videos/(?P<pk>[0-9a-f-]+)/$', views.VideoDetail.as_view(), name='video_detail'),
     url(r'^frames/(?P<pk>\d+)/$', views.FrameDetail.as_view(), name='frame_detail'),
     url(r'^segments/(?P<pk>\d+)/$', views.SegmentDetail.as_view(), name='segment_detail'),
     url(r'^queries/(?P<pk>\d+)/$', views.VisualSearchDetail.as_view(), name='query_detail'),

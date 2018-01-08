@@ -39,11 +39,11 @@ class Indexers(object):
         if di.pk not in Indexers._visual_indexer:
             iroot = "{}/models/".format(settings.MEDIA_ROOT)
             if di.name == 'inception':
-                Indexers._visual_indexer[di.pk] = indexer.InceptionIndexer(iroot + "{}/network.pb".format(di.pk))
+                Indexers._visual_indexer[di.pk] = indexer.InceptionIndexer(iroot + "{}/network.pb".format(di.uuid))
             elif di.name == 'facenet':
-                Indexers._visual_indexer[di.pk] = indexer.FacenetIndexer(iroot + "{}/facenet.pb".format(di.pk))
+                Indexers._visual_indexer[di.pk] = indexer.FacenetIndexer(iroot + "{}/facenet.pb".format(di.uuid))
             elif di.algorithm == 'vgg':
-                Indexers._visual_indexer[di.pk] = indexer.VGGIndexer(iroot + "{}/{}".format(di.pk,di.files[0]['filename']))
+                Indexers._visual_indexer[di.pk] = indexer.VGGIndexer(iroot + "{}/{}".format(di.uuid,di.files[0]['filename']))
             else:
                 raise ValueError,"unregistered indexer with id {}".format(di.pk)
         return Indexers._visual_indexer[di.pk]

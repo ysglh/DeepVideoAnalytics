@@ -187,10 +187,11 @@ class TrainedModel(models.Model):
     produces_text = models.BooleanField(default=False)
     # Following allows us to have a hierarchy of models (E.g. inception pretrained -> inception fine tuned)
     parent = models.ForeignKey('self', null=True)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
     def create_directory(self,create_subdirs=True):
         try:
-            os.mkdir('{}/models/{}'.format(settings.MEDIA_ROOT, self.pk))
+            os.mkdir('{}/models/{}'.format(settings.MEDIA_ROOT, self.uuid))
         except:
             pass
 
@@ -198,14 +199,14 @@ class TrainedModel(models.Model):
         if root_dir is None:
             root_dir = settings.MEDIA_ROOT
         if self.model_filename:
-            return "{}/models/{}/{}".format(root_dir,self.pk,self.model_filename)
+            return "{}/models/{}/{}".format(root_dir,self.uuid,self.model_filename)
         elif self.files:
-            return "{}/models/{}/{}".format(root_dir, self.pk, self.files[0]['filename'])
+            return "{}/models/{}/{}".format(root_dir,self.uuid, self.files[0]['filename'])
         else:
             return None
 
     def get_yolo_args(self):
-        model_dir = "{}/models/{}/".format(settings.MEDIA_ROOT, self.pk)
+        model_dir = "{}/models/{}/".format(settings.MEDIA_ROOT, self.uuid)
         class_names = {k: v for k, v in json.loads(self.class_names)}
         args = {'root_dir': model_dir,
                 'detector_pk': self.pk,
@@ -221,7 +222,7 @@ class TrainedModel(models.Model):
         model_type_dir = "{}/models/".format(root_dir)
         if not os.path.isdir(model_type_dir):
             os.mkdir(model_type_dir)
-        model_dir = "{}/models/{}".format(root_dir, self.pk)
+        model_dir = "{}/models/{}".format(root_dir, self.uuid)
         if not os.path.isdir(model_dir):
             try:
                 os.mkdir(model_dir)
@@ -234,11 +235,11 @@ class TrainedModel(models.Model):
             else:
                 fs.get_path_to_file(m['url'],dlpath)
             if settings.DISABLE_NFS and sys.platform != 'darwin':
-                fs.upload_file_to_remote("/models/{}/{}".format(self.pk,m['filename']))
+                fs.upload_file_to_remote("/models/{}/{}".format(self.uuid,m['filename']))
         if self.model_type == TrainedModel.DETECTOR and self.detector_type == TrainedModel.YOLO:
-            source_zip = "{}/models/{}/model.zip".format(settings.MEDIA_ROOT, self.pk)
+            source_zip = "{}/models/{}/model.zip".format(settings.MEDIA_ROOT, self.uuid)
             zipf = zipfile.ZipFile(source_zip, 'r')
-            zipf.extractall("{}/models/{}/".format(settings.MEDIA_ROOT, self.pk))
+            zipf.extractall("{}/models/{}/".format(settings.MEDIA_ROOT, self.uuid))
             zipf.close()
             os.remove(source_zip)
             self.save()
@@ -262,9 +263,9 @@ class TrainedModel(models.Model):
 
     def ensure(self):
         for m in self.files:
-            dlpath = "{}/models/{}/{}".format(settings.MEDIA_ROOT, self.pk, m['filename'])
+            dlpath = "{}/models/{}/{}".format(settings.MEDIA_ROOT, self.uuid, m['filename'])
             if not os.path.isfile(dlpath):
-                fs.ensure("/models/{}/{}".format(self.pk,m['filename']))
+                fs.ensure("/models/{}/{}".format(self.uuid,m['filename']))
 
 
 class Retriever(models.Model):

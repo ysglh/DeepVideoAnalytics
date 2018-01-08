@@ -46,7 +46,7 @@ class Approximators(object):
     def get_approximator(cls,di):
         di.ensure()
         if di.pk not in Approximators._index_approximator:
-            model_dirname = "{}/models/{}".format(settings.MEDIA_ROOT, di.pk)
+            model_dirname = "{}/models/{}".format(settings.MEDIA_ROOT, di.uuid)
             if di.algorithm == 'LOPQ':
                 Approximators._index_approximator[di.pk] = approximator.LOPQApproximator(di.name, model_dirname)
             elif di.algorithm == 'PCA':

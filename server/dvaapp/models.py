@@ -35,8 +35,8 @@ class DVAPQL(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
 
-
 class Video(models.Model):
+    id = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True)
     name = models.CharField(max_length=500,default="")
     length_in_seconds = models.IntegerField(default=0)
     height = models.IntegerField(default=0)

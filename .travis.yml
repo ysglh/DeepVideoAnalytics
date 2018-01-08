@@ -67,7 +67,6 @@ script:
   - cd tests && python test_ci_search.py && cd ..
   - wget --quiet localhost:8000
   - wget --quiet localhost:8000/videos/
-  - wget --quiet localhost:8000/videos/1/
   - wget --quiet localhost:8000/status
   - wget --quiet localhost:8000/queries/
   - wget --quiet localhost:8000/queries/1/

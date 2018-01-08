@@ -644,8 +644,8 @@ def yt(request):
 
 
 @user_passes_test(user_check)
-def segment_by_index(request,video_pk,segment_index):
-    segment = Segment.objects.get(video_id=video_pk,segment_index=segment_index)
+def segment_by_index(request,pk,segment_index):
+    segment = Segment.objects.get(video_id=pk,segment_index=segment_index)
     return redirect('segment_detail',pk=segment.pk)
 
 

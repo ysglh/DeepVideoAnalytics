@@ -6,9 +6,9 @@ kubectl create -f deployments/gce-pd.yml
 kubectl create -f deployments/postgres.yaml
 kubectl create -f deployments/rabbitmq.yaml
 kubectl create -f deployments/redis.yaml
-sleep 60
+sleep 120
 kubectl create -f deployments/webserver.yaml
-sleep 30
+sleep 60
 kubectl create -f deployments/coco.yaml
 kubectl create -f deployments/extractor.yaml
 kubectl create -f deployments/face.yaml

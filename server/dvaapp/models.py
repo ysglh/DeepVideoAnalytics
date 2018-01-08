@@ -10,6 +10,17 @@ try:
     import numpy as np
 except ImportError:
     pass
+from uuid import UUID
+from json import JSONEncoder
+JSONEncoder_old = JSONEncoder.default
+
+
+def JSONEncoder_new(self, o):
+    if isinstance(o, UUID): return str(o)
+    return JSONEncoder_old(self, o)
+
+
+JSONEncoder.default = JSONEncoder_new
 
 
 class Worker(models.Model):

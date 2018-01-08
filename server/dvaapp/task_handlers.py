@@ -70,6 +70,7 @@ def handle_perform_index_approximation(start):
         approximation.Approximators.approximate_queryset(approx, da, queryset, start.video_id, start.pk)
     else:
         raise ValueError("Target {} not allowed, only index_entries are allowed".format(args['target']))
+    return True
 
 
 def handle_perform_detection(start):

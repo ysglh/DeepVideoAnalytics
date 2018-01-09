@@ -13,58 +13,11 @@ python:
 
 services:
   - docker
-  - postgresql
-  - rabbitmq
-  - redis-server
-
-addons:
-  postgresql: "9.6"
-
-virtualenv:
-  system_site_packages: true
-
-env:
-  global:
-    - AUTH_DISABLED=1
-    - LAUNCH_BY_NAME_indexer_inception=1
-    - LAUNCH_BY_NAME_retriever_inception=1
-    - LAUNCH_BY_NAME_detector_coco=1
-    - TRAVISTEST=1
-
-before_install:
-  - sudo apt-get -qq update
-  - wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-64bit-static.tar.xz && tar xvfJ ffmpeg-release-64bit-static.tar.xz
-  - sudo mv ffmpeg*/* /bin/
-  - sudo apt-get -qq install -y pkg-config python-dev unzip swig3.0 libopencv-dev libhdf5-dev python-pip libav-tools libjpeg-dev  libpng-dev  libtiff-dev  libjasper-dev  python-numpy python-scipy  python-pycurl  python-opencv
-  - sudo dpkg -L python-opencv
-  - sudo wget --quiet https://yt-dl.org/downloads/latest/youtube-dl -O /bin/youtube-dl
-  - sudo chmod a+rx /bin/youtube-dl
-  - youtube-dl -U
-  - pip install -q --only-binary=numpy,scipy numpy scipy
-  - pip install -q https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.4.0-cp27-none-linux_x86_64.whl
-  - pip install -q --no-deps keras
-  - pip install -q --no-deps h5py
-  - pip install -q --no-cache-dir http://download.pytorch.org/whl/cu75/torch-0.1.12.post2-cp27-none-linux_x86_64.whl
-  - pip install -q torchvision
-install: "pip install -q -r requirements.txt > /dev/null"
-
-
-before_script:
-  - mkdir ~/media
-  - cd repos/lopq/python && python setup.py install && cd ../../..
-  - cd repos/tf_ctpn_cpu/lib/utils && ./make.sh && cd ../../../..
-  - cd server && python manage.py migrate && cd ..
-  - cd tests/ci && wget --quiet https://www.dropbox.com/s/t4bgkh2w2ow8o10/WorldIsNotEnough.mp4 && cd ../..
-  - "export DISPLAY=:99.0"
-  - "sh -e /etc/init.d/xvfb start"
-  - sleep 3 # give xvfb some time to start
-  - cd server && python manage.py runserver 8000 &
 
 script:
-  - cd server && ./init_fs.py && cd ..
-  - cd tests && python test_ci.py && python test_ci_face.py && cd ..
-  - cd server && ./launch_from_env.py && cd ..
-  - cd tests && python test_ci_search.py && cd ..
+  - cd deploy/cpu && docker-compose -up -d
+  - sleep 180
+  - docker exec -it webserver bash -c 'cd ../tests && python test_ci.py && python test_ci_face.py && python test_ci_search.py'
   - wget --quiet localhost:8000
   - wget --quiet localhost:8000/videos/
   - wget --quiet localhost:8000/status

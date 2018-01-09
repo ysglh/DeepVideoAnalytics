@@ -8,14 +8,11 @@ branches:
   only:
   - master
 
-python:
-  - "2.7"
-
 services:
   - docker
 
 script:
-  - cd deploy/cpu && docker-compose -up -d
+  - cd deploy/cpu && docker-compose -f docker-compose-ci.yml up -d
   - sleep 180
   - docker exec -it webserver bash -c 'cd ../tests && python test_ci.py && python test_ci_face.py && python test_ci_search.py'
   - wget --quiet localhost:8000

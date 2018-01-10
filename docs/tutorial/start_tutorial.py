@@ -2,21 +2,22 @@
 import os, requests, subprocess, time, webbrowser
 
 if __name__ == '__main__':
-    print "Checking if docker is running"
+    print "Checking if docker-compose is available"
     max_minutes = 20
     try:
-        subprocess.check_call(["docker",'ps','-a'])
-    except:
-        raise SystemError("Docker is not running")
-    try:
-        subprocess.check_call(["docker-compose",'ps'],
-                              cwd=os.path.join(os.path.dirname(__file__),'../../deploy/cpu'))
+        subprocess.check_call(["docker-compose", 'ps'],
+                              cwd=os.path.join(os.path.dirname(__file__), '../../deploy/cpu'))
     except:
         raise SystemError("Docker-compose is not available")
-    print "Trying to launch containers, first time it might take a while to download container images"
+    print "Pulling/Refreshing container images, first time it might take a while to download the image"
     try:
-        compose_process = subprocess.Popen(["docker-compose",'up','-d'],
-                                           cwd=os.path.join(os.path.dirname(__file__),'../../deploy/cpu'))
+        subprocess.check_call(["docker", 'pull', 'akshayubhat/dva-auto:latest'])
+    except:
+        raise SystemError("Docker is not running / could not pull akshayubhat/dva-auto:latest image from docker hub")
+    print "Trying to launch containers"
+    try:
+        compose_process = subprocess.Popen(["docker-compose", 'up', '-d'],
+                                           cwd=os.path.join(os.path.dirname(__file__), '../../deploy/cpu'))
     except:
         raise SystemError("Could not start container")
     while max_minutes:
@@ -26,7 +27,7 @@ if __name__ == '__main__':
             if r.ok:
                 print "Open browser window and go to http://localhost:8000 to access DVA Web UI"
                 print 'Use following auth code to use jupyter notebook on  '
-                print subprocess.check_output(["docker","exec","-it","webserver","jupyter",'notebook','list'])
+                print subprocess.check_output(["docker", "exec", "-it", "webserver", "jupyter", 'notebook', 'list'])
                 print 'For windows you might need to replace "localhost" with ip address of docker-machine'
                 webbrowser.open("http://localhost:8000")
                 webbrowser.open("http://localhost:8888")

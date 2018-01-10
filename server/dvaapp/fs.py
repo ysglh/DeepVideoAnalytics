@@ -34,6 +34,38 @@ else:
     BUCKET = None
 
 
+def cacheable(path):
+    return path.startswith('/queries/') or '/segments/' in path or ('/frames/' in path and (path.endswith('.jpg') or path.endswith('.png')))
+
+
+def cache_path(path,expire_in_seconds=120):
+    """
+    :param path:
+    :return:
+    """
+    if not path.startswith('/'):
+        path = "/{}".format(path)
+    if cacheable(path):
+        with open('{}{}'.format(settings.MEDIA_ROOT,path),'rb') as body:
+            redis_client.set(path,body.read(),ex=expire_in_seconds,nx=True)
+        return True
+    else:
+        return False
+
+
+def get_from_cache(path):
+    """
+    :param path:
+    :return:
+    """
+    if not path.startswith('/'):
+        path = "/{}".format(path)
+    if cacheable(path):
+        body = redis_client(path)
+        return body
+    return None
+
+
 def mkdir_safe(dlpath):
     try:
         os.makedirs(os.path.dirname(dlpath))
@@ -95,7 +127,11 @@ def ensure(path, dirnames=None, media_root=None, safe=False, event_id=None):
             if dirname not in dirnames and not os.path.exists(dirname):
                 mkdir_safe(dlpath)
             src = path.strip('/')
-            if S3_MODE:
+            body = get_from_cache(path)
+            if body:
+                with open(dlpath,'w') as fout:
+                    fout.write(body)
+            elif S3_MODE:
                 try:
                     BUCKET.download_file(src,dlpath)
                 except:
@@ -154,7 +190,9 @@ def get_path_to_file(path,local_path):
         raise NotImplementedError("importing S3/GCS directories disabled or Unknown file system {}".format(path))
 
 
-def upload_file_to_remote(fpath):
+def upload_file_to_remote(fpath,cache=True):
+    if cache:
+        cache_path(fpath)
     if S3_MODE:
         with open('{}{}'.format(settings.MEDIA_ROOT,fpath),'rb') as body:
             S3.Object(settings.MEDIA_BUCKET,fpath.strip('/')).put(Body=body)
@@ -196,7 +234,7 @@ def upload_video_to_remote(video_id):
         for root, directories, filenames in os.walk(src):
             for filename in filenames:
                 path = os.path.join(root,filename)
-                upload_file_to_remote(path[root_length:])
+                upload_file_to_remote(path[root_length:],cache=False)
     else:
         raise ValueError
 
